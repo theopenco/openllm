@@ -1,0 +1,25 @@
+{
+	"name": "openllm",
+	"private": true,
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"scripts": {
+		"dev": "concurrently \"pnpm --filter api dev\" \"pnpm --filter ui dev\"",
+		"build": "pnpm --filter ui build && pnpm --filter api build",
+		"format": "eslint --fix . && prettier --write .",
+		"postinstall": "husky && sync-editorconfig",
+		"lint": "eslint . && prettier --check ."
+	},
+	"commitlint": {
+		"extends": "@steebchen/commitlint-config"
+	},
+	"prettier": "@steebchen/prettier-config",
+	"devDependencies": {
+		"@steebchen/commitlint-config": "^1.1.0",
+		"@steebchen/eslint-config": "^1.0.0",
+		"@steebchen/prettier-config": "^1.0.0",
+		"concurrently": "^8.0.0"
+	}
+}

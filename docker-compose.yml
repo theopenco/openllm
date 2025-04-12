@@ -1,0 +1,14 @@
+services:
+  postgres:
+    container_name: openllm-api-postgres
+    command: postgres -c log_statement=all
+    image: postgres:17-alpine
+    restart: always
+    ports:
+      - "5389:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pw
+      POSTGRES_DB: db
+    volumes:
+      - ~/data/openllm-api/data-pg-17:/var/lib/postgresql/data

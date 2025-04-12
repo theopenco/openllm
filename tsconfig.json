@@ -1,0 +1,9 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@shared/*": ["packages/shared/*"],
+			"@db/*": ["packages/db/*"]
+		}
+	}
+}
