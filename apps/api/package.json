@@ -21,7 +21,7 @@
 		"@openllm/db": "workspace:*",
 		"hono": "^4.7.6",
 		"hono-openapi": "^0.4.6",
-		"zod": "3.21.4",
+		"zod": "3.22.3",
 		"zod-openapi": "^4.2.4"
 	}
 }
