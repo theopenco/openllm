@@ -4,3 +4,6 @@ dist
 dist-ssr
 *.local
 .env
+.vercel
+.vinxi
+app.config.timestamp_*.js
