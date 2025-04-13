@@ -17,11 +17,11 @@
 		"push": "pnpm drizzle-kit push --config drizzle.config.ts"
 	},
 	"dependencies": {
-		"drizzle-orm": "1.0.0-beta.1-5e64efc",
+		"drizzle-orm": "1.0.0-beta.1-7946562",
 		"pg": "^8.14.1"
 	},
 	"devDependencies": {
 		"@types/pg": "^8.11.12",
-		"drizzle-kit": "1.0.0-beta.1-5e64efc"
+		"drizzle-kit": "1.0.0-beta.1-7946562"
 	}
 }

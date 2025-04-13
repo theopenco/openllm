@@ -1,12 +1,37 @@
+import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db } from "@openllm/db";
-import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { z } from "zod";
 
 import type { ServerTypes } from "../vars";
 
-export const user = new Hono<ServerTypes>();
+export const user = new OpenAPIHono<ServerTypes>();
 
-user.get("/me", async (c) => {
+const publicUserSchema = z.object({
+	id: z.string(),
+	email: z.string(),
+	name: z.string().nullable(),
+});
+
+const root = createRoute({
+	method: "get",
+	path: "/me",
+	request: {},
+	responses: {
+		200: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						user: publicUserSchema.openapi({}),
+					}),
+				},
+			},
+			description: "User response object.",
+		},
+	},
+});
+
+user.openapi(root, async (c) => {
 	const payload = c.get("jwtPayload");
 	if (!payload) {
 		throw new HTTPException(403, {
