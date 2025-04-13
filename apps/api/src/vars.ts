@@ -1,3 +1,5 @@
+import type { Env } from "hono/types";
+
 interface Variables {
 	// TODO
 	jwtPayload: {
@@ -5,6 +7,6 @@ interface Variables {
 	};
 }
 
-export interface ServerTypes {
+export interface ServerTypes extends Env {
 	Variables: Variables;
 }
