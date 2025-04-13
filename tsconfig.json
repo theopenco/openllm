@@ -1,5 +1,7 @@
 {
 	"compilerOptions": {
+		"allowJs": false,
+		"esModuleInterop": true,
 		"baseUrl": ".",
 		"paths": {
 			"@shared/*": ["packages/shared/*"],
