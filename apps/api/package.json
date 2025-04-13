@@ -15,7 +15,13 @@
 		"typescript": "^5.0.0"
 	},
 	"dependencies": {
+		"@hono/swagger-ui": "^0.5.1",
+		"@hono/zod-openapi": "^0.19.4",
+		"@hono/zod-validator": "^0.4.3",
 		"@openllm/db": "workspace:*",
-		"hono": "^4.7.6"
+		"hono": "^4.7.6",
+		"hono-openapi": "^0.4.6",
+		"zod": "3.21.4",
+		"zod-openapi": "^4.2.4"
 	}
 }
