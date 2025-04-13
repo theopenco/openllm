@@ -233,8 +233,8 @@ importers:
   packages/db:
     dependencies:
       drizzle-orm:
-        specifier: 1.0.0-beta.1-5e64efc
-        version: 1.0.0-beta.1-5e64efc(@types/pg@8.11.12)(gel@2.0.2)(pg@8.14.1)
+        specifier: 1.0.0-beta.1-7946562
+        version: 1.0.0-beta.1-7946562(@types/pg@8.11.12)(gel@2.0.2)(pg@8.14.1)
       pg:
         specifier: ^8.14.1
         version: 8.14.1
@@ -243,8 +243,8 @@ importers:
         specifier: ^8.11.12
         version: 8.11.12
       drizzle-kit:
-        specifier: 1.0.0-beta.1-5e64efc
-        version: 1.0.0-beta.1-5e64efc
+        specifier: 1.0.0-beta.1-7946562
+        version: 1.0.0-beta.1-7946562
 
 packages:
 
@@ -3327,12 +3327,12 @@ packages:
     resolution: {integrity: sha512-m/C+AwOAr9/W1UOIZUo232ejMNnJAJtYQjUbHoNTBNTJSvqzzDh7vnrei3o3r3m9blf6ZoDkvcw0VmozNRFJxg==}
     engines: {node: '>=12'}
 
-  drizzle-kit@1.0.0-beta.1-5e64efc:
-    resolution: {integrity: sha512-IC4NBgdDXOQoQByuPGsS2HX5lnnIh5mPC5pG+PY5T92/BVwGjzOS8KKJPLjgBqWWwOmt42Ue0clUXt+N/S5YiA==}
+  drizzle-kit@1.0.0-beta.1-7946562:
+    resolution: {integrity: sha512-Gkq8UQGKpOjEe2zRDNFknabOFX1y6v+6F3D7fnK2iEdbWcDlDkrRhiitpMVB8+B0K+5Y6j7rBMHtWFdt+YrSug==}
     hasBin: true
 
-  drizzle-orm@1.0.0-beta.1-5e64efc:
-    resolution: {integrity: sha512-6e4PiYowRLZMcvo7OKoYNWu8WsBhwhjAq+LHE5NCQx5k3BLQKPhOdUpo/DErkzCZrfDHY6mFty76PYt0JfYl3Q==}
+  drizzle-orm@1.0.0-beta.1-7946562:
+    resolution: {integrity: sha512-cjMiZZ9Dw6dFsIGmZ2nJNz4vRfEoy2xfxBgSagQKmw27IfNxN4GngENXWdZSP4hDU/+1OHXlS2JxquTw7fJh9Q==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -9211,7 +9211,7 @@ snapshots:
 
   dotenv@16.5.0: {}
 
-  drizzle-kit@1.0.0-beta.1-5e64efc:
+  drizzle-kit@1.0.0-beta.1-7946562:
     dependencies:
       '@drizzle-team/brocli': 0.10.2
       '@esbuild-kit/esm-loader': 2.6.5
@@ -9221,7 +9221,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@1.0.0-beta.1-5e64efc(@types/pg@8.11.12)(gel@2.0.2)(pg@8.14.1):
+  drizzle-orm@1.0.0-beta.1-7946562(@types/pg@8.11.12)(gel@2.0.2)(pg@8.14.1):
     optionalDependencies:
       '@types/pg': 8.11.12
       gel: 2.0.2
