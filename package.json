@@ -10,7 +10,8 @@
 		"build": "pnpm --filter ui build && pnpm --filter api build",
 		"format": "eslint --fix . && prettier --write .",
 		"postinstall": "husky && sync-editorconfig || true",
-		"lint": "eslint . && prettier --check ."
+		"lint": "eslint . && prettier --check .",
+		"push": "pnpm --filter db push"
 	},
 	"commitlint": {
 		"extends": "@steebchen/commitlint-config"
@@ -19,13 +20,16 @@
 	"devDependencies": {
 		"@steebchen/commitlint-config": "^1.5.0",
 		"@steebchen/eslint-config": "^1.4.1",
-		"@steebchen/lint-next": "^1.18.1",
+		"@steebchen/lint-next": "^1.18.2",
 		"@steebchen/prettier-config": "^1.3.0",
-		"concurrently": "^8.0.0",
+		"concurrently": "^9.1.2",
 		"eslint": "^9.24.0",
 		"husky": "^9.1.7",
 		"prettier": "^3.5.3",
-		"prettier-plugin-tailwindcss": "^0.6.11"
+		"prettier-plugin-tailwindcss": "^0.6.11",
+		"vite": "^6.2.6",
+		"vite-tsconfig-paths": "^5.1.4",
+		"vitest": "^3.1.1"
 	},
 	"disabledLinters": [
 		"eslint-plugin-tailwindcss"

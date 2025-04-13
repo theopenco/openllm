@@ -1,9 +1,26 @@
 {
 	"compilerOptions": {
-		"baseUrl": ".",
-		"paths": {
-			"@shared/*": ["packages/shared/*"],
-			"@db/*": ["packages/db/*"]
-		}
+		"outDir": "./dist/",
+		"noImplicitAny": true,
+		"moduleResolution": "bundler",
+		"module": "esnext",
+		"verbatimModuleSyntax": true,
+		"target": "es2022",
+		"declaration": true,
+		"removeComments": true,
+		"skipLibCheck": true,
+		"strict": true,
+		"strictNullChecks": true,
+		"strictFunctionTypes": true,
+		"strictBindCallApply": true,
+		"strictPropertyInitialization": true,
+		"noImplicitThis": true,
+		"alwaysStrict": true,
+		"esModuleInterop": true,
+		"sourceMap": false,
+		"noFallthroughCasesInSwitch": true,
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitReturns": true,
+		"noEmit": true
 	}
 }

@@ -2,6 +2,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { cva } from "class-variance-authority";
 import { PanelLeftIcon } from "lucide-react";
 import * as React from "react";
+import { useMemo } from "react";
 
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/lib/components/button";
@@ -113,7 +114,7 @@ function SidebarProvider({
 	// This makes it easier to style the sidebar with Tailwind classes.
 	const state = open ? "expanded" : "collapsed";
 
-	const contextValue = React.useMemo<SidebarContextProps>(
+	const contextValue = useMemo<SidebarContextProps>(
 		() => ({
 			state,
 			open,
@@ -608,7 +609,7 @@ function SidebarMenuSkeleton({
 	showIcon?: boolean;
 }) {
 	// Random width between 50 to 90%.
-	const width = React.useMemo(() => {
+	const width = useMemo(() => {
 		return `${Math.floor(Math.random() * 40) + 50}%`;
 	}, []);
 

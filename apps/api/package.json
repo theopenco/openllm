@@ -2,17 +2,26 @@
 	"name": "api",
 	"version": "1.0.0",
 	"private": true,
+	"type": "module",
 	"scripts": {
-		"dev": "ts-node-dev src/serve.ts",
+		"dev": "nodemon -e ts,json --exec 'tsx src/serve.ts'",
 		"build": "tsc"
 	},
 	"devDependencies": {
 		"@hono/node-server": "^1.14.1",
 		"@types/node": "^22.14.1",
-		"ts-node-dev": "^2.0.0",
+		"nodemon": "^3.1.9",
+		"tsx": "^4.19.3",
 		"typescript": "^5.0.0"
 	},
 	"dependencies": {
-		"hono": "^4.7.6"
+		"@hono/swagger-ui": "^0.5.1",
+		"@hono/zod-openapi": "^0.19.4",
+		"@hono/zod-validator": "^0.4.3",
+		"@openllm/db": "workspace:*",
+		"hono": "^4.7.6",
+		"hono-openapi": "^0.4.6",
+		"zod": "3.22.3",
+		"zod-openapi": "^4.2.4"
 	}
 }
