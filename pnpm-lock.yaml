@@ -41,7 +41,7 @@ importers:
 
   apps/api:
     dependencies:
-      db:
+      '@openllm/db':
         specifier: workspace:*
         version: link:../../packages/db
       hono:
