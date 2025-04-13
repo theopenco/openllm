@@ -10,7 +10,8 @@
 		"build": "pnpm --filter ui build && pnpm --filter api build",
 		"format": "eslint --fix . && prettier --write .",
 		"postinstall": "husky && sync-editorconfig || true",
-		"lint": "eslint . && prettier --check ."
+		"lint": "eslint . && prettier --check .",
+		"push": "pnpm --filter db push"
 	},
 	"commitlint": {
 		"extends": "@steebchen/commitlint-config"
@@ -25,7 +26,8 @@
 		"eslint": "^9.24.0",
 		"husky": "^9.1.7",
 		"prettier": "^3.5.3",
-		"prettier-plugin-tailwindcss": "^0.6.11"
+		"prettier-plugin-tailwindcss": "^0.6.11",
+		"vitest": "^3.1.1"
 	},
 	"disabledLinters": [
 		"eslint-plugin-tailwindcss"
