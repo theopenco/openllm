@@ -52,6 +52,49 @@ importers:
         version: 0.5.1(hono@4.7.6)
       '@hono/zod-openapi':
         specifier: ^0.19.4
+        version: 0.19.4(hono@4.7.6)(zod@3.22.3)
+      '@hono/zod-validator':
+        specifier: ^0.4.3
+        version: 0.4.3(hono@4.7.6)(zod@3.22.3)
+      '@openllm/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      hono:
+        specifier: ^4.7.6
+        version: 4.7.6
+      hono-openapi:
+        specifier: ^0.4.6
+        version: 0.4.6(@hono/zod-validator@0.4.3(hono@4.7.6)(zod@3.22.3))(hono@4.7.6)(zod-openapi@4.2.4(zod@3.22.3))(zod@3.22.3)
+      zod:
+        specifier: 3.22.3
+        version: 3.22.3
+      zod-openapi:
+        specifier: ^4.2.4
+        version: 4.2.4(zod@3.22.3)
+    devDependencies:
+      '@hono/node-server':
+        specifier: ^1.14.1
+        version: 1.14.1(hono@4.7.6)
+      '@types/node':
+        specifier: ^22.14.1
+        version: 22.14.1
+      nodemon:
+        specifier: ^3.1.9
+        version: 3.1.9
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
+      typescript:
+        specifier: ^5.0.0
+        version: 5.8.3
+
+  apps/gateway:
+    dependencies:
+      '@hono/swagger-ui':
+        specifier: ^0.5.1
+        version: 0.5.1(hono@4.7.6)
+      '@hono/zod-openapi':
+        specifier: ^0.19.4
         version: 0.19.4(hono@4.7.6)(zod@3.21.4)
       '@hono/zod-validator':
         specifier: ^0.4.3
@@ -5743,6 +5786,9 @@ packages:
   zod@3.21.4:
     resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
 
+  zod@3.22.3:
+    resolution: {integrity: sha512-EjIevzuJRiRPbVH4mGc8nApb/lVLKVpmUhAaR5R5doKGfAnGJ6Gr3CViAVjP+4FWSxCsybeWQdcgCtbX+7oZug==}
+
   zod@3.24.2:
     resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
@@ -5820,6 +5866,11 @@ snapshots:
     dependencies:
       openapi3-ts: 4.4.0
       zod: 3.21.4
+
+  '@asteasolutions/zod-to-openapi@7.3.0(zod@3.22.3)':
+    dependencies:
+      openapi3-ts: 4.4.0
+      zod: 3.22.3
 
   '@babel/code-frame@7.26.2':
     dependencies:
@@ -6412,10 +6463,22 @@ snapshots:
       hono: 4.7.6
       zod: 3.21.4
 
+  '@hono/zod-openapi@0.19.4(hono@4.7.6)(zod@3.22.3)':
+    dependencies:
+      '@asteasolutions/zod-to-openapi': 7.3.0(zod@3.22.3)
+      '@hono/zod-validator': 0.4.3(hono@4.7.6)(zod@3.22.3)
+      hono: 4.7.6
+      zod: 3.22.3
+
   '@hono/zod-validator@0.4.3(hono@4.7.6)(zod@3.21.4)':
     dependencies:
       hono: 4.7.6
       zod: 3.21.4
+
+  '@hono/zod-validator@0.4.3(hono@4.7.6)(zod@3.22.3)':
+    dependencies:
+      hono: 4.7.6
+      zod: 3.22.3
 
   '@hookform/resolvers@3.3.0(react-hook-form@7.45.4(react@19.1.0))':
     dependencies:
@@ -9477,6 +9540,15 @@ snapshots:
       zod: 3.21.4
       zod-openapi: 4.2.4(zod@3.21.4)
 
+  hono-openapi@0.4.6(@hono/zod-validator@0.4.3(hono@4.7.6)(zod@3.22.3))(hono@4.7.6)(zod-openapi@4.2.4(zod@3.22.3))(zod@3.22.3):
+    dependencies:
+      json-schema-walker: 2.0.0
+    optionalDependencies:
+      '@hono/zod-validator': 0.4.3(hono@4.7.6)(zod@3.22.3)
+      hono: 4.7.6
+      zod: 3.22.3
+      zod-openapi: 4.2.4(zod@3.22.3)
+
   hono@4.7.6: {}
 
   hookable@5.5.3: {}
@@ -11332,7 +11404,7 @@ snapshots:
       unenv: 1.10.0
       unstorage: 1.15.0(db0@0.3.1)(ioredis@5.6.1)
       vite: 6.2.6(@types/node@22.14.1)(jiti@2.4.2)(lightningcss@1.29.2)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1)
-      zod: 3.24.2
+      zod: 3.22.3
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -11410,7 +11482,7 @@ snapshots:
       unenv: 1.10.0
       unstorage: 1.15.0(db0@0.3.1)(ioredis@5.6.1)
       vite: 6.2.6(@types/node@22.14.1)(jiti@2.4.2)(lightningcss@1.29.2)(terser@5.39.0)(tsx@4.19.3)(yaml@2.7.1)
-      zod: 3.24.2
+      zod: 3.22.3
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -11687,6 +11759,12 @@ snapshots:
     dependencies:
       zod: 3.21.4
 
+  zod-openapi@4.2.4(zod@3.22.3):
+    dependencies:
+      zod: 3.22.3
+
   zod@3.21.4: {}
+
+  zod@3.22.3: {}
 
   zod@3.24.2: {}
