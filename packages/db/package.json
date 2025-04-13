@@ -1,6 +1,7 @@
 {
-	"name": "db",
+	"name": "@openllm/db",
 	"version": "1.0.0",
+	"type": "module",
 	"private": true,
 	"scripts": {
 		"push": "pnpm drizzle-kit push --config drizzle.config.ts"
