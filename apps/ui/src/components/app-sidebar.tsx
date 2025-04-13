@@ -1,5 +1,14 @@
+import { useQuery } from "@tanstack/react-query";
+import { Navigate, useNavigate } from "@tanstack/react-router";
 import { ChevronUp, Settings, User2 } from "lucide-react";
 
+import { Badge } from "@/lib/components/badge";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/lib/components/dropdown-menu";
 import {
 	Sidebar,
 	SidebarContent,
@@ -11,18 +20,8 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/lib/components/sidebar";
-
-import { Badge } from "@/lib/components/badge";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuTrigger,
-} from "@/lib/components/dropdown-menu";
-import { useQuery } from "@tanstack/react-query";
-import { getUser } from "@/lib/getUser";
-import { Navigate, useNavigate } from "@tanstack/react-router";
 import { APP_URL } from "@/lib/env";
+import { getUser } from "@/lib/getUser";
 
 // Menu items.
 const items = [
