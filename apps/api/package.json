@@ -13,6 +13,7 @@
 		"typescript": "^5.0.0"
 	},
 	"dependencies": {
-		"hono": "^4.7.6"
+		"hono": "^4.7.6",
+		"db": "workspace:*"
 	}
 }
