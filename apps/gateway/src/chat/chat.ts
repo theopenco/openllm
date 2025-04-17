@@ -201,14 +201,6 @@ chat.openapi(completions, async (c) => {
 				topP: top_p || null,
 				frequencyPenalty: frequency_penalty || null,
 				presencePenalty: presence_penalty || null,
-				messages: messages,
-				temperature: temperature !== undefined ? temperature.toString() : null,
-				maxTokens: max_tokens || null,
-				topP: top_p !== undefined ? top_p.toString() : null,
-				frequencyPenalty:
-					frequency_penalty !== undefined ? frequency_penalty.toString() : null,
-				presencePenalty:
-					presence_penalty !== undefined ? presence_penalty.toString() : null,
 			});
 
 			return c.json(json);
