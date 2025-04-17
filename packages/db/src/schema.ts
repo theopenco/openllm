@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, integer, json, decimal } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
 	id: text().primaryKey().notNull(),
@@ -79,4 +79,10 @@ export const log = pgTable("log", {
 	completionTokens: integer("completion_tokens"),
 	totalTokens: integer("total_tokens"),
 	projectId: text("project_id").notNull(),
+	messages: json().notNull(),
+	temperature: decimal(),
+	maxTokens: integer("max_tokens"),
+	topP: decimal("top_p"),
+	frequencyPenalty: decimal("frequency_penalty"),
+	presencePenalty: decimal("presence_penalty"),
 });
