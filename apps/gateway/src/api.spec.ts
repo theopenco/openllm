@@ -37,6 +37,9 @@ test.skip("/v1/chat/completions e2e success", async () => {
 test("/v1/chat/completions invalid model", async () => {
 	const res = await app.request("/v1/chat/completions", {
 		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
 		body: JSON.stringify({
 			model: "invalid",
 			messages: [
@@ -48,4 +51,22 @@ test("/v1/chat/completions invalid model", async () => {
 		}),
 	});
 	expect(res.status).toBe(400);
+});
+
+// test for missing Content-Type header
+test("/v1/chat/completions missing Content-Type header", async () => {
+	const res = await app.request("/v1/chat/completions", {
+		method: "POST",
+		// Intentionally not setting Content-Type header
+		body: JSON.stringify({
+			model: "gpt-4o-mini",
+			messages: [
+				{
+					role: "user",
+					content: "Hello!",
+				},
+			],
+		}),
+	});
+	expect(res.status).toBe(415);
 });

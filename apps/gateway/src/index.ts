@@ -1,5 +1,6 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
 import { chat } from "./chat/chat";
@@ -7,6 +8,20 @@ import { chat } from "./chat/chat";
 import type { ServerTypes } from "./vars";
 
 export const app = new OpenAPIHono<ServerTypes>();
+
+// Middleware to check for application/json content type on POST requests
+app.use("*", async (c, next) => {
+	if (c.req.method === "POST") {
+		const contentType = c.req.header("Content-Type");
+		if (!contentType || !contentType.includes("application/json")) {
+			throw new HTTPException(415, {
+				message:
+					"Unsupported Media Type: Content-Type must be application/json",
+			});
+		}
+	}
+	return await next();
+});
 
 const root = createRoute({
 	method: "get",
