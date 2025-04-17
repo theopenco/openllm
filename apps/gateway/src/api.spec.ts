@@ -1,4 +1,4 @@
-import { db, token, user } from "@openllm/db";
+import { db, token, user, organization, userOrganization } from "@openllm/db";
 import { beforeAll, describe, expect, test } from "vitest";
 
 import { app } from ".";
@@ -7,6 +7,8 @@ describe("test", () => {
 	beforeAll(async () => {
 		await db.delete(user);
 		await db.delete(token);
+		await db.delete(userOrganization);
+		await db.delete(organization);
 
 		await db.insert(user).values({
 			id: "user-id",
@@ -17,12 +19,27 @@ describe("test", () => {
 			password: "user",
 		});
 
+		await db.insert(organization).values({
+			id: "org-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			name: "Test Organization",
+		});
+
+		await db.insert(userOrganization).values({
+			id: "user-org-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			userId: "user-id",
+			organizationId: "org-id",
+		});
+
 		await db.insert(token).values({
 			id: "token-id",
 			createdAt: new Date().toString(),
 			updatedAt: new Date().toString(),
 			token: "real-token",
-			userId: "user-id",
+			organizationId: "org-id",
 		});
 	});
 
