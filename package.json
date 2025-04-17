@@ -21,7 +21,7 @@
 	"prettier": "@steebchen/prettier-config",
 	"devDependencies": {
 		"@steebchen/commitlint-config": "^1.5.0",
-		"@steebchen/eslint-config": "^1.4.2",
+		"@steebchen/eslint-config": "^1.4.3",
 		"@steebchen/lint-next": "^1.18.4",
 		"@steebchen/prettier-config": "^1.3.0",
 		"concurrently": "^9.1.2",
