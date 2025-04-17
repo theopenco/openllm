@@ -13,3 +13,15 @@ export const user = pgTable("user", {
 	email: text().notNull(),
 	password: text().notNull(),
 });
+
+export const token = pgTable("token", {
+	id: text().primaryKey().notNull(),
+	createdAt: text("created_at")
+		.default(sql`(current_timestamp)`)
+		.notNull(),
+	updatedAt: text("updated_at")
+		.default(sql`(current_timestamp)`)
+		.notNull(),
+	token: text().notNull().unique(),
+	userId: text("user_id").notNull(),
+});

@@ -1,74 +1,120 @@
-import { expect, test } from "vitest";
+import { db, token, user } from "@openllm/db";
+import { beforeAll, describe, expect, test } from "vitest";
 
 import { app } from ".";
 
-test("/", async () => {
-	const res = await app.request("/");
-	expect(res.status).toBe(200);
-	const text = await res.text();
-	expect(text).toMatch(/"message":"OK"/);
-});
+describe("test", () => {
+	beforeAll(async () => {
+		await db.delete(user);
+		await db.delete(token);
 
-// TODO make this an e2e test
-test.skip("/v1/chat/completions e2e success", async () => {
-	const res = await app.request("/v1/chat/completions", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer fake`,
-		},
-		body: JSON.stringify({
-			model: "gpt-4o-mini",
-			messages: [
-				{
-					role: "user",
-					content: "Hello!",
-				},
-			],
-		}),
-	});
-	const json = await res.json();
-	console.log(JSON.stringify(json, null, 2));
-	expect(res.status).toBe(200);
-	expect(json).toHaveProperty("choices.[0].message.content");
-	expect(json.choices[0].message.content).toMatch(/Hello!/);
-});
+		await db.insert(user).values({
+			id: "user-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			name: "user",
+			email: "user",
+			password: "user",
+		});
 
-// invalid model test
-test("/v1/chat/completions invalid model", async () => {
-	const res = await app.request("/v1/chat/completions", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer fake`,
-		},
-		body: JSON.stringify({
-			model: "invalid",
-			messages: [
-				{
-					role: "user",
-					content: "Hello!",
-				},
-			],
-		}),
+		await db.insert(token).values({
+			id: "token-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			token: "real-token",
+			userId: "user-id",
+		});
 	});
-	expect(res.status).toBe(400);
-});
 
-// test for missing Content-Type header
-test("/v1/chat/completions missing Content-Type header", async () => {
-	const res = await app.request("/v1/chat/completions", {
-		method: "POST",
-		// Intentionally not setting Content-Type header
-		body: JSON.stringify({
-			model: "gpt-4o-mini",
-			messages: [
-				{
-					role: "user",
-					content: "Hello!",
-				},
-			],
-		}),
+	test("/", async () => {
+		const res = await app.request("/");
+		expect(res.status).toBe(200);
+		const text = await res.text();
+		expect(text).toMatch(/"message":"OK"/);
 	});
-	expect(res.status).toBe(415);
+
+	// TODO make this an e2e test
+	test("/v1/chat/completions e2e success", async () => {
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "gpt-4o-mini",
+				messages: [
+					{
+						role: "user",
+						content: "Hello!",
+					},
+				],
+			}),
+		});
+		const json = await res.json();
+		console.log(JSON.stringify(json, null, 2));
+		expect(res.status).toBe(200);
+		expect(json).toHaveProperty("choices.[0].message.content");
+		expect(json.choices[0].message.content).toMatch(/Hello!/);
+	});
+
+	// invalid model test
+	test("/v1/chat/completions invalid model", async () => {
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer fake`,
+			},
+			body: JSON.stringify({
+				model: "invalid",
+				messages: [
+					{
+						role: "user",
+						content: "Hello!",
+					},
+				],
+			}),
+		});
+		expect(res.status).toBe(400);
+	});
+
+	// test for missing Content-Type header
+	test("/v1/chat/completions missing Content-Type header", async () => {
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			// Intentionally not setting Content-Type header
+			body: JSON.stringify({
+				model: "gpt-4o-mini",
+				messages: [
+					{
+						role: "user",
+						content: "Hello!",
+					},
+				],
+			}),
+		});
+		expect(res.status).toBe(415);
+	});
+
+	// test for missing Authorization header
+	test("/v1/chat/completions missing Authorization header", async () => {
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				// Intentionally not setting Authorization header
+			},
+			body: JSON.stringify({
+				model: "gpt-4o-mini",
+				messages: [
+					{
+						role: "user",
+						content: "Hello!",
+					},
+				],
+			}),
+		});
+		expect(res.status).toBe(401);
+	});
 });

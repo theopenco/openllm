@@ -1,4 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { db } from "@openllm/db";
 import { HTTPException } from "hono/http-exception";
 
 import type { ServerTypes } from "../vars";
@@ -55,6 +56,19 @@ chat.openapi(completions, async (c) => {
 		presence_penalty,
 	} = c.req.valid("json");
 
+	let provider = "openai";
+
+	switch (model) {
+		case "gpt-4o":
+		case "gpt-4o-mini":
+			provider = "openai";
+			break;
+		default:
+			throw new HTTPException(400, {
+				message: `Unsupported model: ${model}`,
+			});
+	}
+
 	const auth = c.req.header("Authorization");
 	if (!auth) {
 		throw new HTTPException(401, {
@@ -77,19 +91,18 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	// todo check for api token in db here
+	const dbToken = await db.query.token.findFirst({
+		where: {
+			token: {
+				eq: token,
+			},
+		},
+	});
 
-	let provider = "openai";
-
-	switch (model) {
-		case "gpt-4o":
-		case "gpt-4o-mini":
-			provider = "openai";
-			break;
-		default:
-			throw new HTTPException(400, {
-				message: `Unsupported model: ${model}`,
-			});
+	if (!dbToken) {
+		throw new HTTPException(401, {
+			message: "Unauthorized: Invalid token",
+		});
 	}
 
 	switch (provider) {
