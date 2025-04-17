@@ -214,8 +214,8 @@ chat.openapi(completions, async (c) => {
 			return c.json(json);
 		}
 		default:
-			throw new HTTPException(400, {
-				message: `Unsupported provider: ${usedProvider}`,
+			throw new HTTPException(500, {
+				message: `could not use provider: ${usedProvider}`,
 			});
 	}
 });

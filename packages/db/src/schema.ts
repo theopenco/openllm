@@ -2,7 +2,7 @@ import { sql } from "drizzle-orm";
 import { pgTable, text, integer, json, real } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
-	id: text().primaryKey().notNull(),
+	id: text("id").primaryKey().notNull(),
 	createdAt: text("created_at")
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -15,7 +15,7 @@ export const user = pgTable("user", {
 });
 
 export const organization = pgTable("organization", {
-	id: text().primaryKey().notNull(),
+	id: text("id").primaryKey().notNull(),
 	createdAt: text("created_at")
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -26,7 +26,7 @@ export const organization = pgTable("organization", {
 });
 
 export const userOrganization = pgTable("user_organization", {
-	id: text().primaryKey().notNull(),
+	id: text("id").primaryKey().notNull(),
 	createdAt: text("created_at")
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -38,51 +38,51 @@ export const userOrganization = pgTable("user_organization", {
 });
 
 export const project = pgTable("project", {
-	id: text().primaryKey().notNull(),
+	id: text("id").primaryKey().notNull(),
 	createdAt: text("created_at")
 		.default(sql`(current_timestamp)`)
 		.notNull(),
 	updatedAt: text("updated_at")
 		.default(sql`(current_timestamp)`)
 		.notNull(),
-	name: text().notNull(),
+	name: text("name").notNull(),
 	organizationId: text("organization_id").notNull(),
 });
 
 export const token = pgTable("token", {
-	id: text().primaryKey().notNull(),
+	id: text("id").primaryKey().notNull(),
 	createdAt: text("created_at")
 		.default(sql`(current_timestamp)`)
 		.notNull(),
 	updatedAt: text("updated_at")
 		.default(sql`(current_timestamp)`)
 		.notNull(),
-	token: text().notNull().unique(),
+	token: text("token").notNull().unique(),
 	projectId: text("project_id").notNull(),
 });
 
 export const log = pgTable("log", {
-	id: text().primaryKey().notNull(),
+	id: text("id").primaryKey().notNull(),
 	createdAt: text("created_at")
 		.default(sql`(current_timestamp)`)
 		.notNull(),
 	updatedAt: text("updated_at")
 		.default(sql`(current_timestamp)`)
 		.notNull(),
-	duration: integer().notNull(),
-	requestedModel: text().notNull(),
-	requestedProvider: text(),
-	usedModel: text().notNull(),
-	usedProvider: text().notNull(),
+	duration: integer("duration").notNull(),
+	requestedModel: text("requested_model").notNull(),
+	requestedProvider: text("requested_provider"),
+	usedModel: text("used_model").notNull(),
+	usedProvider: text("used_provider").notNull(),
 	responseSize: integer("response_size").notNull(),
-	content: text(),
+	content: text("content"),
 	finishReason: text("finish_reason"),
 	promptTokens: integer("prompt_tokens"),
 	completionTokens: integer("completion_tokens"),
 	totalTokens: integer("total_tokens"),
 	projectId: text("project_id").notNull(),
-	messages: json().notNull(),
-	temperature: real(),
+	messages: json("messages").notNull(),
+	temperature: real("temperature"),
 	maxTokens: integer("max_tokens"),
 	topP: real("top_p"),
 	frequencyPenalty: real("frequency_penalty"),

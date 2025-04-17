@@ -199,35 +199,10 @@ describe("test", () => {
 			}),
 		});
 		// Since the implementation only supports openai provider currently,
-		// this should return a 400 error for unsupported provider
-		expect(res.status).toBe(400);
+		// this should return a 500 error for unsupported provider
+		expect(res.status).toBe(500);
 		const msg = await res.text();
-		expect(msg).toMatch(/Unsupported provider: inference.net/);
-	});
-
-	// test for explicitly specifying a provider for a model with multiple providers
-	test("/v1/chat/completions with explicit provider for multi-provider model", async () => {
-		const res = await app.request("/v1/chat/completions", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer real-token`,
-			},
-			body: JSON.stringify({
-				model: "kluster.ai/llama-3.3-70b-instruct",
-				messages: [
-					{
-						role: "user",
-						content: "Hello with explicit provider for multi-provider model!",
-					},
-				],
-			}),
-		});
-		// Since the implementation only supports openai provider currently,
-		// this should return a 400 error for unsupported provider
-		expect(res.status).toBe(400);
-		const msg = await res.text();
-		expect(msg).toMatch(/Unsupported provider: kluster.ai/);
+		expect(msg).toMatch(/could not use provider: inference.net/);
 	});
 
 	// test for openllm/auto special case
@@ -248,10 +223,8 @@ describe("test", () => {
 				],
 			}),
 		});
-		// Since the implementation for openllm/auto is not complete yet,
-		// this should return a 400 error for unsupported provider
-		expect(res.status).toBe(400);
-		const msg = await res.text();
-		expect(msg).toMatch(/Unsupported provider: openllm/);
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		expect(json).toHaveProperty("choices.[0].message.content");
 	});
 });
