@@ -3,3 +3,5 @@ dist/
 .env
 packages/**/*.js
 apps/**/*.js
+
+*spec.yaml

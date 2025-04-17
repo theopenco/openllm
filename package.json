@@ -6,8 +6,10 @@
 		"packages/*"
 	],
 	"scripts": {
-		"dev": "concurrently \"pnpm --filter api dev\" \"pnpm --filter ui dev\"",
 		"build": "pnpm --filter ui build && pnpm --filter api build",
+		"clean": "find . -path \"./node_modules\" -prune -o \\( -type d -name \"dist\" -o -name \".turbo\" \\) -exec rm -rf {} +",
+		"clean:node_modules": "find . -type d -name \"node_modules\" -exec rm -rf {} +",
+		"dev": "concurrently \"pnpm --filter api dev\" \"pnpm --filter ui dev\"",
 		"format": "eslint --fix . && prettier --write .",
 		"postinstall": "husky && sync-editorconfig || true",
 		"lint": "eslint . && prettier --check .",
@@ -20,7 +22,7 @@
 	"devDependencies": {
 		"@steebchen/commitlint-config": "^1.5.0",
 		"@steebchen/eslint-config": "^1.4.2",
-		"@steebchen/lint-next": "^1.18.3",
+		"@steebchen/lint-next": "^1.18.4",
 		"@steebchen/prettier-config": "^1.3.0",
 		"concurrently": "^9.1.2",
 		"eslint": "^9.24.0",

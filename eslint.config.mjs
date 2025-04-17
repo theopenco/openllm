@@ -1,9 +1,11 @@
-import lint from "@steebchen/eslint-config";
+import lint from "@steebchen/lint-next";
 
 /** @type {import("eslint").Linter.Config[]} */
 export default [
 	...lint,
 	{
-		ignores: ["**/.vinxi/**"],
+		rules: {
+			"@typescript-eslint/consistent-type-assertions": "off",
+		},
 	},
 ];

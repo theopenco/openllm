@@ -15,8 +15,8 @@ importers:
         specifier: ^1.4.2
         version: 1.4.2(@typescript-eslint/eslint-plugin@8.30.1(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint-plugin-react@7.37.5(eslint@9.24.0(jiti@2.4.2)))(jiti@2.4.2)(typescript@5.8.3)
       '@steebchen/lint-next':
-        specifier: ^1.18.3
-        version: 1.18.3(@steebchen/commitlint-config@1.5.0)(@steebchen/prettier-config@1.3.0)(@typescript-eslint/eslint-plugin@8.30.1(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint-plugin-react@7.37.5(eslint@9.24.0(jiti@2.4.2)))(jiti@2.4.2)(tailwindcss@4.1.3)(typescript@5.8.3)
+        specifier: ^1.18.4
+        version: 1.18.4(@steebchen/commitlint-config@1.5.0)(@steebchen/prettier-config@1.3.0)(@typescript-eslint/eslint-plugin@8.30.1(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint-plugin-react@7.37.5(eslint@9.24.0(jiti@2.4.2)))(jiti@2.4.2)(tailwindcss@4.1.3)(typescript@5.8.3)
       '@steebchen/prettier-config':
         specifier: ^1.3.0
         version: 1.3.0
@@ -2063,8 +2063,8 @@ packages:
   '@steebchen/eslint-config@1.4.2':
     resolution: {integrity: sha512-DQ9GBxNy4RTpCbouu07ox1/WxIf5jxd/+7EiveULMcvcTkYnvn1jpWoswza7LeQbQl99GarCsqUIjpayEIfvhQ==}
 
-  '@steebchen/lint-next@1.18.3':
-    resolution: {integrity: sha512-qlbdlHnqH2j/U1ay/PLKRSrJMElDS6+1uFEQXRec0f+VfnNHH3iQeiifP9s6s0GkEx8Tst5p6YQOCSaTtOXt2g==}
+  '@steebchen/lint-next@1.18.4':
+    resolution: {integrity: sha512-2Mw054bS0xhFRVjhTOBy0wPg8MSyx5BdGsJ7q2Xalgp9v/+yCB7ODktBca4BiVqRcGYZvq5tmss8PPob9Jn/mg==}
     hasBin: true
     peerDependencies:
       '@steebchen/commitlint-config': workspace:*
@@ -7253,7 +7253,7 @@ snapshots:
       - typescript
       - vue-eslint-parser
 
-  '@steebchen/lint-next@1.18.3(@steebchen/commitlint-config@1.5.0)(@steebchen/prettier-config@1.3.0)(@typescript-eslint/eslint-plugin@8.30.1(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint-plugin-react@7.37.5(eslint@9.24.0(jiti@2.4.2)))(jiti@2.4.2)(tailwindcss@4.1.3)(typescript@5.8.3)':
+  '@steebchen/lint-next@1.18.4(@steebchen/commitlint-config@1.5.0)(@steebchen/prettier-config@1.3.0)(@typescript-eslint/eslint-plugin@8.30.1(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint-plugin-react@7.37.5(eslint@9.24.0(jiti@2.4.2)))(jiti@2.4.2)(tailwindcss@4.1.3)(typescript@5.8.3)':
     dependencies:
       '@abinnovision/eslint-config-base': 2.2.0(@typescript-eslint/eslint-plugin@8.30.1(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint-plugin-react@7.37.5(eslint@9.24.0(jiti@2.4.2)))(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3)
       '@abinnovision/eslint-config-react': 2.2.0(@typescript-eslint/eslint-plugin@8.30.1(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(@typescript-eslint/parser@8.30.1(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3))(eslint@9.24.0(jiti@2.4.2))(typescript@5.8.3)
