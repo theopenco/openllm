@@ -49,7 +49,7 @@ const completions = createRoute({
 
 chat.openapi(completions, async (c) => {
 	const {
-		model: rModel,
+		model: modelInput,
 		messages,
 		temperature,
 		max_tokens,
@@ -58,34 +58,43 @@ chat.openapi(completions, async (c) => {
 		presence_penalty,
 	} = c.req.valid("json");
 
-	let model: string = rModel;
+	let requestedModel: string = modelInput;
 	let requestedProvider: string | undefined;
-	if (rModel.includes("/")) {
-		const split = rModel.split("/");
+	if (modelInput.includes("/")) {
+		const split = modelInput.split("/");
 		requestedProvider = split[0];
 		if (!providers.find((p) => p.id === requestedProvider)) {
 			throw new HTTPException(400, {
 				message: `Requested provider ${requestedProvider} not supported`,
 			});
 		}
-		model = split[1];
-		if (!models.find((m) => m.model === model)) {
+		requestedModel = split[1];
+		if (!models.find((m) => m.model === requestedModel)) {
 			throw new HTTPException(400, {
-				message: `Requested model ${model} not supported`,
+				message: `Requested model ${requestedModel} not supported`,
 			});
 		}
 	}
 
-	const modelInfo = models.find((m) => m.model === model);
+	const modelInfo = models.find((m) => m.model === requestedModel);
 
 	if (!modelInfo) {
 		throw new HTTPException(400, {
-			message: `Unsupported model: ${model}`,
+			message: `Unsupported model: ${requestedModel}`,
 		});
 	}
 
+	let usedProvider = requestedProvider;
+	let usedModel = requestedModel;
+
 	// TODO figure out an algo for this instead of using the first one available
-	const provider = requestedProvider || modelInfo.providers[0];
+	if (!usedProvider) {
+		usedProvider = modelInfo.providers[0];
+	}
+	if (usedModel === "auto" && usedProvider === "openllm") {
+		usedModel = "gpt-4o-mini";
+		usedProvider = "openai";
+	}
 
 	const auth = c.req.header("Authorization");
 	if (!auth) {
@@ -123,11 +132,11 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	switch (provider) {
+	switch (usedProvider) {
 		case "openai": {
 			const key = process.env.OPENAI_API_KEY || "";
 			const requestBody: any = {
-				model,
+				model: usedModel,
 				messages,
 			};
 
@@ -176,8 +185,10 @@ chat.openapi(completions, async (c) => {
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 				duration,
-				model,
-				provider,
+				usedModel: usedModel,
+				usedProvider: usedProvider,
+				requestedModel: requestedModel,
+				requestedProvider: requestedProvider,
 				messages: messages,
 				responseSize: responseText.length,
 				content: json.choices?.[0]?.message?.content || null,
@@ -204,7 +215,7 @@ chat.openapi(completions, async (c) => {
 		}
 		default:
 			throw new HTTPException(400, {
-				message: `Unsupported provider: ${provider}`,
+				message: `Unsupported provider: ${usedProvider}`,
 			});
 	}
 });

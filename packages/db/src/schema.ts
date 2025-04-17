@@ -70,8 +70,10 @@ export const log = pgTable("log", {
 		.default(sql`(current_timestamp)`)
 		.notNull(),
 	duration: integer().notNull(),
-	model: text().notNull(),
-	provider: text().notNull(),
+	requestedModel: text().notNull(),
+	requestedProvider: text(),
+	usedModel: text().notNull(),
+	usedProvider: text().notNull(),
 	responseSize: integer("response_size").notNull(),
 	content: text(),
 	finishReason: text("finish_reason"),
