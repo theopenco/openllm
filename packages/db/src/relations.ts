@@ -8,7 +8,7 @@ export const relations = defineRelations(schema, (r) => ({
 	},
 	organization: {
 		userOrganizations: r.many.userOrganization(),
-		tokens: r.many.token(),
+		projects: r.many.project(),
 	},
 	userOrganization: {
 		user: r.one.user({
@@ -20,10 +20,17 @@ export const relations = defineRelations(schema, (r) => ({
 			to: r.organization.id,
 		}),
 	},
-	token: {
+	project: {
 		organization: r.one.organization({
-			from: r.token.organizationId,
+			from: r.project.organizationId,
 			to: r.organization.id,
+		}),
+		tokens: r.many.token(),
+	},
+	token: {
+		project: r.one.project({
+			from: r.token.projectId,
+			to: r.project.id,
 		}),
 	},
 }));
