@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { db } from "@openllm/db";
+import { db, log } from "@openllm/db";
+import { randomUUID } from "crypto";
 import { HTTPException } from "hono/http-exception";
 
 import type { ServerTypes } from "../vars";
@@ -130,6 +131,7 @@ chat.openapi(completions, async (c) => {
 				requestBody.presence_penalty = presence_penalty;
 			}
 
+			const startTime = Date.now();
 			const res = await fetch(`https://api.openai.com/v1/chat/completions`, {
 				method: "POST",
 				headers: {
@@ -138,13 +140,35 @@ chat.openapi(completions, async (c) => {
 				},
 				body: JSON.stringify(requestBody),
 			});
+			const duration = Date.now() - startTime;
+
 			if (!res.ok) {
 				console.error("error", res.status, res.statusText);
 				throw new HTTPException(500, {
 					message: `Error fetching ${res.status} ${res.statusText}`,
 				});
 			}
+
 			const json = await res.json();
+			const responseText = JSON.stringify(json);
+
+			// Log the request and response
+			await db.insert(log).values({
+				id: randomUUID(),
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+				duration,
+				model,
+				provider,
+				responseSize: responseText.length,
+				content: json.choices?.[0]?.message?.content || null,
+				finishReason: json.choices?.[0]?.finish_reason || null,
+				promptTokens: json.usage?.prompt_tokens || null,
+				completionTokens: json.usage?.completion_tokens || null,
+				totalTokens: json.usage?.total_tokens || null,
+				projectId: dbToken.projectId,
+			});
+
 			return c.json(json);
 		}
 		default:

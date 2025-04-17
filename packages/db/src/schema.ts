@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text } from "drizzle-orm/pg-core";
+import { pgTable, text, integer } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
 	id: text().primaryKey().notNull(),
@@ -58,5 +58,25 @@ export const token = pgTable("token", {
 		.default(sql`(current_timestamp)`)
 		.notNull(),
 	token: text().notNull().unique(),
+	projectId: text("project_id").notNull(),
+});
+
+export const log = pgTable("log", {
+	id: text().primaryKey().notNull(),
+	createdAt: text("created_at")
+		.default(sql`(current_timestamp)`)
+		.notNull(),
+	updatedAt: text("updated_at")
+		.default(sql`(current_timestamp)`)
+		.notNull(),
+	duration: integer().notNull(),
+	model: text().notNull(),
+	provider: text().notNull(),
+	responseSize: integer("response_size").notNull(),
+	content: text(),
+	finishReason: text("finish_reason"),
+	promptTokens: integer("prompt_tokens"),
+	completionTokens: integer("completion_tokens"),
+	totalTokens: integer("total_tokens"),
 	projectId: text("project_id").notNull(),
 });

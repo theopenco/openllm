@@ -5,6 +5,7 @@ import {
 	organization,
 	userOrganization,
 	project,
+	log,
 } from "@openllm/db";
 import { beforeAll, describe, expect, test } from "vitest";
 
@@ -12,6 +13,7 @@ import { app } from ".";
 
 describe("test", () => {
 	beforeAll(async () => {
+		await db.delete(log);
 		await db.delete(user);
 		await db.delete(token);
 		await db.delete(userOrganization);
@@ -89,6 +91,11 @@ describe("test", () => {
 		expect(res.status).toBe(200);
 		expect(json).toHaveProperty("choices.[0].message.content");
 		expect(json.choices[0].message.content).toMatch(/Hello!/);
+
+		// check for db log
+		const logs = await db.query.log.findMany({});
+		console.log("db logs", JSON.stringify(logs, null, 2));
+		expect(logs.length).toBe(1);
 	});
 
 	// invalid model test
