@@ -55,6 +55,30 @@ chat.openapi(completions, async (c) => {
 		presence_penalty,
 	} = c.req.valid("json");
 
+	const auth = c.req.header("Authorization");
+	if (!auth) {
+		throw new HTTPException(401, {
+			message:
+				"Unauthorized: No Authorization header provided. Expected 'Bearer your-api-token'",
+		});
+	}
+
+	const split = auth.split("Bearer ");
+	if (split.length !== 2) {
+		throw new HTTPException(401, {
+			message:
+				"Unauthorized: Invalid Authorization header format. Expected 'Bearer your-api-token'",
+		});
+	}
+	const token = split[1];
+	if (!token) {
+		throw new HTTPException(401, {
+			message: "Unauthorized: No token provided",
+		});
+	}
+
+	// todo check for api token in db here
+
 	let provider = "openai";
 
 	switch (model) {

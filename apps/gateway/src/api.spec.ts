@@ -15,6 +15,7 @@ test.skip("/v1/chat/completions e2e success", async () => {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
+			Authorization: `Bearer fake`,
 		},
 		body: JSON.stringify({
 			model: "gpt-4o-mini",
@@ -39,6 +40,7 @@ test("/v1/chat/completions invalid model", async () => {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
+			Authorization: `Bearer fake`,
 		},
 		body: JSON.stringify({
 			model: "invalid",
