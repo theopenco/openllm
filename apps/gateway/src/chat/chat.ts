@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { db, log } from "@openllm/db";
+import { models, providers } from "@openllm/models";
 import { randomUUID } from "crypto";
 import { HTTPException } from "hono/http-exception";
 
@@ -48,7 +49,7 @@ const completions = createRoute({
 
 chat.openapi(completions, async (c) => {
 	const {
-		model,
+		model: rModel,
 		messages,
 		temperature,
 		max_tokens,
@@ -57,18 +58,34 @@ chat.openapi(completions, async (c) => {
 		presence_penalty,
 	} = c.req.valid("json");
 
-	let provider = "openai";
-
-	switch (model) {
-		case "gpt-4o":
-		case "gpt-4o-mini":
-			provider = "openai";
-			break;
-		default:
+	let model: string = rModel;
+	let requestedProvider: string | undefined;
+	if (rModel.includes("/")) {
+		const split = rModel.split("/");
+		requestedProvider = split[0];
+		if (!providers.find((p) => p.id === requestedProvider)) {
 			throw new HTTPException(400, {
-				message: `Unsupported model: ${model}`,
+				message: `Requested provider ${requestedProvider} not supported`,
 			});
+		}
+		model = split[1];
+		if (!models.find((m) => m.model === model)) {
+			throw new HTTPException(400, {
+				message: `Requested model ${model} not supported`,
+			});
+		}
 	}
+
+	const modelInfo = models.find((m) => m.model === model);
+
+	if (!modelInfo) {
+		throw new HTTPException(400, {
+			message: `Unsupported model: ${model}`,
+		});
+	}
+
+	// TODO figure out an algo for this instead of using the first one available
+	const provider = requestedProvider || modelInfo.providers[0];
 
 	const auth = c.req.header("Authorization");
 	if (!auth) {
