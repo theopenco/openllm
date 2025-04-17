@@ -13,6 +13,9 @@ test("/", async () => {
 test.skip("/v1/chat/completions e2e success", async () => {
 	const res = await app.request("/v1/chat/completions", {
 		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
 		body: JSON.stringify({
 			model: "gpt-4o-mini",
 			messages: [
@@ -23,9 +26,9 @@ test.skip("/v1/chat/completions e2e success", async () => {
 			],
 		}),
 	});
-	expect(res.status).toBe(200);
 	const json = await res.json();
 	console.log(JSON.stringify(json, null, 2));
+	expect(res.status).toBe(200);
 	expect(json).toHaveProperty("choices.[0].message.content");
 	expect(json.choices[0].message.content).toMatch(/Hello!/);
 });

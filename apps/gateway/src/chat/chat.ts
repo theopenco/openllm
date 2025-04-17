@@ -1,6 +1,5 @@
-import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { HTTPException } from "hono/http-exception";
-import { z } from "zod";
 
 import type { ServerTypes } from "../vars";
 
@@ -21,6 +20,11 @@ const completions = createRoute({
 								content: z.string(),
 							}),
 						),
+						temperature: z.number().optional(),
+						max_tokens: z.number().optional(),
+						top_p: z.number().optional(),
+						frequency_penalty: z.number().optional(),
+						presence_penalty: z.number().optional(),
 					}),
 				},
 			},
@@ -41,7 +45,15 @@ const completions = createRoute({
 });
 
 chat.openapi(completions, async (c) => {
-	const { model, messages } = await c.req.json();
+	const {
+		model,
+		messages,
+		temperature,
+		max_tokens,
+		top_p,
+		frequency_penalty,
+		presence_penalty,
+	} = c.req.valid("json");
 
 	let provider = "openai";
 
@@ -59,16 +71,35 @@ chat.openapi(completions, async (c) => {
 	switch (provider) {
 		case "openai": {
 			const key = process.env.OPENAI_API_KEY || "";
+			const requestBody: any = {
+				model,
+				messages,
+			};
+
+			// Add optional parameters if they are provided
+			if (temperature !== undefined) {
+				requestBody.temperature = temperature;
+			}
+			if (max_tokens !== undefined) {
+				requestBody.max_tokens = max_tokens;
+			}
+			if (top_p !== undefined) {
+				requestBody.top_p = top_p;
+			}
+			if (frequency_penalty !== undefined) {
+				requestBody.frequency_penalty = frequency_penalty;
+			}
+			if (presence_penalty !== undefined) {
+				requestBody.presence_penalty = presence_penalty;
+			}
+
 			const res = await fetch(`https://api.openai.com/v1/chat/completions`, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer ${key}`,
 				},
-				body: JSON.stringify({
-					model,
-					messages,
-				}),
+				body: JSON.stringify(requestBody),
 			});
 			if (!res.ok) {
 				console.error("error", res.status, res.statusText);
