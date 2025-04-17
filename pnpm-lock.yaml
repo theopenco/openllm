@@ -289,6 +289,8 @@ importers:
         specifier: 1.0.0-beta.1-7946562
         version: 1.0.0-beta.1-7946562
 
+  packages/models: {}
+
 packages:
 
   '@abinnovision/commitlint-config@2.2.1':
