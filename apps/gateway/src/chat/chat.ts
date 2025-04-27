@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { db, log } from "@openllm/db";
-import { models, providers } from "@openllm/models";
+import { type Model, models, type Provider, providers } from "@openllm/models";
 import { randomUUID } from "crypto";
 import { HTTPException } from "hono/http-exception";
 
@@ -58,22 +58,24 @@ chat.openapi(completions, async (c) => {
 		presence_penalty,
 	} = c.req.valid("json");
 
-	let requestedModel: string = modelInput;
-	let requestedProvider: string | undefined;
+	let requestedModel: Model = modelInput as Model;
+	let requestedProvider: Provider | undefined;
 	if (modelInput.includes("/")) {
 		const split = modelInput.split("/");
-		requestedProvider = split[0];
-		if (!providers.find((p) => p.id === requestedProvider)) {
-			throw new HTTPException(400, {
-				message: `Requested provider ${requestedProvider} not supported`,
-			});
-		}
-		requestedModel = split[1];
-		if (!models.find((m) => m.model === requestedModel)) {
-			throw new HTTPException(400, {
-				message: `Requested model ${requestedModel} not supported`,
-			});
-		}
+		requestedProvider = split[0] as Provider;
+		requestedModel = split[1] as Model;
+	}
+
+	if (requestedProvider && !providers.find((p) => p.id === requestedProvider)) {
+		throw new HTTPException(400, {
+			message: `Requested provider ${requestedProvider} not supported`,
+		});
+	}
+
+	if (!models.find((m) => m.model === requestedModel)) {
+		throw new HTTPException(400, {
+			message: `Requested model ${requestedModel} not supported`,
+		});
 	}
 
 	const modelInfo = models.find((m) => m.model === requestedModel);
@@ -87,13 +89,13 @@ chat.openapi(completions, async (c) => {
 	let usedProvider = requestedProvider;
 	let usedModel = requestedModel;
 
-	// TODO figure out an algo for this instead of using the first one available
-	if (!usedProvider) {
-		usedProvider = modelInfo.providers[0];
-	}
-	if (usedModel === "auto" && usedProvider === "openllm") {
+	if (usedProvider === "openllm" && usedModel === "auto") {
+		// TODO figure out algo
 		usedModel = "gpt-4o-mini";
 		usedProvider = "openai";
+	} else if (!usedProvider) {
+		// TODO figure out algo
+		usedProvider = modelInfo.providers[0];
 	}
 
 	const auth = c.req.header("Authorization");
@@ -132,82 +134,88 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
+	let url: string | undefined;
+	let apiKey: string | undefined;
+
 	switch (usedProvider) {
 		case "openai": {
-			const openaiKey = process.env.OPENAI_API_KEY || "";
-			const requestBody: any = {
-				model: usedModel,
-				messages,
-			};
-
-			// Add optional parameters if they are provided
-			if (temperature !== undefined) {
-				requestBody.temperature = temperature;
-			}
-			if (max_tokens !== undefined) {
-				requestBody.max_tokens = max_tokens;
-			}
-			if (top_p !== undefined) {
-				requestBody.top_p = top_p;
-			}
-			if (frequency_penalty !== undefined) {
-				requestBody.frequency_penalty = frequency_penalty;
-			}
-			if (presence_penalty !== undefined) {
-				requestBody.presence_penalty = presence_penalty;
-			}
-
-			const startTime = Date.now();
-			const res = await fetch(`https://api.openai.com/v1/chat/completions`, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${openaiKey}`,
-				},
-				body: JSON.stringify(requestBody),
-			});
-			const duration = Date.now() - startTime;
-
-			if (!res.ok) {
-				console.error("error", res.status, res.statusText);
-				throw new HTTPException(500, {
-					message: `Error fetching ${res.status} ${res.statusText}`,
-				});
-			}
-
-			const json = await res.json();
-			const responseText = JSON.stringify(json);
-
-			// Log the request and response
-			await db.insert(log).values({
-				id: randomUUID(),
-				projectId: key.projectId,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-				duration,
-				usedModel: usedModel,
-				usedProvider: usedProvider,
-				requestedModel: requestedModel,
-				requestedProvider: requestedProvider,
-				messages: messages,
-				responseSize: responseText.length,
-				content: json.choices?.[0]?.message?.content || null,
-				finishReason: json.choices?.[0]?.finish_reason || null,
-				promptTokens: json.usage?.prompt_tokens || null,
-				completionTokens: json.usage?.completion_tokens || null,
-				totalTokens: json.usage?.total_tokens || null,
-				temperature: temperature || null,
-				maxTokens: max_tokens || null,
-				topP: top_p || null,
-				frequencyPenalty: frequency_penalty || null,
-				presencePenalty: presence_penalty || null,
-			});
-
-			return c.json(json);
+			url = "https://api.openai.com/v1/chat/completions";
+			apiKey = process.env.OPENAI_API_KEY || "";
+			break;
 		}
 		default:
 			throw new HTTPException(500, {
 				message: `could not use provider: ${usedProvider}`,
 			});
 	}
+
+	const requestBody: any = {
+		model: usedModel,
+		messages,
+	};
+
+	// Add optional parameters if they are provided
+	if (temperature !== undefined) {
+		requestBody.temperature = temperature;
+	}
+	if (max_tokens !== undefined) {
+		requestBody.max_tokens = max_tokens;
+	}
+	if (top_p !== undefined) {
+		requestBody.top_p = top_p;
+	}
+	if (frequency_penalty !== undefined) {
+		requestBody.frequency_penalty = frequency_penalty;
+	}
+	if (presence_penalty !== undefined) {
+		requestBody.presence_penalty = presence_penalty;
+	}
+
+	const startTime = Date.now();
+	const res = await fetch(url, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${apiKey}`,
+		},
+		body: JSON.stringify(requestBody),
+	});
+	const duration = Date.now() - startTime;
+
+	if (!res.ok) {
+		console.error("error", res.status, res.statusText);
+		throw new HTTPException(500, {
+			message: `Error fetching ${res.status} ${res.statusText}`,
+		});
+	}
+
+	const json = await res.json();
+	const responseText = JSON.stringify(json);
+
+	// Log the request and response
+	await db.insert(log).values({
+		id: randomUUID(),
+		projectId: key.projectId,
+		createdAt: new Date().toISOString(),
+		updatedAt: new Date().toISOString(),
+		duration,
+		usedModel: usedModel,
+		usedProvider: usedProvider,
+		requestedModel: requestedModel,
+		requestedProvider: requestedProvider,
+		messages: messages,
+		responseSize: responseText.length,
+		content: json.choices?.[0]?.message?.content || null,
+		finishReason: json.choices?.[0]?.finish_reason || null,
+		promptTokens: json.usage?.prompt_tokens || null,
+		completionTokens: json.usage?.completion_tokens || null,
+		totalTokens: json.usage?.total_tokens || null,
+		temperature: temperature || null,
+		maxTokens: max_tokens || null,
+		topP: top_p || null,
+		frequencyPenalty: frequency_penalty || null,
+		presencePenalty: presence_penalty || null,
+	});
+
+	return c.json(json);
 });
