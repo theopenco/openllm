@@ -13,7 +13,8 @@
 		"format": "eslint --fix . && prettier --write .",
 		"postinstall": "husky && sync-editorconfig || true",
 		"lint": "eslint . && prettier --check .",
-		"push": "pnpm --filter db push"
+		"push": "pnpm --filter db push",
+		"test": "vitest run"
 	},
 	"commitlint": {
 		"extends": "@steebchen/commitlint-config"
