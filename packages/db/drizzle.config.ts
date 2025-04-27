@@ -8,4 +8,5 @@ export default defineConfig({
 	dbCredentials: {
 		url: process.env.DATABASE_URL || "postgres://postgres:pw@localhost:5389/db",
 	},
+	casing: "snake_case",
 });
