@@ -69,7 +69,9 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
-      - name: Build
+      - name: Compose
+        run: docker compose -f docker-compose.test.yml up -d
+      - name: Test
         run: pnpm test
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
