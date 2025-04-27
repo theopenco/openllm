@@ -9,7 +9,7 @@
 		"build": "pnpm -r build",
 		"clean": "find . -path \"./node_modules\" -prune -o \\( -type d -name \"dist\" -o -name \".turbo\" \\) -exec rm -rf {} +",
 		"clean:node_modules": "find . -type d -name \"node_modules\" -exec rm -rf {} +",
-		"dev": "concurrently \"pnpm --filter gateway dev\" \"pnpm --filter api dev\" \"pnpm --filter ui dev\"",
+		"dev": "pnpm -r --parallel dev",
 		"format": "eslint --fix . && prettier --write .",
 		"postinstall": "husky && sync-editorconfig || true",
 		"lint": "eslint . && prettier --check .",
