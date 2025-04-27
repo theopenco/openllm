@@ -8,12 +8,12 @@ import {
 	user,
 	userOrganization,
 } from "@openllm/db";
-import { beforeAll, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
 
 describe("test", () => {
-	beforeAll(async () => {
+	beforeEach(async () => {
 		await db.delete(log);
 		await db.delete(user);
 		await db.delete(apiKey);
@@ -53,7 +53,17 @@ describe("test", () => {
 			name: "Test Project",
 			organizationId: "org-id",
 		});
+	});
 
+	test("/", async () => {
+		const res = await app.request("/");
+		expect(res.status).toBe(200);
+		const text = await res.text();
+		expect(text).toMatchInlineSnapshot(`"{"message":"OK"}"`);
+	});
+
+	// TODO make this an e2e test
+	test("/v1/chat/completions e2e success", async () => {
 		await db.insert(apiKey).values({
 			id: "token-id",
 			createdAt: new Date().toString(),
@@ -70,17 +80,7 @@ describe("test", () => {
 			provider: "openai",
 			projectId: "project-id",
 		});
-	});
 
-	test("/", async () => {
-		const res = await app.request("/");
-		expect(res.status).toBe(200);
-		const text = await res.text();
-		expect(text).toMatch(/"message":"OK"/);
-	});
-
-	// TODO make this an e2e test
-	test("/v1/chat/completions e2e success", async () => {
 		const res = await app.request("/v1/chat/completions", {
 			method: "POST",
 			headers: {
@@ -171,6 +171,23 @@ describe("test", () => {
 
 	// test for explicitly specifying a provider in the format "provider/model"
 	test("/v1/chat/completions with explicit provider", async () => {
+		await db.insert(apiKey).values({
+			id: "token-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			token: "real-token",
+			projectId: "project-id",
+		});
+
+		await db.insert(providerKey).values({
+			id: "provider-key-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			token: process.env.OPENAI_API_KEY || "sk-test-key",
+			provider: "openai",
+			projectId: "project-id",
+		});
+
 		const res = await app.request("/v1/chat/completions", {
 			method: "POST",
 			headers: {
@@ -192,6 +209,23 @@ describe("test", () => {
 
 	// test for model with multiple providers (llama-3.3-70b-instruct)
 	test("/v1/chat/completions with model that has multiple providers", async () => {
+		await db.insert(apiKey).values({
+			id: "token-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			token: "real-token",
+			projectId: "project-id",
+		});
+
+		await db.insert(providerKey).values({
+			id: "provider-key-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			token: process.env.OPENAI_API_KEY || "sk-test-key",
+			provider: "openai",
+			projectId: "project-id",
+		});
+
 		// This test will use the default provider (first in the list) for llama-3.3-70b-instruct
 		const res = await app.request("/v1/chat/completions", {
 			method: "POST",
@@ -213,11 +247,30 @@ describe("test", () => {
 		// this should return a 500 error for unsupported provider
 		expect(res.status).toBe(500);
 		const msg = await res.text();
-		expect(msg).toMatch(/could not use provider: inference.net/);
+		expect(msg).toMatchInlineSnapshot(
+			`"could not use provider: inference.net"`,
+		);
 	});
 
 	// test for openllm/auto special case
 	test("/v1/chat/completions with openllm/auto", async () => {
+		await db.insert(apiKey).values({
+			id: "token-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			token: "real-token",
+			projectId: "project-id",
+		});
+
+		await db.insert(providerKey).values({
+			id: "provider-key-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			token: process.env.OPENAI_API_KEY || "sk-test-key",
+			provider: "openai",
+			projectId: "project-id",
+		});
+
 		const res = await app.request("/v1/chat/completions", {
 			method: "POST",
 			headers: {
@@ -237,5 +290,38 @@ describe("test", () => {
 		expect(res.status).toBe(200);
 		const json = await res.json();
 		expect(json).toHaveProperty("choices.[0].message.content");
+	});
+
+	// test for missing provider API key
+	test("/v1/chat/completions with missing provider API key", async () => {
+		await db.insert(apiKey).values({
+			id: "token-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			token: "real-token",
+			projectId: "project-id",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "gpt-4o-mini",
+				messages: [
+					{
+						role: "user",
+						content: "Hello without provider key!",
+					},
+				],
+			}),
+		});
+		expect(res.status).toBe(400);
+		const errorMessage = await res.text();
+		expect(errorMessage).toMatchInlineSnapshot(
+			`"No API key set for provider: openai. Please add a provider key in your settings."`,
+		);
 	});
 });

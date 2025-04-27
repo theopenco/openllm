@@ -176,7 +176,7 @@ chat.openapi(completions, async (c) => {
 
 	if (!providerKey) {
 		throw new HTTPException(400, {
-			message: `No API key found for provider: ${usedProvider}. Please add a provider key in your settings.`,
+			message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings.`,
 		});
 	}
 
