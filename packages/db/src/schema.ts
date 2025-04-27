@@ -49,7 +49,7 @@ export const project = pgTable("project", {
 	organizationId: text("organization_id").notNull(),
 });
 
-export const token = pgTable("token", {
+export const key = pgTable("key", {
 	id: text("id").primaryKey().notNull(),
 	createdAt: text("created_at")
 		.default(sql`(current_timestamp)`)

@@ -118,7 +118,7 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	const dbToken = await db.query.token.findFirst({
+	const key = await db.query.key.findFirst({
 		where: {
 			token: {
 				eq: token,
@@ -126,7 +126,7 @@ chat.openapi(completions, async (c) => {
 		},
 	});
 
-	if (!dbToken) {
+	if (!key) {
 		throw new HTTPException(401, {
 			message: "Unauthorized: Invalid token",
 		});
@@ -134,7 +134,7 @@ chat.openapi(completions, async (c) => {
 
 	switch (usedProvider) {
 		case "openai": {
-			const key = process.env.OPENAI_API_KEY || "";
+			const openaiKey = process.env.OPENAI_API_KEY || "";
 			const requestBody: any = {
 				model: usedModel,
 				messages,
@@ -162,7 +162,7 @@ chat.openapi(completions, async (c) => {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${key}`,
+					Authorization: `Bearer ${openaiKey}`,
 				},
 				body: JSON.stringify(requestBody),
 			});
@@ -181,7 +181,7 @@ chat.openapi(completions, async (c) => {
 			// Log the request and response
 			await db.insert(log).values({
 				id: randomUUID(),
-				projectId: dbToken.projectId,
+				projectId: key.projectId,
 				createdAt: new Date().toISOString(),
 				updatedAt: new Date().toISOString(),
 				duration,

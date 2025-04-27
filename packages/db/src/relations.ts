@@ -25,12 +25,12 @@ export const relations = defineRelations(schema, (r) => ({
 			from: r.project.organizationId,
 			to: r.organization.id,
 		}),
-		tokens: r.many.token(),
+		keys: r.many.key(),
 		logs: r.many.log(),
 	},
-	token: {
+	key: {
 		project: r.one.project({
-			from: r.token.projectId,
+			from: r.key.projectId,
 			to: r.project.id,
 		}),
 	},

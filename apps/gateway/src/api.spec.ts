@@ -3,7 +3,7 @@ import {
 	log,
 	organization,
 	project,
-	token,
+	key,
 	user,
 	userOrganization,
 } from "@openllm/db";
@@ -15,7 +15,7 @@ describe("test", () => {
 	beforeAll(async () => {
 		await db.delete(log);
 		await db.delete(user);
-		await db.delete(token);
+		await db.delete(key);
 		await db.delete(userOrganization);
 		await db.delete(project);
 		await db.delete(organization);
@@ -52,7 +52,7 @@ describe("test", () => {
 			organizationId: "org-id",
 		});
 
-		await db.insert(token).values({
+		await db.insert(key).values({
 			id: "token-id",
 			createdAt: new Date().toString(),
 			updatedAt: new Date().toString(),
