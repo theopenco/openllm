@@ -1,4 +1,4 @@
-export interface Provider {
+export interface ProviderDefinition {
 	id: string;
 	name: string;
 	description: string;
@@ -29,4 +29,4 @@ export const providers = [
 		description:
 			"Kluster.ai is a platform for running large language models in the cloud.",
 	},
-] as const satisfies Provider[];
+] as const satisfies ProviderDefinition[];
