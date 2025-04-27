@@ -20,7 +20,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/lib/components/sidebar";
-import { APP_URL } from "@/lib/env";
+import { API_URL } from "@/lib/env";
 import { getUser } from "@/lib/getUser";
 
 // Menu items.
@@ -51,7 +51,7 @@ export function AppSidebar() {
 	}
 
 	const logout = async () => {
-		const res = await fetch(`${APP_URL}/auth/logout`, {
+		const res = await fetch(`${API_URL}/auth/logout`, {
 			method: "POST",
 			credentials: "include",
 		});
