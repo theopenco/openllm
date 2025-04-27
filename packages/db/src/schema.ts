@@ -93,6 +93,9 @@ export const log = pgTable("log", {
 	updatedAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
+	projectId: text().notNull(),
+	apiKeyId: text().notNull(),
+	providerKeyId: text().notNull(),
 	duration: integer().notNull(),
 	requestedModel: text().notNull(),
 	requestedProvider: text(),
@@ -104,7 +107,6 @@ export const log = pgTable("log", {
 	promptTokens: integer(),
 	completionTokens: integer(),
 	totalTokens: integer(),
-	projectId: text().notNull(),
 	messages: json().notNull(),
 	temperature: real(),
 	maxTokens: integer(),
