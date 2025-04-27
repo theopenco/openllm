@@ -3,7 +3,8 @@ import {
 	log,
 	organization,
 	project,
-	key,
+	apiKey,
+	providerKey,
 	user,
 	userOrganization,
 } from "@openllm/db";
@@ -15,7 +16,8 @@ describe("test", () => {
 	beforeAll(async () => {
 		await db.delete(log);
 		await db.delete(user);
-		await db.delete(key);
+		await db.delete(apiKey);
+		await db.delete(providerKey);
 		await db.delete(userOrganization);
 		await db.delete(project);
 		await db.delete(organization);
@@ -52,11 +54,20 @@ describe("test", () => {
 			organizationId: "org-id",
 		});
 
-		await db.insert(key).values({
+		await db.insert(apiKey).values({
 			id: "token-id",
 			createdAt: new Date().toString(),
 			updatedAt: new Date().toString(),
 			token: "real-token",
+			projectId: "project-id",
+		});
+
+		await db.insert(providerKey).values({
+			id: "provider-key-id",
+			createdAt: new Date().toString(),
+			updatedAt: new Date().toString(),
+			token: process.env.OPENAI_API_KEY || "sk-test-key",
+			provider: "openai",
 			projectId: "project-id",
 		});
 	});

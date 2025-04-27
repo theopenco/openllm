@@ -120,7 +120,7 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	const key = await db.query.key.findFirst({
+	const apiKey = await db.query.apiKey.findFirst({
 		where: {
 			token: {
 				eq: token,
@@ -128,25 +128,56 @@ chat.openapi(completions, async (c) => {
 		},
 	});
 
-	if (!key) {
+	if (!apiKey) {
 		throw new HTTPException(401, {
 			message: "Unauthorized: Invalid token",
 		});
 	}
 
 	let url: string | undefined;
-	let apiKey: string | undefined;
 
 	switch (usedProvider) {
 		case "openai": {
 			url = "https://api.openai.com/v1/chat/completions";
-			apiKey = process.env.OPENAI_API_KEY || "";
 			break;
 		}
 		default:
 			throw new HTTPException(500, {
 				message: `could not use provider: ${usedProvider}`,
 			});
+	}
+
+	// Get the project associated with this API key
+	const project = await db.query.project.findFirst({
+		where: {
+			id: {
+				eq: apiKey.projectId,
+			},
+		},
+	});
+
+	if (!project) {
+		throw new HTTPException(500, {
+			message: "Could not find project associated with this API key",
+		});
+	}
+
+	// Get the provider key for the selected provider
+	const providerKey = await db.query.providerKey.findFirst({
+		where: {
+			projectId: {
+				eq: project.id,
+			},
+			provider: {
+				eq: usedProvider,
+			},
+		},
+	});
+
+	if (!providerKey) {
+		throw new HTTPException(400, {
+			message: `No API key found for provider: ${usedProvider}. Please add a provider key in your settings.`,
+		});
 	}
 
 	const requestBody: any = {
@@ -176,7 +207,7 @@ chat.openapi(completions, async (c) => {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${apiKey}`,
+			Authorization: `Bearer ${providerKey.token}`,
 		},
 		body: JSON.stringify(requestBody),
 	});
@@ -195,7 +226,7 @@ chat.openapi(completions, async (c) => {
 	// Log the request and response
 	await db.insert(log).values({
 		id: randomUUID(),
-		projectId: key.projectId,
+		projectId: apiKey.projectId,
 		createdAt: new Date().toISOString(),
 		updatedAt: new Date().toISOString(),
 		duration,

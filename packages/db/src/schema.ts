@@ -1,5 +1,12 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, integer, json, real } from "drizzle-orm/pg-core";
+import {
+	integer,
+	json,
+	pgTable,
+	real,
+	text,
+	unique,
+} from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
 	id: text("id").primaryKey().notNull(),
@@ -49,7 +56,7 @@ export const project = pgTable("project", {
 	organizationId: text("organization_id").notNull(),
 });
 
-export const key = pgTable("key", {
+export const apiKey = pgTable("api_key", {
 	id: text("id").primaryKey().notNull(),
 	createdAt: text("created_at")
 		.default(sql`(current_timestamp)`)
@@ -60,6 +67,23 @@ export const key = pgTable("key", {
 	token: text("token").notNull().unique(),
 	projectId: text("project_id").notNull(),
 });
+
+export const providerKey = pgTable(
+	"provider_key",
+	{
+		id: text("id").primaryKey().notNull(),
+		createdAt: text("created_at")
+			.default(sql`(current_timestamp)`)
+			.notNull(),
+		updatedAt: text("updated_at")
+			.default(sql`(current_timestamp)`)
+			.notNull(),
+		token: text("token").notNull().unique(),
+		provider: text("provider").notNull(),
+		projectId: text("project_id").notNull(),
+	},
+	(table) => [unique().on(table.projectId, table.provider)],
+);
 
 export const log = pgTable("log", {
 	id: text("id").primaryKey().notNull(),
