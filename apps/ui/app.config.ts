@@ -7,7 +7,6 @@ export default defineConfig({
 		devProxy: {
 			"/api": {
 				target: "http://localhost:4002",
-				changeOrigin: true,
 			},
 		},
 		prerender: {

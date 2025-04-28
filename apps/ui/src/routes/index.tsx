@@ -9,9 +9,14 @@ function Home() {
 	return (
 		<main className="grid h-screen place-items-center">
 			<div className="flex items-center self-center">
-				<Link to="/dashboard" className="text-blue-500 underline">
-					Dashboard
-				</Link>
+				<div className="flex flex-col items-center">
+					<Link to="/dashboard" className="text-blue-500 underline">
+						Dashboard
+					</Link>
+					<Link to="/login" className="text-blue-500 underline">
+						Login
+					</Link>
+				</div>
 			</div>
 		</main>
 	);

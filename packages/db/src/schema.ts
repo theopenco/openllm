@@ -9,7 +9,10 @@ import {
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
-	id: text().primaryKey().notNull(),
+	id: text()
+		.primaryKey()
+		.notNull()
+		.default(sql`uuid_generate_v4()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -17,12 +20,15 @@ export const user = pgTable("user", {
 		.default(sql`(current_timestamp)`)
 		.notNull(),
 	name: text(),
-	email: text().notNull(),
+	email: text().notNull().unique(),
 	password: text().notNull(),
 });
 
 export const organization = pgTable("organization", {
-	id: text().primaryKey().notNull(),
+	id: text()
+		.primaryKey()
+		.notNull()
+		.default(sql`uuid_generate_v4()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -33,7 +39,10 @@ export const organization = pgTable("organization", {
 });
 
 export const userOrganization = pgTable("user_organization", {
-	id: text().primaryKey().notNull(),
+	id: text()
+		.primaryKey()
+		.notNull()
+		.default(sql`uuid_generate_v4()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -45,7 +54,10 @@ export const userOrganization = pgTable("user_organization", {
 });
 
 export const project = pgTable("project", {
-	id: text().primaryKey().notNull(),
+	id: text()
+		.primaryKey()
+		.notNull()
+		.default(sql`uuid_generate_v4()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -57,7 +69,10 @@ export const project = pgTable("project", {
 });
 
 export const apiKey = pgTable("api_key", {
-	id: text().primaryKey().notNull(),
+	id: text()
+		.primaryKey()
+		.notNull()
+		.default(sql`uuid_generate_v4()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -71,7 +86,10 @@ export const apiKey = pgTable("api_key", {
 export const providerKey = pgTable(
 	"provider_key",
 	{
-		id: text().primaryKey().notNull(),
+		id: text()
+			.primaryKey()
+			.notNull()
+			.default(sql`uuid_generate_v4()`),
 		createdAt: text()
 			.default(sql`(current_timestamp)`)
 			.notNull(),
@@ -86,7 +104,10 @@ export const providerKey = pgTable(
 );
 
 export const log = pgTable("log", {
-	id: text().primaryKey().notNull(),
+	id: text()
+		.primaryKey()
+		.notNull()
+		.default(sql`uuid_generate_v4()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),

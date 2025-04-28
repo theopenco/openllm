@@ -13,7 +13,7 @@ const publicUserSchema = z.object({
 	name: z.string().nullable(),
 });
 
-const root = createRoute({
+const get = createRoute({
 	method: "get",
 	path: "/me",
 	request: {},
@@ -31,17 +31,18 @@ const root = createRoute({
 	},
 });
 
-user.openapi(root, async (c) => {
-	const payload = c.get("jwtPayload");
-	if (!payload) {
-		throw new HTTPException(403, {
+user.openapi(get, async (c) => {
+	const auth = c.get("authUser");
+
+	if (!auth.user) {
+		throw new HTTPException(401, {
 			message: "Unauthorized",
 		});
 	}
 
 	const user = await db.query.user.findFirst({
 		where: {
-			id: payload.sub,
+			id: auth.user.id,
 		},
 	});
 	if (!user) {

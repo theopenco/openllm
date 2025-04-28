@@ -1,9 +1,10 @@
+import { authHandler } from "@hono/auth-js";
 import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { jwt } from "hono/jwt";
 import { z } from "zod";
 
 import { content } from "./content";
+import { authConfig } from "./content/auth";
 import { exposed } from "./exposed";
 
 import type { ServerTypes } from "./vars";
@@ -34,12 +35,8 @@ app.openapi(root, async (c) => {
 	return c.json({ message: "OK" });
 });
 
-app.use(
-	"/auth/*",
-	jwt({
-		secret: process.env.JWT_SECRET || "auth-secret",
-	}),
-);
+app.use("*", authConfig);
+app.use("/auth/*", authHandler());
 
 app.route("/content", content);
 
