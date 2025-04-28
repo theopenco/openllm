@@ -7,6 +7,7 @@ import {
 	Plus,
 	Zap,
 } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 import { Overview } from "@/components/dashboard/overview";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
@@ -31,6 +32,10 @@ export const Route = createFileRoute("/dashboard/_layout/")({
 });
 
 export default function Dashboard() {
+	const user = useSession();
+
+	console.log("user", user);
+
 	return (
 		<div className="flex flex-col">
 			<div className="flex-1 space-y-4 p-4 pt-6 md:p-8">

@@ -7,6 +7,7 @@ import {
 	createRootRouteWithContext,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { SessionProvider } from "next-auth/react";
 
 import appCss from "@/globals.css?url";
 import { Toaster } from "@/lib/components/toaster";
@@ -57,7 +58,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
             localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
             )`}
 				</ScriptOnce>
-				{children}
+				<SessionProvider>{children}</SessionProvider>
 				<Toaster />
 				<TanStackRouterDevtools position="top-right" />
 				<ReactQueryDevtools buttonPosition="bottom-right" />
