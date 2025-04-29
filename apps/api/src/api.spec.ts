@@ -11,7 +11,7 @@ test("/", async () => {
 
 test("/content/user/me", async () => {
 	const res = await app.request("/content/user/me");
-	expect(res.status).toBe(403);
+	expect(res.status).toBe(401);
 	const text = await res.text();
 	expect(text).toMatch(/Unauthorized/);
 });

@@ -17,7 +17,7 @@ export const signInSchema = z.object({
 });
 
 export const authConfig = initAuthConfig((c) => ({
-	secret: c.env.AUTH_SECRET || "secret",
+	secret: process.env.AUTH_SECRET || "secret",
 	session: {
 		strategy: "jwt",
 		maxAge: 60 * 60 * 24 * 30, // 30 days
