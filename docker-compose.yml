@@ -11,4 +11,4 @@ services:
       POSTGRES_PASSWORD: pw
       POSTGRES_DB: db
     volumes:
-      - ~/data/openllm-api/data-pg-17:/var/lib/postgresql/data
+      - ./packages/db/init:/docker-entrypoint-initdb.d
