@@ -35,7 +35,7 @@ export default function Dashboard() {
 	const navigate = useNavigate();
 	const session = useSession();
 
-	if (!session.data?.user.id) {
+	if (!session.data?.user.id && !session.isPending) {
 		navigate({ to: "/login" });
 	}
 
