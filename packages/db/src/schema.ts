@@ -117,8 +117,7 @@ export const apiKey = pgTable("api_key", {
 export const providerKey = pgTable(
 	"provider_key",
 	{
-		id: text().primaryKey().notNull().default(sql`uuid_generate_v4
-		()`),
+		id: text().primaryKey().notNull().$defaultFn(shortid),
 		createdAt: text()
 			.default(sql`(current_timestamp)`)
 			.notNull(),
