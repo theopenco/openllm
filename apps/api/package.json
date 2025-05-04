@@ -8,13 +8,12 @@
 		"dev": "nodemon -e ts,json --exec 'tsx src/serve.ts'"
 	},
 	"dependencies": {
-		"@auth/core": "0.39.0",
-		"@hono/auth-js": "1.0.15",
 		"@hono/swagger-ui": "^0.5.1",
 		"@hono/zod-openapi": "^0.19.5",
 		"@hono/zod-validator": "^0.4.3",
 		"@openllm/db": "workspace:*",
 		"bcrypt-ts": "6.0.0",
+		"better-auth": "1.2.7",
 		"hono": "^4.7.6",
 		"hono-openapi": "^0.4.6",
 		"zod": "3.24.3",

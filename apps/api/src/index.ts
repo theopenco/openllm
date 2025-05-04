@@ -1,10 +1,9 @@
-import { authHandler } from "@hono/auth-js";
 import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "zod";
 
+import { authHandler } from "./auth/handler";
 import { content } from "./content";
-import { authConfig } from "./content/auth";
 import { exposed } from "./exposed";
 
 import type { ServerTypes } from "./vars";
@@ -35,8 +34,7 @@ app.openapi(root, async (c) => {
 	return c.json({ message: "OK" });
 });
 
-app.use("*", authConfig);
-app.use("/auth/*", authHandler());
+app.route("/", authHandler);
 
 app.route("/content", content);
 

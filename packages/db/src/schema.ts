@@ -1,34 +1,72 @@
 import { sql } from "drizzle-orm";
 import {
+	boolean,
 	integer,
 	json,
 	pgTable,
 	real,
 	text,
+	timestamp,
 	unique,
 } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
-	id: text()
-		.primaryKey()
-		.notNull()
-		.default(sql`uuid_generate_v4()`),
-	createdAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
-	updatedAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
+	id: text().primaryKey().default(sql`uuid_generate_v4
+		()`),
+	createdAt: timestamp("created_at").notNull(),
+	updatedAt: timestamp().notNull(),
 	name: text(),
 	email: text().notNull().unique(),
-	password: text().notNull(),
+	emailVerified: boolean("email_verified").notNull(),
+	image: text(),
+});
+
+export const session = pgTable("session", {
+	id: text().primaryKey().default(sql`uuid_generate_v4
+		()`),
+	expiresAt: timestamp().notNull(),
+	token: text().notNull().unique(),
+	createdAt: timestamp().notNull(),
+	updatedAt: timestamp().notNull(),
+	ipAddress: text(),
+	userAgent: text(),
+	userId: text()
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+});
+
+export const account = pgTable("account", {
+	id: text().primaryKey().default(sql`uuid_generate_v4
+		()`),
+	accountId: text().notNull(),
+	providerId: text().notNull(),
+	userId: text()
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	accessToken: text(),
+	refreshToken: text(),
+	idToken: text(),
+	accessTokenExpiresAt: timestamp(),
+	refreshTokenExpiresAt: timestamp(),
+	scope: text(),
+	password: text(),
+	createdAt: timestamp().notNull(),
+	updatedAt: timestamp().notNull(),
+});
+
+export const verification = pgTable("verification", {
+	id: text().primaryKey().default(sql`uuid_generate_v4
+		()`),
+	identifier: text().notNull(),
+	value: text().notNull(),
+	expiresAt: timestamp().notNull(),
+	createdAt: timestamp(),
+	updatedAt: timestamp(),
 });
 
 export const organization = pgTable("organization", {
-	id: text()
-		.primaryKey()
-		.notNull()
-		.default(sql`uuid_generate_v4()`),
+	id: text().primaryKey().notNull().default(sql`uuid_generate_v4
+		()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -39,10 +77,8 @@ export const organization = pgTable("organization", {
 });
 
 export const userOrganization = pgTable("user_organization", {
-	id: text()
-		.primaryKey()
-		.notNull()
-		.default(sql`uuid_generate_v4()`),
+	id: text().primaryKey().notNull().default(sql`uuid_generate_v4
+		()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -54,10 +90,8 @@ export const userOrganization = pgTable("user_organization", {
 });
 
 export const project = pgTable("project", {
-	id: text()
-		.primaryKey()
-		.notNull()
-		.default(sql`uuid_generate_v4()`),
+	id: text().primaryKey().notNull().default(sql`uuid_generate_v4
+		()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -69,10 +103,8 @@ export const project = pgTable("project", {
 });
 
 export const apiKey = pgTable("api_key", {
-	id: text()
-		.primaryKey()
-		.notNull()
-		.default(sql`uuid_generate_v4()`),
+	id: text().primaryKey().notNull().default(sql`uuid_generate_v4
+		()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -86,10 +118,8 @@ export const apiKey = pgTable("api_key", {
 export const providerKey = pgTable(
 	"provider_key",
 	{
-		id: text()
-			.primaryKey()
-			.notNull()
-			.default(sql`uuid_generate_v4()`),
+		id: text().primaryKey().notNull().default(sql`uuid_generate_v4
+			()`),
 		createdAt: text()
 			.default(sql`(current_timestamp)`)
 			.notNull(),
@@ -104,10 +134,8 @@ export const providerKey = pgTable(
 );
 
 export const log = pgTable("log", {
-	id: text()
-		.primaryKey()
-		.notNull()
-		.default(sql`uuid_generate_v4()`),
+	id: text().primaryKey().notNull().default(sql`uuid_generate_v4
+		()`),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),

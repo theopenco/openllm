@@ -7,10 +7,10 @@ import {
 	Plus,
 	Zap,
 } from "lucide-react";
-import { useSession } from "next-auth/react";
 
 import { Overview } from "@/components/dashboard/overview";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
+import { useSession } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -32,15 +32,16 @@ export const Route = createFileRoute("/dashboard/_layout/")({
 });
 
 export default function Dashboard() {
-	const user = useSession();
+	const session = useSession();
 
-	console.log("user", user);
+	console.log("session", session);
 
 	return (
 		<div className="flex flex-col">
 			<div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
 				<div className="flex items-center justify-between space-y-2">
 					<h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+					<span>logged in as {session?.data?.user.email}</span>
 					<div className="flex items-center space-x-2">
 						<Button>
 							<Plus className="mr-2 h-4 w-4" />

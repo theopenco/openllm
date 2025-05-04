@@ -1,10 +1,10 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db, tables } from "@openllm/db";
+import { auth } from "@openllm/auth";
 import { z } from "zod";
 
 import type { ServerTypes } from "../vars";
 
-export const auth = new OpenAPIHono<ServerTypes>();
+export const signin = new OpenAPIHono<ServerTypes>();
 
 const register = createRoute({
 	method: "post",
@@ -35,13 +35,18 @@ const register = createRoute({
 	},
 });
 
-auth.openapi(register, async (c) => {
+signin.openapi(register, async (c) => {
 	const { email, password } = await c.req.json();
 
-	await db.insert(tables.user).values({
-		email: email,
-		password: password,
+	// Use better-auth to register the user
+	const result = await auth.api.signInEmail({
+		body: {
+			email,
+			password,
+		},
 	});
+
+	console.log("result", result);
 
 	return c.json({ message: "OK" });
 });

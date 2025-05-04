@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { signIn } from "next-auth/react";
+
+import { signUp } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/signup")({
 	component: RouteComponent,
@@ -18,24 +19,21 @@ function RouteComponent() {
 			return;
 		}
 
-		const res = await fetch("/api/public/auth/register", {
-			method: "POST",
-			body: JSON.stringify({
-				email,
-				password,
-			}),
-		});
-
-		if (!res.ok) {
-			alert("Failed to sign up.");
-			return;
-		}
-
-		await signIn("credentials", {
-			redirectTo: "/dashboard",
-			email,
-			password,
-		});
+		const { error } = await signUp.email(
+			{
+				email: email as string,
+				password: password as string,
+				callbackURL: "/dashboard",
+			},
+			{
+				onSuccess: () => {
+					window.location.href = "/dashboard";
+				},
+				onError: (ctx) => {
+					alert(ctx.error.message || "Failed to sign up.");
+				},
+			},
+		);
 	};
 
 	return (

@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { signIn } from "next-auth/react";
+
+import { signIn } from "@/lib/auth-client";
+import { toast } from "@/lib/components/use-toast";
 
 export const Route = createFileRoute("/login")({
 	component: RouteComponent,
@@ -14,23 +16,34 @@ function RouteComponent() {
 		const password = formData.get("password");
 
 		if (!email || !password) {
-			alert("Please enter an email and password.");
+			toast({
+				title: "Please enter an email and password.",
+			});
 			return;
 		}
 
-		const res = await signIn("credentials", {
-			redirectTo: "/dashboard",
-			redirect: false,
-			email,
-			password,
-		});
-
-		if (res.error) {
-			alert(res.error);
-			return;
+		const { error } = await signIn.email(
+			{
+				email: email as string,
+				password: password as string,
+				// callbackURL: "/dashboard",
+			},
+			{
+				onSuccess: () => {
+					window.location.href = "/dashboard";
+				},
+				onError: (ctx) => {
+					toast({
+						title: ctx.error.message || "An unknown error occurred",
+					});
+				},
+			},
+		);
+		if (error) {
+			toast({
+				title: error.message || "An unknown error occurred",
+			});
 		}
-
-		window.location.href = res.url!;
 	};
 
 	return (
