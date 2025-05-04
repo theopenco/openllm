@@ -3,6 +3,7 @@ import { auth } from "@openllm/auth";
 
 import { activity } from "./activity";
 import keysApi from "./keys-api";
+import keysProvider from "./keys-provider";
 import { user } from "./user";
 
 import type { ServerTypes } from "../vars";
@@ -28,3 +29,4 @@ content.route("/user", user);
 content.route("/activity", activity);
 
 content.route("/keys", keysApi);
+content.route("/keys", keysProvider);

@@ -130,6 +130,9 @@ export const providerKey = pgTable(
 			.notNull(),
 		token: text().notNull().unique(),
 		provider: text().notNull(),
+		status: text({
+			enum: ["active", "inactive", "deleted"],
+		}).default("active"),
 		projectId: text().notNull(),
 	},
 	(table) => [unique().on(table.projectId, table.provider)],
