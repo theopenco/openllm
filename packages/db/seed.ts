@@ -1,3 +1,4 @@
+import { logs } from "./logs";
 import { db, tables } from "./src";
 
 async function seed() {
@@ -47,26 +48,7 @@ async function seed() {
 		projectId: "test-project-id",
 	});
 
-	await db.insert(tables.log).values({
-		id: "test-log-id-1",
-		projectId: "test-project-id",
-		apiKeyId: "test-api-key-id",
-		providerKeyId: "test-provider-key-id",
-		duration: 100,
-		requestedModel: "gpt-4",
-		requestedProvider: "openai",
-		usedModel: "gpt-4",
-		usedProvider: "openai",
-		responseSize: 1000,
-		content: "Test response content",
-		finishReason: "stop",
-		promptTokens: 10,
-		completionTokens: 20,
-		totalTokens: 30,
-		temperature: 0.7,
-		maxTokens: 100,
-		messages: JSON.stringify([{ role: "user", content: "Hello" }]),
-	});
+	await Promise.all(logs.map((log) => db.insert(tables.log).values(log)));
 }
 
 void seed();
