@@ -11,10 +11,30 @@ export const activity = new OpenAPIHono<ServerTypes>();
 const logSchema = createSelectSchema(tables.log);
 
 const querySchema = z.object({
-	apiKeyId: z.string().optional().openapi({}),
-	providerKeyId: z.string().optional().openapi({}),
-	projectId: z.string().optional().openapi({}),
-	orgId: z.string().optional().openapi({}),
+	apiKeyId: z.string().optional().openapi({
+		description: "Filter logs by API key ID",
+	}),
+	providerKeyId: z.string().optional().openapi({
+		description: "Filter logs by provider key ID",
+	}),
+	projectId: z.string().optional().openapi({
+		description: "Filter logs by project ID",
+	}),
+	orgId: z.string().optional().openapi({
+		description: "Filter logs by organization ID",
+	}),
+	cursor: z.string().optional().openapi({
+		description: "Cursor for pagination (log ID to start after)",
+	}),
+	limit: z
+		.string()
+		.optional()
+		.transform((val) => (val ? parseInt(val, 10) : undefined))
+		.pipe(z.number().int().min(1).max(100).optional())
+		.openapi({
+			description: "Number of items to return (default: 50, max: 100)",
+			example: "50",
+		}),
 });
 
 const get = createRoute({
@@ -28,12 +48,32 @@ const get = createRoute({
 			content: {
 				"application/json": {
 					schema: z.object({
-						message: z.string().optional().openapi({}),
-						logs: z.array(logSchema).openapi({}),
+						message: z.string().optional().openapi({
+							description: "Optional message about the response",
+						}),
+						logs: z.array(logSchema).openapi({
+							description: "Array of log entries",
+						}),
+						pagination: z
+							.object({
+								nextCursor: z.string().nullable().openapi({
+									description:
+										"Cursor to use for the next page of results, null if no more results",
+								}),
+								hasMore: z.boolean().openapi({
+									description: "Whether there are more results available",
+								}),
+								limit: z.number().int().openapi({
+									description: "Number of items requested per page",
+								}),
+							})
+							.openapi({
+								description: "Pagination metadata",
+							}),
 					}),
 				},
 			},
-			description: "User activity logs response.",
+			description: "User activity logs response with pagination.",
 		},
 	},
 });
@@ -49,7 +89,17 @@ activity.openapi(get, async (c) => {
 
 	// Get query parameters
 	const query = c.req.valid("query");
-	const { apiKeyId, providerKeyId, projectId, orgId } = query;
+	const {
+		apiKeyId,
+		providerKeyId,
+		projectId,
+		orgId,
+		cursor,
+		limit: queryLimit,
+	} = query;
+
+	// Set default limit if not provided or enforce max limit
+	const limit = queryLimit ? Math.min(queryLimit, 100) : 50;
 
 	// Find all organizations the user belongs to
 	const userOrganizations = await db.query.userOrganization.findMany({
@@ -62,7 +112,15 @@ activity.openapi(get, async (c) => {
 	});
 
 	if (!userOrganizations.length) {
-		return c.json({ logs: [], message: "No organizations found" });
+		return c.json({
+			logs: [],
+			message: "No organizations found",
+			pagination: {
+				nextCursor: null,
+				hasMore: false,
+				limit,
+			},
+		});
 	}
 
 	// Get all organizations the user is a member of
@@ -92,7 +150,15 @@ activity.openapi(get, async (c) => {
 	const projects = await db.query.project.findMany(projectsQuery);
 
 	if (!projects.length) {
-		return c.json({ logs: [], message: "No projects found" });
+		return c.json({
+			logs: [],
+			message: "No projects found",
+			pagination: {
+				nextCursor: null,
+				hasMore: false,
+				limit,
+			},
+		});
 	}
 
 	const projectIds = projects.map((project) => project.id);
@@ -165,20 +231,62 @@ activity.openapi(get, async (c) => {
 		logsWhere.providerKeyId = providerKeyId;
 	}
 
+	// Add cursor-based pagination
+	if (cursor) {
+		// Find the log entry for the cursor to get its createdAt timestamp
+		const cursorLog = await db.query.log.findFirst({
+			where: {
+				id: cursor,
+			},
+		});
+
+		if (cursorLog) {
+			// Add condition to get logs with ID less than cursor
+			// This is a simpler approach that works well with the ID-based pagination
+			logsWhere.id = {
+				lt: cursor,
+			};
+		}
+	}
+
 	// Query logs with all filters
 	const logs = await db.query.log.findMany({
 		where: logsWhere,
 		orderBy: {
-			createdAt: "desc",
+			id: "desc", // Sort by ID for consistent cursor-based pagination
 		},
-		limit: 50,
+		limit: limit + 1, // Fetch one extra to determine if there are more results
 	});
 
-	if (!logs.length) {
-		return c.json({ logs: [], message: "No logs found" });
+	// Check if there are more results
+	const hasMore = logs.length > limit;
+	// Remove the extra item if we fetched more than the limit
+	const paginatedLogs = hasMore ? logs.slice(0, limit) : logs;
+
+	// Determine the next cursor (ID of the last item)
+	const nextCursor =
+		hasMore && paginatedLogs.length > 0
+			? paginatedLogs[paginatedLogs.length - 1].id
+			: null;
+
+	if (!paginatedLogs.length) {
+		return c.json({
+			logs: [],
+			message: "No logs found",
+			pagination: {
+				nextCursor: null,
+				hasMore: false,
+				limit,
+			},
+		});
 	}
 
 	return c.json({
-		logs,
+		logs: paginatedLogs,
+		pagination: {
+			nextCursor,
+			hasMore,
+			limit,
+		},
 	});
 });

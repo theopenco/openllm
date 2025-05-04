@@ -151,6 +151,10 @@ describe("activity route", () => {
 			const json = await res.json();
 			expect(json.logs.length).toBe(1);
 			expect(json.logs[0].projectId).toBe("test-project-id");
+			expect(json.pagination).toBeDefined();
+			expect(json.pagination.hasMore).toBe(false);
+			expect(json.pagination.nextCursor).toBeNull();
+			expect(json.pagination.limit).toBe(50);
 		});
 
 		test("should filter by second projectId", async () => {
@@ -166,6 +170,126 @@ describe("activity route", () => {
 			const json = await res.json();
 			expect(json.logs.length).toBe(1);
 			expect(json.logs[0].projectId).toBe("test-project-id-2");
+			expect(json.pagination).toBeDefined();
+			expect(json.pagination.hasMore).toBe(false);
+			expect(json.pagination.nextCursor).toBeNull();
+			expect(json.pagination.limit).toBe(50);
+		});
+	});
+
+	// Tests for pagination functionality
+	describe("pagination functionality", () => {
+		beforeEach(async () => {
+			// Add more logs for pagination testing
+			const additionalLogs = [];
+			for (let i = 3; i <= 60; i++) {
+				additionalLogs.push({
+					id: `test-log-id-${i}`,
+					projectId: "test-project-id",
+					apiKeyId: "test-api-key-id",
+					providerKeyId: "test-provider-key-id",
+					duration: 100 + i,
+					requestedModel: "gpt-4",
+					requestedProvider: "openai",
+					usedModel: "gpt-4",
+					usedProvider: "openai",
+					responseSize: 1000 + i,
+					content: `Test response content ${i}`,
+					finishReason: "stop",
+					promptTokens: 10 + i,
+					completionTokens: 20 + i,
+					totalTokens: 30 + i,
+					temperature: 0.7,
+					maxTokens: 100,
+					messages: JSON.stringify([{ role: "user", content: `Hello ${i}` }]),
+				});
+			}
+			await db.insert(tables.log).values(additionalLogs);
+		});
+
+		test("should return default limit of 50 logs", async () => {
+			const res = await app.request("/content/activity", {
+				method: "GET",
+				headers: {
+					Cookie: token,
+				},
+			});
+
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.logs.length).toBe(50);
+			expect(json.pagination).toBeDefined();
+			expect(json.pagination.hasMore).toBe(true);
+			expect(json.pagination.nextCursor).toBeDefined();
+			expect(json.pagination.limit).toBe(50);
+		});
+
+		test("should respect custom limit parameter", async () => {
+			const params = new URLSearchParams({ limit: "10" });
+			const res = await app.request("/content/activity?" + params, {
+				method: "GET",
+				headers: {
+					Cookie: token,
+				},
+			});
+
+			expect(res.status).toBe(200);
+			const json = await res.json();
+			expect(json.logs.length).toBe(10);
+			expect(json.pagination).toBeDefined();
+			expect(json.pagination.hasMore).toBe(true);
+			expect(json.pagination.nextCursor).toBeDefined();
+			expect(json.pagination.limit).toBe(10);
+		});
+
+		test("should paginate using cursor", async () => {
+			// Get first page
+			const firstPageRes = await app.request("/content/activity?limit=10", {
+				method: "GET",
+				headers: {
+					Cookie: token,
+				},
+			});
+
+			expect(firstPageRes.status).toBe(200);
+			const firstPageJson = await firstPageRes.json();
+			expect(firstPageJson.logs.length).toBe(10);
+			expect(firstPageJson.pagination.hasMore).toBe(true);
+			const cursor = firstPageJson.pagination.nextCursor;
+			expect(cursor).toBeDefined();
+
+			// Get second page using cursor
+			const secondPageParams = new URLSearchParams({
+				limit: "10",
+				cursor: cursor,
+			});
+			const secondPageRes = await app.request(
+				"/content/activity?" + secondPageParams,
+				{
+					method: "GET",
+					headers: {
+						Cookie: token,
+					},
+				},
+			);
+
+			expect(secondPageRes.status).toBe(200);
+			const secondPageJson = await secondPageRes.json();
+			expect(secondPageJson.logs.length).toBe(10);
+
+			// Ensure we got different logs in the second page
+			const firstPageIds = new Set(
+				firstPageJson.logs.map((log: any) => log.id),
+			);
+			const secondPageIds = new Set(
+				secondPageJson.logs.map((log: any) => log.id),
+			);
+
+			// Check that there's no overlap between pages
+			const intersection = [...firstPageIds].filter((id) =>
+				secondPageIds.has(id),
+			);
+			expect(intersection.length).toBe(0);
 		});
 	});
 });
