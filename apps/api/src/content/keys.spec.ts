@@ -68,6 +68,19 @@ describe("keys route", () => {
 		expect(res.status).toBe(401);
 	});
 
+	test("PATCH /content/keys/api/test-api-key-id unauthorized", async () => {
+		const res = await app.request("/content/keys/api/test-api-key-id", {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({
+				status: "inactive",
+			}),
+		});
+		expect(res.status).toBe(401);
+	});
+
 	test("GET /content/keys/api", async () => {
 		const res = await app.request("/content/keys/api", {
 			headers: {
@@ -79,5 +92,34 @@ describe("keys route", () => {
 		expect(json).toHaveProperty("apiKeys");
 		expect(json.apiKeys.length).toBe(1);
 		expect(json.apiKeys[0].description).toBe("Test API Key");
+	});
+
+	test("PATCH /content/keys/api/:id", async () => {
+		const res = await app.request("/content/keys/api/test-api-key-id", {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: token,
+			},
+			body: JSON.stringify({
+				status: "inactive",
+			}),
+		});
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		expect(json).toHaveProperty("message");
+		expect(json).toHaveProperty("apiKey");
+		expect(json.apiKey.status).toBe("inactive");
+
+		// Verify the key was updated in the database
+		const apiKey = await db.query.apiKey.findFirst({
+			where: {
+				id: {
+					eq: "test-api-key-id",
+				},
+			},
+		});
+		expect(apiKey).not.toBeNull();
+		expect(apiKey?.status).toBe("inactive");
 	});
 });

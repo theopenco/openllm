@@ -16,6 +16,11 @@ const createApiKeySchema = z.object({
 	description: z.string().min(1).max(255),
 });
 
+// Schema for updating an API key status
+const updateApiKeyStatusSchema = z.object({
+	status: z.enum(["active", "inactive"]),
+});
+
 // Create a new API key
 const create = createRoute({
 	method: "post",
@@ -282,6 +287,132 @@ keys.openapi(deleteKey, async (c) => {
 
 	return c.json({
 		message: "API key deleted successfully",
+	});
+});
+
+// Update API key status
+const updateStatus = createRoute({
+	method: "patch",
+	path: "/api/:id",
+	request: {
+		params: z.object({
+			id: z.string(),
+		}),
+		body: {
+			content: {
+				"application/json": {
+					schema: updateApiKeyStatusSchema,
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						message: z.string(),
+						apiKey: apiKeySchema
+							.omit({ token: true })
+							.extend({
+								maskedToken: z.string(),
+							})
+							.openapi({}),
+					}),
+				},
+			},
+			description: "API key status updated successfully.",
+		},
+		401: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						message: z.string(),
+					}),
+				},
+			},
+			description: "Unauthorized.",
+		},
+		404: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						message: z.string(),
+					}),
+				},
+			},
+			description: "API key not found.",
+		},
+	},
+});
+
+keys.openapi(updateStatus, async (c) => {
+	const user = c.get("user");
+	if (!user) {
+		throw new HTTPException(401, {
+			message: "Unauthorized",
+		});
+	}
+
+	const { id } = c.req.param();
+	const { status } = await c.req.json();
+
+	// Get the user's projects
+	const userOrgs = await db.query.userOrganization.findMany({
+		where: {
+			userId: {
+				eq: user.id,
+			},
+		},
+		with: {
+			organization: {
+				with: {
+					projects: true,
+				},
+			},
+		},
+	});
+
+	// Get all project IDs the user has access to
+	const projectIds = userOrgs.flatMap((org) =>
+		org.organization!.projects.map((project) => project.id),
+	);
+
+	// Find the API key
+	const apiKey = await db.query.apiKey.findFirst({
+		where: {
+			id: {
+				eq: id,
+			},
+			projectId: {
+				in: projectIds,
+			},
+		},
+	});
+
+	if (!apiKey) {
+		throw new HTTPException(404, {
+			message: "API key not found",
+		});
+	}
+
+	// Update the API key status
+	const [updatedApiKey] = await db
+		.update(tables.apiKey)
+		.set({
+			status,
+			updatedAt: new Date().toISOString(),
+		})
+		.where(eq(tables.apiKey.id, id))
+		.returning();
+
+	return c.json({
+		message: `API key status updated to ${status}`,
+		apiKey: {
+			...updatedApiKey,
+			maskedToken: `${updatedApiKey.token.substring(0, 8)}•••••••••••`,
+			token: undefined,
+		},
 	});
 });
 
