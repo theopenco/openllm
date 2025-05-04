@@ -32,9 +32,9 @@ const get = createRoute({
 });
 
 user.openapi(get, async (c) => {
-	const auth = c.get("authUser");
+	const authUser = c.get("user");
 
-	if (!auth.user) {
+	if (!authUser) {
 		throw new HTTPException(401, {
 			message: "Unauthorized",
 		});
@@ -42,7 +42,7 @@ user.openapi(get, async (c) => {
 
 	const user = await db.query.user.findFirst({
 		where: {
-			id: auth.user.id,
+			id: authUser.id,
 		},
 	});
 	if (!user) {

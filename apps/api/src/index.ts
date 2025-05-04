@@ -41,6 +41,14 @@ app.route("/content", content);
 app.route("/public", exposed);
 
 app.doc("/json", {
+	servers: [
+		{
+			url:
+				process.env.NODE_ENV === "production"
+					? "https://api.openllm.com"
+					: "http://localhost:3002/api",
+		},
+	],
 	openapi: "3.0.0",
 	info: {
 		version: "1.0.0",
@@ -48,4 +56,4 @@ app.doc("/json", {
 	},
 });
 
-app.get("/docs", swaggerUI({ url: "/json" }));
+app.get("/docs", swaggerUI({ url: "./json" }));

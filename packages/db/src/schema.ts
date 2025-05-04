@@ -9,25 +9,30 @@ import {
 	timestamp,
 	unique,
 } from "drizzle-orm/pg-core";
+import { customAlphabet } from "nanoid";
+
+const generate = customAlphabet(
+	"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+);
+
+export const shortid = (size = 10) => generate(size);
 
 export const user = pgTable("user", {
-	id: text().primaryKey().default(sql`uuid_generate_v4
-		()`),
-	createdAt: timestamp("created_at").notNull(),
-	updatedAt: timestamp().notNull(),
+	id: text().primaryKey().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
 	name: text(),
 	email: text().notNull().unique(),
-	emailVerified: boolean("email_verified").notNull(),
+	emailVerified: boolean().notNull().default(false),
 	image: text(),
 });
 
 export const session = pgTable("session", {
-	id: text().primaryKey().default(sql`uuid_generate_v4
-		()`),
-	expiresAt: timestamp().notNull(),
+	id: text().primaryKey().$defaultFn(shortid),
+	expiresAt: timestamp().notNull().defaultNow(),
 	token: text().notNull().unique(),
-	createdAt: timestamp().notNull(),
-	updatedAt: timestamp().notNull(),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
 	ipAddress: text(),
 	userAgent: text(),
 	userId: text()
@@ -36,8 +41,7 @@ export const session = pgTable("session", {
 });
 
 export const account = pgTable("account", {
-	id: text().primaryKey().default(sql`uuid_generate_v4
-		()`),
+	id: text().primaryKey().$defaultFn(shortid),
 	accountId: text().notNull(),
 	providerId: text().notNull(),
 	userId: text()
@@ -50,23 +54,21 @@ export const account = pgTable("account", {
 	refreshTokenExpiresAt: timestamp(),
 	scope: text(),
 	password: text(),
-	createdAt: timestamp().notNull(),
-	updatedAt: timestamp().notNull(),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
 });
 
 export const verification = pgTable("verification", {
-	id: text().primaryKey().default(sql`uuid_generate_v4
-		()`),
+	id: text().primaryKey().$defaultFn(shortid),
 	identifier: text().notNull(),
 	value: text().notNull(),
-	expiresAt: timestamp().notNull(),
+	expiresAt: timestamp().notNull().defaultNow(),
 	createdAt: timestamp(),
 	updatedAt: timestamp(),
 });
 
 export const organization = pgTable("organization", {
-	id: text().primaryKey().notNull().default(sql`uuid_generate_v4
-		()`),
+	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -77,8 +79,7 @@ export const organization = pgTable("organization", {
 });
 
 export const userOrganization = pgTable("user_organization", {
-	id: text().primaryKey().notNull().default(sql`uuid_generate_v4
-		()`),
+	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -90,8 +91,7 @@ export const userOrganization = pgTable("user_organization", {
 });
 
 export const project = pgTable("project", {
-	id: text().primaryKey().notNull().default(sql`uuid_generate_v4
-		()`),
+	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -103,8 +103,7 @@ export const project = pgTable("project", {
 });
 
 export const apiKey = pgTable("api_key", {
-	id: text().primaryKey().notNull().default(sql`uuid_generate_v4
-		()`),
+	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),
@@ -119,7 +118,7 @@ export const providerKey = pgTable(
 	"provider_key",
 	{
 		id: text().primaryKey().notNull().default(sql`uuid_generate_v4
-			()`),
+		()`),
 		createdAt: text()
 			.default(sql`(current_timestamp)`)
 			.notNull(),
@@ -134,8 +133,7 @@ export const providerKey = pgTable(
 );
 
 export const log = pgTable("log", {
-	id: text().primaryKey().notNull().default(sql`uuid_generate_v4
-		()`),
+	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: text()
 		.default(sql`(current_timestamp)`)
 		.notNull(),

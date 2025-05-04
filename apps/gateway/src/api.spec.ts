@@ -8,12 +8,12 @@ import {
 	user,
 	userOrganization,
 } from "@openllm/db";
-import { beforeEach, describe, expect, test } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
 
 describe("test", () => {
-	beforeEach(async () => {
+	afterEach(async () => {
 		await db.delete(log);
 		await db.delete(user);
 		await db.delete(apiKey);
@@ -21,35 +21,28 @@ describe("test", () => {
 		await db.delete(userOrganization);
 		await db.delete(project);
 		await db.delete(organization);
+	});
 
+	beforeEach(async () => {
 		await db.insert(user).values({
 			id: "user-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			name: "user",
 			email: "user",
-			password: "user",
 		});
 
 		await db.insert(organization).values({
 			id: "org-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			name: "Test Organization",
 		});
 
 		await db.insert(userOrganization).values({
 			id: "user-org-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			userId: "user-id",
 			organizationId: "org-id",
 		});
 
 		await db.insert(project).values({
 			id: "project-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			name: "Test Project",
 			organizationId: "org-id",
 		});
@@ -66,16 +59,12 @@ describe("test", () => {
 	test("/v1/chat/completions e2e success", async () => {
 		await db.insert(apiKey).values({
 			id: "token-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			token: "real-token",
 			projectId: "project-id",
 		});
 
 		await db.insert(providerKey).values({
 			id: "provider-key-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			token: process.env.OPENAI_API_KEY || "sk-test-key",
 			provider: "openai",
 			projectId: "project-id",
@@ -173,16 +162,12 @@ describe("test", () => {
 	test("/v1/chat/completions with explicit provider", async () => {
 		await db.insert(apiKey).values({
 			id: "token-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			token: "real-token",
 			projectId: "project-id",
 		});
 
 		await db.insert(providerKey).values({
 			id: "provider-key-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			token: process.env.OPENAI_API_KEY || "sk-test-key",
 			provider: "openai",
 			projectId: "project-id",
@@ -211,16 +196,12 @@ describe("test", () => {
 	test("/v1/chat/completions with model that has multiple providers", async () => {
 		await db.insert(apiKey).values({
 			id: "token-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			token: "real-token",
 			projectId: "project-id",
 		});
 
 		await db.insert(providerKey).values({
 			id: "provider-key-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			token: process.env.OPENAI_API_KEY || "sk-test-key",
 			provider: "openai",
 			projectId: "project-id",
@@ -256,16 +237,12 @@ describe("test", () => {
 	test("/v1/chat/completions with openllm/auto", async () => {
 		await db.insert(apiKey).values({
 			id: "token-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			token: "real-token",
 			projectId: "project-id",
 		});
 
 		await db.insert(providerKey).values({
 			id: "provider-key-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			token: process.env.OPENAI_API_KEY || "sk-test-key",
 			provider: "openai",
 			projectId: "project-id",
@@ -296,8 +273,6 @@ describe("test", () => {
 	test("/v1/chat/completions with missing provider API key", async () => {
 		await db.insert(apiKey).values({
 			id: "token-id",
-			createdAt: new Date().toString(),
-			updatedAt: new Date().toString(),
 			token: "real-token",
 			projectId: "project-id",
 		});
