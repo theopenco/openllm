@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	Activity,
 	AlertCircle,
@@ -10,7 +10,7 @@ import {
 
 import { Overview } from "@/components/dashboard/overview";
 import { RecentActivity } from "@/components/dashboard/recent-activity";
-import { useSession } from "@/lib/auth-client";
+import { signOut, useSession } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -32,9 +32,12 @@ export const Route = createFileRoute("/dashboard/_layout/")({
 });
 
 export default function Dashboard() {
+	const navigate = useNavigate();
 	const session = useSession();
 
-	console.log("session", session);
+	if (!session.data?.user.id) {
+		navigate({ to: "/login" });
+	}
 
 	return (
 		<div className="flex flex-col">
@@ -42,6 +45,9 @@ export default function Dashboard() {
 				<div className="flex items-center justify-between space-y-2">
 					<h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
 					<span>logged in as {session?.data?.user.email}</span>
+					<Button type="button" onClick={() => signOut()}>
+						Logout
+					</Button>
 					<div className="flex items-center space-x-2">
 						<Button>
 							<Plus className="mr-2 h-4 w-4" />
