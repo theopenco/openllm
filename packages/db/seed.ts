@@ -1,14 +1,40 @@
+import { logs } from "./logs";
 import { db, tables } from "./src";
 
+import type { PgTable } from "drizzle-orm/pg-core";
+
+/**
+ * Universal upsert function that handles inserting data with conflict resolution
+ * @param table The table to insert into
+ * @param values The values to insert (single object or array of objects)
+ * @param uniqueKey The column name that serves as the unique identifier (usually 'id')
+ * @returns The result of the insert operation
+ */
+async function upsert<T extends Record<string, any>>(
+	table: PgTable<any>,
+	values: T,
+	uniqueKey = "id",
+) {
+	return await db
+		.insert(table)
+		.values(values)
+		.onConflictDoUpdate({
+			target: table[uniqueKey as keyof typeof table] as any,
+			set: values,
+		});
+}
+
 async function seed() {
-	await db.insert(tables.user).values({
+	// Insert user
+	await upsert(tables.user, {
 		id: "test-user-id",
 		name: "Test User",
 		email: "admin@example.com",
 		emailVerified: true,
 	});
 
-	await db.insert(tables.account).values({
+	// Insert account
+	await upsert(tables.account, {
 		id: "test-account-id",
 		providerId: "credential",
 		accountId: "test-account-id",
@@ -17,56 +43,43 @@ async function seed() {
 		userId: "test-user-id",
 	});
 
-	await db.insert(tables.organization).values({
+	// Insert organization
+	await upsert(tables.organization, {
 		id: "test-org-id",
 		name: "Test Organization",
 	});
 
-	await db.insert(tables.userOrganization).values({
+	// Insert user organization relationship
+	await upsert(tables.userOrganization, {
 		id: "test-user-org-id",
 		userId: "test-user-id",
 		organizationId: "test-org-id",
 	});
 
-	await db.insert(tables.project).values({
+	// Insert project
+	await upsert(tables.project, {
 		id: "test-project-id",
 		name: "Test Project",
 		organizationId: "test-org-id",
 	});
 
-	await db.insert(tables.apiKey).values({
+	// Insert API key
+	await upsert(tables.apiKey, {
 		id: "test-api-key-id",
 		token: "test-token",
 		projectId: "test-project-id",
 	});
 
-	await db.insert(tables.providerKey).values({
+	// Insert provider key
+	await upsert(tables.providerKey, {
 		id: "test-provider-key-id",
 		token: "test-provider-token",
 		provider: "openai",
 		projectId: "test-project-id",
 	});
 
-	await db.insert(tables.log).values({
-		id: "test-log-id-1",
-		projectId: "test-project-id",
-		apiKeyId: "test-api-key-id",
-		providerKeyId: "test-provider-key-id",
-		duration: 100,
-		requestedModel: "gpt-4",
-		requestedProvider: "openai",
-		usedModel: "gpt-4",
-		usedProvider: "openai",
-		responseSize: 1000,
-		content: "Test response content",
-		finishReason: "stop",
-		promptTokens: 10,
-		completionTokens: 20,
-		totalTokens: 30,
-		temperature: 0.7,
-		maxTokens: 100,
-		messages: JSON.stringify([{ role: "user", content: "Hello" }]),
-	});
+	// Insert logs
+	await Promise.all(logs.map((log) => upsert(tables.log, log)));
 }
 
 void seed();
