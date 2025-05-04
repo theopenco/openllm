@@ -15,7 +15,7 @@ const generate = customAlphabet(
 	"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
 );
 
-export const shortid = (size = 10) => generate(size);
+export const shortid = (size = 20) => generate(size);
 
 export const user = pgTable("user", {
 	id: text().primaryKey().$defaultFn(shortid),
@@ -111,6 +111,10 @@ export const apiKey = pgTable("api_key", {
 		.default(sql`(current_timestamp)`)
 		.notNull(),
 	token: text().notNull().unique(),
+	description: text().notNull(),
+	status: text({
+		enum: ["active", "inactive", "deleted"],
+	}).default("active"),
 	projectId: text().notNull(),
 });
 

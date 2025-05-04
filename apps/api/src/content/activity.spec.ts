@@ -1,53 +1,18 @@
-import {
-	apiKey,
-	db,
-	log,
-	organization,
-	project,
-	providerKey,
-	tables,
-	user,
-	userOrganization,
-} from "@openllm/db";
+import { db, tables } from "@openllm/db";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { app } from "..";
-
-const credentials = {
-	email: "admin@example.com",
-	password: "admin@example.com1A",
-};
+import { createTestUser, deleteAll } from "../testing";
 
 describe("activity route", () => {
+	let token: string;
+
 	afterEach(async () => {
-		// Clean up the database after each test
-		await db.delete(log);
-		await db.delete(apiKey);
-		await db.delete(providerKey);
-		await db.delete(project);
-		await db.delete(userOrganization);
-		await db.delete(organization);
-		await db.delete(user);
+		await deleteAll();
 	});
 
 	beforeEach(async () => {
-		// Create test user
-		await db.insert(tables.user).values({
-			id: "test-user-id",
-			name: "Test User",
-			email: "admin@example.com",
-			emailVerified: true,
-		});
-
-		// Create test account
-		await db.insert(tables.account).values({
-			id: "test-account-id",
-			providerId: "credential",
-			accountId: "test-account-id",
-			userId: "test-user-id",
-			password:
-				"c11ef27a7f9264be08db228ebb650888:a4d985a9c6bd98608237fd507534424950aa7fc255930d972242b81cbe78594f8568feb0d067e95ddf7be242ad3e9d013f695f4414fce68bfff091079f1dc460",
-		});
+		token = await createTestUser();
 
 		// Create test organizations
 		await db.insert(tables.organization).values([
@@ -95,11 +60,13 @@ describe("activity route", () => {
 				id: "test-api-key-id",
 				token: "test-token",
 				projectId: "test-project-id",
+				description: "Test API Key",
 			},
 			{
 				id: "test-api-key-id-2",
 				token: "test-token-2",
 				projectId: "test-project-id-2",
+				description: "Test API Key 2",
 			},
 		]);
 
@@ -171,21 +138,6 @@ describe("activity route", () => {
 
 	// Tests for the filter functionality
 	describe("filter functionality", () => {
-		let token: string;
-		beforeEach(async () => {
-			const auth = await app.request("/auth/sign-in/email", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify(credentials),
-			});
-			if (auth.status !== 200) {
-				throw new Error(`Failed to authenticate: ${auth.status}`);
-			}
-			token = auth.headers.get("set-cookie")!;
-		});
-
 		test("should filter logs by projectId", async () => {
 			const params = new URLSearchParams({ projectId: "test-project-id" });
 			const res = await app.request("/content/activity?" + params, {

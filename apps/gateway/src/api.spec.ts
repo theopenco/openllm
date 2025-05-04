@@ -1,47 +1,41 @@
-import {
-	db,
-	log,
-	organization,
-	project,
-	apiKey,
-	providerKey,
-	user,
-	userOrganization,
-} from "@openllm/db";
+import { db, tables } from "@openllm/db";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
 
 describe("test", () => {
 	afterEach(async () => {
-		await db.delete(log);
-		await db.delete(user);
-		await db.delete(apiKey);
-		await db.delete(providerKey);
-		await db.delete(userOrganization);
-		await db.delete(project);
-		await db.delete(organization);
+		await db.delete(tables.user);
+		await db.delete(tables.account);
+		await db.delete(tables.session);
+		await db.delete(tables.verification);
+		await db.delete(tables.organization);
+		await db.delete(tables.userOrganization);
+		await db.delete(tables.project);
+		await db.delete(tables.apiKey);
+		await db.delete(tables.providerKey);
+		await db.delete(tables.log);
 	});
 
 	beforeEach(async () => {
-		await db.insert(user).values({
+		await db.insert(tables.user).values({
 			id: "user-id",
 			name: "user",
 			email: "user",
 		});
 
-		await db.insert(organization).values({
+		await db.insert(tables.organization).values({
 			id: "org-id",
 			name: "Test Organization",
 		});
 
-		await db.insert(userOrganization).values({
+		await db.insert(tables.userOrganization).values({
 			id: "user-org-id",
 			userId: "user-id",
 			organizationId: "org-id",
 		});
 
-		await db.insert(project).values({
+		await db.insert(tables.project).values({
 			id: "project-id",
 			name: "Test Project",
 			organizationId: "org-id",
@@ -57,13 +51,14 @@ describe("test", () => {
 
 	// TODO make this an e2e test
 	test("/v1/chat/completions e2e success", async () => {
-		await db.insert(apiKey).values({
+		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
 			projectId: "project-id",
+			description: "Test API Key",
 		});
 
-		await db.insert(providerKey).values({
+		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
 			token: process.env.OPENAI_API_KEY || "sk-test-key",
 			provider: "openai",
@@ -160,13 +155,14 @@ describe("test", () => {
 
 	// test for explicitly specifying a provider in the format "provider/model"
 	test("/v1/chat/completions with explicit provider", async () => {
-		await db.insert(apiKey).values({
+		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
 			projectId: "project-id",
+			description: "Test API Key",
 		});
 
-		await db.insert(providerKey).values({
+		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
 			token: process.env.OPENAI_API_KEY || "sk-test-key",
 			provider: "openai",
@@ -194,13 +190,14 @@ describe("test", () => {
 
 	// test for model with multiple providers (llama-3.3-70b-instruct)
 	test("/v1/chat/completions with model that has multiple providers", async () => {
-		await db.insert(apiKey).values({
+		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
 			projectId: "project-id",
+			description: "Test API Key",
 		});
 
-		await db.insert(providerKey).values({
+		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
 			token: process.env.OPENAI_API_KEY || "sk-test-key",
 			provider: "openai",
@@ -235,13 +232,14 @@ describe("test", () => {
 
 	// test for openllm/auto special case
 	test("/v1/chat/completions with openllm/auto", async () => {
-		await db.insert(apiKey).values({
+		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
 			projectId: "project-id",
+			description: "Test API Key",
 		});
 
-		await db.insert(providerKey).values({
+		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
 			token: process.env.OPENAI_API_KEY || "sk-test-key",
 			provider: "openai",
@@ -271,10 +269,11 @@ describe("test", () => {
 
 	// test for missing provider API key
 	test("/v1/chat/completions with missing provider API key", async () => {
-		await db.insert(apiKey).values({
+		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
 			projectId: "project-id",
+			description: "Test API Key",
 		});
 
 		const res = await app.request("/v1/chat/completions", {

@@ -68,6 +68,7 @@ async function seed() {
 		id: "test-api-key-id",
 		token: "test-token",
 		projectId: "test-project-id",
+		description: "Test API Key",
 	});
 
 	// Insert provider key

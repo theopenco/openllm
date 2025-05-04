@@ -16,7 +16,7 @@
 		"push": "pnpm --filter db push",
 		"reset": "pnpm --filter db reset",
 		"seed": "pnpm --filter db seed",
-		"test": "vitest run"
+		"test": "vitest run --no-file-parallelism"
 	},
 	"commitlint": {
 		"extends": "@steebchen/commitlint-config"
