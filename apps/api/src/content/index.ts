@@ -2,7 +2,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { auth } from "@openllm/auth";
 
 import { activity } from "./activity";
-import keys from "./keys";
+import keysApi from "./keys-api";
 import { user } from "./user";
 
 import type { ServerTypes } from "../vars";
@@ -27,4 +27,4 @@ content.route("/user", user);
 
 content.route("/activity", activity);
 
-content.route("/keys", keys);
+content.route("/keys", keysApi);

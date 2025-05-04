@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import type { ServerTypes } from "../vars";
 
-export const keys = new OpenAPIHono<ServerTypes>();
+export const keysApi = new OpenAPIHono<ServerTypes>();
 
 // Create a schema for API key responses
 const apiKeySchema = createSelectSchema(tables.apiKey);
@@ -53,7 +53,7 @@ const create = createRoute({
 	},
 });
 
-keys.openapi(create, async (c) => {
+keysApi.openapi(create, async (c) => {
 	const user = c.get("user");
 	if (!user) {
 		throw new HTTPException(401, {
@@ -135,7 +135,7 @@ const list = createRoute({
 	},
 });
 
-keys.openapi(list, async (c) => {
+keysApi.openapi(list, async (c) => {
 	const user = c.get("user");
 	if (!user) {
 		throw new HTTPException(401, {
@@ -229,7 +229,7 @@ const deleteKey = createRoute({
 	},
 });
 
-keys.openapi(deleteKey, async (c) => {
+keysApi.openapi(deleteKey, async (c) => {
 	const user = c.get("user");
 	if (!user) {
 		throw new HTTPException(401, {
@@ -346,7 +346,7 @@ const updateStatus = createRoute({
 	},
 });
 
-keys.openapi(updateStatus, async (c) => {
+keysApi.openapi(updateStatus, async (c) => {
 	const user = c.get("user");
 	if (!user) {
 		throw new HTTPException(401, {
@@ -416,4 +416,4 @@ keys.openapi(updateStatus, async (c) => {
 	});
 });
 
-export default keys;
+export default keysApi;
