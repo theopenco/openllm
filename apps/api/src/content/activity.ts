@@ -19,6 +19,7 @@ const get = createRoute({
 			content: {
 				"application/json": {
 					schema: z.object({
+						message: z.string().optional().openapi({}),
 						logs: z.array(logSchema).openapi({}),
 					}),
 				},
@@ -48,7 +49,7 @@ activity.openapi(get, async (c) => {
 	});
 
 	if (!userOrganizations.length) {
-		return c.json({ logs: [] });
+		return c.json({ logs: [], message: "No organizations found" });
 	}
 
 	// Get all projects associated with the user's organizations
@@ -62,7 +63,7 @@ activity.openapi(get, async (c) => {
 	});
 
 	if (!projects.length) {
-		return c.json({ logs: [] });
+		return c.json({ logs: [], message: "No projects found" });
 	}
 
 	const projectIds = projects.map((project) => project.id);
@@ -77,6 +78,10 @@ activity.openapi(get, async (c) => {
 		},
 		limit: 50,
 	});
+
+	if (!logs.length) {
+		return c.json({ logs: [], message: "No logs found" });
+	}
 
 	return c.json({
 		logs,

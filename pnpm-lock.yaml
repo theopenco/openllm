@@ -309,6 +309,9 @@ importers:
       drizzle-kit:
         specifier: 1.0.0-beta.1-7946562
         version: 1.0.0-beta.1-7946562
+      tsx:
+        specifier: ^4.19.3
+        version: 4.19.3
 
   packages/models: {}
 

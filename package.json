@@ -14,6 +14,8 @@
 		"postinstall": "husky && sync-editorconfig || true",
 		"lint": "eslint . && prettier --check .",
 		"push": "pnpm --filter db push",
+		"reset": "pnpm --filter db reset",
+		"seed": "pnpm --filter db seed",
 		"test": "vitest run"
 	},
 	"commitlint": {

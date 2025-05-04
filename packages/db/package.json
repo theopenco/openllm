@@ -14,7 +14,9 @@
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"scripts": {
-		"push": "pnpm drizzle-kit push --config drizzle.config.ts"
+		"push": "pnpm drizzle-kit push --config drizzle.config.ts",
+		"reset": "tsx reset.ts",
+		"seed": "tsx seed.ts"
 	},
 	"dependencies": {
 		"drizzle-orm": "1.0.0-beta.1-7946562",
@@ -23,6 +25,7 @@
 	},
 	"devDependencies": {
 		"@types/pg": "^8.11.12",
-		"drizzle-kit": "1.0.0-beta.1-7946562"
+		"drizzle-kit": "1.0.0-beta.1-7946562",
+		"tsx": "^4.19.3"
 	}
 }
