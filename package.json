@@ -14,6 +14,7 @@
 		"postinstall": "husky && sync-editorconfig || true",
 		"lint": "eslint . && prettier --check .",
 		"push": "pnpm --filter db push",
+		"redo": "docker compose down -v && docker compose up -d && sleep 5 && pnpm push && pnpm seed",
 		"reset": "pnpm --filter db reset",
 		"seed": "pnpm --filter db seed",
 		"test": "vitest run --no-file-parallelism"
