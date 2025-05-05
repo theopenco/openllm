@@ -2,7 +2,7 @@ import { LogCard } from "./log-card";
 import { useLogs } from "@/hooks/useLogs";
 
 export function RecentLogs() {
-	const { data, isLoading, error } = useLogs();
+	const { data, isLoading, error } = useLogs({ orderBy: "createdAt_desc" });
 
 	if (isLoading) {
 		return <div>Loading...</div>;

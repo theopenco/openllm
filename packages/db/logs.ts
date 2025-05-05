@@ -22,7 +22,24 @@ export const logs: Log[] = [
 		totalTokens: 30,
 		temperature: 0.7,
 		maxTokens: 100,
-		messages: JSON.stringify([{ role: "user", content: "Hello" }]),
+		messages: JSON.stringify([
+			{ role: "system", content: "You are a helpful AI assistant." },
+			{
+				role: "user",
+				content:
+					"Hello! Can you help me with a quick question about JavaScript?",
+			},
+			{
+				role: "assistant",
+				content:
+					"Of course! I'd be happy to help with your JavaScript question. What would you like to know?",
+			},
+			{
+				role: "user",
+				content:
+					"How do I use the fetch API to make a POST request with JSON data?",
+			},
+		]),
 	},
 	{
 		id: "log-gpt4-1",
@@ -45,9 +62,14 @@ export const logs: Log[] = [
 		maxTokens: 1000,
 		messages: JSON.stringify([
 			{
+				role: "system",
+				content:
+					"You are a database optimization expert. Provide specific, actionable advice to improve query performance.",
+			},
+			{
 				role: "user",
 				content:
-					"I have a performance issue with this database query. Can you help optimize it? SELECT * FROM users WHERE id IN (SELECT user_id FROM orders WHERE created_at > '2023-01-01' AND status = 'completed') ORDER BY last_login DESC LIMIT 100;",
+					"Our e-commerce app is experiencing slow response times. I've identified this query as the bottleneck:\n\n```sql\nSELECT * FROM users \nWHERE id IN (\n  SELECT user_id FROM orders \n  WHERE created_at > '2023-01-01' AND status = 'completed'\n) \nORDER BY last_login DESC LIMIT 100;\n```\n\nThe users table has about 500,000 records and the orders table has about 2 million. Here's our database connection code:\n\n```javascript\nfunction getDbConnection() {\n  return mysql.createConnection({\n    host: 'localhost',\n    user: 'app_user',\n    password: 'password123',\n    database: 'ecommerce'\n  });\n}\n\nasync function executeQuery(query) {\n  const connection = getDbConnection();\n  try {\n    const results = await connection.query(query);\n    return results;\n  } finally {\n    connection.close();\n  }\n}\n```\n\nCan you help optimize both the query and our connection handling?",
 			},
 		]),
 	},
@@ -72,9 +94,24 @@ export const logs: Log[] = [
 		maxTokens: 4000,
 		messages: JSON.stringify([
 			{
+				role: "system",
+				content:
+					"You are a senior React developer with expertise in data visualization and TypeScript.",
+			},
+			{
 				role: "user",
 				content:
-					"I need to create a data visualization dashboard for our analytics platform. It should display real-time metrics, allow filtering by date range, and include both chart and tabular views. Can you help me design a React component for this?",
+					"I'm building an analytics dashboard for our SaaS product and need help with the frontend implementation. Our backend team has already created the API endpoints that return the necessary data.",
+			},
+			{
+				role: "assistant",
+				content:
+					"I'd be happy to help with your analytics dashboard implementation. To get started, could you share more details about the specific requirements and the data structure returned by your API endpoints?",
+			},
+			{
+				role: "user",
+				content:
+					"Here are the requirements:\n\n1. The dashboard should display key metrics (active users, revenue, conversion rate) in real-time\n2. Users should be able to filter data by date range (today, last 7 days, last 30 days, custom range)\n3. We need both chart visualizations (line charts for trends, bar charts for comparisons) and tabular data\n4. The dashboard should be responsive and work well on desktop and tablet\n5. We need to implement proper error handling for API failures\n6. The whole implementation should use TypeScript with proper typing\n\nHere's a sample of the data structure returned by our API:\n\n```typescript\ntype Metric = {\n  name: string;\n  value: number;\n  change: number; // percentage change from previous period\n};\n\ntype TimeSeriesData = {\n  timestamp: string;\n  value: number;\n};\n\ntype AnalyticsResponse = {\n  metrics: Metric[];\n  timeSeriesData: {\n    activeUsers: TimeSeriesData[];\n    revenue: TimeSeriesData[];\n    conversionRate: TimeSeriesData[];\n  };\n};\n```\n\nCan you help me design a React component for this dashboard?",
 			},
 		]),
 	},
@@ -101,9 +138,29 @@ export const logs: Log[] = [
 		maxTokens: 500,
 		messages: JSON.stringify([
 			{
+				role: "system",
+				content:
+					"You are a helpful web development assistant with expertise in HTML, CSS, and JavaScript.",
+			},
+			{
 				role: "user",
 				content:
-					"I'm having trouble with CSS positioning. My dropdown menu appears behind other elements even though I've set z-index. How can I fix this?",
+					"I'm building a navigation menu for my website and I'm having trouble with the dropdown. Here's my current code:",
+			},
+			{
+				role: "user",
+				content:
+					'```html\n<nav class="main-nav">\n  <ul>\n    <li><a href="#">Home</a></li>\n    <li class="has-dropdown">\n      <a href="#">Products</a>\n      <ul class="dropdown">\n        <li><a href="#">Product 1</a></li>\n        <li><a href="#">Product 2</a></li>\n        <li><a href="#">Product 3</a></li>\n      </ul>\n    </li>\n    <li><a href="#">About</a></li>\n    <li><a href="#">Contact</a></li>\n  </ul>\n</nav>\n```',
+			},
+			{
+				role: "user",
+				content:
+					"```css\n.main-nav {\n  background-color: #333;\n}\n\n.main-nav > ul {\n  display: flex;\n  list-style: none;\n  padding: 0;\n  margin: 0;\n}\n\n.main-nav > ul > li {\n  padding: 15px;\n  position: relative;\n}\n\n.main-nav a {\n  color: white;\n  text-decoration: none;\n}\n\n.dropdown {\n  display: none;\n  position: absolute;\n  background-color: #444;\n  list-style: none;\n  padding: 10px;\n  z-index: 10;\n}\n\n.has-dropdown:hover .dropdown {\n  display: block;\n}\n```",
+			},
+			{
+				role: "user",
+				content:
+					"The problem is that my dropdown menu appears behind a slider component that's further down on the page, even though I've set z-index: 10 on the dropdown. I've also tried increasing the z-index to 100 but it still doesn't work. How can I fix this?",
 			},
 		]),
 	},
@@ -130,9 +187,24 @@ export const logs: Log[] = [
 		maxTokens: 2000,
 		messages: JSON.stringify([
 			{
+				role: "system",
+				content:
+					"You are an expert in machine learning and natural language processing. Provide detailed technical advice to help users improve their ML models.",
+			},
+			{
 				role: "user",
 				content:
-					"Can you review my machine learning pipeline for sentiment analysis? I'm using BERT embeddings with a custom classifier on top, but my accuracy is only around 78% which seems low.",
+					"I'm working on a sentiment analysis project for customer reviews of our e-commerce platform. I've built a pipeline but I'm not satisfied with the results. Could you review my approach and suggest improvements?",
+			},
+			{
+				role: "assistant",
+				content:
+					"I'd be happy to review your sentiment analysis pipeline. To provide the most helpful feedback, could you share details about your current implementation? Specifically, I'd like to know about:\n\n1. Your dataset (size, distribution of positive/negative reviews)\n2. Your preprocessing steps\n3. The model architecture you're using\n4. Your evaluation metrics\n5. Any specific issues you're encountering",
+			},
+			{
+				role: "user",
+				content:
+					"Here are the details of my implementation:\n\n**Dataset:**\n- 50,000 product reviews (30,000 positive, 15,000 negative, 5,000 neutral)\n- Text length varies from 5 to 500 words\n- Split: 80% training, 10% validation, 10% test\n\n**Preprocessing:**\n- Basic cleaning (lowercase, remove special chars)\n- Tokenization using BERT tokenizer\n- Truncate/pad to 128 tokens\n\n**Model Architecture:**\n```python\nclass SentimentClassifier(nn.Module):\n    def __init__(self):\n        super(SentimentClassifier, self).__init__()\n        self.bert = BertModel.from_pretrained('bert-base-uncased')\n        self.dropout = nn.Dropout(0.1)\n        self.fc1 = nn.Linear(768, 256)\n        self.fc2 = nn.Linear(256, 3)  # 3 classes: positive, negative, neutral\n        \n    def forward(self, input_ids, attention_mask):\n        outputs = self.bert(input_ids=input_ids, attention_mask=attention_mask)\n        pooled_output = outputs.pooler_output\n        x = self.fc1(pooled_output)\n        x = F.relu(x)\n        x = self.dropout(x)\n        x = self.fc2(x)\n        return x\n```\n\n**Training:**\n- AdamW optimizer with lr=2e-5\n- 4 epochs with batch size 32\n- No learning rate scheduling\n\n**Results:**\n- Training accuracy: 92%\n- Validation accuracy: 78%\n- Test accuracy: 77%\n\nI'm concerned about the gap between training and validation accuracy, and the overall performance seems lower than expected for BERT on sentiment analysis. What am I missing?",
 			},
 		]),
 	},

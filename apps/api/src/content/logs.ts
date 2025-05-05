@@ -39,6 +39,10 @@ const querySchema = z.object({
 	cursor: z.string().optional().openapi({
 		description: "Cursor for pagination (log ID to start after)",
 	}),
+	orderBy: z.enum(["createdAt_asc", "createdAt_desc"]).optional().openapi({
+		description: "Order results by creation date (default: createdAt_desc)",
+		example: "createdAt_desc",
+	}),
 	limit: z
 		.string()
 		.optional()
@@ -108,6 +112,7 @@ logs.openapi(get, async (c) => {
 		projectId,
 		orgId,
 		cursor,
+		orderBy = "createdAt_desc",
 		limit: queryLimit,
 	} = query;
 
@@ -254,19 +259,39 @@ logs.openapi(get, async (c) => {
 		});
 
 		if (cursorLog) {
-			// Add condition to get logs with ID less than cursor
-			// This is a simpler approach that works well with the ID-based pagination
-			logsWhere.id = {
-				lt: cursor,
-			};
+			// Add condition based on sort direction
+			if (orderBy === "createdAt_asc") {
+				// When sorting by createdAt ascending, get logs with createdAt > cursor's createdAt
+				logsWhere.createdAt = {
+					gt: cursorLog.createdAt,
+				};
+			} else {
+				// When sorting by createdAt descending (default), get logs with createdAt < cursor's createdAt
+				logsWhere.createdAt = {
+					lt: cursorLog.createdAt,
+				};
+			}
 		}
+	}
+
+	// Determine sort order based on orderBy parameter
+	let sortField = "createdAt";
+	let sortDirection = "desc";
+
+	if (orderBy === "createdAt_asc") {
+		sortField = "createdAt";
+		sortDirection = "asc";
+	} else if (orderBy === "createdAt_desc") {
+		sortField = "createdAt";
+		sortDirection = "desc";
 	}
 
 	// Query logs with all filters
 	const logs = await db.query.log.findMany({
 		where: logsWhere,
 		orderBy: {
-			id: "desc", // Sort by ID for consistent cursor-based pagination
+			[sortField]: sortDirection as "asc" | "desc",
+			id: sortDirection as "asc" | "desc", // Secondary sort by ID for stable pagination
 		},
 		limit: limit + 1, // Fetch one extra to determine if there are more results
 	});
