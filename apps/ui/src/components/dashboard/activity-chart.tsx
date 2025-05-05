@@ -163,7 +163,12 @@ export function ActivityChart() {
 							axisLine={false}
 							tickFormatter={(value) => `${value}`}
 						/>
-						<Tooltip content={<CustomTooltip />} />
+						<Tooltip
+							content={<CustomTooltip />}
+							cursor={{
+								fill: "color-mix(in srgb, currentColor 15%, transparent)",
+							}}
+						/>
 						<Bar
 							dataKey="requestCount"
 							name="Requests"
