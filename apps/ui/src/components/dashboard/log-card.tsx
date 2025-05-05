@@ -67,7 +67,7 @@ export function LogCard({ log }: { log: Log }) {
 				</div>
 				<div className="flex-1 space-y-1">
 					<div className="flex items-center justify-between">
-						<p className="font-medium">{log.content}</p>
+						<p className="font-medium line-clamp-2">{log.content}</p>
 						<Badge
 							// variant={
 							//   log.status === "success" ? "default" : log.status === "error" ? "destructive" : "outline"
