@@ -80,6 +80,8 @@ export const logs: Log[] = [
 	},
 	{
 		id: "log-gpt35-turbo-1",
+		createdAt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
+		updatedAt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
 		projectId: "test-project-id",
 		apiKeyId: "test-api-key-id",
 		providerKeyId: "test-provider-key-id",
@@ -107,6 +109,8 @@ export const logs: Log[] = [
 	},
 	{
 		id: "log-llama3-70b-1",
+		createdAt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
+		updatedAt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
 		projectId: "test-project-id",
 		apiKeyId: "test-api-key-id",
 		providerKeyId: "meta-key-id",
@@ -134,6 +138,8 @@ export const logs: Log[] = [
 	},
 	{
 		id: "log-claude-sonnet-1",
+		createdAt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
+		updatedAt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
 		projectId: "test-project-id",
 		apiKeyId: "test-api-key-id",
 		providerKeyId: "anthropic-key-id",
@@ -161,6 +167,8 @@ export const logs: Log[] = [
 	},
 	{
 		id: "log-gpt4-vision-1",
+		createdAt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
+		updatedAt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
 		projectId: "test-project-id",
 		apiKeyId: "test-api-key-id",
 		providerKeyId: "test-provider-key-id",
