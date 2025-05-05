@@ -24,7 +24,7 @@ export interface ActivityResponse {
 	activity: DailyActivity[];
 }
 
-export async function fetchActivity(days = 30) {
+export async function fetchActivity(days = 7) {
 	const params = new URLSearchParams();
 	params.append("days", days.toString());
 
@@ -37,7 +37,7 @@ export async function fetchActivity(days = 30) {
 	return data.activity;
 }
 
-export function useActivity(days = 30) {
+export function useActivity(days = 7) {
 	return useQuery({
 		queryKey: ["activity", { days }],
 		queryFn: () => fetchActivity(days),

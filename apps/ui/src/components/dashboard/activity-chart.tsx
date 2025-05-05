@@ -1,4 +1,5 @@
-import { format, parseISO } from "date-fns";
+import { addDays, format, parseISO, subDays } from "date-fns";
+import { useState } from "react";
 import {
 	Bar,
 	BarChart,
@@ -10,6 +11,7 @@ import {
 } from "recharts";
 
 import { useActivity } from "@/hooks/useActivity";
+import { Button } from "@/lib/components/button";
 import {
 	Card,
 	CardContent,
@@ -17,6 +19,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/lib/components/card";
+import { cn } from "@/lib/utils";
 
 import type { TooltipProps } from "recharts";
 
@@ -58,7 +61,8 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 };
 
 export function ActivityChart() {
-	const { data, isLoading, error } = useActivity(30);
+	const [days, setDays] = useState<7 | 30>(7);
+	const { data, isLoading, error } = useActivity(days);
 
 	if (isLoading) {
 		return (
@@ -84,17 +88,75 @@ export function ActivityChart() {
 		);
 	}
 
-	// Format dates for display
-	const chartData = data.map((item) => ({
-		...item,
-		formattedDate: format(parseISO(item.date), "MMM d"),
-	}));
+	// Generate a complete date range for the selected period
+	const today = new Date();
+	const startDate = subDays(today, days - 1);
+	const dateRange: string[] = [];
+
+	// Create an array of all dates in the range
+	for (let i = 0; i < days; i++) {
+		const date = addDays(startDate, i);
+		dateRange.push(format(date, "yyyy-MM-dd"));
+	}
+
+	// Create a map of existing data by date
+	const dataByDate = new Map(data.map((item) => [item.date, item]));
+
+	// Fill in the chart data with all dates, using zero values for missing dates
+	const chartData = dateRange.map((date) => {
+		if (dataByDate.has(date)) {
+			return {
+				...dataByDate.get(date),
+				formattedDate: format(parseISO(date), "MMM d"),
+			};
+		}
+		return {
+			date,
+			formattedDate: format(parseISO(date), "MMM d"),
+			requestCount: 0,
+			inputTokens: 0,
+			outputTokens: 0,
+			totalTokens: 0,
+			cost: 0,
+			modelBreakdown: [],
+		};
+	});
 
 	return (
 		<Card>
-			<CardHeader>
-				<CardTitle>Activity Overview</CardTitle>
-				<CardDescription>Request volume over the last 30 days</CardDescription>
+			<CardHeader className="flex flex-row items-center justify-between pb-2">
+				<div>
+					<CardTitle>Activity Overview</CardTitle>
+					<CardDescription>
+						Request volume over the last {days} days
+					</CardDescription>
+				</div>
+				<div className="flex space-x-2">
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setDays(7)}
+						className={cn(
+							days === 7
+								? "bg-primary text-primary-foreground hover:bg-primary/80 hover:text-gray-200"
+								: "",
+						)}
+					>
+						7 Days
+					</Button>
+					<Button
+						variant="outline"
+						size="sm"
+						onClick={() => setDays(30)}
+						className={cn(
+							days === 30
+								? "bg-primary text-primary-foreground hover:bg-primary/80 hover:text-gray-200"
+								: "",
+						)}
+					>
+						30 Days
+					</Button>
+				</div>
 			</CardHeader>
 			<CardContent>
 				<ResponsiveContainer width="100%" height={350}>
