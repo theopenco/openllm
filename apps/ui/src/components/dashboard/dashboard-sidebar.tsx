@@ -4,10 +4,12 @@ import {
 	CreditCard,
 	Key,
 	LayoutDashboard,
+	LogOutIcon,
 	Settings,
 	Zap,
 } from "lucide-react";
 
+import { signOut, useSession } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/lib/components/avatar";
 import {
 	Sidebar,
@@ -25,6 +27,8 @@ import { cn } from "@/lib/utils";
 
 export function DashboardSidebar() {
 	const { location } = useRouterState();
+	const session = useSession();
+	const user = session.data?.user;
 
 	const isActive = (path: string) => {
 		return location.pathname === path;
@@ -102,8 +106,15 @@ export function DashboardSidebar() {
 							<AvatarFallback>AU</AvatarFallback>
 						</Avatar>
 						<div className="text-sm">
-							<p className="font-medium">Admin User</p>
-							<p className="text-muted-foreground text-xs">admin@example.com</p>
+							<div className="font-medium flex items-center gap-2">
+								{user?.name}
+								<LogOutIcon
+									className="cursor-pointer"
+									size={14}
+									onClick={() => signOut()}
+								/>
+							</div>
+							<div className="text-muted-foreground text-xs">{user?.email}</div>
 						</div>
 					</div>
 					{/* <ModeToggle /> */}
