@@ -1,6 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
 import {
-	Activity,
 	AlertCircle,
 	CheckCircle2,
 	ChevronDown,
@@ -21,47 +20,20 @@ import {
 	TooltipTrigger,
 } from "@/lib/components/tooltip";
 
-import type { ActivityLog } from "@/lib/types";
+import type { Log } from "@/lib/types";
 
-export function ActivityCard({ activity }: { activity: ActivityLog }) {
+export function LogCard({ log }: { log: Log }) {
 	const [isExpanded, setIsExpanded] = useState(false);
 
-	const formattedTime = formatDistanceToNow(new Date(activity.createdAt), {
+	const formattedTime = formatDistanceToNow(new Date(log.createdAt), {
 		addSuffix: true,
 	});
 
-	// Determine the status icon and color
-	const getStatusDetails = (status: string) => {
-		switch (status) {
-			case "success":
-				return {
-					icon: CheckCircle2,
-					color: "text-green-500",
-					bgColor: "bg-green-50 dark:bg-green-950/30",
-				};
-			case "error":
-				return {
-					icon: AlertCircle,
-					color: "text-red-500",
-					bgColor: "bg-red-50 dark:bg-red-950/30",
-				};
-			case "warning":
-				return {
-					icon: AlertCircle,
-					color: "text-yellow-500",
-					bgColor: "bg-yellow-50 dark:bg-yellow-950/30",
-				};
-			default:
-				return {
-					icon: Activity,
-					color: "text-blue-500",
-					bgColor: "bg-blue-50 dark:bg-blue-950/30",
-				};
-		}
+	const toggleExpand = () => {
+		setIsExpanded(!isExpanded);
 	};
 
-	const { icon: StatusIcon, color, bgColor } = getStatusDetails("success");
-
+	// Format duration in ms to a readable format
 	const formatDuration = (ms: number) => {
 		if (ms < 1000) {
 			return `${ms}ms`;
@@ -69,9 +41,20 @@ export function ActivityCard({ activity }: { activity: ActivityLog }) {
 		return `${(ms / 1000).toFixed(2)}s`;
 	};
 
-	const toggleExpand = () => {
-		setIsExpanded(!isExpanded);
-	};
+	// Determine status icon and color based on finish reason
+	let StatusIcon = CheckCircle2;
+	let color = "text-green-500";
+	let bgColor = "bg-green-100";
+
+	if (log.finishReason === "length") {
+		StatusIcon = AlertCircle;
+		color = "text-yellow-500";
+		bgColor = "bg-yellow-100";
+	} else if (log.finishReason === "error") {
+		StatusIcon = AlertCircle;
+		color = "text-red-500";
+		bgColor = "bg-red-100";
+	}
 
 	return (
 		<div className="rounded-lg border bg-card text-card-foreground shadow-sm">
@@ -83,33 +66,33 @@ export function ActivityCard({ activity }: { activity: ActivityLog }) {
 				</div>
 				<div className="flex-1 space-y-1">
 					<div className="flex items-center justify-between">
-						<p className="font-medium">{activity.content}</p>
+						<p className="font-medium">{log.content}</p>
 						<Badge
 							// variant={
-							//   activity.status === "success" ? "default" : activity.status === "error" ? "destructive" : "outline"
+							//   log.status === "success" ? "default" : log.status === "error" ? "destructive" : "outline"
 							// }
 							variant="default"
 							className="ml-2"
 						>
-							{activity.finishReason}
+							{log.finishReason}
 						</Badge>
 					</div>
 					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-sm text-muted-foreground">
 						<div className="flex items-center gap-1">
 							<Cpu className="h-3.5 w-3.5" />
-							<span>{activity.usedModel}</span>
+							<span>{log.usedModel}</span>
 						</div>
 						<div className="flex items-center gap-1">
 							<Zap className="h-3.5 w-3.5" />
-							<span>{activity.totalTokens} tokens</span>
+							<span>{log.totalTokens} tokens</span>
 						</div>
 						<div className="flex items-center gap-1">
 							<Clock className="h-3.5 w-3.5" />
-							<span>{formatDuration(activity.duration)}</span>
+							<span>{formatDuration(log.duration)}</span>
 						</div>
 						<div className="flex items-center gap-1">
 							<Code className="h-3.5 w-3.5" />
-							<span>{activity.apiKeyId}</span>
+							<span>{log.apiKeyId}</span>
 						</div>
 						<span className="ml-auto">{formattedTime}</span>
 					</div>
@@ -136,36 +119,34 @@ export function ActivityCard({ activity }: { activity: ActivityLog }) {
 							<h4 className="text-sm font-medium">Request Details</h4>
 							<div className="grid grid-cols-2 gap-2 rounded-md border p-3 text-sm">
 								<div className="text-muted-foreground">Project ID</div>
-								<div className="font-mono text-xs">{activity.projectId}</div>
+								<div className="font-mono text-xs">{log.projectId}</div>
 								<div className="text-muted-foreground">API Key</div>
-								<div className="font-mono text-xs">{activity.apiKeyId}</div>
+								<div className="font-mono text-xs">{log.apiKeyId}</div>
 								<div className="text-muted-foreground">Provider Key</div>
-								<div className="font-mono text-xs">
-									{activity.providerKeyId}
-								</div>
+								<div className="font-mono text-xs">{log.providerKeyId}</div>
 								<div className="text-muted-foreground">Requested Model</div>
-								<div>{activity.requestedModel}</div>
+								<div>{log.requestedModel}</div>
 								<div className="text-muted-foreground">Used Model</div>
-								<div>{activity.usedModel}</div>
+								<div>{log.usedModel}</div>
 								<div className="text-muted-foreground">Provider</div>
-								<div>{activity.usedProvider}</div>
+								<div>{log.usedProvider}</div>
 							</div>
 						</div>
 						<div className="space-y-2">
 							<h4 className="text-sm font-medium">Response Metrics</h4>
 							<div className="grid grid-cols-2 gap-2 rounded-md border p-3 text-sm">
 								<div className="text-muted-foreground">Duration</div>
-								<div>{formatDuration(activity.duration)}</div>
+								<div>{formatDuration(log.duration)}</div>
 								<div className="text-muted-foreground">Response Size</div>
-								<div>{activity.responseSize} bytes</div>
+								<div>{log.responseSize} bytes</div>
 								<div className="text-muted-foreground">Prompt Tokens</div>
-								<div>{activity.promptTokens}</div>
+								<div>{log.promptTokens}</div>
 								<div className="text-muted-foreground">Completion Tokens</div>
-								<div>{activity.completionTokens}</div>
+								<div>{log.completionTokens}</div>
 								<div className="text-muted-foreground">Total Tokens</div>
-								<div className="font-medium">{activity.totalTokens}</div>
+								<div className="font-medium">{log.totalTokens}</div>
 								<div className="text-muted-foreground">Finish Reason</div>
-								<div>{activity.finishReason}</div>
+								<div>{log.finishReason}</div>
 							</div>
 						</div>
 					</div>
@@ -185,7 +166,7 @@ export function ActivityCard({ activity }: { activity: ActivityLog }) {
 											</p>
 										</TooltipContent>
 									</Tooltip>
-									<span>{activity.temperature}</span>
+									<span>{log.temperature}</span>
 								</div>
 								<div className="flex items-center justify-between gap-2">
 									<Tooltip>
@@ -198,7 +179,7 @@ export function ActivityCard({ activity }: { activity: ActivityLog }) {
 											</p>
 										</TooltipContent>
 									</Tooltip>
-									<span>{activity.maxTokens}</span>
+									<span>{log.maxTokens}</span>
 								</div>
 								<div className="flex items-center justify-between gap-2">
 									<Tooltip>
@@ -212,7 +193,7 @@ export function ActivityCard({ activity }: { activity: ActivityLog }) {
 											</p>
 										</TooltipContent>
 									</Tooltip>
-									<span>{activity.topP}</span>
+									<span>{log.topP}</span>
 								</div>
 								<div className="flex items-center justify-between gap-2">
 									<Tooltip>
@@ -227,14 +208,14 @@ export function ActivityCard({ activity }: { activity: ActivityLog }) {
 											</p>
 										</TooltipContent>
 									</Tooltip>
-									<span>{activity.frequencyPenalty}</span>
+									<span>{log.frequencyPenalty}</span>
 								</div>
 							</TooltipProvider>
 						</div>
 					</div>
 					<div className="space-y-2">
 						<h4 className="text-sm font-medium">Message Context</h4>
-						{activity.messages.map((item) => (
+						{log.messages.map((item) => (
 							<div
 								key={`message-${item.content[0]}`}
 								className="rounded-md border p-3"

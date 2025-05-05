@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 
 import { Overview } from "@/components/dashboard/overview";
-import { RecentActivity } from "@/components/dashboard/recent-activity";
+import { RecentLogs } from "@/components/dashboard/recent-logs";
 import { signOut, useSession } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
@@ -58,7 +58,7 @@ export default function Dashboard() {
 				<Tabs defaultValue="overview" className="space-y-4">
 					<TabsList>
 						<TabsTrigger value="overview">Overview</TabsTrigger>
-						<TabsTrigger value="activity">Activity</TabsTrigger>
+						<TabsTrigger value="activity">Logs</TabsTrigger>
 					</TabsList>
 					<TabsContent value="overview" className="space-y-4">
 						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -141,17 +141,17 @@ export default function Dashboard() {
 					<TabsContent value="activity" className="space-y-4">
 						<Card>
 							<CardHeader>
-								<CardTitle>Recent Activity</CardTitle>
+								<CardTitle>Recent Logs</CardTitle>
 								<CardDescription>
 									Your recent API requests and system events
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<RecentActivity />
+								<RecentLogs />
 							</CardContent>
 							<CardFooter>
 								<Button variant="outline" className="w-full">
-									View All Activity
+									View All Logs
 								</Button>
 							</CardFooter>
 						</Card>
