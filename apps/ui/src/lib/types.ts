@@ -22,6 +22,10 @@ export interface Log {
 	topP: number;
 	frequencyPenalty: number;
 	presencePenalty: number;
+	// Cost information
+	cost?: number;
+	inputCost?: number;
+	outputCost?: number;
 }
 
 // Alias for backward compatibility

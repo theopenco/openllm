@@ -175,6 +175,7 @@ describe("activity endpoint", () => {
 		const res = await app.request("/content/activity", {
 			headers: {
 				Authorization: "Bearer test-token",
+				Cookie: token,
 			},
 		});
 

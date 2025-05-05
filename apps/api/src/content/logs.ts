@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db, tables } from "@openllm/db";
+import { type ModelDefinition, models } from "@openllm/models";
 import { createSelectSchema } from "drizzle-zod";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
@@ -8,7 +9,19 @@ import type { ServerTypes } from "../vars";
 
 export const logs = new OpenAPIHono<ServerTypes>();
 
-const logSchema = createSelectSchema(tables.log);
+// Extend the log schema to include cost information
+const baseLogSchema = createSelectSchema(tables.log);
+const logSchema = baseLogSchema.extend({
+	cost: z.number().optional().openapi({
+		description: "Calculated cost based on token usage and model pricing",
+	}),
+	inputCost: z.number().optional().openapi({
+		description: "Cost for input tokens",
+	}),
+	outputCost: z.number().optional().openapi({
+		description: "Cost for output tokens",
+	}),
+});
 
 const querySchema = z.object({
 	apiKeyId: z.string().optional().openapi({
@@ -281,8 +294,30 @@ logs.openapi(get, async (c) => {
 		});
 	}
 
+	// Add cost information to each log entry
+	const logsWithCost = paginatedLogs.map((log) => {
+		// Find the model definition to get pricing information
+		const modelDef = models.find(
+			(m) => m.model === log.usedModel,
+		) as ModelDefinition;
+
+		// Calculate costs based on model pricing (if available)
+		const promptTokens = log.promptTokens || 0;
+		const completionTokens = log.completionTokens || 0;
+		const inputCost = promptTokens * (modelDef?.inputPrice ?? 0);
+		const outputCost = completionTokens * (modelDef?.outputPrice ?? 0);
+		const totalCost = inputCost + outputCost;
+
+		return {
+			...log,
+			inputCost,
+			outputCost,
+			cost: totalCost,
+		};
+	});
+
 	return c.json({
-		logs: paginatedLogs,
+		logs: logsWithCost,
 		pagination: {
 			nextCursor,
 			hasMore,

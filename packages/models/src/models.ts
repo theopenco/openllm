@@ -4,7 +4,7 @@ export type Provider = (typeof providers)[number]["id"];
 
 export type Model = (typeof models)[number]["model"];
 
-interface ModelDefinition {
+export interface ModelDefinition {
 	model: string;
 	providers: (typeof providers)[number]["id"][];
 	/**

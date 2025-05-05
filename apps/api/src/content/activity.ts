@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db, sql } from "@openllm/db";
+import { type ModelDefinition, models } from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -133,15 +134,20 @@ activity.openapi(getActivity, async (c) => {
 	const activityMap = new Map<string, typeof dailyActivitySchema._type>();
 
 	for (const log of rawLogs) {
-		// Calculate cost based on tokens (simplified calculation)
-		// In a real implementation, you would have different rates for different models
 		const promptTokens = Number(log.promptTokens);
 		const completionTokens = Number(log.completionTokens);
 		const totalTokens = Number(log.totalTokens);
 		const requestCount = Number(log.requestCount);
+		const usedModel = log.usedModel as string;
 
-		const inputCost = promptTokens * 0.0000005; // Example rate for input tokens
-		const outputCost = completionTokens * 0.0000015; // Example rate for output tokens
+		// Find the model definition to get pricing information
+		const modelDef = models.find(
+			(m) => m.model === usedModel,
+		) as ModelDefinition;
+
+		// Calculate costs based on model pricing (if available)
+		const inputCost = promptTokens * (modelDef?.inputPrice ?? 0);
+		const outputCost = completionTokens * (modelDef?.outputPrice ?? 0);
 		const totalCost = inputCost + outputCost;
 
 		// Format the date to ensure consistency (YYYY-MM-DD)
