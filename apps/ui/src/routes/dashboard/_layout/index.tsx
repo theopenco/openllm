@@ -8,6 +8,7 @@ import {
 	Zap,
 } from "lucide-react";
 
+import { ActivityChart } from "@/components/dashboard/activity-chart";
 import { Overview } from "@/components/dashboard/overview";
 import { RecentLogs } from "@/components/dashboard/recent-logs";
 import { signOut, useSession } from "@/lib/auth-client";
@@ -139,6 +140,7 @@ export default function Dashboard() {
 						</div>
 					</TabsContent>
 					<TabsContent value="activity" className="space-y-4">
+						<ActivityChart />
 						<Card>
 							<CardHeader>
 								<CardTitle>Recent Activity</CardTitle>
