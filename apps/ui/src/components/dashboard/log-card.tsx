@@ -245,15 +245,11 @@ export function LogCard({ log }: { log: Log }) {
 					</div>
 					<div className="space-y-2">
 						<h4 className="text-sm font-medium">Message Context</h4>
-						{log.messages.map((item) => (
-							<div
-								key={`message-${item.content[0]}`}
-								className="rounded-md border p-3"
-							>
-								<p className="text-sm">{item.content}</p>
-								<p>{item.role}</p>
-							</div>
-						))}
+						<div className="rounded-md border p-3">
+							<pre className="max-h-60 overflow-auto text-xs">
+								{JSON.stringify(log.messages, null, 2)}
+							</pre>
+						</div>
 					</div>
 					{/* <div className="flex justify-end">
 						<Button variant="outline" size="sm">
