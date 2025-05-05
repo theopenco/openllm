@@ -30,8 +30,8 @@ jobs:
         run: |
           docker compose up -d
           sleep 5
-      - name: Migrations
-        run: pnpm push
+      - name: Prepare
+        run: pnpm test-prepare
       - name: Test
         run: pnpm test
         env:
