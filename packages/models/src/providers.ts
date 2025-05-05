@@ -18,6 +18,18 @@ export const providers = [
 			"OpenAI is an AI research and deployment company. Our mission is to ensure that artificial general intelligence benefits all of humanity.",
 	},
 	{
+		id: "anthropic",
+		name: "Anthropic",
+		description:
+			"Anthropic is a research and deployment company focused on building safe and useful AI.",
+	},
+	{
+		id: "google-vertex",
+		name: "Google Vertex AI",
+		description:
+			"Google Vertex AI is a platform for building and deploying large language models.",
+	},
+	{
 		id: "inference.net",
 		name: "Inference.net",
 		description:

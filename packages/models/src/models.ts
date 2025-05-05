@@ -34,4 +34,16 @@ export const models = [
 		model: "llama-3.3-70b-instruct",
 		providers: ["inference.net", "kluster.ai"],
 	},
+	{
+		model: "claude-3-sonnet",
+		providers: ["anthropic"],
+	},
+	{
+		model: "claude-3-haiku",
+		providers: ["anthropic"],
+	},
+	{
+		model: "gemini-2.0-flash",
+		providers: ["google-vertex"],
+	},
 ] as const satisfies ModelDefinition[];
