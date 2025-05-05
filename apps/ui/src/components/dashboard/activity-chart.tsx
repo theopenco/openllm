@@ -19,7 +19,6 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/lib/components/card";
-import { cn } from "@/lib/utils";
 
 import type { TooltipProps } from "recharts";
 
@@ -33,25 +32,22 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 	if (active && payload && payload.length) {
 		const data = payload[0].payload;
 		return (
-			<div className="rounded-lg border bg-card p-2 shadow-sm">
-				<p className="font-medium">{format(parseISO(label), "MMM d, yyyy")}</p>
-				<p className="text-sm text-muted-foreground">
-					<span className="font-medium text-foreground">
-						{data.requestCount}
-					</span>{" "}
-					requests
+			<div className="rounded-lg border bg-popover text-popover-foreground p-2 shadow-sm">
+				<p className="font-medium">
+					{label && format(parseISO(label), "MMM d, yyyy")}
 				</p>
-				<p className="text-sm text-muted-foreground">
-					<span className="font-medium text-foreground">
+				<p className="text-sm">
+					<span className="font-medium">{data.requestCount}</span> requests
+				</p>
+				<p className="text-sm">
+					<span className="font-medium">
 						{data.totalTokens.toLocaleString()}
 					</span>{" "}
 					tokens
 				</p>
-				<p className="text-sm text-muted-foreground">
-					<span className="font-medium text-foreground">
-						${data.cost.toFixed(4)}
-					</span>{" "}
-					estimated cost
+				<p className="text-sm">
+					<span className="font-medium">${data.cost.toFixed(4)}</span> estimated
+					cost
 				</p>
 			</div>
 		);
@@ -133,26 +129,16 @@ export function ActivityChart() {
 				</div>
 				<div className="flex space-x-2">
 					<Button
-						variant="outline"
+						variant={days === 7 ? "default" : "outline"}
 						size="sm"
 						onClick={() => setDays(7)}
-						className={cn(
-							days === 7
-								? "bg-primary text-primary-foreground hover:bg-primary/80 hover:text-gray-200"
-								: "",
-						)}
 					>
 						7 Days
 					</Button>
 					<Button
-						variant="outline"
+						variant={days === 30 ? "default" : "outline"}
 						size="sm"
 						onClick={() => setDays(30)}
-						className={cn(
-							days === 30
-								? "bg-primary text-primary-foreground hover:bg-primary/80 hover:text-gray-200"
-								: "",
-						)}
 					>
 						30 Days
 					</Button>
@@ -183,7 +169,7 @@ export function ActivityChart() {
 							name="Requests"
 							fill="currentColor"
 							radius={[4, 4, 0, 0]}
-							className="fill-primary"
+							className="fill-primary opacity-80 hover:opacity-100 transition-opacity"
 						/>
 					</BarChart>
 				</ResponsiveContainer>
