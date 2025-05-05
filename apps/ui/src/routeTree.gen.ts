@@ -22,6 +22,7 @@ import { Route as DashboardLayoutUsageImport } from './routes/dashboard/_layout/
 import { Route as DashboardLayoutSettingsImport } from './routes/dashboard/_layout/settings'
 import { Route as DashboardLayoutModelsImport } from './routes/dashboard/_layout/models'
 import { Route as DashboardLayoutApiKeysImport } from './routes/dashboard/_layout/api-keys'
+import { Route as DashboardLayoutActivityImport } from './routes/dashboard/_layout/activity'
 
 // Create Virtual Routes
 
@@ -88,6 +89,12 @@ const DashboardLayoutApiKeysRoute = DashboardLayoutApiKeysImport.update({
   getParentRoute: () => DashboardLayoutRoute,
 } as any)
 
+const DashboardLayoutActivityRoute = DashboardLayoutActivityImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => DashboardLayoutRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -126,6 +133,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardLayoutImport
       parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/_layout/activity': {
+      id: '/dashboard/_layout/activity'
+      path: '/activity'
+      fullPath: '/dashboard/activity'
+      preLoaderRoute: typeof DashboardLayoutActivityImport
+      parentRoute: typeof DashboardLayoutImport
     }
     '/dashboard/_layout/api-keys': {
       id: '/dashboard/_layout/api-keys'
@@ -168,6 +182,7 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 interface DashboardLayoutRouteChildren {
+  DashboardLayoutActivityRoute: typeof DashboardLayoutActivityRoute
   DashboardLayoutApiKeysRoute: typeof DashboardLayoutApiKeysRoute
   DashboardLayoutModelsRoute: typeof DashboardLayoutModelsRoute
   DashboardLayoutSettingsRoute: typeof DashboardLayoutSettingsRoute
@@ -176,6 +191,7 @@ interface DashboardLayoutRouteChildren {
 }
 
 const DashboardLayoutRouteChildren: DashboardLayoutRouteChildren = {
+  DashboardLayoutActivityRoute: DashboardLayoutActivityRoute,
   DashboardLayoutApiKeysRoute: DashboardLayoutApiKeysRoute,
   DashboardLayoutModelsRoute: DashboardLayoutModelsRoute,
   DashboardLayoutSettingsRoute: DashboardLayoutSettingsRoute,
@@ -204,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardLayoutRouteWithChildren
+  '/dashboard/activity': typeof DashboardLayoutActivityRoute
   '/dashboard/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/models': typeof DashboardLayoutModelsRoute
   '/dashboard/settings': typeof DashboardLayoutSettingsRoute
@@ -216,6 +233,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardLayoutIndexRoute
+  '/dashboard/activity': typeof DashboardLayoutActivityRoute
   '/dashboard/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/models': typeof DashboardLayoutModelsRoute
   '/dashboard/settings': typeof DashboardLayoutSettingsRoute
@@ -229,6 +247,7 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/_layout': typeof DashboardLayoutRouteWithChildren
+  '/dashboard/_layout/activity': typeof DashboardLayoutActivityRoute
   '/dashboard/_layout/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/_layout/models': typeof DashboardLayoutModelsRoute
   '/dashboard/_layout/settings': typeof DashboardLayoutSettingsRoute
@@ -243,6 +262,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/dashboard'
+    | '/dashboard/activity'
     | '/dashboard/api-keys'
     | '/dashboard/models'
     | '/dashboard/settings'
@@ -254,6 +274,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/signup'
     | '/dashboard'
+    | '/dashboard/activity'
     | '/dashboard/api-keys'
     | '/dashboard/models'
     | '/dashboard/settings'
@@ -265,6 +286,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/dashboard'
     | '/dashboard/_layout'
+    | '/dashboard/_layout/activity'
     | '/dashboard/_layout/api-keys'
     | '/dashboard/_layout/models'
     | '/dashboard/_layout/settings'
@@ -322,12 +344,17 @@ export const routeTree = rootRoute
       "filePath": "dashboard/_layout.tsx",
       "parent": "/dashboard",
       "children": [
+        "/dashboard/_layout/activity",
         "/dashboard/_layout/api-keys",
         "/dashboard/_layout/models",
         "/dashboard/_layout/settings",
         "/dashboard/_layout/usage",
         "/dashboard/_layout/"
       ]
+    },
+    "/dashboard/_layout/activity": {
+      "filePath": "dashboard/_layout/activity.tsx",
+      "parent": "/dashboard/_layout"
     },
     "/dashboard/_layout/api-keys": {
       "filePath": "dashboard/_layout/api-keys.tsx",

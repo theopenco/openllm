@@ -20,6 +20,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/lib/components/card";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/lib/components/select";
 
 import type { ActivityModelUsage, DailyActivity } from "@/hooks/useActivity";
 import type { TooltipProps } from "recharts";
@@ -66,9 +73,15 @@ interface CustomTooltipProps extends TooltipProps<number, string> {
 	active?: boolean;
 	payload?: any[];
 	label?: string;
+	breakdownField?: "requests" | "cost" | "tokens";
 }
 
-const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
+const CustomTooltip = ({
+	active,
+	payload,
+	label,
+	breakdownField = "requests",
+}: CustomTooltipProps) => {
 	if (active && payload && payload.length) {
 		const data = payload[0].payload;
 		return (
@@ -98,10 +111,16 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 								return null;
 							}
 
-							// Calculate percentage only if the value and requestCount are valid numbers
+							// Calculate percentage based on the selected breakdown field
+							let total = data.requestCount;
+							if (breakdownField === "cost") {
+								total = data.cost;
+							} else if (breakdownField === "tokens") {
+								total = data.totalTokens;
+							}
 							const percentage =
-								entry.value && data.requestCount
-									? Math.round((entry.value / data.requestCount) * 100)
+								entry.value && total
+									? Math.round((entry.value / total) * 100)
 									: 0;
 
 							return (
@@ -110,7 +129,16 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 										className="inline-block w-3 h-3 mr-1"
 										style={{ backgroundColor: entry.color }}
 									/>
-									{entry.name}: {entry.value} requests ({percentage}%)
+									{entry.name}:{" "}
+									{breakdownField === "cost"
+										? `$${Number(entry.value).toFixed(4)}`
+										: entry.value}{" "}
+									{breakdownField === "tokens"
+										? "tokens"
+										: breakdownField === "cost"
+											? ""
+											: "requests"}{" "}
+									({percentage}%)
 								</p>
 							);
 						})}
@@ -125,6 +153,9 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 
 export function ActivityChart() {
 	const [days, setDays] = useState<7 | 30>(7);
+	const [breakdownField, setBreakdownField] = useState<
+		"requests" | "cost" | "tokens"
+	>("requests");
 	const { data, isLoading, error } = useActivity(days);
 
 	if (isLoading) {
@@ -178,9 +209,20 @@ export function ActivityChart() {
 				[key: string]: number | string | ActivityModelUsage[];
 			};
 
-			// Add each model's request count as a separate property for stacking
+			// Add each model's selected metric as a separate property for stacking
 			dayData.modelBreakdown.forEach((model) => {
-				result[model.model] = model.requestCount;
+				switch (breakdownField) {
+					case "cost":
+						result[model.model] = model.cost;
+						break;
+					case "tokens":
+						result[model.model] = model.totalTokens;
+						break;
+					case "requests":
+					default:
+						result[model.model] = model.requestCount;
+						break;
+				}
 			});
 
 			return result;
@@ -203,24 +245,41 @@ export function ActivityChart() {
 				<div>
 					<CardTitle>Model Usage Overview</CardTitle>
 					<CardDescription>
-						Stacked model usage over the last {days} days
+						Stacked model {breakdownField} over the last {days} days
 					</CardDescription>
 				</div>
-				<div className="flex space-x-2">
-					<Button
-						variant={days === 7 ? "default" : "outline"}
-						size="sm"
-						onClick={() => setDays(7)}
+				<div className="flex items-center space-x-2">
+					<Select
+						value={breakdownField}
+						onValueChange={(value) =>
+							setBreakdownField(value as "requests" | "cost" | "tokens")
+						}
 					>
-						7 Days
-					</Button>
-					<Button
-						variant={days === 30 ? "default" : "outline"}
-						size="sm"
-						onClick={() => setDays(30)}
-					>
-						30 Days
-					</Button>
+						<SelectTrigger className="w-[140px]">
+							<SelectValue placeholder="Select metric" />
+						</SelectTrigger>
+						<SelectContent>
+							<SelectItem value="requests">Requests</SelectItem>
+							<SelectItem value="cost">Cost</SelectItem>
+							<SelectItem value="tokens">Tokens</SelectItem>
+						</SelectContent>
+					</Select>
+					<div className="flex space-x-2">
+						<Button
+							variant={days === 7 ? "default" : "outline"}
+							size="sm"
+							onClick={() => setDays(7)}
+						>
+							7 Days
+						</Button>
+						<Button
+							variant={days === 30 ? "default" : "outline"}
+							size="sm"
+							onClick={() => setDays(30)}
+						>
+							30 Days
+						</Button>
+					</div>
 				</div>
 			</CardHeader>
 			<CardContent>
@@ -240,10 +299,15 @@ export function ActivityChart() {
 							fontSize={12}
 							tickLine={false}
 							axisLine={false}
-							tickFormatter={(value) => `${value}`}
+							tickFormatter={(value) => {
+								if (breakdownField === "cost") {
+									return `$${Number(value).toFixed(2)}`;
+								}
+								return `${value}`;
+							}}
 						/>
 						<Tooltip
-							content={<CustomTooltip />}
+							content={<CustomTooltip breakdownField={breakdownField} />}
 							cursor={{
 								fill: "color-mix(in srgb, currentColor 15%, transparent)",
 							}}

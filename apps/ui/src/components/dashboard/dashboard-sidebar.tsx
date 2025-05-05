@@ -7,6 +7,7 @@ import {
 	LogOutIcon,
 	Settings,
 	Zap,
+	Activity,
 } from "lucide-react";
 
 import { signOut, useSession } from "@/lib/auth-client";
@@ -62,6 +63,11 @@ export function DashboardSidebar() {
 									icon: LayoutDashboard,
 								},
 								{ href: "/dashboard/api-keys", label: "API Keys", icon: Key },
+								{
+									href: "/dashboard/activity",
+									label: "Activity",
+									icon: Activity,
+								},
 								{
 									href: "/dashboard/usage",
 									label: "Usage & Metrics",
