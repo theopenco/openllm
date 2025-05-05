@@ -4,6 +4,7 @@ import {
 	Bar,
 	BarChart,
 	CartesianGrid,
+	Legend,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
@@ -20,7 +21,46 @@ import {
 	CardTitle,
 } from "@/lib/components/card";
 
+import type { ActivityModelUsage, DailyActivity } from "@/hooks/useActivity";
 import type { TooltipProps } from "recharts";
+
+// Helper function to get all unique models from the data
+function getUniqueModels(data: any[]): string[] {
+	if (!data || data.length === 0) {
+		return [];
+	}
+
+	const allModels = new Set<string>();
+	data.forEach((day) => {
+		if (day.modelBreakdown && day.modelBreakdown.length > 0) {
+			day.modelBreakdown.forEach((model: any) => {
+				allModels.add(model.model);
+			});
+		}
+	});
+
+	return Array.from(allModels);
+}
+
+// Helper function to generate colors for each model
+function getModelColor(model: string, index: number): string {
+	// Define a set of colors for the bars
+	const colors = [
+		"#4f46e5", // indigo
+		"#0ea5e9", // sky
+		"#10b981", // emerald
+		"#f59e0b", // amber
+		"#ef4444", // red
+		"#8b5cf6", // violet
+		"#ec4899", // pink
+		"#06b6d4", // cyan
+		"#84cc16", // lime
+		"#f97316", // orange
+	];
+
+	// Use modulo to cycle through colors if there are more models than colors
+	return colors[index % colors.length];
+}
 
 interface CustomTooltipProps extends TooltipProps<number, string> {
 	active?: boolean;
@@ -49,6 +89,33 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
 					<span className="font-medium">${data.cost.toFixed(4)}</span> estimated
 					cost
 				</p>
+				{payload.length > 1 && (
+					<div className="mt-2 pt-2 border-t">
+						<p className="text-sm font-medium">Model Breakdown:</p>
+						{payload.map((entry, index) => {
+							// Skip the entry if it's not a model (e.g., it's the total requestCount)
+							if (entry.dataKey === "requestCount") {
+								return null;
+							}
+
+							// Calculate percentage only if the value and requestCount are valid numbers
+							const percentage =
+								entry.value && data.requestCount
+									? Math.round((entry.value / data.requestCount) * 100)
+									: 0;
+
+							return (
+								<p key={index} className="text-xs">
+									<span
+										className="inline-block w-3 h-3 mr-1"
+										style={{ backgroundColor: entry.color }}
+									/>
+									{entry.name}: {entry.value} requests ({percentage}%)
+								</p>
+							);
+						})}
+					</div>
+				)}
 			</div>
 		);
 	}
@@ -101,10 +168,22 @@ export function ActivityChart() {
 	// Fill in the chart data with all dates, using zero values for missing dates
 	const chartData = dateRange.map((date) => {
 		if (dataByDate.has(date)) {
-			return {
-				...dataByDate.get(date),
+			const dayData = dataByDate.get(date)!;
+
+			// Process model breakdown data for stacked bars
+			const result = {
+				...dayData,
 				formattedDate: format(parseISO(date), "MMM d"),
+			} as DailyActivity & {
+				[key: string]: number | string | ActivityModelUsage[];
 			};
+
+			// Add each model's request count as a separate property for stacking
+			dayData.modelBreakdown.forEach((model) => {
+				result[model.model] = model.requestCount;
+			});
+
+			return result;
 		}
 		return {
 			date,
@@ -122,9 +201,9 @@ export function ActivityChart() {
 		<Card>
 			<CardHeader className="flex flex-row items-center justify-between pb-2">
 				<div>
-					<CardTitle>Activity Overview</CardTitle>
+					<CardTitle>Model Usage Overview</CardTitle>
 					<CardDescription>
-						Request volume over the last {days} days
+						Stacked model usage over the last {days} days
 					</CardDescription>
 				</div>
 				<div className="flex space-x-2">
@@ -169,13 +248,32 @@ export function ActivityChart() {
 								fill: "color-mix(in srgb, currentColor 15%, transparent)",
 							}}
 						/>
-						<Bar
-							dataKey="requestCount"
-							name="Requests"
-							fill="currentColor"
-							radius={[4, 4, 0, 0]}
-							className="fill-primary opacity-80 hover:opacity-100 transition-opacity"
-						/>
+						<Legend />
+						{/* Generate a Bar for each unique model in the dataset */}
+						{getUniqueModels(data).length > 0 ? (
+							getUniqueModels(data).map((model, index) => (
+								<Bar
+									key={model}
+									dataKey={model}
+									name={model}
+									stackId="models"
+									fill={getModelColor(model, index)}
+									radius={
+										index === getUniqueModels(data).length - 1
+											? [4, 4, 0, 0]
+											: [0, 0, 0, 0]
+									}
+								/>
+							))
+						) : (
+							<Bar
+								dataKey="requestCount"
+								name="Requests"
+								fill="currentColor"
+								radius={[4, 4, 0, 0]}
+								className="fill-primary opacity-80 hover:opacity-100 transition-opacity"
+							/>
+						)}
 					</BarChart>
 				</ResponsiveContainer>
 			</CardContent>
