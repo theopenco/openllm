@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	BarChart3,
 	CreditCard,
@@ -30,6 +30,7 @@ export function DashboardSidebar() {
 	const { location } = useRouterState();
 	const session = useSession();
 	const user = session.data?.user;
+	const navigate = useNavigate();
 
 	const isActive = (path: string) => {
 		return location.pathname === path;
@@ -117,7 +118,10 @@ export function DashboardSidebar() {
 								<LogOutIcon
 									className="cursor-pointer"
 									size={14}
-									onClick={() => signOut()}
+									onClick={async () => {
+										await signOut();
+										void navigate({ to: "/login" });
+									}}
 								/>
 							</div>
 							<div className="text-muted-foreground text-xs">{user?.email}</div>
