@@ -58,7 +58,7 @@ export default function Dashboard() {
 				<Tabs defaultValue="overview" className="space-y-4">
 					<TabsList>
 						<TabsTrigger value="overview">Overview</TabsTrigger>
-						<TabsTrigger value="activity">Logs</TabsTrigger>
+						<TabsTrigger value="activity">Activity</TabsTrigger>
 					</TabsList>
 					<TabsContent value="overview" className="space-y-4">
 						<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -141,7 +141,7 @@ export default function Dashboard() {
 					<TabsContent value="activity" className="space-y-4">
 						<Card>
 							<CardHeader>
-								<CardTitle>Recent Logs</CardTitle>
+								<CardTitle>Recent Activity</CardTitle>
 								<CardDescription>
 									Your recent API requests and system events
 								</CardDescription>
