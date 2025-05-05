@@ -47,14 +47,14 @@ export function LogCard({ log }: { log: Log }) {
 	let color = "text-green-500";
 	let bgColor = "bg-green-100";
 
-	if (log.finishReason === "length") {
-		StatusIcon = AlertCircle;
-		color = "text-yellow-500";
-		bgColor = "bg-yellow-100";
-	} else if (log.finishReason === "error") {
+	if (log.finishReason === "error") {
 		StatusIcon = AlertCircle;
 		color = "text-red-500";
 		bgColor = "bg-red-100";
+	} else if (log.finishReason !== "stop") {
+		StatusIcon = AlertCircle;
+		color = "text-yellow-500";
+		bgColor = "bg-yellow-100";
 	}
 
 	return (
