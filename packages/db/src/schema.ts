@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import {
 	boolean,
 	integer,
@@ -69,47 +68,31 @@ export const verification = pgTable("verification", {
 
 export const organization = pgTable("organization", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
-	createdAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
-	updatedAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
 	name: text().notNull(),
 });
 
 export const userOrganization = pgTable("user_organization", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
-	createdAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
-	updatedAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
 	userId: text().notNull(),
 	organizationId: text().notNull(),
 });
 
 export const project = pgTable("project", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
-	createdAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
-	updatedAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
 	name: text().notNull(),
 	organizationId: text().notNull(),
 });
 
 export const apiKey = pgTable("api_key", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
-	createdAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
-	updatedAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
 	token: text().notNull().unique(),
 	description: text().notNull(),
 	status: text({
@@ -122,12 +105,8 @@ export const providerKey = pgTable(
 	"provider_key",
 	{
 		id: text().primaryKey().notNull().$defaultFn(shortid),
-		createdAt: text()
-			.default(sql`(current_timestamp)`)
-			.notNull(),
-		updatedAt: text()
-			.default(sql`(current_timestamp)`)
-			.notNull(),
+		createdAt: timestamp().notNull().defaultNow(),
+		updatedAt: timestamp().notNull().defaultNow(),
 		token: text().notNull().unique(),
 		provider: text().notNull(),
 		status: text({
@@ -140,12 +119,8 @@ export const providerKey = pgTable(
 
 export const log = pgTable("log", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
-	createdAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
-	updatedAt: text()
-		.default(sql`(current_timestamp)`)
-		.notNull(),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
 	projectId: text().notNull(),
 	apiKeyId: text().notNull(),
 	providerKeyId: text().notNull(),

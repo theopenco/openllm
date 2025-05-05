@@ -401,7 +401,7 @@ keysApi.openapi(updateStatus, async (c) => {
 		.update(tables.apiKey)
 		.set({
 			status,
-			updatedAt: new Date().toISOString(),
+			updatedAt: new Date(),
 		})
 		.where(eq(tables.apiKey.id, id))
 		.returning();

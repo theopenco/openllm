@@ -226,8 +226,8 @@ chat.openapi(completions, async (c) => {
 	// Log the request and response
 	await db.insert(log).values({
 		id: randomUUID(),
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
+		createdAt: new Date(),
+		updatedAt: new Date(),
 		projectId: apiKey.projectId,
 		apiKeyId: apiKey.id,
 		providerKeyId: providerKey.id,

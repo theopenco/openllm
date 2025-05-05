@@ -303,7 +303,7 @@ keysProvider.openapi(deleteKey, async (c) => {
 		.update(tables.providerKey)
 		.set({
 			status: "deleted",
-			updatedAt: new Date().toISOString(),
+			updatedAt: new Date(),
 		})
 		.where(eq(tables.providerKey.id, id));
 
@@ -423,7 +423,7 @@ keysProvider.openapi(updateStatus, async (c) => {
 		.update(tables.providerKey)
 		.set({
 			status,
-			updatedAt: new Date().toISOString(),
+			updatedAt: new Date(),
 		})
 		.where(eq(tables.providerKey.id, id))
 		.returning();
