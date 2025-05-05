@@ -14,7 +14,7 @@
 		"postinstall": "husky && sync-editorconfig || true",
 		"lint": "eslint . && prettier --check .",
 		"push": "pnpm --filter db push",
-		"redo": "docker compose down -v && docker compose up -d && sleep 5 && pnpm push && pnpm seed",
+		"redo": "docker compose down -v && docker compose up -d && sleep 5 && pnpm push && pnpm seed && pnpm test-prepare",
 		"reset": "pnpm --filter db reset",
 		"seed": "pnpm --filter db seed",
 		"test": "DATABASE_URL=postgres://postgres:pw@localhost:5389/test vitest run --no-file-parallelism",
