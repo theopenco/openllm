@@ -29,7 +29,7 @@ export const Route = createRootRouteWithContext<{
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "Roll Your Own Auth - TanStack",
+				title: "OpenLLM – AI Gateway",
 			},
 		],
 	}),
