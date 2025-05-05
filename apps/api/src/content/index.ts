@@ -1,9 +1,9 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { auth } from "@openllm/auth";
 
-import { activity } from "./activity";
 import keysApi from "./keys-api";
 import keysProvider from "./keys-provider";
+import { logs } from "./logs";
 import { user } from "./user";
 
 import type { ServerTypes } from "../vars";
@@ -26,7 +26,7 @@ content.use("/*", async (c, next) => {
 
 content.route("/user", user);
 
-content.route("/activity", activity);
+content.route("/logs", logs);
 
 content.route("/keys", keysApi);
 content.route("/keys", keysProvider);

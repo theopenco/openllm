@@ -1,4 +1,4 @@
-export interface ActivityLog {
+export interface Log {
 	id: string;
 	createdAt: string;
 	updatedAt: string;
@@ -23,3 +23,6 @@ export interface ActivityLog {
 	frequencyPenalty: number;
 	presencePenalty: number;
 }
+
+// Alias for backward compatibility
+export type ActivityLog = Log;

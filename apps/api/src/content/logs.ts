@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import type { ServerTypes } from "../vars";
 
-export const activity = new OpenAPIHono<ServerTypes>();
+export const logs = new OpenAPIHono<ServerTypes>();
 
 const logSchema = createSelectSchema(tables.log);
 
@@ -73,12 +73,12 @@ const get = createRoute({
 					}),
 				},
 			},
-			description: "User activity logs response with pagination.",
+			description: "User logs response with pagination.",
 		},
 	},
 });
 
-activity.openapi(get, async (c) => {
+logs.openapi(get, async (c) => {
 	const user = c.get("user");
 
 	if (!user) {

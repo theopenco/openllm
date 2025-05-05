@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { app } from "..";
 import { createTestUser, deleteAll } from "../testing";
 
-describe("activity route", () => {
+describe("logs route", () => {
 	let token: string;
 
 	afterEach(async () => {
@@ -132,7 +132,7 @@ describe("activity route", () => {
 	});
 
 	test("should return 401 when not authenticated", async () => {
-		const res = await app.request("/content/activity");
+		const res = await app.request("/content/logs");
 		expect(res.status).toBe(401);
 	});
 
@@ -140,7 +140,7 @@ describe("activity route", () => {
 	describe("filter functionality", () => {
 		test("should filter logs by projectId", async () => {
 			const params = new URLSearchParams({ projectId: "test-project-id" });
-			const res = await app.request("/content/activity?" + params, {
+			const res = await app.request("/content/logs?" + params, {
 				method: "GET",
 				headers: {
 					Cookie: token,
@@ -159,7 +159,7 @@ describe("activity route", () => {
 
 		test("should filter by second projectId", async () => {
 			const params = new URLSearchParams({ projectId: "test-project-id-2" });
-			const res = await app.request("/content/activity?" + params, {
+			const res = await app.request("/content/logs?" + params, {
 				method: "GET",
 				headers: {
 					Cookie: token,
@@ -208,7 +208,7 @@ describe("activity route", () => {
 		});
 
 		test("should return default limit of 50 logs", async () => {
-			const res = await app.request("/content/activity", {
+			const res = await app.request("/content/logs", {
 				method: "GET",
 				headers: {
 					Cookie: token,
@@ -226,7 +226,7 @@ describe("activity route", () => {
 
 		test("should respect custom limit parameter", async () => {
 			const params = new URLSearchParams({ limit: "10" });
-			const res = await app.request("/content/activity?" + params, {
+			const res = await app.request("/content/logs?" + params, {
 				method: "GET",
 				headers: {
 					Cookie: token,
@@ -244,7 +244,7 @@ describe("activity route", () => {
 
 		test("should paginate using cursor", async () => {
 			// Get first page
-			const firstPageRes = await app.request("/content/activity?limit=10", {
+			const firstPageRes = await app.request("/content/logs?limit=10", {
 				method: "GET",
 				headers: {
 					Cookie: token,
@@ -264,7 +264,7 @@ describe("activity route", () => {
 				cursor: cursor,
 			});
 			const secondPageRes = await app.request(
-				"/content/activity?" + secondPageParams,
+				"/content/logs?" + secondPageParams,
 				{
 					method: "GET",
 					headers: {
