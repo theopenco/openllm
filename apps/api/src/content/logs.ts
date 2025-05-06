@@ -250,6 +250,7 @@ logs.openapi(get, async (c) => {
 	}
 
 	// Add cursor-based pagination
+	let cursorCondition: any = {};
 	if (cursor) {
 		// Find the log entry for the cursor to get its createdAt timestamp
 		const cursorLog = await db.query.log.findFirst({
@@ -262,13 +263,43 @@ logs.openapi(get, async (c) => {
 			// Add condition based on sort direction
 			if (orderBy === "createdAt_asc") {
 				// When sorting by createdAt ascending, get logs with createdAt > cursor's createdAt
-				logsWhere.createdAt = {
-					gt: cursorLog.createdAt,
+				// or with the same createdAt but with ID > cursor's ID
+				cursorCondition = {
+					OR: [
+						{
+							createdAt: {
+								gt: cursorLog.createdAt,
+							},
+						},
+						{
+							createdAt: {
+								eq: cursorLog.createdAt,
+							},
+							id: {
+								gt: cursorLog.id,
+							},
+						},
+					],
 				};
 			} else {
 				// When sorting by createdAt descending (default), get logs with createdAt < cursor's createdAt
-				logsWhere.createdAt = {
-					lt: cursorLog.createdAt,
+				// or with the same createdAt but with ID < cursor's ID
+				cursorCondition = {
+					OR: [
+						{
+							createdAt: {
+								lt: cursorLog.createdAt,
+							},
+						},
+						{
+							createdAt: {
+								eq: cursorLog.createdAt,
+							},
+							id: {
+								lt: cursorLog.id,
+							},
+						},
+					],
 				};
 			}
 		}
@@ -288,7 +319,10 @@ logs.openapi(get, async (c) => {
 
 	// Query logs with all filters
 	const logs = await db.query.log.findMany({
-		where: logsWhere,
+		where: {
+			...logsWhere,
+			...cursorCondition,
+		},
 		orderBy: {
 			[sortField]: sortDirection as "asc" | "desc",
 			id: sortDirection as "asc" | "desc", // Secondary sort by ID for stable pagination

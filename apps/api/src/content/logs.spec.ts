@@ -180,11 +180,18 @@ describe("logs route", () => {
 	// Tests for pagination functionality
 	describe("pagination functionality", () => {
 		beforeEach(async () => {
-			// Add more logs for pagination testing
+			// Add more logs for pagination testing with different timestamps
 			const additionalLogs = [];
+			const now = new Date();
+
 			for (let i = 3; i <= 60; i++) {
+				// Create logs with different timestamps, 1 minute apart
+				const createdAt = new Date(now.getTime() - i * 60 * 1000);
+
 				additionalLogs.push({
 					id: `test-log-id-${i}`,
+					createdAt,
+					updatedAt: createdAt,
 					projectId: "test-project-id",
 					apiKeyId: "test-api-key-id",
 					providerKeyId: "test-provider-key-id",
@@ -244,12 +251,15 @@ describe("logs route", () => {
 
 		test("should paginate using cursor", async () => {
 			// Get first page
-			const firstPageRes = await app.request("/content/logs?limit=10", {
-				method: "GET",
-				headers: {
-					Cookie: token,
+			const firstPageRes = await app.request(
+				"/content/logs?limit=10&projectId=test-project-id",
+				{
+					method: "GET",
+					headers: {
+						Cookie: token,
+					},
 				},
-			});
+			);
 
 			expect(firstPageRes.status).toBe(200);
 			const firstPageJson = await firstPageRes.json();
@@ -262,6 +272,7 @@ describe("logs route", () => {
 			const secondPageParams = new URLSearchParams({
 				limit: "10",
 				cursor: cursor,
+				projectId: "test-project-id", // Explicitly specify the project ID
 			});
 			const secondPageRes = await app.request(
 				"/content/logs?" + secondPageParams,
