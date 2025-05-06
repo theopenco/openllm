@@ -90,6 +90,7 @@ describe("logs route", () => {
 		await db.insert(tables.log).values([
 			{
 				id: "test-log-id-1",
+				organizationId: "test-org-id",
 				projectId: "test-project-id",
 				apiKeyId: "test-api-key-id",
 				providerKeyId: "test-provider-key-id",
@@ -110,6 +111,7 @@ describe("logs route", () => {
 			},
 			{
 				id: "test-log-id-2",
+				organizationId: "test-org-id",
 				projectId: "test-project-id-2",
 				apiKeyId: "test-api-key-id-2",
 				providerKeyId: "test-provider-key-id-2",
@@ -192,6 +194,7 @@ describe("logs route", () => {
 					id: `test-log-id-${i}`,
 					createdAt,
 					updatedAt: createdAt,
+					organizationId: "test-org-id",
 					projectId: "test-project-id",
 					apiKeyId: "test-api-key-id",
 					providerKeyId: "test-provider-key-id",
