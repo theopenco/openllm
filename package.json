@@ -6,10 +6,10 @@
 		"packages/*"
 	],
 	"scripts": {
-		"build": "pnpm -r build",
+		"build": "turbo run build",
 		"clean": "find . -path \"./node_modules\" -prune -o \\( -type d -name \"dist\" -o -name \".turbo\" \\) -exec rm -rf {} +",
 		"clean:node_modules": "find . -type d -name \"node_modules\" -exec rm -rf {} +",
-		"dev": "pnpm -r --parallel dev",
+		"dev": "turbo run dev",
 		"format": "eslint --fix . && prettier --write .",
 		"postinstall": "husky && sync-editorconfig || true",
 		"lint": "eslint . && prettier --check .",
@@ -35,6 +35,7 @@
 		"husky": "^9.1.7",
 		"prettier": "^3.5.3",
 		"prettier-plugin-tailwindcss": "^0.6.11",
+		"turbo": "^1.10.0",
 		"vite": "^6.3.4",
 		"vite-tsconfig-paths": "^5.1.4",
 		"vitest": "^3.1.1"
