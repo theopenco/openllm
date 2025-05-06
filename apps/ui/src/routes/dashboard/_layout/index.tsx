@@ -150,6 +150,7 @@ export default function Dashboard() {
 						<Card className="col-span-4">
 							<CardHeader>
 								<CardTitle>Usage Overview</CardTitle>
+								<CardDescription>Total Requests</CardDescription>
 							</CardHeader>
 							<CardContent className="pl-2">
 								<Overview data={data} isLoading={isLoading} days={days} />
