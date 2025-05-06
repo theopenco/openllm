@@ -15,7 +15,7 @@
 		"lint": "eslint . && prettier --check .",
 		"push-dev": "pnpm --filter db push",
 		"push-test": "DATABASE_URL=postgres://postgres:pw@localhost:5389/test pnpm --filter db push",
-		"redo": "docker compose down -v && docker compose up -d && sleep 5 && pnpm push && pnpm seed && pnpm test-prepare",
+		"redo": "docker compose down -v && docker compose up -d && sleep 5 && pnpm push && pnpm seed && pnpm push-test",
 		"reset": "pnpm --filter db reset",
 		"seed": "pnpm --filter db seed",
 		"sync": "pnpm push-dev; pnpm push-test",
