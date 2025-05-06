@@ -1,60 +1,41 @@
+import { format, parseISO } from "date-fns";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
-const data = [
-	{
-		name: "Jan",
-		total: 1200,
-	},
-	{
-		name: "Feb",
-		total: 1900,
-	},
-	{
-		name: "Mar",
-		total: 1500,
-	},
-	{
-		name: "Apr",
-		total: 2200,
-	},
-	{
-		name: "May",
-		total: 2800,
-	},
-	{
-		name: "Jun",
-		total: 3200,
-	},
-	{
-		name: "Jul",
-		total: 2800,
-	},
-	{
-		name: "Aug",
-		total: 3500,
-	},
-	{
-		name: "Sep",
-		total: 3000,
-	},
-	{
-		name: "Oct",
-		total: 2500,
-	},
-	{
-		name: "Nov",
-		total: 2800,
-	},
-	{
-		name: "Dec",
-		total: 3200,
-	},
-];
+import type { DailyActivity } from "@/hooks/useActivity";
 
-export function Overview() {
+interface OverviewProps {
+	data?: DailyActivity[];
+	isLoading?: boolean;
+}
+
+export function Overview({ data, isLoading = false }: OverviewProps) {
+	if (isLoading) {
+		return (
+			<div className="flex h-[350px] items-center justify-center">
+				<p className="text-muted-foreground">Loading...</p>
+			</div>
+		);
+	}
+
+	if (!data || data.length === 0) {
+		return (
+			<div className="flex h-[350px] items-center justify-center">
+				<p className="text-muted-foreground">No activity data available</p>
+			</div>
+		);
+	}
+
+	// Transform activity data for the chart
+	const chartData = data.map((day) => ({
+		name: format(parseISO(day.date), "MMM d"),
+		total: day.requestCount,
+		tokens: day.totalTokens,
+		cost: day.cost,
+	}));
+
 	return (
 		<ResponsiveContainer width="100%" height={350}>
-			<BarChart data={data}>
+			<BarChart data={chartData}>
 				<XAxis
 					dataKey="name"
 					stroke="#888888"
