@@ -3,7 +3,7 @@
 ## General
 
 - always use pnpm for installing or managing dependencies, and running scripts
-- if creating new files, always add them to git
+- if creating new files, always add them to git using `git add <file>`
 
 ## For database operations
 
