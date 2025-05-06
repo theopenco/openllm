@@ -7,8 +7,12 @@
 	// Features are installed in the Dockerfile
 
 	// Forward ports for the services
-	"forwardPorts": [4001, 4002, 5389],
+	"forwardPorts": [3002, 4001, 4002, 5388],
 	"portsAttributes": {
+		"3002": {
+			"label": "UI",
+			"onAutoForward": "notify"
+		},
 		"4001": {
 			"label": "Gateway",
 			"onAutoForward": "notify"
@@ -17,7 +21,7 @@
 			"label": "API",
 			"onAutoForward": "notify"
 		},
-		"5389": {
+		"5388": {
 			"label": "PostgreSQL",
 			"onAutoForward": "notify"
 		}

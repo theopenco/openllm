@@ -20,7 +20,7 @@ services:
     command: postgres -c log_statement=all
     restart: always
     ports:
-      - "5389:5432"
+      - "5388:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: pw
