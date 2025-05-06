@@ -42,12 +42,12 @@ export function LogCard({ log }: { log: Log }) {
 		return `${(ms / 1000).toFixed(2)}s`;
 	};
 
-	// Determine status icon and color based on finish reason
+	// Determine status icon and color based on error status or finish reason
 	let StatusIcon = CheckCircle2;
 	let color = "text-green-500";
 	let bgColor = "bg-green-100";
 
-	if (log.finishReason === "error") {
+	if (log.hasError || log.finishReason === "error") {
 		StatusIcon = AlertCircle;
 		color = "text-red-500";
 		bgColor = "bg-red-100";
@@ -71,10 +71,7 @@ export function LogCard({ log }: { log: Log }) {
 							{log.content || <i className="italic">empty response</i>}
 						</p>
 						<Badge
-							// variant={
-							//   log.status === "success" ? "default" : log.status === "error" ? "destructive" : "outline"
-							// }
-							variant="default"
+							variant={log.hasError ? "destructive" : "default"}
 							className="ml-2"
 						>
 							{log.finishReason}
@@ -235,6 +232,23 @@ export function LogCard({ log }: { log: Log }) {
 							</TooltipProvider>
 						</div>
 					</div>
+					{log.hasError && log.errorDetails && (
+						<div className="space-y-2">
+							<h4 className="text-sm font-medium text-red-600">
+								Error Details
+							</h4>
+							<div className="grid grid-cols-2 gap-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm">
+								<div className="text-red-600">Status Code</div>
+								<div className="font-medium">{log.errorDetails.statusCode}</div>
+								<div className="text-red-600">Status Text</div>
+								<div className="font-medium">{log.errorDetails.statusText}</div>
+								<div className="text-red-600 col-span-2">Error Message</div>
+								<div className="col-span-2 rounded bg-white text-black p-2 text-xs">
+									{log.errorDetails.responseText}
+								</div>
+							</div>
+						</div>
+					)}
 					<div className="space-y-2">
 						<h4 className="text-sm font-medium">Message Context</h4>
 						<div className="rounded-md border p-3">

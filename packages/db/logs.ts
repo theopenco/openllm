@@ -5,6 +5,42 @@ type Log = InferInsertModel<typeof tables.log>;
 
 export const logs: Log[] = [
 	{
+		id: "error-log-example",
+		projectId: "test-project-id",
+		apiKeyId: "test-api-key-id",
+		providerKeyId: "test-provider-key-id",
+		duration: 1500,
+		requestedModel: "gpt-4",
+		requestedProvider: "openai",
+		usedModel: "gpt-4",
+		usedProvider: "openai",
+		responseSize: 250,
+		content: "Failed to process request due to server error",
+		finishReason: "error",
+		promptTokens: 45,
+		completionTokens: 0,
+		totalTokens: 45,
+		temperature: 0.7,
+		maxTokens: 1000,
+		messages: JSON.stringify([
+			{ role: "system", content: "You are a helpful AI assistant." },
+			{
+				role: "user",
+				content: "Can you analyze this dataset and provide insights?",
+			},
+		]),
+		cost: 0,
+		inputCost: 0,
+		outputCost: 0,
+		hasError: true,
+		errorDetails: {
+			statusCode: 500,
+			statusText: "Internal Server Error",
+			responseText:
+				"The server encountered an unexpected condition that prevented it from fulfilling the request. The model service is temporarily unavailable.",
+		},
+	},
+	{
 		id: "test-log-id-1",
 		projectId: "test-project-id",
 		apiKeyId: "test-api-key-id",
