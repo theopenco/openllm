@@ -3,6 +3,7 @@
 ## General
 
 - always use pnpm for installing or managing dependencies, and running scripts
+- use existing data fetching mechanisms using react-query and native fetch
 - if creating new files, always add them to git using `git add <file>`
 - after adding features, make sure that the tests pass using `pnpm test`
 - after adding features, make sure that the build passes using `pnpm build`
