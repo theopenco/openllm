@@ -9,7 +9,7 @@ import type { ServerTypes } from "../vars";
 
 export const logs = new OpenAPIHono<ServerTypes>();
 
-// Extend the log schema to include cost information
+// Extend the log schema to include cost information and error details
 const baseLogSchema = createSelectSchema(tables.log);
 const logSchema = baseLogSchema.extend({
 	cost: z.number().optional().openapi({
@@ -21,6 +21,25 @@ const logSchema = baseLogSchema.extend({
 	outputCost: z.number().optional().openapi({
 		description: "Cost for output tokens",
 	}),
+	hasError: z.boolean().nullable().optional().openapi({
+		description: "Whether the request resulted in an error",
+	}),
+	errorDetails: z
+		.object({
+			statusCode: z.number().openapi({
+				description: "HTTP status code of the error",
+			}),
+			statusText: z.string().openapi({
+				description: "HTTP status text of the error",
+			}),
+			responseText: z.string().openapi({
+				description: "Response body of the error",
+			}),
+		})
+		.optional()
+		.openapi({
+			description: "Details about the error if hasError is true",
+		}),
 });
 
 const querySchema = z.object({

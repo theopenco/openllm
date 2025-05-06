@@ -1,3 +1,9 @@
+export interface ErrorDetails {
+	statusCode: number;
+	statusText: string;
+	responseText: string;
+}
+
 export interface Log {
 	id: string;
 	createdAt: string;
@@ -26,6 +32,9 @@ export interface Log {
 	cost?: number;
 	inputCost?: number;
 	outputCost?: number;
+	// Error information
+	hasError?: boolean;
+	errorDetails?: ErrorDetails;
 }
 
 // Alias for backward compatibility

@@ -251,15 +251,61 @@ chat.openapi(completions, async (c) => {
 
 	if (!res.ok) {
 		console.error("error", url, res.status, res.statusText);
-		throw new HTTPException(500, {
-			message: `Error fetching ${res.status} ${res.statusText}`,
+
+		// Get the error response text
+		const errorResponseText = await res.text();
+
+		// Log the error in the database
+		await db.insert(log).values({
+			id: randomUUID(),
+			createdAt: new Date(),
+			updatedAt: new Date(),
+			projectId: apiKey.projectId,
+			apiKeyId: apiKey.id,
+			providerKeyId: providerKey.id,
+			duration,
+			usedModel: usedModel,
+			usedProvider: usedProvider,
+			requestedModel: requestedModel,
+			requestedProvider: requestedProvider,
+			messages: messages,
+			responseSize: errorResponseText.length,
+			content: null,
+			finishReason: "gateway_error",
+			promptTokens: null,
+			completionTokens: null,
+			totalTokens: null,
+			temperature: temperature || null,
+			maxTokens: max_tokens || null,
+			topP: top_p || null,
+			frequencyPenalty: frequency_penalty || null,
+			presencePenalty: presence_penalty || null,
+			hasError: true,
+			errorDetails: {
+				statusCode: res.status,
+				statusText: res.statusText,
+				responseText: errorResponseText,
+			},
 		});
+
+		// Return a 500 error response
+		return c.json(
+			{
+				error: {
+					message: `Error from provider: ${res.status} ${res.statusText}`,
+					type: "gateway_error",
+					param: null,
+					code: "gateway_error",
+				},
+			},
+			500,
+		);
 	}
 
 	const json = await res.json();
 	const responseText = JSON.stringify(json);
 
-	// Log the request and response
+	// Log the successful request and response
 	await db.insert(log).values({
 		id: randomUUID(),
 		createdAt: new Date(),
@@ -284,6 +330,8 @@ chat.openapi(completions, async (c) => {
 		topP: top_p || null,
 		frequencyPenalty: frequency_penalty || null,
 		presencePenalty: presence_penalty || null,
+		hasError: false,
+		errorDetails: null,
 	});
 
 	return c.json(json);
