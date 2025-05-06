@@ -1,0 +1,61 @@
+{
+	"name": "OpenLLM Development",
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspaces/openllm",
+
+	// Features to add to the dev container
+	"features": {
+		"ghcr.io/devcontainers/features/node:1": {
+			"version": "20.10.0"
+		},
+		"ghcr.io/devcontainers/features/git:1": {},
+		"ghcr.io/devcontainers-contrib/features/pnpm:2": {
+			"version": "10.8.0"
+		}
+	},
+
+	// Forward ports for the services
+	"forwardPorts": [4001, 4002, 5389],
+	"portsAttributes": {
+		"4001": {
+			"label": "Gateway",
+			"onAutoForward": "notify"
+		},
+		"4002": {
+			"label": "API",
+			"onAutoForward": "notify"
+		},
+		"5389": {
+			"label": "PostgreSQL",
+			"onAutoForward": "notify"
+		}
+	},
+
+	// Use 'postCreateCommand' to run commands after the container is created
+	"postCreateCommand": "bash /workspaces/openllm/.devcontainer/init-script.sh",
+
+	// Configure tool-specific properties
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"bradlc.vscode-tailwindcss",
+				"ms-vscode.vscode-typescript-next",
+				"github.copilot",
+				"github.vscode-github-actions"
+			],
+			"settings": {
+				"editor.formatOnSave": true,
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"editor.codeActionsOnSave": {
+					"source.fixAll.eslint": true
+				}
+			}
+		}
+	}
+
+	// Uncomment to connect as root instead
+	// "remoteUser": "root"
+}

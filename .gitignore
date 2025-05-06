@@ -5,3 +5,5 @@ packages/**/*.js
 apps/**/*.js
 *spec.yaml
 .turbo/
+.pnpm-store
+.idea/

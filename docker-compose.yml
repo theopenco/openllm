@@ -1,6 +1,8 @@
+name: openllm
+
 services:
   postgres:
-    container_name: openllm-api-postgres
+    container_name: postgres
     command: postgres -c log_statement=all
     image: postgres:17-alpine
     restart: always
