@@ -23,7 +23,8 @@
 		}
 	},
 
-	// No post-create command needed as dependencies are installed in the Dockerfile
+	// Run database setup script after container creation
+	"postCreateCommand": "bash .devcontainer/db-setup.sh",
 
 	// Configure tool-specific properties
 	"customizations": {

@@ -4,11 +4,16 @@ FROM mcr.microsoft.com/devcontainers/javascript-node:0-20
 ARG PNPM_VERSION=10.8.0
 RUN npm install -g pnpm@${PNPM_VERSION}
 
+# Install PostgreSQL client tools
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
+    && apt-get -y install --no-install-recommends postgresql-client
+
 # Set the working directory
 WORKDIR /workspaces/openllm
 
 # Create directory structure for package.json files
 RUN mkdir -p apps/api apps/gateway apps/ui packages/auth packages/db packages/models
+RUN alias p=pnpm
 
 # Copy package files for dependency installation
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./

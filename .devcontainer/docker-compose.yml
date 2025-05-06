@@ -9,17 +9,21 @@ services:
     volumes:
       - ..:/workspaces/openllm:cached
     command: sleep infinity
-    network_mode: service:postgres
     depends_on:
       - postgres
     environment:
-      - DATABASE_URL=postgres://postgres:pw@localhost:5389/db
+      - DATABASE_URL=postgres://postgres:pw@postgres:5432/db
 
   # Use the existing PostgreSQL service from the main docker-compose.yml
   postgres:
-    extends:
-      file: ../docker-compose.yml
-      service: postgres
-    # Keep the original port mapping
+    image: postgres:17-alpine
+    command: postgres -c log_statement=all
+    restart: always
     ports:
       - "5389:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pw
+      POSTGRES_DB: db
+    volumes:
+      - ../packages/db/init:/docker-entrypoint-initdb.d
