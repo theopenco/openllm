@@ -4,16 +4,7 @@
 	"service": "app",
 	"workspaceFolder": "/workspaces/openllm",
 
-	// Features to add to the dev container
-	"features": {
-		"ghcr.io/devcontainers/features/node:1": {
-			"version": "20.10.0"
-		},
-		"ghcr.io/devcontainers/features/git:1": {},
-		"ghcr.io/devcontainers-contrib/features/pnpm:2": {
-			"version": "10.8.0"
-		}
-	},
+	// Features are installed in the Dockerfile
 
 	// Forward ports for the services
 	"forwardPorts": [4001, 4002, 5389],
@@ -32,8 +23,7 @@
 		}
 	},
 
-	// Use 'postCreateCommand' to run commands after the container is created
-	"postCreateCommand": "bash /workspaces/openllm/.devcontainer/init-script.sh",
+	// No post-create command needed as dependencies are installed in the Dockerfile
 
 	// Configure tool-specific properties
 	"customizations": {

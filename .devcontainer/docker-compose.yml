@@ -3,11 +3,12 @@ version: "3.8"
 services:
   # Main development container
   app:
-    image: mcr.microsoft.com/devcontainers/javascript-node:0-20
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
     volumes:
       - ..:/workspaces/openllm:cached
     command: sleep infinity
-    working_dir: /workspaces/openllm
     network_mode: service:postgres
     depends_on:
       - postgres
