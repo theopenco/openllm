@@ -35,7 +35,7 @@ export interface Log {
 	// Error information
 	hasError?: boolean;
 	errorDetails?: ErrorDetails;
+	// Stream information
+	canceled?: boolean;
+	streamed?: boolean;
 }
-
-// Alias for backward compatibility
-export type ActivityLog = Log;

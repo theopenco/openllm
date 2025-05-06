@@ -1,6 +1,8 @@
 import { formatDistanceToNow } from "date-fns";
 import {
 	AlertCircle,
+	AudioWaveform,
+	Ban,
 	CheckCircle2,
 	ChevronDown,
 	ChevronUp,
@@ -151,6 +153,28 @@ export function LogCard({ log }: { log: Log }) {
 								<div className="font-medium">{log.totalTokens}</div>
 								<div className="text-muted-foreground">Finish Reason</div>
 								<div>{log.finishReason}</div>
+								<div className="text-muted-foreground">Streamed</div>
+								<div className="flex items-center gap-1">
+									{log.streamed ? (
+										<>
+											<AudioWaveform className="h-3.5 w-3.5 text-green-500" />
+											<span>Yes</span>
+										</>
+									) : (
+										<span>No</span>
+									)}
+								</div>
+								<div className="text-muted-foreground">Canceled</div>
+								<div className="flex items-center gap-1">
+									{log.canceled ? (
+										<>
+											<Ban className="h-3.5 w-3.5 text-amber-500" />
+											<span>Yes</span>
+										</>
+									) : (
+										<span>No</span>
+									)}
+								</div>
 							</div>
 						</div>
 					</div>

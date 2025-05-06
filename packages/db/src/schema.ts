@@ -147,4 +147,6 @@ export const log = pgTable("log", {
 	cost: real(),
 	inputCost: real(),
 	outputCost: real(),
+	canceled: boolean().default(false),
+	streamed: boolean().default(false),
 });
