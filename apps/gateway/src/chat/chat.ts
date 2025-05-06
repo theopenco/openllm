@@ -138,7 +138,9 @@ chat.openapi(completions, async (c) => {
 
 	switch (usedProvider) {
 		case "openai": {
-			url = "https://api.openai.com/v1/chat/completions";
+			// Use the mock server URL if it's set in the environment
+			url = process.env.OPENAI_API_BASE_URL || "https://api.openai.com";
+			url = `${url}/v1/chat/completions`;
 			break;
 		}
 		default:

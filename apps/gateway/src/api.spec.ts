@@ -1,9 +1,32 @@
 import { db, tables } from "@openllm/db";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import {
+	afterEach,
+	afterAll,
+	beforeEach,
+	beforeAll,
+	describe,
+	expect,
+	test,
+} from "vitest";
 
 import { app } from ".";
+import {
+	startMockServer,
+	stopMockServer,
+} from "./test-utils/mock-openai-server";
 
 describe("test", () => {
+	// Start the mock OpenAI server before all tests
+	beforeAll(() => {
+		const mockServerUrl = startMockServer(3001);
+		process.env.OPENAI_API_BASE_URL = mockServerUrl;
+	});
+
+	// Stop the mock server after all tests
+	afterAll(() => {
+		stopMockServer();
+		delete process.env.OPENAI_API_BASE_URL;
+	});
 	afterEach(async () => {
 		await db.delete(tables.user);
 		await db.delete(tables.account);
