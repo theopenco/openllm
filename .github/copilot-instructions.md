@@ -2,6 +2,7 @@
 
 ## General
 
+- for git commit messages, always use the conventional commit style
 - always use pnpm for installing or managing dependencies, and running scripts
 - never add unnecessary basic code comments
 - use existing data fetching mechanisms using react-query and native fetch
