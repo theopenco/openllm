@@ -32,3 +32,5 @@ echo "Installing dependencies with pnpm..."
 pnpm install
 
 echo "Initialization complete!"
+
+echo 'alias p=pnpm' >> ~/.bashrc

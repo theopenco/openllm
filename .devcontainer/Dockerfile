@@ -13,4 +13,3 @@ WORKDIR /workspaces/openllm
 
 # Create directory structure for package.json files
 RUN mkdir -p apps/api apps/gateway apps/ui packages/auth packages/db packages/models
-RUN echo 'alias p=pnpm' >> ~/.bashrc
