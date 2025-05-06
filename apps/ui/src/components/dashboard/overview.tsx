@@ -1,60 +1,24 @@
+import React from "react";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
-const data = [
-	{
-		name: "Jan",
-		total: 1200,
-	},
-	{
-		name: "Feb",
-		total: 1900,
-	},
-	{
-		name: "Mar",
-		total: 1500,
-	},
-	{
-		name: "Apr",
-		total: 2200,
-	},
-	{
-		name: "May",
-		total: 2800,
-	},
-	{
-		name: "Jun",
-		total: 3200,
-	},
-	{
-		name: "Jul",
-		total: 2800,
-	},
-	{
-		name: "Aug",
-		total: 3500,
-	},
-	{
-		name: "Sep",
-		total: 3000,
-	},
-	{
-		name: "Oct",
-		total: 2500,
-	},
-	{
-		name: "Nov",
-		total: 2800,
-	},
-	{
-		name: "Dec",
-		total: 3200,
-	},
-];
+import type { DailyActivity } from "@/hooks/useActivity";
 
-export function Overview() {
+interface OverviewProps {
+	data: DailyActivity[] | undefined;
+}
+
+export function Overview({ data }: OverviewProps) {
+	const chartData = data?.map((activity) => ({
+		name: new Date(activity.date).toLocaleDateString("en-US", {
+			month: "short",
+			day: "numeric",
+		}),
+		total: activity.requestCount,
+	}));
+
 	return (
 		<ResponsiveContainer width="100%" height={350}>
-			<BarChart data={data}>
+			<BarChart data={chartData}>
 				<XAxis
 					dataKey="name"
 					stroke="#888888"
@@ -67,7 +31,7 @@ export function Overview() {
 					fontSize={12}
 					tickLine={false}
 					axisLine={false}
-					tickFormatter={(value) => `${value}`}
+					tickFormatter={(value: number) => `${value}`}
 				/>
 				<Bar
 					dataKey="total"
