@@ -1,60 +1,67 @@
+import { addDays, format, parseISO, subDays } from "date-fns";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
-const data = [
-	{
-		name: "Jan",
-		total: 1200,
-	},
-	{
-		name: "Feb",
-		total: 1900,
-	},
-	{
-		name: "Mar",
-		total: 1500,
-	},
-	{
-		name: "Apr",
-		total: 2200,
-	},
-	{
-		name: "May",
-		total: 2800,
-	},
-	{
-		name: "Jun",
-		total: 3200,
-	},
-	{
-		name: "Jul",
-		total: 2800,
-	},
-	{
-		name: "Aug",
-		total: 3500,
-	},
-	{
-		name: "Sep",
-		total: 3000,
-	},
-	{
-		name: "Oct",
-		total: 2500,
-	},
-	{
-		name: "Nov",
-		total: 2800,
-	},
-	{
-		name: "Dec",
-		total: 3200,
-	},
-];
+import type { DailyActivity } from "@/hooks/useActivity";
 
-export function Overview() {
+interface OverviewProps {
+	data?: DailyActivity[];
+	isLoading?: boolean;
+	days?: 7 | 30;
+}
+
+export function Overview({ data, isLoading = false, days = 7 }: OverviewProps) {
+	if (isLoading) {
+		return (
+			<div className="flex h-[350px] items-center justify-center">
+				<p className="text-muted-foreground">Loading...</p>
+			</div>
+		);
+	}
+
+	if (!data || data.length === 0) {
+		return (
+			<div className="flex h-[350px] items-center justify-center">
+				<p className="text-muted-foreground">No activity data available</p>
+			</div>
+		);
+	}
+
+	// Generate a complete date range for the selected period to ensure consistent rendering
+	const today = new Date();
+	const startDate = subDays(today, days - 1);
+	const dateRange: string[] = [];
+
+	// Create an array of all dates in the range
+	for (let i = 0; i < days; i++) {
+		const date = addDays(startDate, i);
+		dateRange.push(format(date, "yyyy-MM-dd"));
+	}
+
+	// Create a map of existing data by date
+	const dataByDate = new Map(data.map((day) => [day.date, day]));
+
+	// Fill in the chart data with all dates, using zero values for missing dates
+	const chartData = dateRange.map((date) => {
+		if (dataByDate.has(date)) {
+			return {
+				name: format(parseISO(date), "MMM d"),
+				total: dataByDate.get(date)!.requestCount,
+				tokens: dataByDate.get(date)!.totalTokens,
+				cost: dataByDate.get(date)!.cost,
+			};
+		}
+
+		return {
+			name: format(parseISO(date), "MMM d"),
+			total: 0,
+			tokens: 0,
+			cost: 0,
+		};
+	});
+
 	return (
 		<ResponsiveContainer width="100%" height={350}>
-			<BarChart data={data}>
+			<BarChart data={chartData}>
 				<XAxis
 					dataKey="name"
 					stroke="#888888"
