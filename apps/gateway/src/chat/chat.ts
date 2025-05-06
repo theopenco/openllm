@@ -7,16 +7,6 @@ import { streamSSE } from "hono/streaming";
 
 import type { ServerTypes } from "../vars";
 
-// Environment variable for overriding provider base URLs in tests
-const getProviderBaseUrl = (provider: Provider): string => {
-	switch (provider) {
-		case "openai":
-			return process.env.OPENAI_BASE_URL || "https://api.openai.com";
-		default:
-			return "";
-	}
-};
-
 export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
@@ -207,8 +197,7 @@ chat.openapi(completions, async (c) => {
 				break;
 			}
 			case "openai":
-				// Use environment variable if set (for testing), otherwise use default
-				url = getProviderBaseUrl(usedProvider);
+				url = process.env.OPENAI_BASE_URL || "https://api.openai.com";
 				break;
 			default:
 				throw new HTTPException(500, {
