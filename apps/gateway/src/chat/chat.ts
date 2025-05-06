@@ -250,6 +250,10 @@ chat.openapi(completions, async (c) => {
 		}
 	}
 
+	// Check if the request can be canceled
+	const requestCanBeCanceled =
+		providers.find((p) => p.id === usedProvider)?.supportsCancellation === true;
+
 	const requestBody: any = {
 		model: usedModel,
 		messages,
@@ -279,14 +283,88 @@ chat.openapi(completions, async (c) => {
 	if (stream) {
 		return streamSSE(c, async (stream) => {
 			let eventId = 0;
-			const res = await fetch(url, {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${providerKey.token}`,
-				},
-				body: JSON.stringify(requestBody),
-			});
+			let canceled = false;
+
+			// Set up cancellation handling
+			const controller = new AbortController();
+			// Set up a listener for the request being aborted
+			const onAbort = () => {
+				if (requestCanBeCanceled) {
+					canceled = true;
+					controller.abort();
+				}
+			};
+
+			// Add event listener for the abort event on the connection
+			c.req.raw.signal.addEventListener("abort", onAbort);
+
+			let res;
+			try {
+				res = await fetch(url, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer ${providerKey.token}`,
+					},
+					body: JSON.stringify(requestBody),
+					signal: requestCanBeCanceled ? controller.signal : undefined,
+				});
+			} catch (error) {
+				// Clean up the event listeners
+				c.req.raw.signal.removeEventListener("abort", onAbort);
+
+				if (error instanceof Error && error.name === "AbortError") {
+					console.log("Streaming request was canceled by the client");
+
+					// Log the canceled request
+					await db.insert(log).values({
+						id: randomUUID(),
+						createdAt: new Date(),
+						updatedAt: new Date(),
+						projectId: apiKey.projectId,
+						apiKeyId: apiKey.id,
+						providerKeyId: providerKey.id,
+						duration: Date.now() - startTime,
+						usedModel: usedModel,
+						usedProvider: usedProvider,
+						requestedModel: requestedModel,
+						requestedProvider: requestedProvider,
+						messages: messages,
+						responseSize: 0,
+						content: null,
+						finishReason: "canceled",
+						promptTokens: null,
+						completionTokens: null,
+						totalTokens: null,
+						temperature: temperature || null,
+						maxTokens: max_tokens || null,
+						topP: top_p || null,
+						frequencyPenalty: frequency_penalty || null,
+						presencePenalty: presence_penalty || null,
+						hasError: false,
+						streamed: true,
+						canceled: true,
+						errorDetails: null,
+					});
+
+					// Send a cancellation event to the client
+					await stream.writeSSE({
+						event: "canceled",
+						data: JSON.stringify({
+							message: "Request canceled by client",
+						}),
+						id: String(eventId++),
+					});
+					await stream.writeSSE({
+						event: "done",
+						data: "[DONE]",
+						id: String(eventId++),
+					});
+					return;
+				} else {
+					throw error;
+				}
+			}
 
 			if (!res.ok) {
 				console.error("error", url, res.status, res.statusText);
@@ -319,6 +397,7 @@ chat.openapi(completions, async (c) => {
 					presencePenalty: presence_penalty || null,
 					hasError: true,
 					streamed: true,
+					canceled: false,
 					errorDetails: {
 						statusCode: res.status,
 						statusText: res.statusText,
@@ -429,6 +508,9 @@ chat.openapi(completions, async (c) => {
 			} catch (error) {
 				console.error("Error reading stream:", error);
 			} finally {
+				// Clean up the event listeners
+				c.req.raw.signal.removeEventListener("abort", onAbort);
+
 				// Log the streaming request
 				const duration = Date.now() - startTime;
 				await db.insert(log).values({
@@ -446,7 +528,7 @@ chat.openapi(completions, async (c) => {
 					messages: messages,
 					responseSize: fullContent.length,
 					content: fullContent,
-					finishReason: finishReason,
+					finishReason: canceled || !finishReason ? "canceled" : finishReason,
 					promptTokens: promptTokens,
 					completionTokens: completionTokens,
 					totalTokens: totalTokens,
@@ -458,23 +540,97 @@ chat.openapi(completions, async (c) => {
 					hasError: false,
 					errorDetails: null,
 					streamed: true,
+					canceled: canceled || !finishReason,
 				});
 			}
 		});
 	}
 
 	// Handle non-streaming response
-	const res = await fetch(url, {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer ${providerKey.token}`,
-		},
-		body: JSON.stringify(requestBody),
-	});
+	const controller = new AbortController();
+	// Set up a listener for the request being aborted
+	const onAbort = () => {
+		if (requestCanBeCanceled) {
+			controller.abort();
+		}
+	};
+
+	// Add event listener for the 'close' event on the connection
+	c.req.raw.signal.addEventListener("abort", onAbort);
+
+	let canceled = false;
+	let res;
+	try {
+		res = await fetch(url, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer ${providerKey.token}`,
+			},
+			body: JSON.stringify(requestBody),
+			signal: requestCanBeCanceled ? controller.signal : undefined,
+		});
+	} catch (error) {
+		if (error instanceof Error && error.name === "AbortError") {
+			canceled = true;
+			console.log("Request was canceled by the client");
+		} else {
+			throw error;
+		}
+	} finally {
+		// Clean up the event listener
+		c.req.raw.signal.removeEventListener("abort", onAbort);
+	}
+
 	const duration = Date.now() - startTime;
 
-	if (!res.ok) {
+	// If the request was canceled, log it and return a response
+	if (canceled) {
+		// Log the canceled request
+		await db.insert(log).values({
+			id: randomUUID(),
+			createdAt: new Date(),
+			updatedAt: new Date(),
+			projectId: apiKey.projectId,
+			apiKeyId: apiKey.id,
+			providerKeyId: providerKey.id,
+			duration,
+			usedModel: usedModel,
+			usedProvider: usedProvider,
+			requestedModel: requestedModel,
+			requestedProvider: requestedProvider,
+			messages: messages,
+			responseSize: 0,
+			content: null,
+			finishReason: "canceled",
+			promptTokens: null,
+			completionTokens: null,
+			totalTokens: null,
+			temperature: temperature || null,
+			maxTokens: max_tokens || null,
+			topP: top_p || null,
+			frequencyPenalty: frequency_penalty || null,
+			presencePenalty: presence_penalty || null,
+			hasError: false,
+			streamed: false,
+			canceled: true,
+			errorDetails: null,
+		});
+
+		return c.json(
+			{
+				error: {
+					message: "Request canceled by client",
+					type: "canceled",
+					param: null,
+					code: "request_canceled",
+				},
+			},
+			400,
+		); // Using 400 status code for client closed request
+	}
+
+	if (res && !res.ok) {
 		console.error("error", url, res.status, res.statusText);
 
 		// Get the error response text
@@ -507,6 +663,7 @@ chat.openapi(completions, async (c) => {
 			presencePenalty: presence_penalty || null,
 			hasError: true,
 			streamed: false,
+			canceled: false,
 			errorDetails: {
 				statusCode: res.status,
 				statusText: res.statusText,
@@ -526,6 +683,10 @@ chat.openapi(completions, async (c) => {
 			},
 			500,
 		);
+	}
+
+	if (!res) {
+		throw new Error("No response from provider");
 	}
 
 	const json = await res.json();
@@ -558,6 +719,7 @@ chat.openapi(completions, async (c) => {
 		presencePenalty: presence_penalty || null,
 		hasError: false,
 		streamed: false,
+		canceled: false,
 		errorDetails: null,
 	});
 
