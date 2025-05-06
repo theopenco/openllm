@@ -152,7 +152,7 @@ export default function Dashboard() {
 								<CardTitle>Usage Overview</CardTitle>
 							</CardHeader>
 							<CardContent className="pl-2">
-								<Overview data={data} isLoading={isLoading} />
+								<Overview data={data} isLoading={isLoading} days={days} />
 							</CardContent>
 						</Card>
 						<Card className="col-span-3">
