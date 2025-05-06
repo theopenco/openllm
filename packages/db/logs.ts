@@ -682,7 +682,9 @@ export const logs: Log[] = [
 		promptTokens: 16,
 		completionTokens: 26,
 		totalTokens: 42,
-		messages: JSON.stringify([{ role: "user", content: "Another final query" }]),
+		messages: JSON.stringify([
+			{ role: "user", content: "Another final query" },
+		]),
 		cost: 0.09,
 		inputCost: 0.04,
 		outputCost: 0.05,
