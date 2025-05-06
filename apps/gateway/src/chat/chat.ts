@@ -243,7 +243,7 @@ chat.openapi(completions, async (c) => {
 	// Check if streaming is requested and if the provider supports it
 	if (stream) {
 		const providerInfo = providers.find((p) => p.id === usedProvider);
-		if (!providerInfo?.supportsStreaming) {
+		if (!providerInfo?.streaming) {
 			throw new HTTPException(400, {
 				message: `Provider ${usedProvider} does not support streaming`,
 			});
