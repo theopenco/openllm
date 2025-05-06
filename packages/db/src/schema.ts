@@ -122,6 +122,7 @@ export const log = pgTable("log", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp().notNull().defaultNow(),
+	organizationId: text().notNull(),
 	projectId: text().notNull(),
 	apiKeyId: text().notNull(),
 	providerKeyId: text().notNull(),

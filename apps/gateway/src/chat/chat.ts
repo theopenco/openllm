@@ -310,6 +310,7 @@ chat.openapi(completions, async (c) => {
 						id: randomUUID(),
 						createdAt: new Date(),
 						updatedAt: new Date(),
+						organizationId: project.organizationId,
 						projectId: apiKey.projectId,
 						apiKeyId: apiKey.id,
 						providerKeyId: providerKey.id,
@@ -359,10 +360,29 @@ chat.openapi(completions, async (c) => {
 				console.error("error", url, res.status, res.statusText);
 				const errorResponseText = await res.text();
 
+				await stream.writeSSE({
+					event: "error",
+					data: JSON.stringify({
+						error: {
+							message: `Error from provider: ${res.status} ${res.statusText}`,
+							type: "gateway_error",
+							param: null,
+							code: "gateway_error",
+						},
+					}),
+					id: String(eventId++),
+				});
+				await stream.writeSSE({
+					event: "done",
+					data: "[DONE]",
+					id: String(eventId++),
+				});
+
 				// Log the error in the database
 				await db.insert(log).values({
 					createdAt: new Date(),
 					updatedAt: new Date(),
+					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
 					providerKeyId: providerKey.id,
@@ -393,23 +413,6 @@ chat.openapi(completions, async (c) => {
 					},
 				});
 
-				await stream.writeSSE({
-					event: "error",
-					data: JSON.stringify({
-						error: {
-							message: `Error from provider: ${res.status} ${res.statusText}`,
-							type: "gateway_error",
-							param: null,
-							code: "gateway_error",
-						},
-					}),
-					id: String(eventId++),
-				});
-				await stream.writeSSE({
-					event: "done",
-					data: "[DONE]",
-					id: String(eventId++),
-				});
 				return;
 			}
 
@@ -504,6 +507,7 @@ chat.openapi(completions, async (c) => {
 				await db.insert(log).values({
 					createdAt: new Date(),
 					updatedAt: new Date(),
+					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
 					providerKeyId: providerKey.id,
@@ -578,6 +582,7 @@ chat.openapi(completions, async (c) => {
 			id: randomUUID(),
 			createdAt: new Date(),
 			updatedAt: new Date(),
+			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
@@ -628,6 +633,7 @@ chat.openapi(completions, async (c) => {
 			id: randomUUID(),
 			createdAt: new Date(),
 			updatedAt: new Date(),
+			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
@@ -684,6 +690,7 @@ chat.openapi(completions, async (c) => {
 		id: randomUUID(),
 		createdAt: new Date(),
 		updatedAt: new Date(),
+		organizationId: project.organizationId,
 		projectId: apiKey.projectId,
 		apiKeyId: apiKey.id,
 		providerKeyId: providerKey.id,

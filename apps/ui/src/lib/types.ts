@@ -8,6 +8,7 @@ export interface Log {
 	id: string;
 	createdAt: string;
 	updatedAt: string;
+	organizationId: string;
 	projectId: string;
 	apiKeyId: string;
 	providerKeyId: string;
