@@ -112,10 +112,11 @@ describe("test", () => {
 		expect(json).toHaveProperty("choices.[0].message.content");
 		expect(json.choices[0].message.content).toMatch(/Hello!/);
 
-		// check for db log
+		// Check that the request was logged
 		const logs = await db.query.log.findMany({});
-		console.log("db logs", JSON.stringify(logs, null, 2));
 		expect(logs.length).toBe(1);
+		expect(logs[0].finishReason).toBe("stop");
+		expect(logs[0].content).toMatch(/Hello!/);
 	});
 
 	// invalid model test
@@ -324,5 +325,59 @@ describe("test", () => {
 		expect(errorMessage).toMatchInlineSnapshot(
 			`"No API key set for provider: openai. Please add a provider key in your settings."`,
 		);
+	});
+
+	// test for provider error response and error logging
+	test("/v1/chat/completions with provider error response", async () => {
+		await db.insert(tables.apiKey).values({
+			id: "token-id",
+			token: "real-token",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		// Create provider key with mock server URL as baseUrl
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-id",
+			token: "sk-test-key",
+			provider: "openllm",
+			projectId: "project-id",
+			baseUrl: mockServerUrl,
+		});
+
+		// Send a request that will trigger an error in the mock server
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "openllm/custom",
+				messages: [
+					{
+						role: "user",
+						content: "This message will TRIGGER_ERROR in the mock server",
+					},
+				],
+			}),
+		});
+
+		// Verify the response status is 500
+		expect(res.status).toBe(500);
+
+		// Verify the response body contains the error message
+		const errorResponse = await res.json();
+		expect(errorResponse).toHaveProperty("error");
+		expect(errorResponse.error).toHaveProperty("message");
+		expect(errorResponse.error).toHaveProperty("type", "gateway_error");
+
+		// Check that the error was logged in the database
+		const logs = await db.query.log.findMany({});
+		expect(logs.length).toBe(1);
+
+		// Verify the log has the correct error fields
+		const errorLog = logs[0];
+		expect(errorLog.finishReason).toBe("gateway_error");
 	});
 });

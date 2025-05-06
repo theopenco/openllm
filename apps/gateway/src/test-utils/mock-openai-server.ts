@@ -28,9 +28,30 @@ const sampleChatCompletionResponse = {
 	},
 };
 
+// Sample error response
+const sampleErrorResponse = {
+	error: {
+		message:
+			"The server had an error processing your request. Sorry about that!",
+		type: "server_error",
+		param: null,
+		code: "internal_server_error",
+	},
+};
+
 // Handle chat completions endpoint
 mockOpenAIServer.post("/v1/chat/completions", async (c) => {
 	const body = await c.req.json();
+
+	// Check if this request should trigger an error response
+	const shouldError = body.messages.some(
+		(msg: any) => msg.role === "user" && msg.content.includes("TRIGGER_ERROR"),
+	);
+
+	if (shouldError) {
+		c.status(500);
+		return c.json(sampleErrorResponse);
+	}
 
 	// Get the user's message to include in the response
 	const userMessage =

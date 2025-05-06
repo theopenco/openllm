@@ -95,9 +95,7 @@ export function LogCard({ log }: { log: Log }) {
 						</div>
 						<div className="flex items-center gap-1">
 							<DollarSign className="h-3.5 w-3.5" />
-							<span>
-								{log.cost !== undefined ? `$${log.cost.toFixed(6)}` : "?"}
-							</span>
+							<span>{log.cost ? `$${log.cost.toFixed(6)}` : "?"}</span>
 						</div>
 						<div className="flex items-center gap-1">
 							<Code className="h-3.5 w-3.5" />
@@ -163,20 +161,14 @@ export function LogCard({ log }: { log: Log }) {
 						<h4 className="text-sm font-medium">Cost Information</h4>
 						<div className="grid grid-cols-2 gap-2 rounded-md border p-3 text-sm">
 							<div className="text-muted-foreground">Input Cost</div>
-							<div>
-								{log.inputCost !== undefined
-									? `$${log.inputCost.toFixed(6)}`
-									: "?"}
-							</div>
+							<div>{log.inputCost ? `$${log.inputCost.toFixed(6)}` : "?"}</div>
 							<div className="text-muted-foreground">Output Cost</div>
 							<div>
-								{log.outputCost !== undefined
-									? `$${log.outputCost.toFixed(6)}`
-									: "?"}
+								{log.outputCost ? `$${log.outputCost.toFixed(6)}` : "?"}
 							</div>
 							<div className="text-muted-foreground">Total Cost</div>
 							<div className="font-medium">
-								{log.cost !== undefined ? `$${log.cost.toFixed(6)}` : "?"}
+								{log.cost ? `$${log.cost.toFixed(6)}` : "?"}
 							</div>
 						</div>
 					</div>

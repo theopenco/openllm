@@ -7,6 +7,7 @@ export default [
 		rules: {
 			"@typescript-eslint/consistent-type-assertions": "off",
 			"max-nested-callbacks": "off",
+			complexity: "off",
 		},
 	},
 ];

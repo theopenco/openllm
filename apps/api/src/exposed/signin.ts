@@ -46,7 +46,5 @@ signin.openapi(register, async (c) => {
 		},
 	});
 
-	console.log("result", result);
-
 	return c.json({ message: "OK" });
 });

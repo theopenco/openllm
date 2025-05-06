@@ -11,5 +11,6 @@
 
 - use drizzle with the latest object syntax
 - for DB changes, do not write manual migration files
-- do not apply any migrations, just use `pnpm push`
+- if any tables or columns do not exist, run `pnpm sync` to sync the schema to the database
+- do not apply any migrations, just use `pnpm sync`
 - for read queries, always use `db().query.<table>.findMany()` or `db().query.<table>.findFirst()`
