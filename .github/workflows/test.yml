@@ -1,12 +1,6 @@
 name: ci
 
-on:
-  push:
-    branches:
-      - main
-  pull_request_target:
-    branches:
-      - main
+on: push
 
 jobs:
   test:
@@ -14,8 +8,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          persist-credentials: false
       - name: Collect versions
         run: |
           echo "nodejs_version=$(cat .tool-versions | grep 'nodejs' | cut -d ' ' -f 2)" >> "$GITHUB_ENV"
