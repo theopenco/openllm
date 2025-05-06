@@ -252,7 +252,7 @@ chat.openapi(completions, async (c) => {
 
 	// Check if the request can be canceled
 	const requestCanBeCanceled =
-		providers.find((p) => p.id === usedProvider)?.supportsCancellation === true;
+		providers.find((p) => p.id === usedProvider)?.cancellation === true;
 
 	const requestBody: any = {
 		model: usedModel,

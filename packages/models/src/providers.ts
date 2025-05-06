@@ -5,7 +5,7 @@ export interface ProviderDefinition {
 	// Whether the provider supports streaming
 	streaming?: boolean;
 	// Whether the provider supports request cancellation
-	supportsCancellation?: boolean;
+	cancellation?: boolean;
 }
 
 export const providers = [
@@ -15,7 +15,7 @@ export const providers = [
 		description:
 			"OpenLLM is a framework for building and deploying large language models.",
 		streaming: true,
-		supportsCancellation: true,
+		cancellation: true,
 	},
 	{
 		id: "openai",
@@ -23,7 +23,7 @@ export const providers = [
 		description:
 			"OpenAI is an AI research and deployment company. Our mission is to ensure that artificial general intelligence benefits all of humanity.",
 		streaming: true,
-		supportsCancellation: true,
+		cancellation: true,
 	},
 	{
 		id: "anthropic",
@@ -31,7 +31,7 @@ export const providers = [
 		description:
 			"Anthropic is a research and deployment company focused on building safe and useful AI.",
 		streaming: true,
-		supportsCancellation: true,
+		cancellation: true,
 	},
 	{
 		id: "google-vertex",
@@ -39,7 +39,7 @@ export const providers = [
 		description:
 			"Google Vertex AI is a platform for building and deploying large language models.",
 		streaming: true,
-		supportsCancellation: true,
+		cancellation: true,
 	},
 	{
 		id: "inference.net",
@@ -47,7 +47,7 @@ export const providers = [
 		description:
 			"Inference.net is a platform for running large language models in the cloud.",
 		streaming: false,
-		supportsCancellation: false,
+		cancellation: false,
 	},
 	{
 		id: "kluster.ai",
@@ -55,6 +55,6 @@ export const providers = [
 		description:
 			"Kluster.ai is a platform for running large language models in the cloud.",
 		streaming: false,
-		supportsCancellation: false,
+		cancellation: false,
 	},
 ] as const satisfies ProviderDefinition[];
