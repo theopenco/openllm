@@ -1,6 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db, sql } from "@openllm/db";
-import { type ModelDefinition, models } from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -27,6 +26,8 @@ const dailyActivitySchema = z.object({
 	outputTokens: z.number(),
 	totalTokens: z.number(),
 	cost: z.number(),
+	inputCost: z.number(),
+	outputCost: z.number(),
 	modelBreakdown: z.array(modelUsageSchema),
 });
 
@@ -118,6 +119,9 @@ activity.openapi(getActivity, async (c) => {
 			COALESCE(SUM("prompt_tokens"), 0)     as "promptTokens",
 			COALESCE(SUM("completion_tokens"), 0) as "completionTokens",
 			COALESCE(SUM("total_tokens"), 0)      as "totalTokens",
+			COALESCE(SUM("cost"), 0)              as "cost",
+			COALESCE(SUM("input_cost"), 0)        as "inputCost",
+			COALESCE(SUM("output_cost"), 0)       as "outputCost",
 			COUNT(*)                              as "requestCount"
 		FROM "log"
 		WHERE "project_id" IN (${sql.join(projectIds)})
@@ -138,23 +142,11 @@ activity.openapi(getActivity, async (c) => {
 		const completionTokens = Number(log.completionTokens);
 		const totalTokens = Number(log.totalTokens);
 		const requestCount = Number(log.requestCount);
-		const usedModel = log.usedModel as string;
+		const totalCost = Number(log.cost);
+		const inputCost = Number(log.inputCost);
+		const outputCost = Number(log.outputCost);
 
-		// Find the model definition to get pricing information
-		const modelDef = models.find(
-			(m) => m.model === usedModel,
-		) as ModelDefinition;
-
-		// Calculate costs based on model pricing (if available)
-		const inputCost = promptTokens * (modelDef?.inputPrice ?? 0);
-		const outputCost = completionTokens * (modelDef?.outputPrice ?? 0);
-		const totalCost = inputCost + outputCost;
-
-		// Format the date to ensure consistency (YYYY-MM-DD)
-		const dateStr =
-			typeof log.date === "string"
-				? log.date
-				: new Date(log.date as string).toISOString().split("T")[0];
+		const dateStr = log.date as string; // (YYYY-MM-DD)
 
 		// Create or update the day entry
 		if (!activityMap.has(dateStr)) {
@@ -165,6 +157,8 @@ activity.openapi(getActivity, async (c) => {
 				outputTokens: 0,
 				totalTokens: 0,
 				cost: 0,
+				inputCost: 0,
+				outputCost: 0,
 				modelBreakdown: [],
 			});
 		}
@@ -177,6 +171,8 @@ activity.openapi(getActivity, async (c) => {
 		dayData.outputTokens += completionTokens;
 		dayData.totalTokens += totalTokens;
 		dayData.cost += totalCost;
+		dayData.inputCost += inputCost;
+		dayData.outputCost += outputCost;
 
 		// Add the model breakdown
 		dayData.modelBreakdown.push({

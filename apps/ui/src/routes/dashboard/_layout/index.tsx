@@ -41,6 +41,10 @@ export default function Dashboard() {
 		data?.reduce((sum, day) => sum + day.requestCount, 0) || 0;
 	const totalTokens = data?.reduce((sum, day) => sum + day.totalTokens, 0) || 0;
 	const totalCost = data?.reduce((sum, day) => sum + day.cost, 0) || 0;
+	const totalInputCost =
+		data?.reduce((sum, day) => sum + day.inputCost, 0) || 0;
+	const totalOutputCost =
+		data?.reduce((sum, day) => sum + day.outputCost, 0) || 0;
 
 	// Format tokens for display (k for thousands, M for millions)
 	const formatTokens = (tokens: number) => {
@@ -139,7 +143,9 @@ export default function Dashboard() {
 											${totalCost.toFixed(2)}
 										</div>
 										<p className="text-muted-foreground text-xs">
-											Last {days} days
+											<span>${totalInputCost.toFixed(2)} input</span>
+											&nbsp;+&nbsp;
+											<span>${totalOutputCost.toFixed(2)} output</span>
 										</p>
 									</>
 								)}

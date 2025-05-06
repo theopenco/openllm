@@ -17,6 +17,8 @@ export interface DailyActivity {
 	outputTokens: number;
 	totalTokens: number;
 	cost: number;
+	outputCost: number;
+	inputCost: number;
 	modelBreakdown: ActivityModelUsage[];
 }
 
