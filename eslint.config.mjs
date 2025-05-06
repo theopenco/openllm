@@ -8,6 +8,7 @@ export default [
 			"@typescript-eslint/consistent-type-assertions": "off",
 			"max-nested-callbacks": "off",
 			complexity: "off",
+			"max-depth": "off",
 		},
 	},
 ];

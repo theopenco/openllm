@@ -3,6 +3,7 @@ import { db, log } from "@openllm/db";
 import { type Model, models, type Provider, providers } from "@openllm/models";
 import { randomUUID } from "crypto";
 import { HTTPException } from "hono/http-exception";
+import { streamSSE } from "hono/streaming";
 
 import type { ServerTypes } from "../vars";
 
@@ -38,6 +39,7 @@ const completions = createRoute({
 						top_p: z.number().optional(),
 						frequency_penalty: z.number().optional(),
 						presence_penalty: z.number().optional(),
+						stream: z.boolean().optional().default(false),
 					}),
 				},
 			},
@@ -51,8 +53,11 @@ const completions = createRoute({
 						message: z.string(),
 					}),
 				},
+				"text/event-stream": {
+					schema: z.any(),
+				},
 			},
-			description: "User response object.",
+			description: "User response object or streaming response.",
 		},
 		500: {
 			content: {
@@ -65,6 +70,9 @@ const completions = createRoute({
 							code: z.string(),
 						}),
 					}),
+				},
+				"text/event-stream": {
+					schema: z.any(),
 				},
 			},
 			description: "Error response object.",
@@ -81,6 +89,7 @@ chat.openapi(completions, async (c) => {
 		top_p,
 		frequency_penalty,
 		presence_penalty,
+		stream,
 	} = c.req.valid("json");
 
 	let requestedModel: Model = modelInput as Model;
@@ -231,9 +240,20 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
+	// Check if streaming is requested and if the provider supports it
+	if (stream) {
+		const providerInfo = providers.find((p) => p.id === usedProvider);
+		if (!providerInfo?.supportsStreaming) {
+			throw new HTTPException(400, {
+				message: `Provider ${usedProvider} does not support streaming`,
+			});
+		}
+	}
+
 	const requestBody: any = {
 		model: usedModel,
 		messages,
+		stream: stream,
 	};
 
 	// Add optional parameters if they are provided
@@ -254,6 +274,196 @@ chat.openapi(completions, async (c) => {
 	}
 
 	const startTime = Date.now();
+
+	// Handle streaming response if requested
+	if (stream) {
+		return streamSSE(c, async (stream) => {
+			let eventId = 0;
+			const res = await fetch(url, {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer ${providerKey.token}`,
+				},
+				body: JSON.stringify(requestBody),
+			});
+
+			if (!res.ok) {
+				console.error("error", url, res.status, res.statusText);
+				const errorResponseText = await res.text();
+
+				// Log the error in the database
+				await db.insert(log).values({
+					id: randomUUID(),
+					createdAt: new Date(),
+					updatedAt: new Date(),
+					projectId: apiKey.projectId,
+					apiKeyId: apiKey.id,
+					providerKeyId: providerKey.id,
+					duration: Date.now() - startTime,
+					usedModel: usedModel,
+					usedProvider: usedProvider,
+					requestedModel: requestedModel,
+					requestedProvider: requestedProvider,
+					messages: messages,
+					responseSize: errorResponseText.length,
+					content: null,
+					finishReason: "gateway_error",
+					promptTokens: null,
+					completionTokens: null,
+					totalTokens: null,
+					temperature: temperature || null,
+					maxTokens: max_tokens || null,
+					topP: top_p || null,
+					frequencyPenalty: frequency_penalty || null,
+					presencePenalty: presence_penalty || null,
+					hasError: true,
+					streamed: true,
+					errorDetails: {
+						statusCode: res.status,
+						statusText: res.statusText,
+						responseText: errorResponseText,
+					},
+				});
+
+				await stream.writeSSE({
+					event: "error",
+					data: JSON.stringify({
+						error: {
+							message: `Error from provider: ${res.status} ${res.statusText}`,
+							type: "gateway_error",
+							param: null,
+							code: "gateway_error",
+						},
+					}),
+					id: String(eventId++),
+				});
+				await stream.writeSSE({
+					event: "done",
+					data: "[DONE]",
+					id: String(eventId++),
+				});
+				return;
+			}
+
+			if (!res.body) {
+				await stream.writeSSE({
+					event: "error",
+					data: JSON.stringify({
+						error: {
+							message: "No response body from provider",
+							type: "gateway_error",
+							param: null,
+							code: "gateway_error",
+						},
+					}),
+					id: String(eventId++),
+				});
+				await stream.writeSSE({
+					event: "done",
+					data: "[DONE]",
+					id: String(eventId++),
+				});
+				return;
+			}
+
+			const reader = res.body.getReader();
+			let fullContent = "";
+			let finishReason = null;
+			let promptTokens = null;
+			let completionTokens = null;
+			let totalTokens = null;
+
+			try {
+				while (true) {
+					const { done, value } = await reader.read();
+					if (done) {
+						break;
+					}
+
+					// Convert the Uint8Array to a string
+					const chunk = new TextDecoder().decode(value);
+
+					// Process the chunk to extract content for logging and forward to client
+					const lines = chunk.split("\n");
+					for (const line of lines) {
+						if (line.startsWith("data: ")) {
+							if (line === "data: [DONE]") {
+								await stream.writeSSE({
+									event: "done",
+									data: "[DONE]",
+									id: String(eventId++),
+								});
+							} else {
+								try {
+									const data = JSON.parse(line.substring(6));
+
+									// Forward the data as a proper SSE event
+									await stream.writeSSE({
+										event: "chunk",
+										data: JSON.stringify(data),
+										id: String(eventId++),
+									});
+
+									// Extract content for logging
+									if (data.choices && data.choices[0]) {
+										if (data.choices[0].delta?.content) {
+											fullContent += data.choices[0].delta.content;
+										}
+										if (data.choices[0].finish_reason) {
+											finishReason = data.choices[0].finish_reason;
+										}
+									}
+									if (data.usage) {
+										promptTokens = data.usage.prompt_tokens;
+										completionTokens = data.usage.completion_tokens;
+										totalTokens = data.usage.total_tokens;
+									}
+								} catch (e) {
+									// Ignore parsing errors for incomplete JSON
+								}
+							}
+						}
+					}
+				}
+			} catch (error) {
+				console.error("Error reading stream:", error);
+			} finally {
+				// Log the streaming request
+				const duration = Date.now() - startTime;
+				await db.insert(log).values({
+					id: randomUUID(),
+					createdAt: new Date(),
+					updatedAt: new Date(),
+					projectId: apiKey.projectId,
+					apiKeyId: apiKey.id,
+					providerKeyId: providerKey.id,
+					duration,
+					usedModel: usedModel,
+					usedProvider: usedProvider,
+					requestedModel: requestedModel,
+					requestedProvider: requestedProvider,
+					messages: messages,
+					responseSize: fullContent.length,
+					content: fullContent,
+					finishReason: finishReason,
+					promptTokens: promptTokens,
+					completionTokens: completionTokens,
+					totalTokens: totalTokens,
+					temperature: temperature || null,
+					maxTokens: max_tokens || null,
+					topP: top_p || null,
+					frequencyPenalty: frequency_penalty || null,
+					presencePenalty: presence_penalty || null,
+					hasError: false,
+					errorDetails: null,
+					streamed: true,
+				});
+			}
+		});
+	}
+
+	// Handle non-streaming response
 	const res = await fetch(url, {
 		method: "POST",
 		headers: {
@@ -296,6 +506,7 @@ chat.openapi(completions, async (c) => {
 			frequencyPenalty: frequency_penalty || null,
 			presencePenalty: presence_penalty || null,
 			hasError: true,
+			streamed: false,
 			errorDetails: {
 				statusCode: res.status,
 				statusText: res.statusText,
@@ -346,6 +557,7 @@ chat.openapi(completions, async (c) => {
 		frequencyPenalty: frequency_penalty || null,
 		presencePenalty: presence_penalty || null,
 		hasError: false,
+		streamed: false,
 		errorDetails: null,
 	});
 
