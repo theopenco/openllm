@@ -372,7 +372,6 @@ chat.openapi(completions, async (c) => {
 
 				// Log the error in the database
 				await db.insert(log).values({
-					id: randomUUID(),
 					createdAt: new Date(),
 					updatedAt: new Date(),
 					projectId: apiKey.projectId,
@@ -514,7 +513,6 @@ chat.openapi(completions, async (c) => {
 				// Log the streaming request
 				const duration = Date.now() - startTime;
 				await db.insert(log).values({
-					id: randomUUID(),
 					createdAt: new Date(),
 					updatedAt: new Date(),
 					projectId: apiKey.projectId,
