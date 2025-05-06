@@ -54,6 +54,21 @@ const completions = createRoute({
 			},
 			description: "User response object.",
 		},
+		500: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						error: z.object({
+							message: z.string(),
+							type: z.string(),
+							param: z.string().nullable(),
+							code: z.string(),
+						}),
+					}),
+				},
+			},
+			description: "Error response object.",
+		},
 	},
 });
 

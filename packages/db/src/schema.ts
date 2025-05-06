@@ -144,4 +144,7 @@ export const log = pgTable("log", {
 	presencePenalty: real(),
 	hasError: boolean().default(false),
 	errorDetails: json(),
+	cost: real(),
+	inputCost: real(),
+	outputCost: real(),
 });
