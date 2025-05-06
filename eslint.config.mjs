@@ -9,6 +9,7 @@ export default [
 			"max-nested-callbacks": "off",
 			complexity: "off",
 			"max-depth": "off",
+			"max-params": "off",
 		},
 	},
 ];
