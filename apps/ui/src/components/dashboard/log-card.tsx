@@ -12,6 +12,7 @@ import {
 	DollarSign,
 	Zap,
 } from "lucide-react";
+import prettyBytes from "pretty-bytes";
 import { useState } from "react";
 
 import { Badge } from "@/lib/components/badge";
@@ -146,7 +147,15 @@ export function LogCard({ log }: { log: Log }) {
 								<div className="text-muted-foreground">Duration</div>
 								<div>{formatDuration(log.duration)}</div>
 								<div className="text-muted-foreground">Response Size</div>
-								<div>{log.responseSize} bytes</div>
+								<div>
+									{log.responseSize ? (
+										<>
+											{prettyBytes(log.responseSize)} ({log.responseSize} bytes)
+										</>
+									) : (
+										"Unknown"
+									)}
+								</div>
 								<div className="text-muted-foreground">Prompt Tokens</div>
 								<div>{log.promptTokens}</div>
 								<div className="text-muted-foreground">Completion Tokens</div>
