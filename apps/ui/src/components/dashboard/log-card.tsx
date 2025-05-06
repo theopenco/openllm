@@ -278,7 +278,7 @@ export function LogCard({ log }: { log: Log }) {
 					<div className="space-y-2">
 						<h4 className="text-sm font-medium">Message Context</h4>
 						<div className="rounded-md border p-3">
-							<pre className="max-h-60 overflow-auto text-xs">
+							<pre className="max-h-60 text-xs overflow-auto">
 								{JSON.stringify(log.messages, null, 2)}
 							</pre>
 						</div>
@@ -286,7 +286,9 @@ export function LogCard({ log }: { log: Log }) {
 					<div className="space-y-2">
 						<h4 className="text-sm font-medium">Response</h4>
 						<div className="rounded-md border p-3">
-							<pre className="max-h-60 text-xs text-wrap">{log.content}</pre>
+							<pre className="max-h-60 text-xs text-wrap overflow-auto">
+								{log.content}
+							</pre>
 						</div>
 					</div>
 				</div>
