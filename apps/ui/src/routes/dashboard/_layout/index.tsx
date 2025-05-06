@@ -7,8 +7,10 @@ import {
 	Zap,
 	Activity,
 } from "lucide-react";
+import { useState } from "react";
 
 import { Overview } from "@/components/dashboard/overview";
+import { useActivity } from "@/hooks/useActivity";
 import { useSession } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
@@ -18,6 +20,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/lib/components/card";
+import { Tabs, TabsList, TabsTrigger } from "@/lib/components/tabs";
 
 export const Route = createFileRoute("/dashboard/_layout/")({
 	component: Dashboard,
@@ -26,10 +29,29 @@ export const Route = createFileRoute("/dashboard/_layout/")({
 export default function Dashboard() {
 	const navigate = useNavigate();
 	const session = useSession();
+	const [days, setDays] = useState<7 | 30>(7);
+	const { data, isLoading } = useActivity(days);
 
 	if (!session.data?.user.id && !session.isPending) {
 		navigate({ to: "/login" });
 	}
+
+	// Calculate total stats from activity data
+	const totalRequests =
+		data?.reduce((sum, day) => sum + day.requestCount, 0) || 0;
+	const totalTokens = data?.reduce((sum, day) => sum + day.totalTokens, 0) || 0;
+	const totalCost = data?.reduce((sum, day) => sum + day.cost, 0) || 0;
+
+	// Format tokens for display (k for thousands, M for millions)
+	const formatTokens = (tokens: number) => {
+		if (tokens >= 1_000_000) {
+			return `${(tokens / 1_000_000).toFixed(1)}M`;
+		}
+		if (tokens >= 1_000) {
+			return `${(tokens / 1_000).toFixed(1)}k`;
+		}
+		return tokens.toString();
+	};
 
 	return (
 		<div className="flex flex-col">
@@ -43,6 +65,18 @@ export default function Dashboard() {
 						</Button>
 					</div>
 				</div>
+
+				<Tabs
+					defaultValue="7days"
+					onValueChange={(value) => setDays(value === "7days" ? 7 : 30)}
+					className="mb-2"
+				>
+					<TabsList>
+						<TabsTrigger value="7days">Last 7 Days</TabsTrigger>
+						<TabsTrigger value="30days">Last 30 Days</TabsTrigger>
+					</TabsList>
+				</Tabs>
+
 				<div className="space-y-4">
 					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
 						<Card>
@@ -53,10 +87,18 @@ export default function Dashboard() {
 								<Zap className="text-muted-foreground h-4 w-4" />
 							</CardHeader>
 							<CardContent>
-								<div className="text-2xl font-bold">2,543</div>
-								<p className="text-muted-foreground text-xs">
-									+12.5% from last month
-								</p>
+								{isLoading ? (
+									<div className="text-2xl font-bold">Loading...</div>
+								) : (
+									<>
+										<div className="text-2xl font-bold">
+											{totalRequests.toLocaleString()}
+										</div>
+										<p className="text-muted-foreground text-xs">
+											Last {days} days
+										</p>
+									</>
+								)}
 							</CardContent>
 						</Card>
 						<Card>
@@ -67,10 +109,18 @@ export default function Dashboard() {
 								<Activity className="text-muted-foreground h-4 w-4" />
 							</CardHeader>
 							<CardContent>
-								<div className="text-2xl font-bold">1.2M</div>
-								<p className="text-muted-foreground text-xs">
-									+8.2% from last month
-								</p>
+								{isLoading ? (
+									<div className="text-2xl font-bold">Loading...</div>
+								) : (
+									<>
+										<div className="text-2xl font-bold">
+											{formatTokens(totalTokens)}
+										</div>
+										<p className="text-muted-foreground text-xs">
+											Last {days} days
+										</p>
+									</>
+								)}
 							</CardContent>
 						</Card>
 						<Card>
@@ -81,10 +131,18 @@ export default function Dashboard() {
 								<AlertCircle className="text-muted-foreground h-4 w-4" />
 							</CardHeader>
 							<CardContent>
-								<div className="text-2xl font-bold">$24.50</div>
-								<p className="text-muted-foreground text-xs">
-									+2.5% from last month
-								</p>
+								{isLoading ? (
+									<div className="text-2xl font-bold">Loading...</div>
+								) : (
+									<>
+										<div className="text-2xl font-bold">
+											${totalCost.toFixed(2)}
+										</div>
+										<p className="text-muted-foreground text-xs">
+											Last {days} days
+										</p>
+									</>
+								)}
 							</CardContent>
 						</Card>
 					</div>
@@ -92,9 +150,10 @@ export default function Dashboard() {
 						<Card className="col-span-4">
 							<CardHeader>
 								<CardTitle>Usage Overview</CardTitle>
+								<CardDescription>Total Requests</CardDescription>
 							</CardHeader>
 							<CardContent className="pl-2">
-								<Overview />
+								<Overview data={data} isLoading={isLoading} days={days} />
 							</CardContent>
 						</Card>
 						<Card className="col-span-3">
