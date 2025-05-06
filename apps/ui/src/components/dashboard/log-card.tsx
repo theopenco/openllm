@@ -180,18 +180,35 @@ export function LogCard({ log }: { log: Log }) {
 							</div>
 						</div>
 					</div>
-					<div className="space-y-2">
-						<h4 className="text-sm font-medium">Cost Information</h4>
-						<div className="grid grid-cols-2 gap-2 rounded-md border p-3 text-sm">
-							<div className="text-muted-foreground">Input Cost</div>
-							<div>{log.inputCost ? `$${log.inputCost.toFixed(6)}` : "?"}</div>
-							<div className="text-muted-foreground">Output Cost</div>
-							<div>
-								{log.outputCost ? `$${log.outputCost.toFixed(6)}` : "?"}
+					<div className="grid gap-4 md:grid-cols-2">
+						<div className="space-y-2">
+							<h4 className="text-sm font-medium">Cost Information</h4>
+							<div className="grid grid-cols-2 gap-2 rounded-md border p-3 text-sm">
+								<div className="text-muted-foreground">Input Cost</div>
+								<div>
+									{log.inputCost ? `$${log.inputCost.toFixed(6)}` : "?"}
+								</div>
+								<div className="text-muted-foreground">Output Cost</div>
+								<div>
+									{log.outputCost ? `$${log.outputCost.toFixed(6)}` : "?"}
+								</div>
+								<div className="text-muted-foreground">Total Cost</div>
+								<div className="font-medium">
+									{log.cost ? `$${log.cost.toFixed(6)}` : "?"}
+								</div>
 							</div>
-							<div className="text-muted-foreground">Total Cost</div>
-							<div className="font-medium">
-								{log.cost ? `$${log.cost.toFixed(6)}` : "?"}
+						</div>
+						<div className="space-y-2">
+							<h4 className="text-sm font-medium">Metadata</h4>
+							<div className="grid grid-cols-2 gap-2 rounded-md border p-3 text-sm">
+								<div className="text-muted-foreground">Project ID</div>
+								<div className="font-mono text-xs">{log.projectId}</div>
+								<div className="text-muted-foreground">Organization ID</div>
+								<div className="font-mono text-xs">{log.organizationId}</div>
+								<div className="text-muted-foreground">API Key ID</div>
+								<div className="font-mono text-xs">{log.apiKeyId}</div>
+								<div className="text-muted-foreground">Provider Key ID</div>
+								<div className="font-mono text-xs">{log.providerKeyId}</div>
 							</div>
 						</div>
 					</div>
