@@ -613,6 +613,8 @@ export const logs: Log[] = [
 		promptTokens: 16,
 		completionTokens: 26,
 		totalTokens: 42,
-		messages: JSON.stringify([{ role: "user", content: "Another final query" }]),
+		messages: JSON.stringify([
+			{ role: "user", content: "Another final query" },
+		]),
 	},
 ];

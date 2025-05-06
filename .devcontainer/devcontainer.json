@@ -41,9 +41,9 @@
 				}
 			}
 		}
-  },
-  "tasks": {
-    "build": "pnpm install && pnpm build && pnpm format",
-    "test": "pnpm test"
-  }
+	},
+	"tasks": {
+		"build": "pnpm install && pnpm build && pnpm format",
+		"test": "pnpm test"
+	}
 }
