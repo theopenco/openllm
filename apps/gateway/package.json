@@ -9,7 +9,7 @@
 	},
 	"dependencies": {
 		"@hono/swagger-ui": "^0.5.1",
-		"@hono/zod-openapi": "^0.19.5",
+		"@hono/zod-openapi": "^0.19.6",
 		"@hono/zod-validator": "^0.4.3",
 		"@openllm/db": "workspace:*",
 		"hono": "^4.7.6",
