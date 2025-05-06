@@ -547,6 +547,7 @@ chat.openapi(completions, async (c) => {
 					inputCost: costs.inputCost,
 					outputCost: costs.outputCost,
 					cost: costs.totalCost,
+					estimatedCost: costs.estimatedCost,
 				});
 			}
 		});
@@ -621,6 +622,7 @@ chat.openapi(completions, async (c) => {
 			streamed: false,
 			canceled: true,
 			errorDetails: null,
+			estimatedCost: false,
 		});
 
 		return c.json(
@@ -675,6 +677,7 @@ chat.openapi(completions, async (c) => {
 				statusText: res.statusText,
 				responseText: errorResponseText,
 			},
+			estimatedCost: false,
 		});
 
 		// Return a 500 error response
@@ -703,6 +706,10 @@ chat.openapi(completions, async (c) => {
 		usedModel,
 		json.usage?.prompt_tokens || null,
 		json.usage?.completion_tokens || null,
+		{
+			prompt: messages.map((m) => m.content).join("\n"),
+			completion: json.choices?.[0]?.message?.content || null,
+		},
 	);
 	await db.insert(log).values({
 		createdAt: new Date(),
@@ -735,6 +742,7 @@ chat.openapi(completions, async (c) => {
 		inputCost: costs.inputCost,
 		outputCost: costs.outputCost,
 		cost: costs.totalCost,
+		estimatedCost: costs.estimatedCost,
 	});
 
 	return c.json(json);

@@ -11,6 +11,7 @@ describe("calculateCosts", () => {
 		expect(result.totalCost).toBeCloseTo(0.0025); // 0.001 + 0.0015
 		expect(result.promptTokens).toBe(100);
 		expect(result.completionTokens).toBe(50);
+		expect(result.estimatedCost).toBe(false); // Not estimated
 	});
 
 	it("should calculate costs with null token counts but provided text", () => {
@@ -25,6 +26,7 @@ describe("calculateCosts", () => {
 		expect(result.inputCost).toBeGreaterThan(0);
 		expect(result.outputCost).toBeGreaterThan(0);
 		expect(result.totalCost).toBeGreaterThan(0);
+		expect(result.estimatedCost).toBe(true); // Should be estimated
 	});
 
 	it("should calculate costs with null token counts but provided chat messages", () => {
@@ -42,6 +44,7 @@ describe("calculateCosts", () => {
 		expect(result.inputCost).toBeGreaterThan(0);
 		expect(result.outputCost).toBeGreaterThan(0);
 		expect(result.totalCost).toBeGreaterThan(0);
+		expect(result.estimatedCost).toBe(true); // Should be estimated
 	});
 
 	it("should return null costs when model info is not found", () => {
@@ -53,6 +56,7 @@ describe("calculateCosts", () => {
 		expect(result.totalCost).toBeNull();
 		expect(result.promptTokens).toBe(100);
 		expect(result.completionTokens).toBe(50);
+		expect(result.estimatedCost).toBe(false); // Not estimated
 	});
 
 	it("should return null costs when token counts are null and no text is provided", () => {
@@ -63,5 +67,6 @@ describe("calculateCosts", () => {
 		expect(result.totalCost).toBeNull();
 		expect(result.promptTokens).toBeNull();
 		expect(result.completionTokens).toBeNull();
+		expect(result.estimatedCost).toBe(false); // Not estimated
 	});
 });

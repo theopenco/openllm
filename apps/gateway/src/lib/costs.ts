@@ -8,6 +8,8 @@ interface ChatMessage {
 	name?: string;
 }
 
+const DEFAULT_TOKENIZER_MODEL = "gpt-4";
+
 /**
  * Calculate costs based on model, provider, and token counts
  * If promptTokens or completionTokens are not available, it will try to calculate them
@@ -33,41 +35,27 @@ export function calculateCosts(
 			totalCost: null,
 			promptTokens,
 			completionTokens,
+			estimatedCost: false,
 		};
 	}
 
 	// If token counts are not provided, try to calculate them from fullOutput
 	let calculatedPromptTokens = promptTokens;
 	let calculatedCompletionTokens = completionTokens;
+	// Track if we're using estimated tokens
+	let isEstimated = false;
 
 	if ((!promptTokens || !completionTokens) && fullOutput) {
+		// We're going to estimate at least some of the tokens
+		isEstimated = true;
 		// Calculate prompt tokens
 		if (!promptTokens && fullOutput) {
 			if (fullOutput.messages) {
 				// For chat messages
 				try {
-					// Convert our model to a model name that gpt-tokenizer understands
-					let tokenModel:
-						| "gpt-3.5-turbo"
-						| "gpt-4"
-						| "gpt-4o"
-						| "gpt-4o-mini"
-						| undefined;
-					if (model === "gpt-4") {
-						tokenModel = "gpt-4";
-					} else if (model === "gpt-4o") {
-						tokenModel = "gpt-4o";
-					} else if (model === "gpt-4o-mini") {
-						tokenModel = "gpt-4o-mini";
-					} else if (model === "gpt-3.5-turbo") {
-						tokenModel = "gpt-3.5-turbo";
-					} else {
-						// Default to gpt-4 for tokenization if model isn't directly supported
-						tokenModel = "gpt-4";
-					}
 					calculatedPromptTokens = encodeChat(
 						fullOutput.messages,
-						tokenModel,
+						DEFAULT_TOKENIZER_MODEL,
 					).length;
 				} catch (error) {
 					// If encoding fails, leave as null
@@ -103,6 +91,7 @@ export function calculateCosts(
 			totalCost: null,
 			promptTokens: calculatedPromptTokens,
 			completionTokens: calculatedCompletionTokens,
+			estimatedCost: isEstimated,
 		};
 	}
 
@@ -119,5 +108,6 @@ export function calculateCosts(
 		totalCost,
 		promptTokens: calculatedPromptTokens,
 		completionTokens: calculatedCompletionTokens,
+		estimatedCost: isEstimated,
 	};
 }
