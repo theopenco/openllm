@@ -1,10 +1,49 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { db, log } from "@openllm/db";
-import { type Model, models, type Provider, providers } from "@openllm/models";
+import {
+	type Model,
+	type ModelDefinition,
+	models,
+	type Provider,
+	providers,
+} from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
 
 import type { ServerTypes } from "../vars";
+
+/**
+ * Calculate costs based on model, provider, and token counts
+ */
+function calculateCosts(
+	model: Model,
+	promptTokens: number | null,
+	completionTokens: number | null,
+) {
+	// Find the model info
+	const modelInfo = models.find((m) => m.model === model) as ModelDefinition;
+
+	if (!modelInfo || !promptTokens || !completionTokens) {
+		return {
+			inputCost: null,
+			outputCost: null,
+			totalCost: null,
+		};
+	}
+
+	const inputPrice = modelInfo.inputPrice || 0;
+	const outputPrice = modelInfo.outputPrice || 0;
+
+	const inputCost = promptTokens * inputPrice;
+	const outputCost = completionTokens * outputPrice;
+	const totalCost = inputCost + outputCost;
+
+	return {
+		inputCost,
+		outputCost,
+		totalCost,
+	};
+}
 
 export const chat = new OpenAPIHono<ServerTypes>();
 
@@ -247,6 +286,17 @@ chat.openapi(completions, async (c) => {
 		messages,
 		stream: stream,
 	};
+
+	switch (usedProvider) {
+		case "openai": {
+			if (stream) {
+				requestBody.stream_options = {
+					include_usage: true,
+				};
+			}
+			break;
+		}
+	}
 
 	// Add optional parameters if they are provided
 	if (temperature !== undefined) {
@@ -502,6 +552,7 @@ chat.openapi(completions, async (c) => {
 
 				// Log the streaming request
 				const duration = Date.now() - startTime;
+				const costs = calculateCosts(usedModel, promptTokens, completionTokens);
 				await db.insert(log).values({
 					createdAt: new Date(),
 					updatedAt: new Date(),
@@ -530,6 +581,9 @@ chat.openapi(completions, async (c) => {
 					errorDetails: null,
 					streamed: true,
 					canceled: canceled || !finishReason,
+					inputCost: costs.inputCost,
+					outputCost: costs.outputCost,
+					cost: costs.totalCost,
 				});
 			}
 		});
@@ -682,6 +736,11 @@ chat.openapi(completions, async (c) => {
 	const responseText = JSON.stringify(json);
 
 	// Log the successful request and response
+	const costs = calculateCosts(
+		usedModel,
+		json.usage?.prompt_tokens || null,
+		json.usage?.completion_tokens || null,
+	);
 	await db.insert(log).values({
 		createdAt: new Date(),
 		updatedAt: new Date(),
@@ -710,6 +769,9 @@ chat.openapi(completions, async (c) => {
 		streamed: false,
 		canceled: false,
 		errorDetails: null,
+		inputCost: costs.inputCost,
+		outputCost: costs.outputCost,
+		cost: costs.totalCost,
 	});
 
 	return c.json(json);
