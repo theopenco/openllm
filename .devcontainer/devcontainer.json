@@ -3,10 +3,6 @@
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
 	"workspaceFolder": "/workspaces/openllm",
-
-	// Features are installed in the Dockerfile
-
-	// Forward ports for the services
 	"forwardPorts": [3002, 4001, 4002, 5388],
 	"portsAttributes": {
 		"3002": {
@@ -26,11 +22,7 @@
 			"onAutoForward": "notify"
 		}
 	},
-
-	// Run database setup script after container creation
-	"postCreateCommand": "bash .devcontainer/db-setup.sh",
-
-	// Configure tool-specific properties
+	"postCreateCommand": "bash .devcontainer/init-script.sh",
 	"customizations": {
 		"vscode": {
 			"extensions": [
@@ -50,7 +42,4 @@
 			}
 		}
 	}
-
-	// Uncomment to connect as root instead
-	// "remoteUser": "root"
 }

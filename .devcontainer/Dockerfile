@@ -13,18 +13,4 @@ WORKDIR /workspaces/openllm
 
 # Create directory structure for package.json files
 RUN mkdir -p apps/api apps/gateway apps/ui packages/auth packages/db packages/models
-RUN alias p=pnpm
-
-# Copy package files for dependency installation
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/api/package.json ./apps/api/
-COPY apps/gateway/package.json ./apps/gateway/
-COPY apps/ui/package.json ./apps/ui/
-COPY packages/auth/package.json ./packages/auth/
-COPY packages/db/package.json ./packages/db/
-COPY packages/models/package.json ./packages/models/
-
-# Install dependencies
-RUN pnpm install
-
-# The rest of the source code will be mounted at runtime
+RUN echo 'alias p=pnpm' >> ~/.bashrc

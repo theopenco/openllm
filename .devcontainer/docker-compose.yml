@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   # Main development container
   app:
@@ -14,7 +12,6 @@ services:
     environment:
       - DATABASE_URL=postgres://postgres:pw@postgres:5432/db
 
-  # Use the existing PostgreSQL service from the main docker-compose.yml
   postgres:
     image: postgres:17-alpine
     command: postgres -c log_statement=all
