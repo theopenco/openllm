@@ -43,7 +43,7 @@
 		}
   },
   "tasks": {
-    "build": "pnpm install && pnpm build",
-    "test": "pnpm install && pnpm test"
+    "build": "pnpm install && pnpm build && pnpm format",
+    "test": "pnpm test"
   }
 }
