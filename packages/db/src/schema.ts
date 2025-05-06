@@ -109,6 +109,7 @@ export const providerKey = pgTable(
 		updatedAt: timestamp().notNull().defaultNow(),
 		token: text().notNull().unique(),
 		provider: text().notNull(),
+		baseUrl: text(), // Optional base URL for custom providers
 		status: text({
 			enum: ["active", "inactive", "deleted"],
 		}).default("active"),

@@ -93,6 +93,9 @@ chat.openapi(completions, async (c) => {
 		// TODO figure out algo
 		usedModel = "gpt-4o-mini";
 		usedProvider = "openai";
+	} else if (usedProvider === "openllm" && usedModel === "custom") {
+		usedProvider = "openllm";
+		usedModel = "custom";
 	} else if (!usedProvider) {
 		// TODO figure out algo
 		usedProvider = modelInfo.providers[0];
@@ -136,18 +139,60 @@ chat.openapi(completions, async (c) => {
 
 	let url: string | undefined;
 
+	// Get the provider key for the selected provider
+	const providerKey = await db.query.providerKey.findFirst({
+		where: {
+			projectId: {
+				eq: apiKey.projectId,
+			},
+			provider: {
+				eq: usedProvider,
+			},
+		},
+	});
+
+	if (!providerKey) {
+		throw new HTTPException(400, {
+			message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings.`,
+		});
+	}
+
 	switch (usedProvider) {
-		case "openai": {
-			// Use the mock server URL if it's set in the environment
-			url = process.env.OPENAI_API_BASE_URL || "https://api.openai.com";
-			url = `${url}/v1/chat/completions`;
+		case "openllm": {
+			if (usedModel !== "custom") {
+				throw new HTTPException(400, {
+					message: `Invalid model: ${usedModel} for provider: ${usedProvider}`,
+				});
+			}
+
+			if (!url) {
+				const bUrl = providerKey?.baseUrl;
+				if (bUrl) {
+					url = bUrl;
+				}
+			}
 			break;
 		}
+		case "openai":
+			url = "https://api.openai.com";
+			break;
 		default:
 			throw new HTTPException(500, {
 				message: `could not use provider: ${usedProvider}`,
 			});
 	}
+
+	const xUrl = c.req.header("X-Provider-Base-URL");
+	if (xUrl) {
+		url = xUrl;
+	}
+	if (!url) {
+		throw new HTTPException(400, {
+			message: `No base URL set for provider: ${usedProvider}. Please add a base URL in your settings.`,
+		});
+	}
+
+	url += "/v1/chat/completions";
 
 	// Get the project associated with this API key
 	const project = await db.query.project.findFirst({
@@ -161,24 +206,6 @@ chat.openapi(completions, async (c) => {
 	if (!project) {
 		throw new HTTPException(500, {
 			message: "Could not find project associated with this API key",
-		});
-	}
-
-	// Get the provider key for the selected provider
-	const providerKey = await db.query.providerKey.findFirst({
-		where: {
-			projectId: {
-				eq: project.id,
-			},
-			provider: {
-				eq: usedProvider,
-			},
-		},
-	});
-
-	if (!providerKey) {
-		throw new HTTPException(400, {
-			message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings.`,
 		});
 	}
 
@@ -209,14 +236,14 @@ chat.openapi(completions, async (c) => {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: `Bearer ${providerKey.token}`,
+			Authorization: (providerKey && `Bearer ${providerKey.token}`) || "",
 		},
 		body: JSON.stringify(requestBody),
 	});
 	const duration = Date.now() - startTime;
 
 	if (!res.ok) {
-		console.error("error", res.status, res.statusText);
+		console.error("error", url, res.status, res.statusText);
 		throw new HTTPException(500, {
 			message: `Error fetching ${res.status} ${res.statusText}`,
 		});

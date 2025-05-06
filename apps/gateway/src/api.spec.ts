@@ -16,17 +16,18 @@ import {
 } from "./test-utils/mock-openai-server";
 
 describe("test", () => {
+	let mockServerUrl: string;
+
 	// Start the mock OpenAI server before all tests
 	beforeAll(() => {
-		const mockServerUrl = startMockServer(3001);
-		process.env.OPENAI_API_BASE_URL = mockServerUrl;
+		mockServerUrl = startMockServer(3001);
 	});
 
 	// Stop the mock server after all tests
 	afterAll(() => {
 		stopMockServer();
-		delete process.env.OPENAI_API_BASE_URL;
 	});
+
 	afterEach(async () => {
 		await db.delete(tables.user);
 		await db.delete(tables.account);
@@ -72,7 +73,6 @@ describe("test", () => {
 		expect(text).toMatchInlineSnapshot(`"{"message":"OK"}"`);
 	});
 
-	// TODO make this an e2e test
 	test("/v1/chat/completions e2e success", async () => {
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
@@ -83,8 +83,8 @@ describe("test", () => {
 
 		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
-			token: process.env.OPENAI_API_KEY || "sk-test-key",
-			provider: "openai",
+			token: "sk-test-key",
+			provider: "openllm",
 			projectId: "project-id",
 		});
 
@@ -93,9 +93,10 @@ describe("test", () => {
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
+				"X-Provider-Base-URL": mockServerUrl,
 			},
 			body: JSON.stringify({
-				model: "gpt-4o-mini",
+				model: "openllm/custom",
 				messages: [
 					{
 						role: "user",
@@ -187,7 +188,7 @@ describe("test", () => {
 
 		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
-			token: process.env.OPENAI_API_KEY || "sk-test-key",
+			token: "sk-test-key",
 			provider: "openai",
 			projectId: "project-id",
 		});
@@ -197,6 +198,7 @@ describe("test", () => {
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
+				"X-Provider-Base-URL": mockServerUrl,
 			},
 			body: JSON.stringify({
 				model: "openai/gpt-4o-mini",
@@ -222,7 +224,7 @@ describe("test", () => {
 
 		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
-			token: process.env.OPENAI_API_KEY || "sk-test-key",
+			token: "sk-test-key",
 			provider: "openai",
 			projectId: "project-id",
 		});
@@ -233,6 +235,7 @@ describe("test", () => {
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
+				"X-Provider-Base-URL": mockServerUrl,
 			},
 			body: JSON.stringify({
 				model: "llama-3.3-70b-instruct",
@@ -244,12 +247,10 @@ describe("test", () => {
 				],
 			}),
 		});
-		// Since the implementation only supports openai provider currently,
-		// this should return a 500 error for unsupported provider
-		expect(res.status).toBe(500);
+		expect(res.status).toBe(400);
 		const msg = await res.text();
 		expect(msg).toMatchInlineSnapshot(
-			`"could not use provider: inference.net"`,
+			`"No API key set for provider: inference.net. Please add a provider key in your settings."`,
 		);
 	});
 
@@ -264,7 +265,7 @@ describe("test", () => {
 
 		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
-			token: process.env.OPENAI_API_KEY || "sk-test-key",
+			token: "sk-test-key",
 			provider: "openai",
 			projectId: "project-id",
 		});
@@ -274,6 +275,7 @@ describe("test", () => {
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
+				"X-Provider-Base-URL": mockServerUrl,
 			},
 			body: JSON.stringify({
 				model: "openllm/auto",
@@ -304,6 +306,7 @@ describe("test", () => {
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
+				"X-Provider-Base-URL": mockServerUrl,
 			},
 			body: JSON.stringify({
 				model: "gpt-4o-mini",

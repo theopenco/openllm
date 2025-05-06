@@ -23,6 +23,10 @@ export interface ModelDefinition {
 
 export const models = [
 	{
+		model: "custom", // custom provider which expects base URL to be set
+		providers: ["openllm"],
+	},
+	{
 		model: "auto", // native automatic routing
 		providers: ["openllm"],
 	},

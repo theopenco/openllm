@@ -14,9 +14,13 @@ const providerKeySchema = createSelectSchema(tables.providerKey);
 
 // Schema for creating a new provider key
 const createProviderKeySchema = z.object({
-	provider: z.string().refine((val) => providers.some((p) => p.id === val), {
-		message: "Invalid provider. Must be one of the supported providers.",
-	}),
+	provider: z
+		.string()
+		.refine((val) => providers.some((p) => p.id === val) || val === "custom", {
+			message:
+				"Invalid provider. Must be one of the supported providers or 'custom'.",
+		}),
+	baseUrl: z.string().url().optional(),
 });
 
 // Schema for updating a provider key status
@@ -64,7 +68,7 @@ keysProvider.openapi(create, async (c) => {
 		});
 	}
 
-	const { provider } = await c.req.json();
+	const { provider, baseUrl } = await c.req.json();
 
 	// Get the user's projects
 	const userOrgs = await db.query.userOrganization.findMany({
@@ -119,6 +123,7 @@ keysProvider.openapi(create, async (c) => {
 			token,
 			projectId,
 			provider,
+			baseUrl,
 		})
 		.returning();
 
