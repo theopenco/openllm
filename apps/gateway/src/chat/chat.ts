@@ -1,7 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { db, log } from "@openllm/db";
 import { type Model, models, type Provider, providers } from "@openllm/models";
-import { randomUUID } from "crypto";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
 
@@ -307,7 +306,6 @@ chat.openapi(completions, async (c) => {
 
 					// Log the canceled request
 					await db.insert(log).values({
-						id: randomUUID(),
 						createdAt: new Date(),
 						updatedAt: new Date(),
 						organizationId: project.organizationId,
@@ -579,7 +577,6 @@ chat.openapi(completions, async (c) => {
 	if (canceled) {
 		// Log the canceled request
 		await db.insert(log).values({
-			id: randomUUID(),
 			createdAt: new Date(),
 			updatedAt: new Date(),
 			organizationId: project.organizationId,
@@ -630,7 +627,6 @@ chat.openapi(completions, async (c) => {
 
 		// Log the error in the database
 		await db.insert(log).values({
-			id: randomUUID(),
 			createdAt: new Date(),
 			updatedAt: new Date(),
 			organizationId: project.organizationId,
@@ -687,7 +683,6 @@ chat.openapi(completions, async (c) => {
 
 	// Log the successful request and response
 	await db.insert(log).values({
-		id: randomUUID(),
 		createdAt: new Date(),
 		updatedAt: new Date(),
 		organizationId: project.organizationId,
