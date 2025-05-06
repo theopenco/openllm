@@ -6,6 +6,16 @@ import { HTTPException } from "hono/http-exception";
 
 import type { ServerTypes } from "../vars";
 
+// Environment variable for overriding provider base URLs in tests
+const getProviderBaseUrl = (provider: Provider): string => {
+	switch (provider) {
+		case "openai":
+			return process.env.OPENAI_BASE_URL || "https://api.openai.com";
+		default:
+			return "";
+	}
+};
+
 export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
@@ -157,35 +167,32 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	switch (usedProvider) {
-		case "openllm": {
-			if (usedModel !== "custom") {
-				throw new HTTPException(400, {
-					message: `Invalid model: ${usedModel} for provider: ${usedProvider}`,
-				});
-			}
-
-			if (!url) {
-				const bUrl = providerKey?.baseUrl;
-				if (bUrl) {
-					url = bUrl;
+	// First check if the provider key has a baseUrl set (for custom providers or testing)
+	if (providerKey.baseUrl) {
+		url = providerKey.baseUrl;
+	} else {
+		// Otherwise use the default URL or environment variable
+		switch (usedProvider) {
+			case "openllm": {
+				if (usedModel !== "custom") {
+					throw new HTTPException(400, {
+						message: `Invalid model: ${usedModel} for provider: ${usedProvider}`,
+					});
 				}
+				// For openllm/custom, baseUrl is required
+				break;
 			}
-			break;
+			case "openai":
+				// Use environment variable if set (for testing), otherwise use default
+				url = getProviderBaseUrl(usedProvider);
+				break;
+			default:
+				throw new HTTPException(500, {
+					message: `could not use provider: ${usedProvider}`,
+				});
 		}
-		case "openai":
-			url = "https://api.openai.com";
-			break;
-		default:
-			throw new HTTPException(500, {
-				message: `could not use provider: ${usedProvider}`,
-			});
 	}
 
-	const xUrl = c.req.header("X-Provider-Base-URL");
-	if (xUrl) {
-		url = xUrl;
-	}
 	if (!url) {
 		throw new HTTPException(400, {
 			message: `No base URL set for provider: ${usedProvider}. Please add a base URL in your settings.`,
@@ -236,7 +243,7 @@ chat.openapi(completions, async (c) => {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
-			Authorization: (providerKey && `Bearer ${providerKey.token}`) || "",
+			Authorization: `Bearer ${providerKey.token}`,
 		},
 		body: JSON.stringify(requestBody),
 	});

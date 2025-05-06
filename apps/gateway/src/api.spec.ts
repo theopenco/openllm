@@ -81,11 +81,13 @@ describe("test", () => {
 			description: "Test API Key",
 		});
 
+		// Create provider key with mock server URL as baseUrl
 		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openllm",
 			projectId: "project-id",
+			baseUrl: mockServerUrl,
 		});
 
 		const res = await app.request("/v1/chat/completions", {
@@ -93,7 +95,6 @@ describe("test", () => {
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
-				"X-Provider-Base-URL": mockServerUrl,
 			},
 			body: JSON.stringify({
 				model: "openllm/custom",
@@ -186,11 +187,13 @@ describe("test", () => {
 			description: "Test API Key",
 		});
 
+		// Create provider key for OpenAI with mock server URL as baseUrl
 		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
 			projectId: "project-id",
+			baseUrl: mockServerUrl,
 		});
 
 		const res = await app.request("/v1/chat/completions", {
@@ -198,7 +201,6 @@ describe("test", () => {
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
-				"X-Provider-Base-URL": mockServerUrl,
 			},
 			body: JSON.stringify({
 				model: "openai/gpt-4o-mini",
@@ -235,7 +237,6 @@ describe("test", () => {
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
-				"X-Provider-Base-URL": mockServerUrl,
 			},
 			body: JSON.stringify({
 				model: "llama-3.3-70b-instruct",
@@ -263,11 +264,13 @@ describe("test", () => {
 			description: "Test API Key",
 		});
 
+		// Create provider key for OpenAI with mock server URL as baseUrl
 		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
 			projectId: "project-id",
+			baseUrl: mockServerUrl,
 		});
 
 		const res = await app.request("/v1/chat/completions", {
@@ -275,7 +278,6 @@ describe("test", () => {
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
-				"X-Provider-Base-URL": mockServerUrl,
 			},
 			body: JSON.stringify({
 				model: "openllm/auto",
@@ -306,7 +308,6 @@ describe("test", () => {
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
-				"X-Provider-Base-URL": mockServerUrl,
 			},
 			body: JSON.stringify({
 				model: "gpt-4o-mini",
