@@ -69,7 +69,9 @@ export function LogCard({ log }: { log: Log }) {
 				</div>
 				<div className="flex-1 space-y-1">
 					<div className="flex items-center justify-between">
-						<p className="font-medium line-clamp-1">
+						<p
+							className={`font-medium ${isExpanded ? "line-clamp-2" : "line-clamp-1"}`}
+						>
 							{log.content || <i className="italic">empty response</i>}
 						</p>
 						<Badge
@@ -281,11 +283,12 @@ export function LogCard({ log }: { log: Log }) {
 							</pre>
 						</div>
 					</div>
-					{/* <div className="flex justify-end">
-						<Button variant="outline" size="sm">
-							View Full Log
-						</Button>
-					</div> */}
+					<div className="space-y-2">
+						<h4 className="text-sm font-medium">Response</h4>
+						<div className="rounded-md border p-3">
+							<pre className="max-h-60 text-xs text-wrap">{log.content}</pre>
+						</div>
+					</div>
 				</div>
 			)}
 		</div>
