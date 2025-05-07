@@ -15,9 +15,9 @@
 		"lint": "eslint . && prettier --check .",
 		"push-dev": "pnpm --filter db push",
 		"push-test": "cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5389/test}\" pnpm --filter db push",
-		"redo": "docker compose down -v && docker compose up -d && sleep 5 && pnpm push-test && pnpm push-dev && pnpm seed",
 		"reset": "pnpm --filter db reset",
 		"seed": "pnpm --filter db seed",
+		"setup": "docker compose down -v && docker compose up -d && sleep 5 && pnpm push-test && pnpm push-dev && pnpm seed",
 		"sync": "pnpm push-dev; pnpm push-test",
 		"test": "cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5389/test}\" vitest run --no-file-parallelism"
 	},
