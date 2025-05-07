@@ -4,6 +4,11 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
 
 export const auth = betterAuth({
+	advanced: {
+		defaultCookieAttributes: {
+			path: "/api",
+		},
+	},
 	session: {
 		cookieCache: {
 			enabled: true,
