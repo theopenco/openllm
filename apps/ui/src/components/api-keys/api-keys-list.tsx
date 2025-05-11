@@ -1,6 +1,10 @@
-import { Copy, MoreHorizontal } from "lucide-react";
-import { useState } from "react";
+import { MoreHorizontal } from "lucide-react";
 
+import {
+	useApiKeys,
+	useDeleteApiKey,
+	useToggleApiKeyStatus,
+} from "./hooks/useApiKeys";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -32,68 +36,45 @@ import {
 } from "@/lib/components/table";
 import { toast } from "@/lib/components/use-toast";
 
-const apiKeys = [
-	{
-		id: "1",
-		name: "Production API Key",
-		key: "llmgw_prod_a1b2c3d4e5f6g7h8i9j0",
-		created: "2023-10-15",
-		lastUsed: "2 minutes ago",
-		status: "active",
-		restrictions: "None",
-	},
-	{
-		id: "2",
-		name: "Development API Key",
-		key: "llmgw_dev_z9y8x7w6v5u4t3s2r1q0",
-		created: "2023-11-20",
-		lastUsed: "3 days ago",
-		status: "active",
-		restrictions: "IP: 192.168.1.0/24",
-	},
-	{
-		id: "3",
-		name: "Testing API Key",
-		key: "llmgw_test_j0i9h8g7f6e5d4c3b2a1",
-		created: "2024-01-05",
-		lastUsed: "1 week ago",
-		status: "inactive",
-		restrictions: "None",
-	},
-];
-
 export function ApiKeysList() {
-	const [keys, setKeys] = useState(apiKeys);
+	const { data, isLoading } = useApiKeys();
+	const deleteMutation = useDeleteApiKey();
+	const toggleMutation = useToggleApiKeyStatus();
 
-	const copyToClipboard = (text: string) => {
-		navigator.clipboard.writeText(text);
-		toast({
-			title: "API Key Copied",
-			description: "The API key has been copied to your clipboard.",
-		});
-	};
+	if (isLoading) {
+		return <div>Loading...</div>;
+	}
+
+	const keys = data?.apiKeys;
 
 	const deleteKey = (id: string) => {
-		setKeys(keys.filter((key) => key.id !== id));
-		toast({
-			title: "API Key Deleted",
-			description: "The API key has been permanently deleted.",
-		});
+		deleteMutation.mutate(id);
 	};
 
-	const toggleStatus = (id: string) => {
-		setKeys(
-			keys.map((key) =>
-				key.id === id
-					? { ...key, status: key.status === "active" ? "inactive" : "active" }
-					: key,
-			),
-		);
+	const toggleStatus = (id: string, currentStatus: string) => {
+		const newStatus = currentStatus === "active" ? "inactive" : "active";
+		toggleMutation.mutate({ id, status: newStatus });
 		toast({
 			title: "API Key Status Updated",
 			description: "The API key status has been updated.",
 		});
 	};
+
+	// const copyToClipboard = (text: string) => {
+	// 	navigator.clipboard.writeText(text);
+	// 	toast({
+	// 		title: "API Key Copied",
+	// 		description: "The API key has been copied to your clipboard.",
+	// 	});
+	// };
+
+	if (keys!.length === 0) {
+		return (
+			<div className="py-8 text-center text-muted-foreground">
+				<p className="text-sm">No API keys have been created yet.</p>
+			</div>
+		);
+	}
 
 	return (
 		<Table>
@@ -109,27 +90,25 @@ export function ApiKeysList() {
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{keys.map((key) => (
+				{keys!.map((key) => (
 					<TableRow key={key.id}>
-						<TableCell className="font-medium">{key.name}</TableCell>
+						<TableCell className="font-medium">{key.description}</TableCell>
 						<TableCell>
 							<div className="flex items-center space-x-2">
-								<span className="font-mono text-xs">
-									{key.key.substring(0, 8)}•••••••••••
-								</span>
-								<Button
+								<span className="font-mono text-xs">{key.maskedToken}</span>
+								{/* <Button
 									variant="ghost"
 									size="icon"
 									className="h-6 w-6"
-									onClick={() => copyToClipboard(key.key)}
+									onClick={() => copyToClipboard(key.id)}
 								>
 									<Copy className="h-3 w-3" />
 									<span className="sr-only">Copy API key</span>
-								</Button>
+								</Button> */}
 							</div>
 						</TableCell>
-						<TableCell>{key.created}</TableCell>
-						<TableCell>{key.lastUsed}</TableCell>
+						<TableCell>{key.createdAt}</TableCell>
+						<TableCell>{key.updatedAt}</TableCell>
 						<TableCell>
 							<Badge
 								variant={key.status === "active" ? "default" : "secondary"}
@@ -137,7 +116,7 @@ export function ApiKeysList() {
 								{key.status}
 							</Badge>
 						</TableCell>
-						<TableCell>{key.restrictions}</TableCell>
+						<TableCell>key.restrictions</TableCell>
 						<TableCell className="text-right">
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>
@@ -148,10 +127,12 @@ export function ApiKeysList() {
 								</DropdownMenuTrigger>
 								<DropdownMenuContent align="end">
 									<DropdownMenuLabel>Actions</DropdownMenuLabel>
-									<DropdownMenuItem onClick={() => copyToClipboard(key.key)}>
+									{/* <DropdownMenuItem onClick={() => copyToClipboard(key.key)}>
 										Copy API Key
-									</DropdownMenuItem>
-									<DropdownMenuItem onClick={() => toggleStatus(key.id)}>
+									</DropdownMenuItem> */}
+									<DropdownMenuItem
+										onClick={() => toggleStatus(key.id, key.status)}
+									>
 										{key.status === "active" ? "Disable" : "Enable"} Key
 									</DropdownMenuItem>
 									<DropdownMenuSeparator />

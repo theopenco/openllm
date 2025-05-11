@@ -1,6 +1,7 @@
 import { Copy } from "lucide-react";
 import { useState } from "react";
 
+import { useCreateApiKey } from "./hooks/useApiKeys";
 import { Button } from "@/lib/components/button";
 import {
 	Dialog,
@@ -27,12 +28,16 @@ export function CreateApiKeyDialog({
 	const [name, setName] = useState("");
 	const [apiKey, setApiKey] = useState("");
 
+	const createMutation = useCreateApiKey();
+
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		// Generate a fake API key
-		const key = `llmgw_${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}`;
-		setApiKey(key);
-		setStep("created");
+		createMutation.mutate(name, {
+			onSuccess: (data) => {
+				setApiKey(data.apiKey.token);
+				setStep("created");
+			},
+		});
 	};
 
 	const copyToClipboard = () => {
@@ -45,7 +50,6 @@ export function CreateApiKeyDialog({
 
 	const handleClose = () => {
 		setOpen(false);
-		// Reset the form after the dialog is closed
 		setTimeout(() => {
 			setStep("form");
 			setName("");
