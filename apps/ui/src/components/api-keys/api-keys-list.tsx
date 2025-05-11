@@ -1,5 +1,6 @@
-import { MoreHorizontal } from "lucide-react";
+import { KeyIcon, MoreHorizontal, PlusIcon } from "lucide-react";
 
+import { CreateApiKeyDialog } from "./create-api-key-dialog";
 import {
 	useApiKeys,
 	useDeleteApiKey,
@@ -70,8 +71,20 @@ export function ApiKeysList() {
 
 	if (keys!.length === 0) {
 		return (
-			<div className="py-8 text-center text-muted-foreground">
-				<p className="text-sm">No API keys have been created yet.</p>
+			<div className="flex flex-col items-center justify-center py-16 text-muted-foreground text-center">
+				<div className="mb-4">
+					<KeyIcon className="h-10 w-10 text-gray-500" />
+				</div>
+				<p className="text-gray-400 mb-6">No API keys have been created yet.</p>
+				<CreateApiKeyDialog>
+					<Button
+						type="button"
+						className="cursor-pointer flex items-center gap-2 bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200"
+					>
+						<PlusIcon className="h-5 w-5" />
+						Create API Key
+					</Button>
+				</CreateApiKeyDialog>
 			</div>
 		);
 	}
