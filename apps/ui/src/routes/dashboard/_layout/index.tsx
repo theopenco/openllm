@@ -3,6 +3,7 @@ import {
 	AlertCircle,
 	ArrowUpRight,
 	Key,
+	KeyRound,
 	Plus,
 	Zap,
 	Activity,
@@ -170,11 +171,27 @@ export default function Dashboard() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="grid gap-2">
-								<Button variant="outline" className="justify-start">
+								<Button
+									variant="outline"
+									className="justify-start"
+									onClick={() => navigate({ to: "/dashboard/api-keys" })}
+								>
 									<Key className="mr-2 h-4 w-4" />
 									Generate API Key
 								</Button>
-								<Button variant="outline" className="justify-start">
+								<Button
+									variant="outline"
+									className="justify-start"
+									onClick={() => navigate({ to: "/dashboard/provider-keys" })}
+								>
+									<KeyRound className="mr-2 h-4 w-4" />
+									Add Provider Key
+								</Button>
+								<Button
+									variant="outline"
+									className="justify-start"
+									onClick={() => navigate({ to: "/dashboard/models" })}
+								>
 									<Plus className="mr-2 h-4 w-4" />
 									Add Provider
 								</Button>

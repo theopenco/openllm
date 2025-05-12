@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db, eq, shortid, tables } from "@openllm/db";
+import { db, eq, tables } from "@openllm/db";
 import { providers } from "@openllm/models";
 import { createSelectSchema } from "drizzle-zod";
 import { HTTPException } from "hono/http-exception";
@@ -20,6 +20,7 @@ const createProviderKeySchema = z.object({
 			message:
 				"Invalid provider. Must be one of the supported providers or 'custom'.",
 		}),
+	token: z.string().min(1, "API key is required"),
 	baseUrl: z.string().url().optional(),
 });
 
@@ -68,7 +69,7 @@ keysProvider.openapi(create, async (c) => {
 		});
 	}
 
-	const { provider, baseUrl } = await c.req.json();
+	const { provider, token: userToken, baseUrl } = await c.req.json();
 
 	// Get the user's projects
 	const userOrgs = await db.query.userOrganization.findMany({
@@ -113,14 +114,12 @@ keysProvider.openapi(create, async (c) => {
 		});
 	}
 
-	// Generate a token with a prefix for better identification
-	const token = `${provider}_` + shortid();
-
+	// Use the user-provided token
 	// Create the provider key
 	const [providerKey] = await db
 		.insert(tables.providerKey)
 		.values({
-			token,
+			token: userToken,
 			projectId,
 			provider,
 			baseUrl,
@@ -130,7 +129,7 @@ keysProvider.openapi(create, async (c) => {
 	return c.json({
 		providerKey: {
 			...providerKey,
-			token, // Include the token in the response
+			token: userToken, // Include the token in the response
 		},
 	});
 });
