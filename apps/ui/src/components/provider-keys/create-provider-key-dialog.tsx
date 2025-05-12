@@ -1,7 +1,7 @@
 import { providers } from "@openllm/models";
 import { useState } from "react";
 
-import { useCreateProviderKey } from "./hooks/useProviderKeys";
+import { useCreateProviderKey, useProviderKeys } from "./hooks/useProviderKeys";
 import { Button } from "@/lib/components/button";
 import {
 	Dialog,
@@ -33,7 +33,22 @@ export function CreateProviderKeyDialog({
 	const [baseUrl, setBaseUrl] = useState("");
 	const [token, setToken] = useState("");
 
+	const { data: providerKeysData, isLoading } = useProviderKeys();
 	const createMutation = useCreateProviderKey();
+
+	// Filter out providers that already have keys
+	const availableProviders = providers.filter((provider) => {
+		if (isLoading || !providerKeysData?.providerKeys) {
+			return true;
+		}
+
+		// Check if this provider already has a key (that's not deleted)
+		const existingKey = providerKeysData.providerKeys.find(
+			(key) => key.provider === provider.id && key.status !== "deleted",
+		);
+
+		return !existingKey;
+	});
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
@@ -107,7 +122,7 @@ export function CreateProviderKeyDialog({
 			<DialogTrigger asChild>{children}</DialogTrigger>
 			<DialogContent className="sm:max-w-[500px]">
 				<DialogHeader>
-					<DialogTitle>Create Provider Key</DialogTitle>
+					<DialogTitle>Add Provider Key</DialogTitle>
 					<DialogDescription>
 						Create a new provider key to connect to an LLM provider.
 					</DialogDescription>
@@ -123,11 +138,21 @@ export function CreateProviderKeyDialog({
 								<SelectValue placeholder="Select provider..." />
 							</SelectTrigger>
 							<SelectContent>
-								{providers.map((provider) => (
-									<SelectItem key={provider.id} value={provider.id}>
-										{provider.name}
+								{isLoading ? (
+									<SelectItem value="loading" disabled>
+										Loading providers...
 									</SelectItem>
-								))}
+								) : availableProviders.length > 0 ? (
+									availableProviders.map((provider) => (
+										<SelectItem key={provider.id} value={provider.id}>
+											{provider.name}
+										</SelectItem>
+									))
+								) : (
+									<SelectItem value="none" disabled>
+										All providers already have keys
+									</SelectItem>
+								)}
 							</SelectContent>
 						</Select>
 					</div>
@@ -160,7 +185,12 @@ export function CreateProviderKeyDialog({
 						<Button type="button" variant="outline" onClick={handleClose}>
 							Cancel
 						</Button>
-						<Button type="submit">Create Provider Key</Button>
+						<Button
+							type="submit"
+							disabled={availableProviders.length === 0 || isLoading}
+						>
+							Add Provider Key
+						</Button>
 					</DialogFooter>
 				</form>
 			</DialogContent>

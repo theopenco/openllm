@@ -83,7 +83,7 @@ export function ProviderKeysList() {
 						className="cursor-pointer flex items-center gap-2 bg-white text-black px-4 py-2 rounded-md hover:bg-gray-200"
 					>
 						<PlusIcon className="h-5 w-5" />
-						Create Provider Key
+						Add Provider Key
 					</Button>
 				</CreateProviderKeyDialog>
 			</div>

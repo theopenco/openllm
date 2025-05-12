@@ -49,7 +49,7 @@ export function useCreateProviderKey() {
 				credentials: "include",
 			});
 			if (!res.ok) {
-				throw new Error("Failed to create provider key");
+				throw new Error("Failed to add provider key");
 			}
 			return await res.json();
 		},
