@@ -8,6 +8,7 @@ import {
 	Settings,
 	Zap,
 	Activity,
+	KeyRound,
 } from "lucide-react";
 
 import { signOut, useSession } from "@/lib/auth-client";
@@ -64,6 +65,11 @@ export function DashboardSidebar() {
 									icon: LayoutDashboard,
 								},
 								{ href: "/dashboard/api-keys", label: "API Keys", icon: Key },
+								{
+									href: "/dashboard/provider-keys",
+									label: "Provider Keys",
+									icon: KeyRound,
+								},
 								{
 									href: "/dashboard/activity",
 									label: "Activity",
