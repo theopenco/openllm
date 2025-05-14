@@ -1,4 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 
 const API_BASE = "/api/content/keys/api";
 
@@ -13,12 +17,13 @@ export interface ApiKey {
 }
 
 export function useApiKeys() {
-	return useQuery({
+	return useSuspenseQuery({
 		queryKey: ["apiKeys"],
 		queryFn: async () => {
 			const res = await fetch(API_BASE, {
 				credentials: "include",
 			});
+
 			if (!res.ok) {
 				throw new Error("Failed to fetch API keys");
 			}

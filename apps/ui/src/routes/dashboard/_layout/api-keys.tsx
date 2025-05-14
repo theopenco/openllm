@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 
 import { ApiKeysList } from "@/components/api-keys/api-keys-list";
 import { CreateApiKeyDialog } from "@/components/api-keys/create-api-key-dialog";
+import Loading from "@/components/api-keys/loading";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -14,6 +15,8 @@ import {
 
 export const Route = createFileRoute("/dashboard/_layout/api-keys")({
 	component: RouteComponent,
+	pendingComponent: () => <Loading />,
+	errorComponent: ({ error }) => <div>{error.message}</div>,
 });
 
 function RouteComponent() {
