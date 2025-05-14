@@ -38,13 +38,9 @@ import {
 import { toast } from "@/lib/components/use-toast";
 
 export function ApiKeysList() {
-	const { data, isLoading } = useApiKeys();
+	const { data } = useApiKeys();
 	const deleteMutation = useDeleteApiKey();
 	const toggleMutation = useToggleApiKeyStatus();
-
-	if (isLoading) {
-		return <div>Loading...</div>;
-	}
 
 	const keys = data?.apiKeys;
 
