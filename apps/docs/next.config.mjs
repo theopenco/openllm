@@ -8,7 +8,6 @@ const config = {
 	eslint: {
 		ignoreDuringBuilds: true,
 	},
-	output: "export",
 };
 
 export default withMDX(config);
