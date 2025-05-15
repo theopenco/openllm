@@ -1,5 +1,7 @@
+FROM node:20.10-alpine AS base
+
 # Build stage
-FROM node:20-alpine AS builder
+FROM base AS builder
 RUN apk add curl
 
 # Create app directory
@@ -18,7 +20,7 @@ COPY packages/auth/package.json ./packages/auth/
 COPY packages/db/package.json ./packages/db/
 COPY packages/models/package.json ./packages/models/
 
-RUN pnpm install --frozen-lockfile
+RUN pnpm install # --frozen-lockfile
 
 # Copy source code
 COPY . .
@@ -33,30 +35,30 @@ RUN pnpm --filter=ui --prod deploy dist/ui
 RUN pnpm --filter=docs --prod deploy dist/docs
 
 
-FROM node:20-alpine AS runtime
+FROM base AS runtime
 COPY --from=builder /bin/pnpm /bin/pnpm
 COPY --from=builder /app /app
 
 # Production images for each app
-FROM node:20-alpine AS api
+FROM base AS api
 WORKDIR /app
 COPY --from=builder /app/dist/api ./
 EXPOSE 3002
 CMD ["pnpm", "start"]
 
-FROM node:20-alpine AS gateway
+FROM base AS gateway
 WORKDIR /app
 COPY --from=builder /app/dist/gateway ./
 EXPOSE 4001
 CMD ["pnpm", "start"]
 
-FROM node:20-alpine AS ui
+FROM base AS ui
 WORKDIR /app
 COPY --from=builder /app/dist/ui ./
 EXPOSE 4002
 CMD ["pnpm", "start"]
 
-FROM node:20-alpine AS docs
+FROM base AS docs
 WORKDIR /app
 COPY --from=builder /app/dist/docs ./
 EXPOSE 3005
