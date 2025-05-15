@@ -1,10 +1,11 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { db, log } from "@openllm/db";
+import { db } from "@openllm/db";
 import { type Model, models, type Provider, providers } from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
 
 import { calculateCosts } from "../lib/costs";
+import { insertLog } from "../lib/logs";
 
 import type { ServerTypes } from "../vars";
 
@@ -402,9 +403,7 @@ chat.openapi(completions, async (c) => {
 					console.log("Streaming request was canceled by the client");
 
 					// Log the canceled request
-					await db.insert(log).values({
-						createdAt: new Date(),
-						updatedAt: new Date(),
+					await insertLog({
 						organizationId: project.organizationId,
 						projectId: apiKey.projectId,
 						apiKeyId: apiKey.id,
@@ -474,9 +473,7 @@ chat.openapi(completions, async (c) => {
 				});
 
 				// Log the error in the database
-				await db.insert(log).values({
-					createdAt: new Date(),
-					updatedAt: new Date(),
+				await insertLog({
 					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
@@ -624,9 +621,7 @@ chat.openapi(completions, async (c) => {
 				// Log the streaming request
 				const duration = Date.now() - startTime;
 				const costs = calculateCosts(usedModel, promptTokens, completionTokens);
-				await db.insert(log).values({
-					createdAt: new Date(),
-					updatedAt: new Date(),
+				await insertLog({
 					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
@@ -702,9 +697,7 @@ chat.openapi(completions, async (c) => {
 	// If the request was canceled, log it and return a response
 	if (canceled) {
 		// Log the canceled request
-		await db.insert(log).values({
-			createdAt: new Date(),
-			updatedAt: new Date(),
+		await insertLog({
 			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
@@ -753,9 +746,7 @@ chat.openapi(completions, async (c) => {
 		const errorResponseText = await res.text();
 
 		// Log the error in the database
-		await db.insert(log).values({
-			createdAt: new Date(),
-			updatedAt: new Date(),
+		await insertLog({
 			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
@@ -838,9 +829,7 @@ chat.openapi(completions, async (c) => {
 		prompt: messages.map((m) => m.content).join("\n"),
 		completion: content,
 	});
-	await db.insert(log).values({
-		createdAt: new Date(),
-		updatedAt: new Date(),
+	await insertLog({
 		organizationId: project.organizationId,
 		projectId: apiKey.projectId,
 		apiKeyId: apiKey.id,
