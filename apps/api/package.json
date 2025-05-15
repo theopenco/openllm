@@ -5,7 +5,8 @@
 	"type": "module",
 	"scripts": {
 		"build": "tsc",
-		"dev": "nodemon -e ts,json --exec 'tsx src/serve.ts'"
+		"dev": "nodemon -e ts,json --exec 'tsx src/serve.ts'",
+		"start": "node dist/serve.js"
 	},
 	"dependencies": {
 		"@hono/swagger-ui": "^0.5.1",

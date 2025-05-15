@@ -26,24 +26,39 @@ COPY . .
 # Build all apps
 RUN pnpm build
 
+# Create optimized production deployments for each app
+RUN pnpm --filter=api --prod deploy dist/api
+RUN pnpm --filter=gateway --prod deploy dist/gateway
+RUN pnpm --filter=ui --prod deploy dist/ui
+RUN pnpm --filter=docs --prod deploy dist/docs
+
+
+FROM node:20-alpine AS runtime
+COPY --from=builder /bin/pnpm /bin/pnpm
+COPY --from=builder /app /app
 
 # Production images for each app
 FROM node:20-alpine AS api
 WORKDIR /app
+COPY --from=builder /app/dist/api ./
 EXPOSE 3002
-CMD ["node", "apps/api/dist/serve.js"]
+CMD ["pnpm", "start"]
 
 FROM node:20-alpine AS gateway
 WORKDIR /app
+COPY --from=builder /app/dist/gateway ./
 EXPOSE 4001
-CMD ["node", "apps/gateway/dist/serve.js"]
+CMD ["pnpm", "start"]
 
 FROM node:20-alpine AS ui
 WORKDIR /app
+COPY --from=builder /app/dist/ui ./
 EXPOSE 4002
-CMD ["node", "apps/ui/.vinxi/server/index.js"]
+CMD ["pnpm", "start"]
 
 FROM node:20-alpine AS docs
 WORKDIR /app
+COPY --from=builder /app/dist/docs ./
 EXPOSE 3005
-CMD ["node", "apps/docs/.next/server.js"]
+CMD ["pnpm", "start"]
+
