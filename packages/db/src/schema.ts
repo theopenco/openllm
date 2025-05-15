@@ -87,6 +87,8 @@ export const project = pgTable("project", {
 	updatedAt: timestamp().notNull().defaultNow(),
 	name: text().notNull(),
 	organizationId: text().notNull(),
+	cacheEnabled: boolean().notNull().default(false),
+	cacheDuration: integer().notNull().default(3600), // Default 1 hour in seconds
 });
 
 export const apiKey = pgTable("api_key", {

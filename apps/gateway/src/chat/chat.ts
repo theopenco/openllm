@@ -4,6 +4,12 @@ import { type Model, models, type Provider, providers } from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
 
+import {
+	generateCacheKey,
+	getCachedResponse,
+	getProjectCacheSettings,
+	setCachedResponse,
+} from "../lib/cache";
 import { calculateCosts } from "../lib/costs";
 import { insertLog } from "../lib/logs";
 
@@ -276,6 +282,70 @@ chat.openapi(completions, async (c) => {
 		throw new HTTPException(500, {
 			message: "Could not find project associated with this API key",
 		});
+	}
+
+	// Check if caching is enabled for this project
+	const cacheSettings = await getProjectCacheSettings(apiKey.projectId);
+
+	if (cacheSettings.enabled && !stream) {
+		const cacheKey = generateCacheKey(
+			apiKey.projectId,
+			modelInput,
+			messages,
+			temperature,
+			max_tokens,
+			top_p,
+			frequency_penalty,
+			presence_penalty,
+		);
+
+		// Check if we have a cached response
+		const cachedResponse = getCachedResponse(cacheKey);
+		if (cachedResponse) {
+			console.log("Cache hit for request:", cacheKey);
+
+			// Log the cached request
+			const duration = 0; // Cached response has no duration
+			const costs = calculateCosts(
+				cachedResponse.usedModel,
+				cachedResponse.promptTokens,
+				cachedResponse.completionTokens,
+			);
+
+			await insertLog({
+				organizationId: project.organizationId,
+				projectId: apiKey.projectId,
+				apiKeyId: apiKey.id,
+				providerKeyId: providerKey.id,
+				duration,
+				usedModel: cachedResponse.usedModel,
+				usedProvider: cachedResponse.usedProvider,
+				requestedModel: requestedModel,
+				requestedProvider: requestedProvider,
+				messages: messages,
+				responseSize: JSON.stringify(cachedResponse.data).length,
+				content: cachedResponse.content,
+				finishReason: cachedResponse.finishReason,
+				promptTokens: cachedResponse.promptTokens,
+				completionTokens: cachedResponse.completionTokens,
+				totalTokens: cachedResponse.totalTokens,
+				temperature: temperature || null,
+				maxTokens: max_tokens || null,
+				topP: top_p || null,
+				frequencyPenalty: frequency_penalty || null,
+				presencePenalty: presence_penalty || null,
+				hasError: false,
+				streamed: false,
+				canceled: false,
+				errorDetails: null,
+				inputCost: costs.inputCost,
+				outputCost: costs.outputCost,
+				cost: costs.totalCost,
+				estimatedCost: costs.estimatedCost,
+			});
+
+			return c.json(cachedResponse.data);
+		}
 	}
 
 	// Check if streaming is requested and if the provider supports it
@@ -860,6 +930,34 @@ chat.openapi(completions, async (c) => {
 		cost: costs.totalCost,
 		estimatedCost: costs.estimatedCost,
 	});
+
+	if (cacheSettings.enabled && !stream) {
+		const cacheKey = generateCacheKey(
+			apiKey.projectId,
+			modelInput,
+			messages,
+			temperature,
+			max_tokens,
+			top_p,
+			frequency_penalty,
+			presence_penalty,
+		);
+
+		setCachedResponse(
+			cacheKey,
+			{
+				data: json,
+				content,
+				finishReason,
+				promptTokens,
+				completionTokens,
+				totalTokens,
+				usedModel,
+				usedProvider,
+			},
+			cacheSettings.duration,
+		);
+	}
 
 	return c.json(json);
 });

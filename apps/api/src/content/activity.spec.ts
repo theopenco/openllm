@@ -24,6 +24,8 @@ describe("activity endpoint", () => {
 			id: "test-project-id",
 			name: "Test Project",
 			organizationId: "test-org-id",
+			cacheEnabled: false,
+			cacheDuration: 3600,
 		});
 
 		await db.insert(tables.apiKey).values({

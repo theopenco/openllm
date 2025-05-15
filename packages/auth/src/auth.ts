@@ -62,6 +62,8 @@ export const auth = betterAuth({
 					await db.insert(tables.project).values({
 						name: "Default Project",
 						organizationId: organization.id,
+						cacheEnabled: false,
+						cacheDuration: 3600,
 					});
 				}
 			}

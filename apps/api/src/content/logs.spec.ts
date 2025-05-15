@@ -46,11 +46,15 @@ describe("logs route", () => {
 				id: "test-project-id",
 				name: "Test Project",
 				organizationId: "test-org-id",
+				cacheEnabled: false,
+				cacheDuration: 3600,
 			},
 			{
 				id: "test-project-id-2",
 				name: "Test Project 2",
 				organizationId: "test-org-id-2",
+				cacheEnabled: false,
+				cacheDuration: 3600,
 			},
 		]);
 

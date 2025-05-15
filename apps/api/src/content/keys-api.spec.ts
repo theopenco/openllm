@@ -32,6 +32,8 @@ describe("keys route", () => {
 			id: "test-project-id",
 			name: "Test Project",
 			organizationId: "test-org-id",
+			cacheEnabled: false,
+			cacheDuration: 3600,
 		});
 
 		// Create test API key

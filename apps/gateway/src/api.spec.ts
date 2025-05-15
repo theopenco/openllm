@@ -63,6 +63,8 @@ describe("test", () => {
 			id: "project-id",
 			name: "Test Project",
 			organizationId: "org-id",
+			cacheEnabled: false,
+			cacheDuration: 3600,
 		});
 	});
 
