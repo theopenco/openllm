@@ -1,7 +1,7 @@
 import { MoonIcon, SunIcon, ComputerIcon } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
 
+import { useHasMounted } from "@/hooks/useHasMounted";
 import { Button } from "@/lib/components/button";
 import {
 	DropdownMenu,
@@ -12,14 +12,10 @@ import {
 import { cn } from "@/lib/utils";
 
 export function ModeToggle({ className }: { className?: string }) {
-	const [mounted, setMounted] = useState(false);
-	const { theme, setTheme } = useTheme();
+	const hasMounted = useHasMounted();
+	const { setTheme } = useTheme();
 
-	useEffect(() => {
-		setMounted(true);
-	}, []);
-
-	if (!mounted) {
+	if (!hasMounted) {
 		return (
 			<Button variant="ghost" size="icon" className={cn("size-9", className)} />
 		);
