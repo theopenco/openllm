@@ -152,3 +152,19 @@ export const log = pgTable("log", {
 	canceled: boolean().default(false),
 	streamed: boolean().default(false),
 });
+
+export const passkey = pgTable("passkey", {
+	id: text().primaryKey().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
+	name: text(),
+	publicKey: text().notNull(),
+	userId: text()
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	credentialID: text().notNull(),
+	counter: integer().notNull(),
+	deviceType: text(),
+	backedUp: boolean(),
+	transports: text(),
+});

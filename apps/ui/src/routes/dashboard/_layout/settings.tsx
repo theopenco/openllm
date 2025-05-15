@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { addPasskey } from "@/components/passkeys/add-passkey";
+import { PasskeyList } from "@/components/passkeys/passkey-list";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -99,6 +101,21 @@ function RouteComponent() {
 							</CardContent>
 							<CardFooter>
 								<Button>Update Password</Button>
+							</CardFooter>
+						</Card>
+
+						<Card>
+							<CardHeader>
+								<CardTitle>Passkeys</CardTitle>
+								<CardDescription>
+									Manage your passkeys for passwordless login
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<PasskeyList />
+							</CardContent>
+							<CardFooter>
+								<Button onClick={() => addPasskey()}>Add Passkey</Button>
 							</CardFooter>
 						</Card>
 					</TabsContent>
