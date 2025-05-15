@@ -3,7 +3,13 @@
 	"pipeline": {
 		"build": {
 			"dependsOn": ["^build"],
-			"outputs": ["dist/**"]
+			"outputs": [
+				"dist/**",
+				".next/**",
+				".source/**",
+				".vercel/**",
+				".vinxi/**"
+			]
 		},
 		"dev": {
 			"cache": false
