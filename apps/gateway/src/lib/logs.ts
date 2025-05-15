@@ -9,7 +9,9 @@ export type LogInsertData = Omit<
 	"id" | "createdAt" | "updatedAt"
 >;
 
-export async function insertLog(logData: LogInsertData): Promise<any> {
+export type LogData = InferInsertModel<typeof log>;
+
+export async function insertLog(logData: LogInsertData): Promise<unknown> {
 	return db.insert(log).values({
 		createdAt: new Date(),
 		updatedAt: new Date(),
