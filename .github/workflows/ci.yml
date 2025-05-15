@@ -1,79 +1,20 @@
 name: ci
-
 on: push
-
 jobs:
   lint:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Collect versions
-        run: |
-          echo "nodejs_version=$(cat .tool-versions | grep 'nodejs' | cut -d ' ' -f 2)" >> "$GITHUB_ENV"
-          echo "pnpm_version=$(cat .tool-versions | grep 'pnpm' | cut -d ' ' -f 2)" >> "$GITHUB_ENV"
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.pnpm_version }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.nodejs_version }}
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      - name: Lint
-        run: pnpm lint
+    uses: ./.github/workflows/run.yml
+    secrets: inherit
+    with:
+      cmd: pnpm lint
 
   build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Collect versions
-        run: |
-          echo "nodejs_version=$(cat .tool-versions | grep 'nodejs' | cut -d ' ' -f 2)" >> "$GITHUB_ENV"
-          echo "pnpm_version=$(cat .tool-versions | grep 'pnpm' | cut -d ' ' -f 2)" >> "$GITHUB_ENV"
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.pnpm_version }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.nodejs_version }}
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      - name: Build
-        run: pnpm build
-      - name: Start
-        run: bash .github/start.sh
+    uses: ./.github/workflows/run.yml
+    secrets: inherit
+    with:
+      cmd: pnpm build && bash .github/start.sh
 
   test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Collect versions
-        run: |
-          echo "nodejs_version=$(cat .tool-versions | grep 'nodejs' | cut -d ' ' -f 2)" >> "$GITHUB_ENV"
-          echo "pnpm_version=$(cat .tool-versions | grep 'pnpm' | cut -d ' ' -f 2)" >> "$GITHUB_ENV"
-      - uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.pnpm_version }}
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.nodejs_version }}
-          cache: pnpm
-      - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
-      - name: Compose
-        run: |
-          docker compose up -d
-          sleep 5
-      - name: Migrations
-        run: pnpm push-test
-      - name: Test
-        run: pnpm test
+    uses: ./.github/workflows/run.yml
+    secrets: inherit
+    with:
+      cmd: pnpm run setup && pnpm test
