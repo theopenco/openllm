@@ -28,12 +28,6 @@ COPY . .
 # Build all apps
 RUN pnpm build
 
-# Create optimized production deployments for each app
-RUN pnpm --filter=api --prod deploy dist/api
-RUN pnpm --filter=gateway --prod deploy dist/gateway
-RUN pnpm --filter=ui --prod deploy dist/ui
-RUN pnpm --filter=docs --prod deploy dist/docs
-
 
 FROM base AS runtime
 COPY --from=builder /bin/pnpm /bin/pnpm
@@ -41,25 +35,41 @@ COPY --from=builder /bin/pnpm /bin/pnpm
 # Production images for each app
 FROM runtime AS api
 WORKDIR /app
-COPY --from=builder /app/dist/api ./
+COPY --from=builder /app/apps/api ./apps/api
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+RUN pnpm --filter=api --prod deploy dist/api
+WORKDIR /app/dist/api
 EXPOSE 3002
 CMD ["pnpm", "start"]
 
 FROM runtime AS gateway
 WORKDIR /app
-COPY --from=builder /app/dist/gateway ./
+COPY --from=builder /app/apps/gateway ./apps/gateway
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+RUN pnpm --filter=gateway --prod deploy dist/gateway
+WORKDIR /app/dist/gateway
 EXPOSE 4001
 CMD ["pnpm", "start"]
 
 FROM runtime AS ui
 WORKDIR /app
-COPY --from=builder /app/dist/ui ./
+COPY --from=builder /app/apps/ui ./apps/ui
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+RUN pnpm --filter=ui --prod deploy dist/ui
+WORKDIR /app/dist/ui
 EXPOSE 4002
 CMD ["pnpm", "start"]
 
 FROM runtime AS docs
 WORKDIR /app
-COPY --from=builder /app/dist/docs ./
+COPY --from=builder /app/apps/docs ./apps/docs
+COPY --from=builder /app/packages ./packages
+COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+RUN pnpm --filter=docs --prod deploy dist/docs
+WORKDIR /app/dist/docs
 EXPOSE 3005
 CMD ["pnpm", "start"]
 
