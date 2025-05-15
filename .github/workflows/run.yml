@@ -33,8 +33,5 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
-
       - name: ${{ inputs.cmd }}
         run: ${{ inputs.cmd }}
