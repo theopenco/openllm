@@ -40,8 +40,8 @@ trap cleanup EXIT
 # Function to check if a port is in use
 is_port_in_use() {
   local port=$1
-  if command -v lsof &> /dev/null; then
-    lsof -i:$port &> /dev/null
+  if command -v curl &> /dev/null; then
+    curl -s --fail http://localhost:$port &> /dev/null
     return $?
   elif command -v nc &> /dev/null; then
     nc -z localhost $port &> /dev/null
