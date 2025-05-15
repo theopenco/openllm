@@ -18,6 +18,7 @@
 	],
 	"scripts": {
 		"build": "tsc && tsup",
+		"generate": "pnpm drizzle-kit generate --config drizzle.config.ts",
 		"push": "pnpm drizzle-kit push --force --config drizzle.config.ts",
 		"reset": "tsx reset.ts",
 		"seed": "tsx seed.ts"
