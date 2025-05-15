@@ -3,6 +3,9 @@
 	"version": "1.0.0",
 	"private": true,
 	"type": "module",
+	"files": [
+		"dist/"
+	],
 	"scripts": {
 		"build": "tsc && tsup",
 		"dev": "nodemon -e ts,json --exec 'tsx src/serve.ts'",

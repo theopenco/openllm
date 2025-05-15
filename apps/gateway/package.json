@@ -3,6 +3,10 @@
 	"version": "1.0.0",
 	"private": true,
 	"type": "module",
+	"files": [
+		"dist/",
+		"openapi.json"
+	],
 	"scripts": {
 		"build": "tsc && tsup && pnpm generate:openapi",
 		"dev": "nodemon -e ts,json --exec 'tsx src/serve.ts'",
