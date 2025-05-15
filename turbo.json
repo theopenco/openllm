@@ -13,6 +13,9 @@
 				"openapi.json"
 			]
 		},
+		"generate": {
+			"dependsOn": ["^generate"]
+		},
 		"dev": {
 			"cache": false
 		},
