@@ -8,14 +8,14 @@ RUN npm install -g pnpm@10.8.0
 WORKDIR /app
 
 # Copy package files and install dependencies
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-COPY apps/api/package.json ./apps/api/
-COPY apps/gateway/package.json ./apps/gateway/
-COPY apps/ui/package.json ./apps/ui/
-COPY apps/docs/package.json ./apps/docs/
-COPY packages/auth/package.json ./packages/auth/
-COPY packages/db/package.json ./packages/db/
-COPY packages/models/package.json ./packages/models/
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./ \
+     apps/api/package.json apps/api/ \
+     apps/gateway/package.json apps/gateway/ \
+     apps/ui/package.json apps/ui/ \
+     apps/docs/package.json apps/docs/ \
+     packages/auth/package.json packages/auth/ \
+     packages/db/package.json packages/db/ \
+     packages/models/package.json packages/models/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
