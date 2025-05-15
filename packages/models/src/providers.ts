@@ -58,3 +58,5 @@ export const providers = [
 		cancellation: false,
 	},
 ] as const satisfies ProviderDefinition[];
+
+export type ProviderId = (typeof providers)[number]["id"];
