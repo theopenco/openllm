@@ -57,7 +57,7 @@ is_port_in_use() {
 wait_for_port() {
   local port=$1
   local app=$2
-  local timeout=30
+  local timeout=60
   local count=0
 
   echo -e "${YELLOW}Waiting for $app to start on port $port...${NC}"
