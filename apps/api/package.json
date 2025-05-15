@@ -4,10 +4,12 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "tsc",
-		"dev": "nodemon -e ts,json --exec 'tsx src/serve.ts'"
+		"build": "tsc && tsup",
+		"dev": "nodemon -e ts,json --exec 'tsx src/serve.ts'",
+		"start": "node dist/serve.js"
 	},
 	"dependencies": {
+		"@hono/node-server": "^1.14.1",
 		"@hono/swagger-ui": "^0.5.1",
 		"@hono/zod-openapi": "^0.19.6",
 		"@hono/zod-validator": "^0.4.3",
@@ -21,7 +23,6 @@
 		"zod-openapi": "^4.2.4"
 	},
 	"devDependencies": {
-		"@hono/node-server": "^1.14.1",
 		"@types/node": "^22.15.17",
 		"nodemon": "^3.1.10",
 		"tsx": "^4.19.3",
