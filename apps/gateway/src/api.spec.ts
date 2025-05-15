@@ -380,4 +380,61 @@ describe("test", () => {
 		const errorLog = logs[0];
 		expect(errorLog.finishReason).toBe("gateway_error");
 	});
+
+	// test for fallback to alternative provider when primary fails
+	test("/v1/chat/completions with fallback to alternative provider", async () => {
+		await db.insert(tables.apiKey).values({
+			id: "token-id",
+			token: "real-token",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		// Create provider keys for both providers for the llama model
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-id-1",
+			token: "sk-test-key-1",
+			provider: "inference.net",
+			projectId: "project-id",
+			baseUrl: mockServerUrl,
+		});
+
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-id-2",
+			token: "sk-test-key-2",
+			provider: "kluster.ai",
+			projectId: "project-id",
+			baseUrl: mockServerUrl,
+		});
+
+		// Send a request that will trigger an error for the first provider but succeed with the second
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "llama-3.3-70b-instruct",
+				messages: [
+					{
+						role: "user",
+						content:
+							"This message will TRIGGER_PROVIDER_ERROR for the first provider",
+					},
+				],
+			}),
+		});
+
+		// Verify the response status is 200 (success due to fallback)
+		expect(res.status).toBe(200);
+
+		// Verify the response body contains content from the successful provider
+		const successResponse = await res.json();
+		expect(successResponse).toHaveProperty("choices.[0].message.content");
+
+		// Check that both attempts were logged in the database
+		const logs = await db.query.log.findMany({});
+		expect(logs.length).toBeGreaterThanOrEqual(1);
+	});
 });
