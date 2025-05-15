@@ -37,28 +37,27 @@ RUN pnpm --filter=docs --prod deploy dist/docs
 
 FROM base AS runtime
 COPY --from=builder /bin/pnpm /bin/pnpm
-COPY --from=builder /app /app
 
 # Production images for each app
-FROM base AS api
+FROM runtime AS api
 WORKDIR /app
 COPY --from=builder /app/dist/api ./
 EXPOSE 3002
 CMD ["pnpm", "start"]
 
-FROM base AS gateway
+FROM runtime AS gateway
 WORKDIR /app
 COPY --from=builder /app/dist/gateway ./
 EXPOSE 4001
 CMD ["pnpm", "start"]
 
-FROM base AS ui
+FROM runtime AS ui
 WORKDIR /app
 COPY --from=builder /app/dist/ui ./
 EXPOSE 4002
 CMD ["pnpm", "start"]
 
-FROM base AS docs
+FROM runtime AS docs
 WORKDIR /app
 COPY --from=builder /app/dist/docs ./
 EXPOSE 3005
