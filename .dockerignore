@@ -1,0 +1,17 @@
+.git
+**/node_modules
+**/dist
+**/.env
+**/*spec.yaml
+**/.turbo
+**/.pnpm-store
+**/.idea
+**/openapi.json
+**/.vinxi
+**/.next
+**/.vercel
+**/.output
+**/.source
+
+packages/**/*.js
+apps/**/*.js

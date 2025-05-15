@@ -13,7 +13,11 @@
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
+	"files": [
+		"dist/"
+	],
 	"scripts": {
+		"build": "tsc && tsup",
 		"push": "pnpm drizzle-kit push --force --config drizzle.config.ts",
 		"reset": "tsx reset.ts",
 		"seed": "tsx seed.ts"

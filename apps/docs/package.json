@@ -2,11 +2,14 @@
 	"name": "docs",
 	"version": "0.0.0",
 	"private": true,
+	"files": [
+		".next"
+	],
 	"scripts": {
 		"build": "next build",
 		"dev": "next dev --turbo --port 3005",
-		"postinstall": "fumadocs-mdx",
-		"start": "next start"
+		"postinstall": "fumadocs-mdx || true",
+		"start": "next start -H 0.0.0.0 -p 3005"
 	},
 	"dependencies": {
 		"fumadocs-core": "15.3.1",

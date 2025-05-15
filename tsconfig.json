@@ -20,7 +20,6 @@
 		"sourceMap": false,
 		"noFallthroughCasesInSwitch": true,
 		"forceConsistentCasingInFileNames": true,
-		"noImplicitReturns": true,
-		"noEmit": true
+		"noImplicitReturns": true
 	}
 }

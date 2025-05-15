@@ -12,7 +12,7 @@ export type LogInsertData = Omit<
 export type LogData = InferInsertModel<typeof log>;
 
 export async function insertLog(logData: LogInsertData): Promise<unknown> {
-	return db.insert(log).values({
+	return await db.insert(log).values({
 		createdAt: new Date(),
 		updatedAt: new Date(),
 		...logData,

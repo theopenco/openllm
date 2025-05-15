@@ -14,7 +14,7 @@ export default defineConfig({
 			routes: ["/"],
 			crawlLinks: true,
 		},
-		preset: "vercel",
+		preset: "node-server",
 	},
 	tsr: {
 		appDirectory: "./src",
