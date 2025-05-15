@@ -1,6 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-	BarChart3,
 	CreditCard,
 	Key,
 	LayoutDashboard,
@@ -75,11 +74,11 @@ export function DashboardSidebar() {
 									label: "Activity",
 									icon: Activity,
 								},
-								{
-									href: "/dashboard/usage",
-									label: "Usage & Metrics",
-									icon: BarChart3,
-								},
+								// {
+								// 	href: "/dashboard/usage",
+								// 	label: "Usage & Metrics",
+								// 	icon: BarChart3,
+								// },
 								{
 									href: "/dashboard/models",
 									label: "Models & Providers",
