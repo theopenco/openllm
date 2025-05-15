@@ -11,6 +11,8 @@ import type { ServerTypes } from "../vars";
 export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
+	operationId: "v1_chat_completions",
+	description: "Create a completion for the chat conversation",
 	method: "post",
 	path: "/completions",
 	request: {
@@ -18,11 +20,17 @@ const completions = createRoute({
 			content: {
 				"application/json": {
 					schema: z.object({
-						model: z.string(),
+						model: z.string().openapi({
+							example: "gpt-4o",
+						}),
 						messages: z.array(
 							z.object({
-								role: z.string(),
-								content: z.string(),
+								role: z.string().openapi({
+									example: "user",
+								}),
+								content: z.string().openapi({
+									example: "Hello!",
+								}),
 							}),
 						),
 						temperature: z.number().optional(),
@@ -500,6 +508,7 @@ chat.openapi(completions, async (c) => {
 										completionTokens = data.usage.completion_tokens;
 										totalTokens = data.usage.total_tokens;
 									}
+									// eslint-disable-next-line unused-imports/no-unused-vars
 								} catch (e) {
 									// Ignore parsing errors for incomplete JSON
 								}
