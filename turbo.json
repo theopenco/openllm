@@ -9,7 +9,8 @@
 				".source/**",
 				".vercel/**",
 				".output/**",
-				".vinxi/**"
+				".vinxi/**",
+				"openapi.json"
 			]
 		},
 		"dev": {
