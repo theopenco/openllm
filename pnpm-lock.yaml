@@ -121,6 +121,9 @@ importers:
       fumadocs-ui:
         specifier: 15.3.1
         version: 15.3.1(@types/react-dom@19.1.4(@types/react@19.1.4))(@types/react@19.1.4)(next@15.3.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)(tailwindcss@4.1.6)
+      gateway:
+        specifier: workspace:*
+        version: link:../gateway
       next:
         specifier: 15.3.1
         version: 15.3.1(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
