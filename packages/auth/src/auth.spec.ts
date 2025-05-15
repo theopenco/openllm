@@ -65,13 +65,13 @@ describe("auth hooks", () => {
 		});
 
 		expect(userOrganization).not.toBeNull();
-		expect(userOrganization?.organization.name).toBe("Default Organization");
+		expect(userOrganization?.organization?.name).toBe("Default Organization");
 
 		// Check if a project was created for the organization
 		const project = await db.query.project.findFirst({
 			where: {
 				organizationId: {
-					eq: userOrganization!.organization.id,
+					eq: userOrganization!.organization?.id,
 				},
 			},
 		});
