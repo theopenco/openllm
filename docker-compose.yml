@@ -14,3 +14,10 @@ services:
       POSTGRES_DB: db
     volumes:
       - ./packages/db/init:/docker-entrypoint-initdb.d
+
+  valkey:
+    container_name: valkey
+    image: valkey/valkey:latest
+    restart: always
+    ports:
+      - "6379:6379"

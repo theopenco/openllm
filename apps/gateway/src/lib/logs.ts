@@ -1,4 +1,7 @@
-import { db, log, type InferInsertModel } from "@openllm/db";
+import { publishToQueue, LOG_QUEUE } from "./redis";
+
+import type { InferInsertModel } from "@openllm/db";
+import type { log } from "@openllm/db";
 
 /**
  * Insert a log entry into the database.
@@ -12,9 +15,5 @@ export type LogInsertData = Omit<
 export type LogData = InferInsertModel<typeof log>;
 
 export async function insertLog(logData: LogInsertData): Promise<unknown> {
-	return await db.insert(log).values({
-		createdAt: new Date(),
-		updatedAt: new Date(),
-		...logData,
-	});
+	return await publishToQueue(LOG_QUEUE, logData);
 }

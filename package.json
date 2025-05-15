@@ -27,7 +27,8 @@
 	},
 	"prettier": "@steebchen/prettier-config",
 	"dependencies": {
-		"gpt-tokenizer": "2.9.0"
+		"gpt-tokenizer": "2.9.0",
+		"ioredis": "5.6.1"
 	},
 	"devDependencies": {
 		"@steebchen/commitlint-config": "^1.5.2",
