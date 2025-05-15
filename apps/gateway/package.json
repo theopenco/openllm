@@ -23,10 +23,6 @@
 	},
 	"devDependencies": {
 		"@types/node": "^22.15.17",
-		"esbuild-fix-imports-plugin": "1.0.20",
-		"nodemon": "^3.1.10",
-		"tsup": "8.4.0",
-		"tsx": "^4.19.3",
-		"typescript": "^5.0.0"
+		"tsx": "^4.19.3"
 	}
 }

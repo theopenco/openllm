@@ -23,9 +23,6 @@
 		"zod-openapi": "^4.2.4"
 	},
 	"devDependencies": {
-		"@types/node": "^22.15.17",
-		"nodemon": "^3.1.10",
-		"tsx": "^4.19.3",
-		"typescript": "^5.0.0"
+		"@types/node": "^22.15.17"
 	}
 }
