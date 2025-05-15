@@ -1,4 +1,5 @@
 {
+	"extends": "../../tsconfig.json",
 	"compilerOptions": {
 		"baseUrl": ".",
 		"target": "ESNext",
@@ -16,8 +17,8 @@
 		"jsx": "preserve",
 		"incremental": true,
 		"paths": {
-			"@/.source": ["./.source/index.ts"],
-			"@/*": ["./*"]
+			"@/*": ["./*"],
+			"@openllm/*": ["../../packages/*/src"]
 		},
 		"plugins": [
 			{

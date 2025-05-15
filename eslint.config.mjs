@@ -12,4 +12,7 @@ export default [
 			"max-params": "off",
 		},
 	},
+	{
+		ignores: ["**/.source/"],
+	},
 ];
