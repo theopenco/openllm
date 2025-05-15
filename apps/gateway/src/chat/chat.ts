@@ -9,6 +9,28 @@ import { insertLog } from "../lib/logs";
 
 import type { ServerTypes } from "../vars";
 
+function getProviderHeaders(
+	provider: Provider,
+	providerKey: any,
+): Record<string, string> {
+	switch (provider) {
+		case "anthropic":
+			return {
+				"X-API-Key": providerKey.token,
+				"anthropic-version": "2023-06-01", // Use an appropriate version
+			};
+		case "google-vertex":
+			return {
+				Authorization: `Bearer ${providerKey.token}`,
+			};
+		case "openai":
+		default:
+			return {
+				Authorization: `Bearer ${providerKey.token}`,
+			};
+	}
+}
+
 export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
@@ -209,6 +231,14 @@ chat.openapi(completions, async (c) => {
 			case "openai":
 				url = process.env.OPENAI_BASE_URL || "https://api.openai.com";
 				break;
+			case "anthropic":
+				url = process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com";
+				break;
+			case "google-vertex":
+				url =
+					process.env.VERTEX_BASE_URL ||
+					"https://generativelanguage.googleapis.com";
+				break;
 			default:
 				throw new HTTPException(500, {
 					message: `could not use provider: ${usedProvider}`,
@@ -222,7 +252,16 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	url += "/v1/chat/completions";
+	switch (usedProvider) {
+		case "anthropic":
+			url += "/v1/messages";
+			break;
+		case "google-vertex":
+			url += "/v1beta/models/" + usedModel + ":generateContent";
+			break;
+		default:
+			url += "/v1/chat/completions";
+	}
 
 	// Get the project associated with this API key
 	const project = await db.query.project.findFirst({
@@ -268,6 +307,43 @@ chat.openapi(completions, async (c) => {
 			}
 			break;
 		}
+		case "anthropic": {
+			delete requestBody.model; // Not needed in request body
+			requestBody.max_tokens = max_tokens || 1024; // Set a default if not provided
+			requestBody.system =
+				messages.find((m) => m.role === "system")?.content || "";
+			requestBody.messages = messages
+				.filter((m) => m.role !== "system")
+				.map((m) => ({
+					role: m.role === "assistant" ? "assistant" : "user",
+					content: m.content,
+				}));
+			break;
+		}
+		case "google-vertex": {
+			delete requestBody.model; // Not used in body
+			delete requestBody.stream; // Handled differently
+
+			const vertexMessages = messages.map((m) => ({
+				role: m.role,
+				parts: [{ text: m.content }],
+			}));
+
+			requestBody.contents = vertexMessages;
+			requestBody.generationConfig = {};
+
+			// Add optional parameters if they are provided
+			if (temperature !== undefined) {
+				requestBody.generationConfig.temperature = temperature;
+			}
+			if (max_tokens !== undefined) {
+				requestBody.generationConfig.maxOutputTokens = max_tokens;
+			}
+			if (top_p !== undefined) {
+				requestBody.generationConfig.topP = top_p;
+			}
+			break;
+		}
 	}
 
 	// Add optional parameters if they are provided
@@ -310,12 +386,12 @@ chat.openapi(completions, async (c) => {
 
 			let res;
 			try {
+				const headers = getProviderHeaders(usedProvider, providerKey);
+				headers["Content-Type"] = "application/json";
+
 				res = await fetch(url, {
 					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer ${providerKey.token}`,
-					},
+					headers,
 					body: JSON.stringify(requestBody),
 					signal: requestCanBeCanceled ? controller.signal : undefined,
 				});
@@ -491,15 +567,38 @@ chat.openapi(completions, async (c) => {
 										id: String(eventId++),
 									});
 
-									// Extract content for logging
-									if (data.choices && data.choices[0]) {
-										if (data.choices[0].delta?.content) {
-											fullContent += data.choices[0].delta.content;
-										}
-										if (data.choices[0].finish_reason) {
-											finishReason = data.choices[0].finish_reason;
-										}
+									// Extract content for logging based on provider
+									switch (usedProvider) {
+										case "anthropic":
+											if (data.delta?.text) {
+												fullContent += data.delta.text;
+											}
+											if (data.stop_reason) {
+												finishReason = data.stop_reason;
+											}
+											break;
+										case "google-vertex":
+											if (
+												data.candidates &&
+												data.candidates[0]?.content?.parts[0]?.text
+											) {
+												fullContent += data.candidates[0].content.parts[0].text;
+											}
+											if (data.candidates && data.candidates[0]?.finishReason) {
+												finishReason = data.candidates[0].finishReason;
+											}
+											break;
+										default: // OpenAI format
+											if (data.choices && data.choices[0]) {
+												if (data.choices[0].delta?.content) {
+													fullContent += data.choices[0].delta.content;
+												}
+												if (data.choices[0].finish_reason) {
+													finishReason = data.choices[0].finish_reason;
+												}
+											}
 									}
+
 									if (data.usage) {
 										promptTokens = data.usage.prompt_tokens;
 										completionTokens = data.usage.completion_tokens;
@@ -572,12 +671,12 @@ chat.openapi(completions, async (c) => {
 	let canceled = false;
 	let res;
 	try {
+		const headers = getProviderHeaders(usedProvider, providerKey);
+		headers["Content-Type"] = "application/json";
+
 		res = await fetch(url, {
 			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer ${providerKey.token}`,
-			},
+			headers,
 			body: JSON.stringify(requestBody),
 			signal: requestCanBeCanceled ? controller.signal : undefined,
 		});
@@ -701,16 +800,35 @@ chat.openapi(completions, async (c) => {
 	const json = await res.json();
 	const responseText = JSON.stringify(json);
 
+	// Extract content and token usage based on provider
+	let content = null;
+	let finishReason = null;
+	let promptTokens = null;
+	let completionTokens = null;
+	let totalTokens = null;
+
+	switch (usedProvider) {
+		case "anthropic":
+			content = json.content?.[0]?.text || null;
+			finishReason = json.stop_reason || null;
+			break;
+		case "google-vertex":
+			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
+			finishReason = json.candidates?.[0]?.finishReason || null;
+			break;
+		default: // OpenAI format
+			content = json.choices?.[0]?.message?.content || null;
+			finishReason = json.choices?.[0]?.finish_reason || null;
+			promptTokens = json.usage?.prompt_tokens || null;
+			completionTokens = json.usage?.completion_tokens || null;
+			totalTokens = json.usage?.total_tokens || null;
+	}
+
 	// Log the successful request and response
-	const costs = calculateCosts(
-		usedModel,
-		json.usage?.prompt_tokens || null,
-		json.usage?.completion_tokens || null,
-		{
-			prompt: messages.map((m) => m.content).join("\n"),
-			completion: json.choices?.[0]?.message?.content || null,
-		},
-	);
+	const costs = calculateCosts(usedModel, promptTokens, completionTokens, {
+		prompt: messages.map((m) => m.content).join("\n"),
+		completion: content,
+	});
 	await insertLog({
 		organizationId: project.organizationId,
 		projectId: apiKey.projectId,
@@ -723,11 +841,11 @@ chat.openapi(completions, async (c) => {
 		requestedProvider: requestedProvider,
 		messages: messages,
 		responseSize: responseText.length,
-		content: json.choices?.[0]?.message?.content || null,
-		finishReason: json.choices?.[0]?.finish_reason || null,
-		promptTokens: json.usage?.prompt_tokens || null,
-		completionTokens: json.usage?.completion_tokens || null,
-		totalTokens: json.usage?.total_tokens || null,
+		content: content,
+		finishReason: finishReason,
+		promptTokens: promptTokens,
+		completionTokens: completionTokens,
+		totalTokens: totalTokens,
 		temperature: temperature || null,
 		maxTokens: max_tokens || null,
 		topP: top_p || null,
