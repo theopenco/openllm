@@ -8,3 +8,4 @@ apps/**/*.js
 .pnpm-store
 .idea/
 openapi.json
+!.turbo/config.json
