@@ -4,25 +4,28 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "tsc && pnpm generate:openapi",
+		"build": "tsc && tsup && pnpm generate:openapi",
 		"dev": "nodemon -e ts,json --exec 'tsx src/serve.ts'",
 		"generate:openapi": "tsx ./src/scripts/generate-openapi.ts",
 		"start": "node dist/serve.js"
 	},
 	"dependencies": {
+		"@hono/node-server": "^1.14.1",
 		"@hono/swagger-ui": "^0.5.1",
 		"@hono/zod-openapi": "^0.19.6",
 		"@hono/zod-validator": "^0.4.3",
 		"@openllm/db": "workspace:*",
+		"@openllm/models": "workspace:*",
 		"hono": "^4.7.6",
 		"hono-openapi": "^0.4.6",
 		"zod": "3.24.3",
 		"zod-openapi": "^4.2.4"
 	},
 	"devDependencies": {
-		"@hono/node-server": "^1.14.1",
 		"@types/node": "^22.15.17",
+		"esbuild-fix-imports-plugin": "1.0.20",
 		"nodemon": "^3.1.10",
+		"tsup": "8.4.0",
 		"tsx": "^4.19.3",
 		"typescript": "^5.0.0"
 	}
