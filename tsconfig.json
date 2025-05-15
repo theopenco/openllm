@@ -21,6 +21,7 @@
 		"noFallthroughCasesInSwitch": true,
 		"forceConsistentCasingInFileNames": true,
 		"noImplicitReturns": true,
-		"noEmit": true
+		"noEmit": true,
+		"preserveSymlinks": true
 	}
 }
