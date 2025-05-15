@@ -11,7 +11,7 @@ COPY .tool-versions ./
 RUN curl -fsSL "https://github.com/pnpm/pnpm/releases/download/v$(cat .tool-versions | grep 'pnpm' | cut -d ' ' -f 2)/pnpm-linuxstatic-x64" -o /bin/pnpm; chmod +x /bin/pnpm;
 
 # Copy package files and install dependencies
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY .npmrc package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/api/package.json ./apps/api/
 COPY apps/gateway/package.json ./apps/gateway/
 COPY apps/ui/package.json ./apps/ui/
