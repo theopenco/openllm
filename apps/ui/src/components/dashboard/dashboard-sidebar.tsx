@@ -10,6 +10,7 @@ import {
 	KeyRound,
 } from "lucide-react";
 
+import { ModeToggle } from "@/components/mode-toggle";
 import { signOut, useSession } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/lib/components/avatar";
 import {
@@ -132,7 +133,7 @@ export function DashboardSidebar() {
 							<div className="text-muted-foreground text-xs">{user?.email}</div>
 						</div>
 					</div>
-					{/* <ModeToggle /> */}
+					<ModeToggle />
 				</div>
 			</SidebarFooter>
 
