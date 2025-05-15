@@ -3,13 +3,16 @@ import { toast } from "@/lib/components/use-toast";
 
 export async function addPasskey() {
 	try {
-		const result = await authClient.passkey.addPasskey();
+		const result = await authClient.passkey.addPasskey({
+			authenticatorAttachment: "cross-platform",
+		});
 
 		if (result?.error) {
 			toast({
 				title: "Error adding passkey",
 				description: result.error.message || "Please try again",
 				variant: "destructive",
+				className: "text-white",
 			});
 			return;
 		}
@@ -25,6 +28,7 @@ export async function addPasskey() {
 			title: "Error adding passkey",
 			description: "An unexpected error occurred",
 			variant: "destructive",
+			className: "text-white",
 		});
 	}
 }
