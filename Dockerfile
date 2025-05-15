@@ -34,41 +34,45 @@ COPY --from=builder /bin/pnpm /bin/pnpm
 
 # Production images for each app
 FROM runtime AS api
-WORKDIR /app
-COPY --from=builder /app/apps/api ./apps/api
+WORKDIR /app/temp
+COPY --from=builder /app/apps ./apps
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-RUN pnpm --filter=api --prod deploy dist/api
+RUN pnpm --filter=api --prod deploy ../dist/api
+RUN rm -rf /app/temp
 WORKDIR /app/dist/api
 EXPOSE 3002
 CMD ["pnpm", "start"]
 
 FROM runtime AS gateway
-WORKDIR /app
-COPY --from=builder /app/apps/gateway ./apps/gateway
+WORKDIR /app/temp
+COPY --from=builder /app/apps ./apps
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-RUN pnpm --filter=gateway --prod deploy dist/gateway
+RUN pnpm --filter=gateway --prod deploy ../dist/gateway
+RUN rm -rf /app/temp
 WORKDIR /app/dist/gateway
 EXPOSE 4001
 CMD ["pnpm", "start"]
 
 FROM runtime AS ui
-WORKDIR /app
-COPY --from=builder /app/apps/ui ./apps/ui
+WORKDIR /app/temp
+COPY --from=builder /app/apps ./apps
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-RUN pnpm --filter=ui --prod deploy dist/ui
+RUN pnpm --filter=ui --prod deploy ../dist/ui
+RUN rm -rf /app/temp
 WORKDIR /app/dist/ui
 EXPOSE 4002
 CMD ["pnpm", "start"]
 
 FROM runtime AS docs
-WORKDIR /app
-COPY --from=builder /app/apps/docs ./apps/docs
+WORKDIR /app/temp
+COPY --from=builder /app/apps ./apps
 COPY --from=builder /app/packages ./packages
 COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-RUN pnpm --filter=docs --prod deploy dist/docs
+RUN pnpm --filter=docs --prod deploy ../dist/docs
+RUN rm -rf /app/temp
 WORKDIR /app/dist/docs
 EXPOSE 3005
 CMD ["pnpm", "start"]
