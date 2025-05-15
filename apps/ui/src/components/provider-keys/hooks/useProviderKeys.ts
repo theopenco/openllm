@@ -1,4 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+	useMutation,
+	useQueryClient,
+	useSuspenseQuery,
+} from "@tanstack/react-query";
 
 const API_BASE = "/api/content/keys/provider";
 
@@ -14,12 +18,13 @@ export interface ProviderKey {
 }
 
 export function useProviderKeys() {
-	return useQuery({
+	return useSuspenseQuery({
 		queryKey: ["providerKeys"],
 		queryFn: async () => {
 			const res = await fetch(API_BASE, {
 				credentials: "include",
 			});
+
 			if (!res.ok) {
 				throw new Error("Failed to fetch provider keys");
 			}

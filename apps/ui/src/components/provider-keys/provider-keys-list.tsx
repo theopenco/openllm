@@ -1,4 +1,4 @@
-import { providers } from "@openllm/models";
+import { providers, type ProviderId } from "@openllm/models";
 import { KeyIcon, MoreHorizontal, PlusIcon } from "lucide-react";
 
 import { CreateProviderKeyDialog } from "./create-provider-key-dialog";
@@ -7,6 +7,11 @@ import {
 	useDeleteProviderKey,
 	useToggleProviderKeyStatus,
 } from "./hooks/useProviderKeys";
+import AnthropicLogo from "@/assets/models/anthropic.svg?react";
+import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
+import InferenceLogo from "@/assets/models/inference-net.svg?react";
+import OpenAILogo from "@/assets/models/openai.svg?react";
+import OpenLLMLogo from "@/assets/models/openllm.svg?react";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -38,14 +43,21 @@ import {
 } from "@/lib/components/table";
 import { toast } from "@/lib/components/use-toast";
 
+export const providerLogoComponents: Partial<
+	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>>>
+> = {
+	openllm: OpenLLMLogo,
+	openai: OpenAILogo,
+	anthropic: AnthropicLogo,
+	"google-vertex": GoogleVertexLogo,
+	"inference.net": InferenceLogo,
+	"kluster.ai": undefined,
+};
+
 export function ProviderKeysList() {
-	const { data, isLoading } = useProviderKeys();
+	const { data } = useProviderKeys();
 	const deleteMutation = useDeleteProviderKey();
 	const toggleMutation = useToggleProviderKeyStatus();
-
-	if (isLoading) {
-		return <div>Loading...</div>;
-	}
 
 	const keys = data?.providerKeys;
 
@@ -68,7 +80,7 @@ export function ProviderKeysList() {
 		return provider ? provider.name : providerId;
 	};
 
-	if (!keys || keys.length === 0) {
+	if (keys && keys.length === 0) {
 		return (
 			<div className="flex flex-col items-center justify-center py-16 text-muted-foreground text-center">
 				<div className="mb-4">
@@ -104,77 +116,89 @@ export function ProviderKeysList() {
 				</TableRow>
 			</TableHeader>
 			<TableBody>
-				{keys.map((key) => (
-					<TableRow key={key.id}>
-						<TableCell className="font-medium">
-							{getProviderName(key.provider)}
-						</TableCell>
-						<TableCell>
-							<div className="flex items-center space-x-2">
-								<span className="font-mono text-xs">{key.maskedToken}</span>
-							</div>
-						</TableCell>
-						<TableCell>{key.baseUrl || "-"}</TableCell>
-						<TableCell>{new Date(key.createdAt).toLocaleString()}</TableCell>
-						<TableCell>{new Date(key.updatedAt).toLocaleString()}</TableCell>
-						<TableCell>
-							<Badge
-								variant={key.status === "active" ? "default" : "secondary"}
-							>
-								{key.status}
-							</Badge>
-						</TableCell>
-						<TableCell className="text-right">
-							<DropdownMenu>
-								<DropdownMenuTrigger asChild>
-									<Button variant="ghost" size="icon" className="h-8 w-8">
-										<MoreHorizontal className="h-4 w-4" />
-										<span className="sr-only">Open menu</span>
-									</Button>
-								</DropdownMenuTrigger>
-								<DropdownMenuContent align="end">
-									<DropdownMenuLabel>Actions</DropdownMenuLabel>
-									<DropdownMenuItem
-										onClick={() => toggleStatus(key.id, key.status)}
+				{keys &&
+					keys.map((key) => {
+						const Logo = providerLogoComponents[key.provider as ProviderId];
+
+						return (
+							<TableRow key={key.id}>
+								<TableCell className="font-medium">
+									<div className="flex items-center gap-2">
+										{Logo && <Logo className="h-4 w-4 text-white" />}
+										{getProviderName(key.provider)}
+									</div>
+								</TableCell>
+								<TableCell>
+									<div className="flex items-center space-x-2">
+										<span className="font-mono text-xs">{key.maskedToken}</span>
+									</div>
+								</TableCell>
+								<TableCell>{key.baseUrl || "-"}</TableCell>
+								<TableCell>
+									{new Date(key.createdAt).toLocaleString()}
+								</TableCell>
+								<TableCell>
+									{new Date(key.updatedAt).toLocaleString()}
+								</TableCell>
+								<TableCell>
+									<Badge
+										variant={key.status === "active" ? "default" : "secondary"}
 									>
-										{key.status === "active" ? "Deactivate" : "Activate"}
-									</DropdownMenuItem>
-									<DropdownMenuSeparator />
-									<AlertDialog>
-										<AlertDialogTrigger asChild>
+										{key.status}
+									</Badge>
+								</TableCell>
+								<TableCell className="text-right">
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<Button variant="ghost" size="icon" className="h-8 w-8">
+												<MoreHorizontal className="h-4 w-4" />
+												<span className="sr-only">Open menu</span>
+											</Button>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align="end">
+											<DropdownMenuLabel>Actions</DropdownMenuLabel>
 											<DropdownMenuItem
-												onSelect={(e) => e.preventDefault()}
-												className="text-destructive focus:text-destructive"
+												onClick={() => toggleStatus(key.id, key.status)}
 											>
-												Delete
+												{key.status === "active" ? "Deactivate" : "Activate"}
 											</DropdownMenuItem>
-										</AlertDialogTrigger>
-										<AlertDialogContent>
-											<AlertDialogHeader>
-												<AlertDialogTitle>
-													Are you absolutely sure?
-												</AlertDialogTitle>
-												<AlertDialogDescription>
-													This action cannot be undone. This will permanently
-													delete your provider key.
-												</AlertDialogDescription>
-											</AlertDialogHeader>
-											<AlertDialogFooter>
-												<AlertDialogCancel>Cancel</AlertDialogCancel>
-												<AlertDialogAction
-													onClick={() => deleteKey(key.id)}
-													className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-												>
-													Delete
-												</AlertDialogAction>
-											</AlertDialogFooter>
-										</AlertDialogContent>
-									</AlertDialog>
-								</DropdownMenuContent>
-							</DropdownMenu>
-						</TableCell>
-					</TableRow>
-				))}
+											<DropdownMenuSeparator />
+											<AlertDialog>
+												<AlertDialogTrigger asChild>
+													<DropdownMenuItem
+														onSelect={(e) => e.preventDefault()}
+														className="text-destructive focus:text-destructive"
+													>
+														Delete
+													</DropdownMenuItem>
+												</AlertDialogTrigger>
+												<AlertDialogContent>
+													<AlertDialogHeader>
+														<AlertDialogTitle>
+															Are you absolutely sure?
+														</AlertDialogTitle>
+														<AlertDialogDescription>
+															This action cannot be undone. This will
+															permanently delete your provider key.
+														</AlertDialogDescription>
+													</AlertDialogHeader>
+													<AlertDialogFooter>
+														<AlertDialogCancel>Cancel</AlertDialogCancel>
+														<AlertDialogAction
+															onClick={() => deleteKey(key.id)}
+															className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+														>
+															Delete
+														</AlertDialogAction>
+													</AlertDialogFooter>
+												</AlertDialogContent>
+											</AlertDialog>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								</TableCell>
+							</TableRow>
+						);
+					})}
 			</TableBody>
 		</Table>
 	);

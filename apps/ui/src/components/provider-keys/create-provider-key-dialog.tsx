@@ -1,7 +1,12 @@
-import { providers } from "@openllm/models";
+import { providers, type ProviderId } from "@openllm/models";
 import { useState } from "react";
 
 import { useCreateProviderKey, useProviderKeys } from "./hooks/useProviderKeys";
+import anthropicLogo from "@/assets/models/anthropic.svg?react";
+import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
+import InferenceLogo from "@/assets/models/inference-net.svg?react";
+import OpenAiLogo from "@/assets/models/openai.svg?react";
+import OpenLLMLogo from "@/assets/models/openllm.svg?react";
 import { Button } from "@/lib/components/button";
 import {
 	Dialog,
@@ -22,6 +27,17 @@ import {
 	SelectValue,
 } from "@/lib/components/select";
 import { toast } from "@/lib/components/use-toast";
+
+const providerLogoComponents: Partial<
+	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>> | null>
+> = {
+	openllm: OpenLLMLogo,
+	openai: OpenAiLogo,
+	anthropic: anthropicLogo,
+	"google-vertex": GoogleVertexLogo,
+	"inference.net": InferenceLogo,
+	"kluster.ai": null,
+};
 
 export function CreateProviderKeyDialog({
 	children,
@@ -143,11 +159,21 @@ export function CreateProviderKeyDialog({
 										Loading providers...
 									</SelectItem>
 								) : availableProviders.length > 0 ? (
-									availableProviders.map((provider) => (
-										<SelectItem key={provider.id} value={provider.id}>
-											{provider.name}
-										</SelectItem>
-									))
+									<>
+										{availableProviders.map((provider) => {
+											const Logo = providerLogoComponents[provider.id];
+											return (
+												<SelectItem key={provider.id} value={provider.id}>
+													<div className="flex items-center gap-2">
+														{typeof Logo === "function" && (
+															<Logo className="h-4 w-4 text-white" />
+														)}
+														<span>{provider.name}</span>
+													</div>
+												</SelectItem>
+											);
+										})}
+									</>
 								) : (
 									<SelectItem value="none" disabled>
 										All providers already have keys

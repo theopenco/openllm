@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
+import { Suspense } from "react";
 
 import { CreateProviderKeyDialog } from "@/components/provider-keys/create-provider-key-dialog";
+import LoadingProviderKeys from "@/components/provider-keys/loading-provider-keys";
 import { ProviderKeysList } from "@/components/provider-keys/provider-keys-list";
 import { Button } from "@/lib/components/button";
 import {
@@ -14,6 +16,8 @@ import {
 
 export const Route = createFileRoute("/dashboard/_layout/provider-keys")({
 	component: RouteComponent,
+	pendingComponent: () => <LoadingProviderKeys />,
+	errorComponent: ({ error }) => <div>{error.message}</div>,
 });
 
 function RouteComponent() {
@@ -38,7 +42,9 @@ function RouteComponent() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<ProviderKeysList />
+							<Suspense>
+								<ProviderKeysList />
+							</Suspense>
 						</CardContent>
 					</Card>
 				</div>
