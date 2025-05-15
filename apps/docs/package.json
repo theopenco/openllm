@@ -9,7 +9,7 @@
 		"build": "next build",
 		"dev": "next dev --turbo --port 3005",
 		"postinstall": "fumadocs-mdx || true",
-		"start": "next start"
+		"start": "PORT=3005 next start"
 	},
 	"dependencies": {
 		"fumadocs-core": "15.3.1",
