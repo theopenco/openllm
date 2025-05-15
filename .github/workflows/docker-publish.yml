@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - devin/1747328658-add-docker-publish-workflow # todo temp
 
 jobs:
   build-and-push:
