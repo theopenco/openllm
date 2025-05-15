@@ -3,18 +3,18 @@ import { toast } from "@/lib/components/use-toast";
 
 export async function addPasskey() {
 	try {
-		const { data, error } = await authClient.passkey.addPasskey();
+		const result = await authClient.passkey.addPasskey();
 
-		if (error) {
+		if (result?.error) {
 			toast({
 				title: "Error adding passkey",
-				description: error.message || "Please try again",
+				description: result.error.message || "Please try again",
 				variant: "destructive",
 			});
 			return;
 		}
 
-		if (data) {
+		if (result?.data) {
 			toast({
 				title: "Passkey added",
 				description: "You can now sign in using your passkey",
