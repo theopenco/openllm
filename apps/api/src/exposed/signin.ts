@@ -39,7 +39,7 @@ signin.openapi(register, async (c) => {
 	const { email, password } = await c.req.json();
 
 	// Use better-auth to register the user
-	const result = await auth.api.signInEmail({
+	await auth.api.signInEmail({
 		body: {
 			email,
 			password,
