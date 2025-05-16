@@ -1,47 +1,26 @@
 import { db, tables } from "@openllm/db";
 import "dotenv/config";
-import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	test,
-	beforeAll,
-	afterAll,
-	vi,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
-import { mockLogInsertion } from "./test-utils/mock-log-insertion";
-import { waitForLogs } from "./test-utils/test-helpers";
+import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
 
+console.log("process.env.NODE_ENV", process.env.NODE_ENV);
 describe("e2e tests with real provider keys", () => {
-	beforeAll(() => {
-		// Set a longer timeout for this hook
-		vi.setConfig({ hookTimeout: 30000 });
-
-		// Mock the log insertion to directly insert into the database
-		mockLogInsertion();
-		console.log("Log insertion mocked for e2e tests");
-	});
-
-	// Add an afterAll hook to restore the original function
-	afterAll(() => {
-		// Restore all mocks
-		vi.restoreAllMocks();
-		console.log("Mocks restored after e2e tests");
-	});
 	afterEach(async () => {
-		await db.delete(tables.user);
-		await db.delete(tables.account);
-		await db.delete(tables.session);
-		await db.delete(tables.verification);
-		await db.delete(tables.organization);
-		await db.delete(tables.userOrganization);
-		await db.delete(tables.project);
-		await db.delete(tables.apiKey);
-		await db.delete(tables.providerKey);
-		await db.delete(tables.log);
+		await Promise.all([
+			db.delete(tables.user),
+			db.delete(tables.account),
+			db.delete(tables.session),
+			db.delete(tables.verification),
+			db.delete(tables.organization),
+			db.delete(tables.userOrganization),
+			db.delete(tables.project),
+			db.delete(tables.apiKey),
+			db.delete(tables.providerKey),
+			db.delete(tables.log),
+		]);
+		await flushLogs();
 	});
 
 	beforeEach(async () => {
@@ -70,8 +49,6 @@ describe("e2e tests with real provider keys", () => {
 	});
 
 	test("/v1/chat/completions with OpenAI", async () => {
-		// Set a longer timeout for this test
-		vi.setConfig({ testTimeout: 30000 });
 		if (!process.env.OPENAI_API_KEY) {
 			console.log("Skipping OpenAI test - no API key provided");
 			return;
@@ -116,16 +93,13 @@ describe("e2e tests with real provider keys", () => {
 		expect(json).toHaveProperty("usage.total_tokens");
 
 		// Wait for the worker to process the log
-		await waitForLogs(1);
-		const logs = await db.query.log.findMany({});
+		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
 		expect(logs[0].finishReason).toBe("stop");
 		expect(logs[0].usedProvider).toBe("openai");
 	});
 
 	test("/v1/chat/completions with Anthropic", async () => {
-		// Set a longer timeout for this test
-		vi.setConfig({ testTimeout: 30000 });
 		if (!process.env.ANTHROPIC_API_KEY) {
 			console.log("Skipping Anthropic test - no API key provided");
 			return;
@@ -167,15 +141,12 @@ describe("e2e tests with real provider keys", () => {
 		expect(json).toHaveProperty("content");
 
 		// Wait for the worker to process the log
-		await waitForLogs(1);
-		const logs = await db.query.log.findMany({});
+		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
 		expect(logs[0].usedProvider).toBe("anthropic");
 	});
 
 	test("/v1/chat/completions with Google Vertex", async () => {
-		// Set a longer timeout for this test
-		vi.setConfig({ testTimeout: 30000 });
 		if (!process.env.VERTEX_API_KEY) {
 			console.log("Skipping Google Vertex test - no API key provided");
 			return;
@@ -217,8 +188,7 @@ describe("e2e tests with real provider keys", () => {
 		expect(json).toHaveProperty("choices.[0].message.content");
 
 		// Wait for the worker to process the log
-		await waitForLogs(1);
-		const logs = await db.query.log.findMany({});
+		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
 		expect(logs[0].usedProvider).toBe("google-vertex");
 	});

@@ -444,8 +444,6 @@ chat.openapi(completions, async (c) => {
 		requestBody.presence_penalty = presence_penalty;
 	}
 
-	console.log("requestBody", requestBody);
-
 	const startTime = Date.now();
 
 	// Handle streaming response if requested
