@@ -34,6 +34,9 @@ importers:
       cross-env-shell:
         specifier: 7.0.3
         version: 7.0.3
+      dotenv:
+        specifier: 16.5.0
+        version: 16.5.0
       esbuild-fix-imports-plugin:
         specifier: 1.0.20
         version: 1.0.20

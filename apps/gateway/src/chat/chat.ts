@@ -16,12 +16,8 @@ function getProviderHeaders(
 	switch (provider) {
 		case "anthropic":
 			return {
-				"X-API-Key": providerKey.token,
+				"x-api-key": providerKey.token,
 				"anthropic-version": "2023-06-01", // Use an appropriate version
-			};
-		case "google-vertex":
-			return {
-				Authorization: `Bearer ${providerKey.token}`,
 			};
 		case "openai":
 		default:
@@ -145,18 +141,6 @@ chat.openapi(completions, async (c) => {
 	let usedProvider = requestedProvider;
 	let usedModel = requestedModel;
 
-	if (usedProvider === "openllm" && usedModel === "auto") {
-		// TODO figure out algo
-		usedModel = "gpt-4o-mini";
-		usedProvider = "openai";
-	} else if (usedProvider === "openllm" && usedModel === "custom") {
-		usedProvider = "openllm";
-		usedModel = "custom";
-	} else if (!usedProvider) {
-		// TODO figure out algo
-		usedProvider = modelInfo.providers[0];
-	}
-
 	const auth = c.req.header("Authorization");
 	if (!auth) {
 		throw new HTTPException(401, {
@@ -191,6 +175,100 @@ chat.openapi(completions, async (c) => {
 		throw new HTTPException(401, {
 			message: "Unauthorized: Invalid token",
 		});
+	}
+
+	// Apply routing logic after apiKey is available
+	if (usedProvider === "openllm" && usedModel === "auto") {
+		const providerKeys = await db.query.providerKey.findMany({
+			where: {
+				projectId: {
+					eq: apiKey.projectId,
+				},
+			},
+		});
+
+		const availableProviders = providerKeys.map((key) => key.provider);
+
+		for (const modelDef of models) {
+			if (modelDef.model === "auto" || modelDef.model === "custom") {
+				continue;
+			}
+
+			// Check if any of the model's providers are available
+			const availableModelProviders = modelDef.providers.filter((provider) =>
+				availableProviders.includes(provider),
+			);
+
+			if (availableModelProviders.length > 0) {
+				usedModel = modelDef.model as Model;
+				usedProvider = availableModelProviders[0];
+				break;
+			}
+		}
+
+		if (usedProvider === "openllm") {
+			usedModel = "gpt-4o-mini";
+			usedProvider = "openai";
+		}
+	} else if (usedProvider === "openllm" && usedModel === "custom") {
+		usedProvider = "openllm";
+		usedModel = "custom";
+	} else if (!usedProvider) {
+		if (modelInfo.providers.length === 1) {
+			usedProvider = modelInfo.providers[0];
+		} else {
+			const providerKeys = await db.query.providerKey.findMany({
+				where: {
+					projectId: {
+						eq: apiKey.projectId,
+					},
+					provider: {
+						in: modelInfo.providers,
+					},
+				},
+			});
+
+			const availableProviders = providerKeys.map((key) => key.provider);
+
+			// Filter model providers to only those available
+			const availableModelProviders = modelInfo.providers.filter((provider) =>
+				availableProviders.includes(provider),
+			);
+
+			if (availableModelProviders.length === 0) {
+				throw new HTTPException(400, {
+					message: `No API key set for provider: ${modelInfo.providers[0]}. Please add a provider key in your settings.`,
+				});
+			}
+
+			const modelWithPricing = models.find(
+				(m) => m.model === usedModel && "inputPrice" in m && "outputPrice" in m,
+			);
+
+			if (
+				modelWithPricing &&
+				"inputPrice" in modelWithPricing &&
+				"outputPrice" in modelWithPricing
+			) {
+				let cheapestProvider = availableModelProviders[0];
+				let lowestPrice = Number.MAX_VALUE;
+
+				for (const provider of availableModelProviders) {
+					const totalPrice =
+						(modelWithPricing.inputPrice || 0) +
+						(modelWithPricing.outputPrice || 0);
+
+					if (totalPrice < lowestPrice) {
+						lowestPrice = totalPrice;
+						cheapestProvider = provider;
+					}
+				}
+
+				usedProvider = cheapestProvider;
+			} else {
+				usedProvider = availableModelProviders[0];
+			}
+		}
 	}
 
 	let url: string | undefined;
@@ -308,16 +386,11 @@ chat.openapi(completions, async (c) => {
 			break;
 		}
 		case "anthropic": {
-			delete requestBody.model; // Not needed in request body
 			requestBody.max_tokens = max_tokens || 1024; // Set a default if not provided
-			requestBody.system =
-				messages.find((m) => m.role === "system")?.content || "";
-			requestBody.messages = messages
-				.filter((m) => m.role !== "system")
-				.map((m) => ({
-					role: m.role === "assistant" ? "assistant" : "user",
-					content: m.content,
-				}));
+			requestBody.messages = messages.map((m) => ({
+				role: m.role === "assistant" ? "assistant" : "user",
+				content: m.content,
+			}));
 			break;
 		}
 		case "google-vertex": {
@@ -362,6 +435,8 @@ chat.openapi(completions, async (c) => {
 	if (presence_penalty !== undefined) {
 		requestBody.presence_penalty = presence_penalty;
 	}
+
+	console.log("requestBody", requestBody);
 
 	const startTime = Date.now();
 
@@ -787,6 +862,10 @@ chat.openapi(completions, async (c) => {
 					type: "gateway_error",
 					param: null,
 					code: "gateway_error",
+					requestedProvider,
+					usedProvider,
+					requestedModel,
+					usedModel,
 				},
 			},
 			500,
