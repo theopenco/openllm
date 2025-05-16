@@ -6,6 +6,7 @@ import keysApi from "./keys-api";
 import keysProvider from "./keys-provider";
 import { logs } from "./logs";
 import organization from "./organization";
+import projects from "./projects";
 import { user } from "./user";
 
 import type { ServerTypes } from "../vars";
@@ -34,5 +35,6 @@ content.route("/activity", activity);
 
 content.route("/keys", keysApi);
 content.route("/keys", keysProvider);
+content.route("/projects", projects);
 
 content.route("/orgs", organization);
