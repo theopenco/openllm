@@ -38,9 +38,9 @@ function RouteComponent() {
 				<Tabs defaultValue="requests" className="space-y-4">
 					<TabsList>
 						<TabsTrigger value="requests">Requests</TabsTrigger>
-						<TabsTrigger value="models">Models</TabsTrigger>
+						{/* <TabsTrigger value="models">Models</TabsTrigger> */}
 						<TabsTrigger value="errors">Errors</TabsTrigger>
-						<TabsTrigger value="costs">Costs</TabsTrigger>
+						{/* <TabsTrigger value="costs">Costs</TabsTrigger> */}
 					</TabsList>
 					<TabsContent value="requests" className="space-y-4">
 						<Card>

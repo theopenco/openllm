@@ -189,6 +189,9 @@ chat.openapi(completions, async (c) => {
 	if (usedProvider === "openllm" && usedModel === "auto") {
 		const providerKeys = await db.query.providerKey.findMany({
 			where: {
+				status: {
+					eq: "active",
+				},
 				projectId: {
 					eq: apiKey.projectId,
 				},
@@ -227,6 +230,9 @@ chat.openapi(completions, async (c) => {
 		} else {
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
+					status: {
+						eq: "active",
+					},
 					projectId: {
 						eq: apiKey.projectId,
 					},
@@ -284,6 +290,9 @@ chat.openapi(completions, async (c) => {
 	// Get the provider key for the selected provider
 	const providerKey = await db.query.providerKey.findFirst({
 		where: {
+			status: {
+				eq: "active",
+			},
 			projectId: {
 				eq: apiKey.projectId,
 			},
@@ -508,8 +517,6 @@ chat.openapi(completions, async (c) => {
 	if (presence_penalty !== undefined) {
 		requestBody.presence_penalty = presence_penalty;
 	}
-
-	console.log("requestBody", requestBody);
 
 	const startTime = Date.now();
 

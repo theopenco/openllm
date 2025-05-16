@@ -1,4 +1,6 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { RefreshCw } from "lucide-react";
 
 import { ActivityChart } from "@/components/dashboard/activity-chart";
 import { RecentLogs } from "@/components/dashboard/recent-logs";
@@ -7,7 +9,6 @@ import {
 	Card,
 	CardContent,
 	CardDescription,
-	CardFooter,
 	CardHeader,
 	CardTitle,
 } from "@/lib/components/card";
@@ -15,6 +16,21 @@ import {
 export const Route = createFileRoute("/dashboard/_layout/activity")({
 	component: ActivityPage,
 });
+
+function RefreshButton() {
+	const queryClient = useQueryClient();
+
+	return (
+		<Button
+			variant="ghost"
+			size="icon"
+			onClick={() => queryClient.invalidateQueries({ queryKey: ["logs"] })}
+			title="Refresh logs"
+		>
+			<RefreshCw className="h-4 w-4" />
+		</Button>
+	);
+}
 
 function ActivityPage() {
 	return (
@@ -26,20 +42,18 @@ function ActivityPage() {
 				<div className="space-y-4">
 					<ActivityChart />
 					<Card>
-						<CardHeader>
-							<CardTitle>Recent Activity</CardTitle>
-							<CardDescription>
-								Your recent API requests and system events
-							</CardDescription>
+						<CardHeader className="flex flex-row items-center justify-between">
+							<div>
+								<CardTitle>Recent Activity</CardTitle>
+								<CardDescription>
+									Your recent API requests and system events
+								</CardDescription>
+							</div>
+							<RefreshButton />
 						</CardHeader>
 						<CardContent>
 							<RecentLogs />
 						</CardContent>
-						<CardFooter>
-							<Button variant="outline" className="w-full">
-								View All Logs
-							</Button>
-						</CardFooter>
 					</Card>
 				</div>
 			</div>

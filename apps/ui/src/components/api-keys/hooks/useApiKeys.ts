@@ -45,7 +45,8 @@ export function useCreateApiKey() {
 				credentials: "include",
 			});
 			if (!res.ok) {
-				throw new Error("Failed to create API key");
+				const errorText = await res.text();
+				throw new Error(`Failed to create API key: ${errorText}`);
 			}
 			return await res.json();
 		},
@@ -62,7 +63,8 @@ export function useDeleteApiKey() {
 				credentials: "include",
 			});
 			if (!res.ok) {
-				throw new Error("Failed to delete API key");
+				const errorText = await res.text();
+				throw new Error(`Failed to delete API key: ${errorText}`);
 			}
 			return await res.json();
 		},
@@ -87,7 +89,8 @@ export function useToggleApiKeyStatus() {
 				credentials: "include",
 			});
 			if (!res.ok) {
-				throw new Error("Failed to update API key status");
+				const errorText = await res.text();
+				throw new Error(`Failed to update API key status: ${errorText}`);
 			}
 			return await res.json();
 		},
