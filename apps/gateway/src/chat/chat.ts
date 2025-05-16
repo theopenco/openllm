@@ -16,12 +16,8 @@ function getProviderHeaders(
 	switch (provider) {
 		case "anthropic":
 			return {
-				"X-API-Key": providerKey.token,
+				"x-api-key": providerKey.token,
 				"anthropic-version": "2023-06-01", // Use an appropriate version
-			};
-		case "google-vertex":
-			return {
-				Authorization: `Bearer ${providerKey.token}`,
 			};
 		case "openai":
 		default:
@@ -390,16 +386,11 @@ chat.openapi(completions, async (c) => {
 			break;
 		}
 		case "anthropic": {
-			delete requestBody.model; // Not needed in request body
 			requestBody.max_tokens = max_tokens || 1024; // Set a default if not provided
-			requestBody.system =
-				messages.find((m) => m.role === "system")?.content || "";
-			requestBody.messages = messages
-				.filter((m) => m.role !== "system")
-				.map((m) => ({
-					role: m.role === "assistant" ? "assistant" : "user",
-					content: m.content,
-				}));
+			requestBody.messages = messages.map((m) => ({
+				role: m.role === "assistant" ? "assistant" : "user",
+				content: m.content,
+			}));
 			break;
 		}
 		case "google-vertex": {
@@ -444,6 +435,8 @@ chat.openapi(completions, async (c) => {
 	if (presence_penalty !== undefined) {
 		requestBody.presence_penalty = presence_penalty;
 	}
+
+	console.log("requestBody", requestBody);
 
 	const startTime = Date.now();
 
@@ -869,6 +862,10 @@ chat.openapi(completions, async (c) => {
 					type: "gateway_error",
 					param: null,
 					code: "gateway_error",
+					requestedProvider,
+					usedProvider,
+					requestedModel,
+					usedModel,
 				},
 			},
 			500,

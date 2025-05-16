@@ -20,7 +20,8 @@
 		"seed": "pnpm --filter db seed",
 		"setup": "docker compose down -v && docker compose up -d && sleep 5 && pnpm push-test && pnpm push-dev && pnpm seed",
 		"sync": "pnpm push-dev; pnpm push-test",
-		"test": "cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5389/test}\" vitest run --no-file-parallelism"
+		"test": "cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5389/test}\" vitest run --no-file-parallelism",
+		"test:e2e": "cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5389/test}\" vitest run -c vitest/vitest.e2e.config.mts --no-file-parallelism"
 	},
 	"commitlint": {
 		"extends": "@steebchen/commitlint-config"
@@ -36,6 +37,7 @@
 		"@steebchen/prettier-config": "^1.4.2",
 		"concurrently": "^9.1.2",
 		"cross-env-shell": "7.0.3",
+		"dotenv": "16.5.0",
 		"esbuild-fix-imports-plugin": "1.0.20",
 		"eslint": "^9.24.0",
 		"husky": "^9.1.7",

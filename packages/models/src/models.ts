@@ -62,13 +62,13 @@ export const models = [
 		outputPrice: 0.0000027,
 	},
 	{
-		model: "claude-3-sonnet",
+		model: "claude-3-7-sonnet-20250219",
 		providers: ["anthropic"],
 		inputPrice: 0.000003,
 		outputPrice: 0.000015,
 	},
 	{
-		model: "claude-3-haiku",
+		model: "claude-3-5-sonnet-20241022",
 		providers: ["anthropic"],
 		inputPrice: 0.0000008,
 		outputPrice: 0.000004,
