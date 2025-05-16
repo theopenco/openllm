@@ -10,6 +10,7 @@ import {
 import AnthropicLogo from "@/assets/models/anthropic.svg?react";
 import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
 import InferenceLogo from "@/assets/models/inference-net.svg?react";
+import KlusterLogo from "@/assets/models/kluster-ai.svg?react";
 import OpenAILogo from "@/assets/models/openai.svg?react";
 import OpenLLMLogo from "@/assets/models/openllm.svg?react";
 import {
@@ -51,7 +52,7 @@ export const providerLogoComponents: Partial<
 	anthropic: AnthropicLogo,
 	"google-vertex": GoogleVertexLogo,
 	"inference.net": InferenceLogo,
-	"kluster.ai": undefined,
+	"kluster.ai": KlusterLogo,
 };
 
 export function ProviderKeysList() {

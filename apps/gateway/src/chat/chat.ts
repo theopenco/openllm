@@ -19,6 +19,8 @@ function getProviderHeaders(
 				"x-api-key": providerKey.token,
 				"anthropic-version": "2023-06-01", // Use an appropriate version
 			};
+		case "google-vertex":
+		case "kluster.ai":
 		case "openai":
 		default:
 			return {
@@ -336,6 +338,12 @@ chat.openapi(completions, async (c) => {
 			break;
 		case "google-vertex":
 			url += "/v1beta/models/" + usedModel + ":generateContent";
+			break;
+		case "inference.net":
+			url += "/v1/chat/completions";
+			break;
+		case "kluster.ai":
+			url += "/v1/chat/completions";
 			break;
 		default:
 			url += "/v1/chat/completions";
@@ -663,6 +671,17 @@ chat.openapi(completions, async (c) => {
 												finishReason = data.candidates[0].finishReason;
 											}
 											break;
+										case "inference.net":
+										case "kluster.ai":
+											if (data.choices && data.choices[0]) {
+												if (data.choices[0].delta?.content) {
+													fullContent += data.choices[0].delta.content;
+												}
+												if (data.choices[0].finish_reason) {
+													finishReason = data.choices[0].finish_reason;
+												}
+											}
+											break;
 										default: // OpenAI format
 											if (data.choices && data.choices[0]) {
 												if (data.choices[0].delta?.content) {
@@ -894,6 +913,14 @@ chat.openapi(completions, async (c) => {
 		case "google-vertex":
 			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
 			finishReason = json.candidates?.[0]?.finishReason || null;
+			break;
+		case "inference.net":
+		case "kluster.ai":
+			content = json.choices?.[0]?.message?.content || null;
+			finishReason = json.choices?.[0]?.finish_reason || null;
+			promptTokens = json.usage?.prompt_tokens || null;
+			completionTokens = json.usage?.completion_tokens || null;
+			totalTokens = json.usage?.total_tokens || null;
 			break;
 		default: // OpenAI format
 			content = json.choices?.[0]?.message?.content || null;
