@@ -1,107 +1,129 @@
+import { addDays, format, parseISO, subDays } from "date-fns";
+import { useState } from "react";
 import {
-	Line,
-	LineChart,
+	Bar,
+	BarChart,
+	CartesianGrid,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
 	YAxis,
 } from "recharts";
 
-const data = [
-	{
-		date: "Jan 1",
-		requests: 120,
-	},
-	{
-		date: "Jan 2",
-		requests: 150,
-	},
-	{
-		date: "Jan 3",
-		requests: 180,
-	},
-	{
-		date: "Jan 4",
-		requests: 220,
-	},
-	{
-		date: "Jan 5",
-		requests: 250,
-	},
-	{
-		date: "Jan 6",
-		requests: 280,
-	},
-	{
-		date: "Jan 7",
-		requests: 300,
-	},
-	{
-		date: "Jan 8",
-		requests: 350,
-	},
-	{
-		date: "Jan 9",
-		requests: 380,
-	},
-	{
-		date: "Jan 10",
-		requests: 400,
-	},
-	{
-		date: "Jan 11",
-		requests: 450,
-	},
-	{
-		date: "Jan 12",
-		requests: 500,
-	},
-	{
-		date: "Jan 13",
-		requests: 520,
-	},
-	{
-		date: "Jan 14",
-		requests: 550,
-	},
-];
+import { useActivity } from "@/hooks/useActivity";
 
 export function UsageChart() {
+	const [days, setDays] = useState<7 | 30>(7);
+	const { data, isLoading, error } = useActivity(days);
+
+	if (isLoading) {
+		return (
+			<div className="flex h-[350px] items-center justify-center">
+				Loading usage data...
+			</div>
+		);
+	}
+
+	if (error) {
+		return (
+			<div className="flex h-[350px] items-center justify-center">
+				<p className="text-destructive">Error loading activity data</p>
+			</div>
+		);
+	}
+
+	if (!data || data.length === 0) {
+		return (
+			<div className="flex h-[350px] items-center justify-center">
+				<p className="text-muted-foreground">No usage data available</p>
+			</div>
+		);
+	}
+
+	const today = new Date();
+	const startDate = subDays(today, days - 1);
+	const dateRange: string[] = [];
+
+	for (let i = 0; i < days; i++) {
+		const date = addDays(startDate, i);
+		dateRange.push(format(date, "yyyy-MM-dd"));
+	}
+
+	const dataByDate = new Map(data.map((item) => [item.date, item]));
+
+	const chartData = dateRange.map((date) => {
+		if (dataByDate.has(date)) {
+			const dayData = dataByDate.get(date)!;
+			return {
+				date,
+				formattedDate: format(parseISO(date), "MMM d"),
+				requests: dayData.requestCount,
+			};
+		}
+		return {
+			date,
+			formattedDate: format(parseISO(date), "MMM d"),
+			requests: 0,
+		};
+	});
+
 	return (
-		<ResponsiveContainer width="100%" height="100%">
-			<LineChart
-				data={data}
-				margin={{
-					top: 5,
-					right: 10,
-					left: 10,
-					bottom: 0,
-				}}
-			>
-				<XAxis
-					dataKey="date"
-					stroke="#888888"
-					fontSize={12}
-					tickLine={false}
-					axisLine={false}
-				/>
-				<YAxis
-					stroke="#888888"
-					fontSize={12}
-					tickLine={false}
-					axisLine={false}
-					tickFormatter={(value) => `${value}`}
-				/>
-				<Tooltip />
-				<Line
-					type="monotone"
-					dataKey="requests"
-					stroke="currentColor"
-					className="stroke-primary"
-					strokeWidth={2}
-					dot={false}
-				/>
-			</LineChart>
-		</ResponsiveContainer>
+		<div className="flex flex-col">
+			<div className="flex items-center justify-end space-x-2 mb-4">
+				<button
+					className={`px-3 py-1 text-sm rounded-md ${
+						days === 7 ? "bg-primary text-primary-foreground" : "bg-muted"
+					}`}
+					onClick={() => setDays(7)}
+				>
+					7 Days
+				</button>
+				<button
+					className={`px-3 py-1 text-sm rounded-md ${
+						days === 30 ? "bg-primary text-primary-foreground" : "bg-muted"
+					}`}
+					onClick={() => setDays(30)}
+				>
+					30 Days
+				</button>
+			</div>
+			<ResponsiveContainer width="100%" height={350}>
+				<BarChart
+					data={chartData}
+					margin={{
+						top: 5,
+						right: 10,
+						left: 10,
+						bottom: 0,
+					}}
+				>
+					<CartesianGrid strokeDasharray="3 3" vertical={false} />
+					<XAxis
+						dataKey="date"
+						tickFormatter={(value) => format(parseISO(value), "MMM d")}
+						stroke="#888888"
+						fontSize={12}
+						tickLine={false}
+						axisLine={false}
+					/>
+					<YAxis
+						stroke="#888888"
+						fontSize={12}
+						tickLine={false}
+						axisLine={false}
+					/>
+					<Tooltip
+						formatter={(value) => [value, "Requests"]}
+						labelFormatter={(label) => format(parseISO(label), "MMM d, yyyy")}
+					/>
+					<Bar
+						dataKey="requests"
+						fill="currentColor"
+						className="fill-primary"
+						radius={[4, 4, 0, 0]}
+					/>
+				</BarChart>
+			</ResponsiveContainer>
+		</div>
 	);
 }

@@ -28,6 +28,8 @@ const dailyActivitySchema = z.object({
 	cost: z.number(),
 	inputCost: z.number(),
 	outputCost: z.number(),
+	errorCount: z.number(),
+	errorRate: z.number(),
 	modelBreakdown: z.array(modelUsageSchema),
 });
 
@@ -122,7 +124,8 @@ activity.openapi(getActivity, async (c) => {
 			COALESCE(SUM("cost"), 0)              as "cost",
 			COALESCE(SUM("input_cost"), 0)        as "inputCost",
 			COALESCE(SUM("output_cost"), 0)       as "outputCost",
-			COUNT(*)                              as "requestCount"
+			COUNT(*)                              as "requestCount",
+			COALESCE(SUM(CASE WHEN "has_error" = true THEN 1 ELSE 0 END), 0) as "errorCount"
 		FROM "log"
 		WHERE "project_id" IN (${sql.join(projectIds)})
 			AND "created_at" >= ${startDate}
@@ -159,6 +162,8 @@ activity.openapi(getActivity, async (c) => {
 				cost: 0,
 				inputCost: 0,
 				outputCost: 0,
+				errorCount: 0,
+				errorRate: 0,
 				modelBreakdown: [],
 			});
 		}
@@ -173,6 +178,11 @@ activity.openapi(getActivity, async (c) => {
 		dayData.cost += totalCost;
 		dayData.inputCost += inputCost;
 		dayData.outputCost += outputCost;
+		dayData.errorCount += Number(log.errorCount || 0);
+		dayData.errorRate =
+			dayData.requestCount > 0
+				? (dayData.errorCount / dayData.requestCount) * 100
+				: 0;
 
 		// Add the model breakdown
 		dayData.modelBreakdown.push({
