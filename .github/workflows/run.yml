@@ -35,3 +35,9 @@ jobs:
 
       - name: ${{ inputs.cmd }}
         run: ${{ inputs.cmd }}
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          KLUSTER_AI_API_KEY: ${{ secrets.KLUSTER_AI_API_KEY }}
+          INFERENCE_NET_API_KEY: ${{ secrets.INFERENCE_NET_API_KEY }}
+          TOGETHER_AI_API_KEY: ${{ secrets.TOGETHER_AI_API_KEY }}
