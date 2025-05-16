@@ -177,7 +177,7 @@ describe("e2e tests with real provider keys", () => {
 
 		expect(res.status).toBe(200);
 		const json = await res.json();
-		expect(json).toHaveProperty("candidates");
+		expect(json).toHaveProperty("choices.[0].message.content");
 
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
