@@ -2,8 +2,9 @@ import { db, tables } from "@openllm/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
+import { passkey } from "better-auth/plugins/passkey";
 
-export const auth = betterAuth({
+export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	advanced: {
 		defaultCookieAttributes: {
 			path: "/api",
@@ -19,6 +20,13 @@ export const auth = betterAuth({
 	},
 	basePath: "/auth",
 	trustedOrigins: ["http://localhost:3002"],
+	plugins: [
+		passkey({
+			rpID: process.env.PASSKEY_RP_ID || "localhost",
+			rpName: process.env.PASSKEY_RP_NAME || "OpenLLM",
+			origin: process.env.PASSKEY_ORIGIN || "http://localhost:3002",
+		}),
+	],
 	database: drizzleAdapter(db, {
 		provider: "pg",
 		schema: {
@@ -26,6 +34,7 @@ export const auth = betterAuth({
 			session: tables.session,
 			account: tables.account,
 			verification: tables.verification,
+			passkey: tables.passkey,
 		},
 	}),
 	emailAndPassword: {
