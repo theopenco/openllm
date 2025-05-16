@@ -4,11 +4,11 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
 	plugins: [tsconfigPaths()],
 	test: {
-		include: ["**/*.e2e.ts"],
-		exclude: ["**/node_modules/**", "**/dist/**"],
+		include: ["**/*.spec.ts"],
+		exclude: ["**/node_modules/**", "**/dist/**", "**/*.e2e.ts"],
 		environment: "node",
-		testTimeout: 60000, // Longer timeout for e2e tests
-		hookTimeout: 30000, // Timeout for hooks
+		testTimeout: 30000, // Increased timeout for tests
+		hookTimeout: 20000, // Timeout for hooks
 		setupFiles: [],
 		reporters: ["default"],
 		coverage: {

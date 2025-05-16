@@ -1,10 +1,36 @@
 import { db, tables } from "@openllm/db";
 import "dotenv/config";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	test,
+	beforeAll,
+	afterAll,
+	vi,
+} from "vitest";
 
 import { app } from ".";
+import { mockLogInsertion } from "./test-utils/mock-log-insertion";
+import { waitForLogs } from "./test-utils/test-helpers";
 
 describe("e2e tests with real provider keys", () => {
+	beforeAll(() => {
+		// Set a longer timeout for this hook
+		vi.setConfig({ hookTimeout: 30000 });
+
+		// Mock the log insertion to directly insert into the database
+		mockLogInsertion();
+		console.log("Log insertion mocked for e2e tests");
+	});
+
+	// Add an afterAll hook to restore the original function
+	afterAll(() => {
+		// Restore all mocks
+		vi.restoreAllMocks();
+		console.log("Mocks restored after e2e tests");
+	});
 	afterEach(async () => {
 		await db.delete(tables.user);
 		await db.delete(tables.account);
@@ -44,6 +70,8 @@ describe("e2e tests with real provider keys", () => {
 	});
 
 	test("/v1/chat/completions with OpenAI", async () => {
+		// Set a longer timeout for this test
+		vi.setConfig({ testTimeout: 30000 });
 		if (!process.env.OPENAI_API_KEY) {
 			console.log("Skipping OpenAI test - no API key provided");
 			return;
@@ -87,6 +115,8 @@ describe("e2e tests with real provider keys", () => {
 		expect(json).toHaveProperty("usage.completion_tokens");
 		expect(json).toHaveProperty("usage.total_tokens");
 
+		// Wait for the worker to process the log
+		await waitForLogs(1);
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
 		expect(logs[0].finishReason).toBe("stop");
@@ -94,6 +124,8 @@ describe("e2e tests with real provider keys", () => {
 	});
 
 	test("/v1/chat/completions with Anthropic", async () => {
+		// Set a longer timeout for this test
+		vi.setConfig({ testTimeout: 30000 });
 		if (!process.env.ANTHROPIC_API_KEY) {
 			console.log("Skipping Anthropic test - no API key provided");
 			return;
@@ -134,12 +166,16 @@ describe("e2e tests with real provider keys", () => {
 		const json = await res.json();
 		expect(json).toHaveProperty("content");
 
+		// Wait for the worker to process the log
+		await waitForLogs(1);
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
 		expect(logs[0].usedProvider).toBe("anthropic");
 	});
 
 	test("/v1/chat/completions with Google Vertex", async () => {
+		// Set a longer timeout for this test
+		vi.setConfig({ testTimeout: 30000 });
 		if (!process.env.VERTEX_API_KEY) {
 			console.log("Skipping Google Vertex test - no API key provided");
 			return;
@@ -180,6 +216,8 @@ describe("e2e tests with real provider keys", () => {
 		const json = await res.json();
 		expect(json).toHaveProperty("choices.[0].message.content");
 
+		// Wait for the worker to process the log
+		await waitForLogs(1);
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
 		expect(logs[0].usedProvider).toBe("google-vertex");

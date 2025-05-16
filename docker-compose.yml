@@ -14,3 +14,11 @@ services:
       POSTGRES_DB: db
     volumes:
       - ./packages/db/init:/docker-entrypoint-initdb.d
+
+  redis:
+    container_name: redis
+    image: redis:8
+    command: ["redis-server", "--protected-mode", "no", "--bind", "0.0.0.0"]
+    restart: always
+    ports:
+      - "6379:6379"

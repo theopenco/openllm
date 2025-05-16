@@ -27,9 +27,6 @@
 		"extends": "@steebchen/commitlint-config"
 	},
 	"prettier": "@steebchen/prettier-config",
-	"dependencies": {
-		"gpt-tokenizer": "2.9.0"
-	},
 	"devDependencies": {
 		"@steebchen/commitlint-config": "^1.5.2",
 		"@steebchen/eslint-config": "^1.5.2",
