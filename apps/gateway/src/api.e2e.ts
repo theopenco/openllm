@@ -1,10 +1,34 @@
 import { db, tables } from "@openllm/db";
 import "dotenv/config";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	test,
+	beforeAll,
+	afterAll,
+} from "vitest";
 
 import { app } from ".";
+import { waitForLogs } from "./test-utils/test-helpers";
+import {
+	startWorkerForTests,
+	stopWorkerForTests,
+} from "./test-utils/worker-utils";
 
 describe("e2e tests with real provider keys", () => {
+	beforeAll(() => {
+		// Start the worker before all tests
+		startWorkerForTests();
+		console.log("Worker started for e2e tests");
+	});
+
+	afterAll(async () => {
+		// Stop the worker after all tests
+		await stopWorkerForTests();
+		console.log("Worker stopped after e2e tests");
+	});
 	afterEach(async () => {
 		await db.delete(tables.user);
 		await db.delete(tables.account);
@@ -87,6 +111,8 @@ describe("e2e tests with real provider keys", () => {
 		expect(json).toHaveProperty("usage.completion_tokens");
 		expect(json).toHaveProperty("usage.total_tokens");
 
+		// Wait for the worker to process the log
+		await waitForLogs(1);
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
 		expect(logs[0].finishReason).toBe("stop");
@@ -134,6 +160,8 @@ describe("e2e tests with real provider keys", () => {
 		const json = await res.json();
 		expect(json).toHaveProperty("content");
 
+		// Wait for the worker to process the log
+		await waitForLogs(1);
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
 		expect(logs[0].usedProvider).toBe("anthropic");
@@ -180,6 +208,8 @@ describe("e2e tests with real provider keys", () => {
 		const json = await res.json();
 		expect(json).toHaveProperty("choices.[0].message.content");
 
+		// Wait for the worker to process the log
+		await waitForLogs(1);
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
 		expect(logs[0].usedProvider).toBe("google-vertex");

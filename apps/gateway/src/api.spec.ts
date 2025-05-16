@@ -14,18 +14,29 @@ import {
 	startMockServer,
 	stopMockServer,
 } from "./test-utils/mock-openai-server";
+import { waitForLogs } from "./test-utils/test-helpers";
+import {
+	startWorkerForTests,
+	stopWorkerForTests,
+} from "./test-utils/worker-utils";
 
 describe("test", () => {
 	let mockServerUrl: string;
 
-	// Start the mock OpenAI server before all tests
+	// Start the mock OpenAI server and worker before all tests
 	beforeAll(() => {
 		mockServerUrl = startMockServer(3001);
+		// Start the worker for log processing
+		startWorkerForTests();
+		console.log("Worker started for tests");
 	});
 
-	// Stop the mock server after all tests
-	afterAll(() => {
+	// Stop the mock server and worker after all tests
+	afterAll(async () => {
 		stopMockServer();
+		// Stop the worker
+		await stopWorkerForTests();
+		console.log("Worker stopped after tests");
 	});
 
 	afterEach(async () => {
@@ -112,7 +123,8 @@ describe("test", () => {
 		expect(json).toHaveProperty("choices.[0].message.content");
 		expect(json.choices[0].message.content).toMatch(/Hello!/);
 
-		// Check that the request was logged
+		// Wait for the worker to process the log and check that the request was logged
+		await waitForLogs(1);
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
 		expect(logs[0].finishReason).toBe("stop");
@@ -372,7 +384,8 @@ describe("test", () => {
 		expect(errorResponse.error).toHaveProperty("message");
 		expect(errorResponse.error).toHaveProperty("type", "gateway_error");
 
-		// Check that the error was logged in the database
+		// Wait for the worker to process the log and check that the error was logged in the database
+		await waitForLogs(1);
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
 

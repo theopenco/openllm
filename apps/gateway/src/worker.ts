@@ -35,7 +35,7 @@ async function processLogQueue(): Promise<void> {
 
 export function startWorker(): void {
 	console.log("Starting log queue worker...");
-	processLogQueue();
+	void processLogQueue();
 }
 
 if (require.main === module) {
