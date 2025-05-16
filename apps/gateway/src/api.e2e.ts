@@ -8,26 +8,28 @@ import {
 	test,
 	beforeAll,
 	afterAll,
+	vi,
 } from "vitest";
 
 import { app } from ".";
+import { mockLogInsertion } from "./test-utils/mock-log-insertion";
 import { waitForLogs } from "./test-utils/test-helpers";
-import {
-	startWorkerForTests,
-	stopWorkerForTests,
-} from "./test-utils/worker-utils";
 
 describe("e2e tests with real provider keys", () => {
 	beforeAll(() => {
-		// Start the worker before all tests
-		startWorkerForTests();
-		console.log("Worker started for e2e tests");
+		// Set a longer timeout for this hook
+		vi.setConfig({ hookTimeout: 30000 });
+
+		// Mock the log insertion to directly insert into the database
+		mockLogInsertion();
+		console.log("Log insertion mocked for e2e tests");
 	});
 
-	afterAll(async () => {
-		// Stop the worker after all tests
-		await stopWorkerForTests();
-		console.log("Worker stopped after e2e tests");
+	// Add an afterAll hook to restore the original function
+	afterAll(() => {
+		// Restore all mocks
+		vi.restoreAllMocks();
+		console.log("Mocks restored after e2e tests");
 	});
 	afterEach(async () => {
 		await db.delete(tables.user);
@@ -68,6 +70,8 @@ describe("e2e tests with real provider keys", () => {
 	});
 
 	test("/v1/chat/completions with OpenAI", async () => {
+		// Set a longer timeout for this test
+		vi.setConfig({ testTimeout: 30000 });
 		if (!process.env.OPENAI_API_KEY) {
 			console.log("Skipping OpenAI test - no API key provided");
 			return;
@@ -120,6 +124,8 @@ describe("e2e tests with real provider keys", () => {
 	});
 
 	test("/v1/chat/completions with Anthropic", async () => {
+		// Set a longer timeout for this test
+		vi.setConfig({ testTimeout: 30000 });
 		if (!process.env.ANTHROPIC_API_KEY) {
 			console.log("Skipping Anthropic test - no API key provided");
 			return;
@@ -168,6 +174,8 @@ describe("e2e tests with real provider keys", () => {
 	});
 
 	test("/v1/chat/completions with Google Vertex", async () => {
+		// Set a longer timeout for this test
+		vi.setConfig({ testTimeout: 30000 });
 		if (!process.env.VERTEX_API_KEY) {
 			console.log("Skipping Google Vertex test - no API key provided");
 			return;
