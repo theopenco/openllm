@@ -5,6 +5,8 @@ const redisClient = new Redis({
 	port: Number(process.env.REDIS_PORT) || 6379,
 });
 
+redisClient.on("error", (err) => console.error("Redis Client Error", err));
+
 export const LOG_QUEUE = "log_queue";
 
 export async function publishToQueue(
@@ -21,7 +23,7 @@ export async function publishToQueue(
 
 export async function consumeFromQueue(queue: string): Promise<string | null> {
 	try {
-		const result = await redisClient.blpop(queue, 0);
+		const result = await redisClient.rpop(queue, 0);
 
 		if (!result) {
 			return null;

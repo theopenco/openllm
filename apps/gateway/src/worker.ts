@@ -38,6 +38,4 @@ export function startWorker(): void {
 	void processLogQueue();
 }
 
-if (require.main === module) {
-	startWorker();
-}
+startWorker();
