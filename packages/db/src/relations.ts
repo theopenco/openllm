@@ -5,6 +5,10 @@ import * as schema from "./schema";
 export const relations = defineRelations(schema, (r) => ({
 	user: {
 		userOrganizations: r.many.userOrganization(),
+		passkeys: r.many.passkey({
+			from: r.user.id,
+			to: r.passkey.userId,
+		}),
 	},
 	organization: {
 		userOrganizations: r.many.userOrganization(),
@@ -54,6 +58,12 @@ export const relations = defineRelations(schema, (r) => ({
 		providerKey: r.one.providerKey({
 			from: r.log.providerKeyId,
 			to: r.providerKey.id,
+		}),
+	},
+	passkey: {
+		user: r.one.user({
+			from: r.passkey.userId,
+			to: r.user.id,
 		}),
 	},
 }));
