@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { Zap } from "lucide-react";
 
+import { ModeToggle } from "@/components/mode-toggle";
 import { SidebarTrigger } from "@/lib/components/sidebar";
 
 export function MobileHeader() {
@@ -11,9 +12,9 @@ export function MobileHeader() {
 				<Zap className="h-5 w-5" />
 				<span>OpenLLM</span>
 			</Link>
-			{/* <div className="flex flex-1 items-center justify-end gap-2">
-        <ModeToggle />
-      </div> */}
+			<div className="flex flex-1 items-center justify-end gap-2">
+				<ModeToggle />
+			</div>
 		</header>
 	);
 }
