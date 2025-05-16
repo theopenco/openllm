@@ -46,7 +46,7 @@ export function RecentLogs() {
 						<SelectValue placeholder="Filter by reason" />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="">All reasons</SelectItem>
+						<SelectItem value="all">All reasons</SelectItem>
 						{FINISH_REASONS.map((reason) => (
 							<SelectItem key={reason} value={reason}>
 								{reason}
@@ -60,7 +60,7 @@ export function RecentLogs() {
 						<SelectValue placeholder="Filter by provider" />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="">All providers</SelectItem>
+						<SelectItem value="all">All providers</SelectItem>
 						{providers.map((p) => (
 							<SelectItem key={p.id} value={p.id}>
 								{p.name}
@@ -74,7 +74,7 @@ export function RecentLogs() {
 						<SelectValue placeholder="Filter by model" />
 					</SelectTrigger>
 					<SelectContent>
-						<SelectItem value="">All models</SelectItem>
+						<SelectItem value="all">All models</SelectItem>
 						{models.map((m) => (
 							<SelectItem key={m.model} value={m.model}>
 								{m.model}

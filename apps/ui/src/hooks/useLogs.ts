@@ -29,13 +29,13 @@ export async function fetchLogs(options: FetchLogsOptions = {}) {
 		params.append("endDate", dateRange.end.toISOString());
 	}
 
-	if (finishReason) {
+	if (finishReason && finishReason !== "all") {
 		params.append("finishReason", finishReason);
 	}
-	if (provider) {
+	if (provider && provider !== "all") {
 		params.append("provider", provider);
 	}
-	if (model) {
+	if (model && model !== "all") {
 		params.append("model", model);
 	}
 
