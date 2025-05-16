@@ -13,6 +13,7 @@ async function generateOpenAPI() {
 
 	writeFileSync("openapi.json", JSON.stringify(spec, null, 2));
 	console.log("✅ openapi.json has been generated");
+	process.exit(0);
 }
 
 generateOpenAPI();

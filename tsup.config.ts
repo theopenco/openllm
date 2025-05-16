@@ -8,7 +8,7 @@ export const tsup = defineConfig({
 	format: ["esm"],
 	bundle: true,
 	minify: false,
-	entry: ["src/**/!(*.spec).ts"],
+	entry: ["src/**/!(*.spec).ts", "src/**/!(*.e2e).ts"],
 	sourcemap: true,
 	target: "esnext",
 	esbuildPlugins: [
