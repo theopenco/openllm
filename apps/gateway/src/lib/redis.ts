@@ -7,29 +7,31 @@ const redisClient = new Redis({
 
 redisClient.on("error", (err) => console.error("Redis Client Error", err));
 
-export const LOG_QUEUE = "log_queue";
+export const LOG_QUEUE = "log_queue_" + process.env.NODE_ENV;
 
 export async function publishToQueue(
 	queue: string,
 	message: unknown,
 ): Promise<void> {
 	try {
-		await redisClient.rpush(queue, JSON.stringify(message));
+		await redisClient.lpush(queue, JSON.stringify(message));
 	} catch (error) {
 		console.error("Error publishing to queue:", error);
 		throw error;
 	}
 }
 
-export async function consumeFromQueue(queue: string): Promise<string | null> {
+export async function consumeFromQueue(
+	queue: string,
+): Promise<string[] | null> {
 	try {
-		const result = await redisClient.rpop(queue, 0);
+		const result = await redisClient.rpop(queue, 10);
 
 		if (!result) {
 			return null;
 		}
 
-		return result[1];
+		return result;
 	} catch (error) {
 		console.error("Error consuming from queue:", error);
 		throw error;
