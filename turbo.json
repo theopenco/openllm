@@ -14,8 +14,8 @@
 			]
 		},
 		"generate": {
-			"cache": false,
-			"dependsOn": ["^generate"]
+			"dependsOn": ["^generate"],
+			"cache": false
 		},
 		"dev": {
 			"cache": false
