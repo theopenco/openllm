@@ -15,9 +15,9 @@ const updateProjectCachingSchema = z.object({
 	cacheDurationSeconds: z.number().min(10).max(31536000).optional(), // Min 10 seconds, max 1 year
 });
 
-const updateCaching = createRoute({
+const updateProject = createRoute({
 	method: "patch",
-	path: "/:id/caching",
+	path: "/:id",
 	request: {
 		params: z.object({
 			id: z.string(),
@@ -40,7 +40,7 @@ const updateCaching = createRoute({
 					}),
 				},
 			},
-			description: "Project caching settings updated successfully.",
+			description: "Project settings updated successfully.",
 		},
 		401: {
 			content: {
@@ -65,7 +65,7 @@ const updateCaching = createRoute({
 	},
 });
 
-projects.openapi(updateCaching, async (c) => {
+projects.openapi(updateProject, async (c) => {
 	const user = c.get("user");
 	if (!user) {
 		throw new HTTPException(401, {
@@ -125,7 +125,7 @@ projects.openapi(updateCaching, async (c) => {
 		.returning();
 
 	return c.json({
-		message: "Project caching settings updated successfully",
+		message: "Project settings updated successfully",
 		project: updatedProject,
 	});
 });

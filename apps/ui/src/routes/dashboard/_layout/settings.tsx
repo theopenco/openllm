@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { CachingSettings } from "@/components/settings/caching-settings";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -110,9 +111,11 @@ function RouteComponent() {
 									Configure advanced system settings
 								</CardDescription>
 							</CardHeader>
-							<CardContent>
+							<CardContent className="space-y-6">
+								<CachingSettings />
 								<p className="text-muted-foreground text-sm">
-									Advanced settings are available in the configuration file.
+									Additional advanced settings are available in the
+									configuration file.
 								</p>
 							</CardContent>
 						</Card>
