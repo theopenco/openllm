@@ -33,52 +33,12 @@ async function handleProviderFallback({
 	c,
 	usedModel,
 	usedProvider,
-	requestedModel,
-	requestedProvider,
 	apiKey,
-	project,
-	providerKey,
-	requestBody,
-	requestCanBeCanceled,
-	controller,
-	messages,
-	temperature,
-	max_tokens,
-	top_p,
-	frequency_penalty,
-	presence_penalty,
-	startTime,
-	errorResponseText,
-	errorStatus,
-	errorStatusText,
-	isStreaming,
-	stream,
-	eventId,
 }: {
 	c: any;
 	usedModel: string;
 	usedProvider: Provider;
-	requestedModel: string;
-	requestedProvider: string | null | undefined;
 	apiKey: any;
-	project: { organizationId: string };
-	providerKey: any;
-	requestBody: any;
-	requestCanBeCanceled: boolean;
-	controller: AbortController;
-	messages: any[];
-	temperature: number | null | undefined;
-	max_tokens: number | null | undefined;
-	top_p: number | null | undefined;
-	frequency_penalty: number | null | undefined;
-	presence_penalty: number | null | undefined;
-	startTime: number;
-	errorResponseText: string;
-	errorStatus: number;
-	errorStatusText: string;
-	isStreaming: boolean;
-	stream?: any;
-	eventId?: number;
 }) {
 	// Check if model has alternative providers to try
 	const modelInfo = models.find((m) => m.model === usedModel);
@@ -111,76 +71,7 @@ async function handleProviderFallback({
 	});
 
 	if (!nextProviderKey) {
-		// Log the original error and return informative message about missing next provider key
-		await insertLog({
-			organizationId: project.organizationId,
-			projectId: apiKey.projectId,
-			apiKeyId: apiKey.id,
-			providerKeyId: providerKey.id,
-			duration: Date.now() - startTime,
-			usedModel: usedModel,
-			usedProvider: usedProvider,
-			requestedModel: requestedModel,
-			requestedProvider: requestedProvider,
-			messages: messages,
-			responseSize: errorResponseText.length,
-			content: null,
-			finishReason: "gateway_error",
-			promptTokens: null,
-			completionTokens: null,
-			totalTokens: null,
-			temperature: temperature || null,
-			maxTokens: max_tokens || null,
-			topP: top_p || null,
-			frequencyPenalty: frequency_penalty || null,
-			presencePenalty: presence_penalty || null,
-			hasError: true,
-			streamed: isStreaming,
-			canceled: false,
-			errorDetails: {
-				statusCode: errorStatus,
-				statusText: errorStatusText,
-				responseText: errorResponseText,
-			},
-			estimatedCost: false,
-		});
-
-		if (isStreaming && stream) {
-			await stream.writeSSE({
-				event: "error",
-				data: JSON.stringify({
-					error: {
-						message: `Error from provider ${usedProvider}: ${errorStatus} ${errorStatusText}. Could not fallback to ${nextProvider}: No API key set for this provider.`,
-						type: "gateway_error",
-						param: null,
-						code: "gateway_error",
-					},
-				}),
-				id: String(eventId),
-			});
-			await stream.writeSSE({
-				event: "done",
-				data: "[DONE]",
-				id: String(eventId! + 1),
-			});
-			return { handled: true, success: false };
-		}
-
-		return {
-			handled: true,
-			success: false,
-			response: c.json(
-				{
-					error: {
-						message: `Error from provider ${usedProvider}: ${errorStatus} ${errorStatusText}. Could not fallback to ${nextProvider}: No API key set for this provider.`,
-						type: "gateway_error",
-						param: null,
-						code: "gateway_error",
-					},
-				},
-				500,
-			),
-		};
+		return { success: false, nextProvider };
 	}
 
 	// Update the request to use the next provider
@@ -190,16 +81,7 @@ async function handleProviderFallback({
 		model: `${nextProvider}/${usedModel}`,
 	});
 
-	// For streaming responses, clean up event listeners before retrying
-	if (isStreaming) {
-		c.req.raw.signal.removeEventListener("abort", (e: any) => {
-			if (requestCanBeCanceled) {
-				controller.abort();
-			}
-		});
-	}
-
-	return { handled: true, success: true, nextProvider, nextProviderKey };
+	return { success: true, nextProvider, nextProviderKey };
 }
 
 export const chat = new OpenAPIHono<ServerTypes>();
@@ -712,39 +594,77 @@ chat.openapi(completions, async (c) => {
 				console.error("error", url, res.status, res.statusText);
 				const errorResponseText = await res.text();
 
+				// Log the original error before trying fallback
+				await insertLog({
+					organizationId: project.organizationId,
+					projectId: apiKey.projectId,
+					apiKeyId: apiKey.id,
+					providerKeyId: providerKey.id,
+					duration: Date.now() - startTime,
+					usedModel: usedModel,
+					usedProvider: usedProvider,
+					requestedModel: requestedModel,
+					requestedProvider: requestedProvider,
+					messages: messages,
+					responseSize: errorResponseText.length,
+					content: null,
+					finishReason: "fallback_attempt",
+					promptTokens: null,
+					completionTokens: null,
+					totalTokens: null,
+					temperature: temperature || null,
+					maxTokens: max_tokens || null,
+					topP: top_p || null,
+					frequencyPenalty: frequency_penalty || null,
+					presencePenalty: presence_penalty || null,
+					hasError: true,
+					streamed: true,
+					canceled: false,
+					errorDetails: {
+						statusCode: res.status,
+						statusText: res.statusText,
+						responseText: errorResponseText,
+					},
+					estimatedCost: false,
+				});
+
 				const fallbackResult = await handleProviderFallback({
 					c,
 					usedModel,
 					usedProvider,
-					requestedModel,
-					requestedProvider,
 					apiKey,
-					project,
-					providerKey,
-					requestBody,
-					requestCanBeCanceled,
-					controller,
-					messages,
-					temperature,
-					max_tokens,
-					top_p,
-					frequency_penalty,
-					presence_penalty,
-					startTime,
-					errorResponseText,
-					errorStatus: res.status,
-					errorStatusText: res.statusText,
-					isStreaming: true,
-					stream,
-					eventId,
 				});
 
-				if (fallbackResult?.handled) {
+				if (fallbackResult) {
 					if (fallbackResult.success) {
+						c.req.raw.signal.removeEventListener("abort", (e: any) => {
+							if (requestCanBeCanceled) {
+								controller.abort();
+							}
+						});
+
 						// The handler will be called recursively with the updated request
 						return (chat.openapi as any)(completions, c);
+					} else {
+						await stream.writeSSE({
+							event: "error",
+							data: JSON.stringify({
+								error: {
+									message: `Error from provider ${usedProvider}: ${res.status} ${res.statusText}. Could not fallback to ${fallbackResult.nextProvider}: No API key set for this provider.`,
+									type: "gateway_error",
+									param: null,
+									code: "gateway_error",
+								},
+							}),
+							id: String(eventId),
+						});
+						await stream.writeSSE({
+							event: "done",
+							data: "[DONE]",
+							id: String(eventId! + 1),
+						});
+						return;
 					}
-					return; // Error response has already been sent
 				}
 
 				// If no fallback was possible, send error response
@@ -1043,37 +963,64 @@ chat.openapi(completions, async (c) => {
 		// Get the error response text
 		const errorResponseText = await res.text();
 
+		// Log the original error before trying fallback
+		await insertLog({
+			organizationId: project.organizationId,
+			projectId: apiKey.projectId,
+			apiKeyId: apiKey.id,
+			providerKeyId: providerKey.id,
+			duration: Date.now() - startTime,
+			usedModel: usedModel,
+			usedProvider: usedProvider,
+			requestedModel: requestedModel,
+			requestedProvider: requestedProvider,
+			messages: messages,
+			responseSize: errorResponseText.length,
+			content: null,
+			finishReason: "fallback_attempt",
+			promptTokens: null,
+			completionTokens: null,
+			totalTokens: null,
+			temperature: temperature || null,
+			maxTokens: max_tokens || null,
+			topP: top_p || null,
+			frequencyPenalty: frequency_penalty || null,
+			presencePenalty: presence_penalty || null,
+			hasError: true,
+			streamed: false,
+			canceled: false,
+			errorDetails: {
+				statusCode: res.status,
+				statusText: res.statusText,
+				responseText: errorResponseText,
+			},
+			estimatedCost: false,
+		});
+
 		const fallbackResult = await handleProviderFallback({
 			c,
 			usedModel,
 			usedProvider,
-			requestedModel,
-			requestedProvider,
 			apiKey,
-			project,
-			providerKey,
-			requestBody,
-			requestCanBeCanceled,
-			controller,
-			messages,
-			temperature,
-			max_tokens,
-			top_p,
-			frequency_penalty,
-			presence_penalty,
-			startTime: startTime,
-			errorResponseText,
-			errorStatus: res.status,
-			errorStatusText: res.statusText,
-			isStreaming: false,
 		});
 
-		if (fallbackResult?.handled) {
+		if (fallbackResult) {
 			if (fallbackResult.success) {
 				// The handler will be called recursively with the updated request
 				return (chat.openapi as any)(completions, c);
+			} else {
+				return c.json(
+					{
+						error: {
+							message: `Error from provider ${usedProvider}: ${res.status} ${res.statusText}. Could not fallback to ${fallbackResult.nextProvider}: No API key set for this provider.`,
+							type: "gateway_error",
+							param: null,
+							code: "gateway_error",
+						},
+					},
+					500,
+				);
 			}
-			return fallbackResult.response; // Error response
 		}
 
 		// Log the error in the database
