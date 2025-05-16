@@ -5,7 +5,9 @@ const redisClient = new Redis({
 	port: Number(process.env.REDIS_PORT) || 6379,
 });
 
-redisClient.on("error", (err) => console.error("Redis Client Error", err));
+redisClient.on("error", (err: Error) =>
+	console.error("Redis Client Error", err),
+);
 
 export const LOG_QUEUE = "log_queue";
 

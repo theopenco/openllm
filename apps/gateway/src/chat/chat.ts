@@ -594,40 +594,6 @@ chat.openapi(completions, async (c) => {
 				console.error("error", url, res.status, res.statusText);
 				const errorResponseText = await res.text();
 
-				// Log the original error before trying fallback
-				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
-					apiKeyId: apiKey.id,
-					providerKeyId: providerKey.id,
-					duration: Date.now() - startTime,
-					usedModel: usedModel,
-					usedProvider: usedProvider,
-					requestedModel: requestedModel,
-					requestedProvider: requestedProvider,
-					messages: messages,
-					responseSize: errorResponseText.length,
-					content: null,
-					finishReason: "fallback_attempt",
-					promptTokens: null,
-					completionTokens: null,
-					totalTokens: null,
-					temperature: temperature || null,
-					maxTokens: max_tokens || null,
-					topP: top_p || null,
-					frequencyPenalty: frequency_penalty || null,
-					presencePenalty: presence_penalty || null,
-					hasError: true,
-					streamed: true,
-					canceled: false,
-					errorDetails: {
-						statusCode: res.status,
-						statusText: res.statusText,
-						responseText: errorResponseText,
-					},
-					estimatedCost: false,
-				});
-
 				const fallbackResult = await handleProviderFallback({
 					c,
 					usedModel,
@@ -637,6 +603,40 @@ chat.openapi(completions, async (c) => {
 
 				if (fallbackResult) {
 					if (fallbackResult.success) {
+						// Log the original error as a fallback attempt only if fallback is successful
+						await insertLog({
+							organizationId: project.organizationId,
+							projectId: apiKey.projectId,
+							apiKeyId: apiKey.id,
+							providerKeyId: providerKey.id,
+							duration: Date.now() - startTime,
+							usedModel: usedModel,
+							usedProvider: usedProvider,
+							requestedModel: requestedModel,
+							requestedProvider: requestedProvider,
+							messages: messages,
+							responseSize: errorResponseText.length,
+							content: null,
+							finishReason: "fallback_attempt",
+							promptTokens: null,
+							completionTokens: null,
+							totalTokens: null,
+							temperature: temperature || null,
+							maxTokens: max_tokens || null,
+							topP: top_p || null,
+							frequencyPenalty: frequency_penalty || null,
+							presencePenalty: presence_penalty || null,
+							hasError: true,
+							streamed: true,
+							canceled: false,
+							errorDetails: {
+								statusCode: res.status,
+								statusText: res.statusText,
+								responseText: errorResponseText,
+							},
+							estimatedCost: false,
+						});
+
 						c.req.raw.signal.removeEventListener("abort", (e: any) => {
 							if (requestCanBeCanceled) {
 								controller.abort();
@@ -663,30 +663,29 @@ chat.openapi(completions, async (c) => {
 							data: "[DONE]",
 							id: String(eventId! + 1),
 						});
-						return;
 					}
+				} else {
+					// If no fallback was possible, send error response
+					await stream.writeSSE({
+						event: "error",
+						data: JSON.stringify({
+							error: {
+								message: `Error from provider: ${res.status} ${res.statusText}`,
+								type: "gateway_error",
+								param: null,
+								code: "gateway_error",
+							},
+						}),
+						id: String(eventId++),
+					});
+					await stream.writeSSE({
+						event: "done",
+						data: "[DONE]",
+						id: String(eventId++),
+					});
 				}
 
-				// If no fallback was possible, send error response
-				await stream.writeSSE({
-					event: "error",
-					data: JSON.stringify({
-						error: {
-							message: `Error from provider: ${res.status} ${res.statusText}`,
-							type: "gateway_error",
-							param: null,
-							code: "gateway_error",
-						},
-					}),
-					id: String(eventId++),
-				});
-				await stream.writeSSE({
-					event: "done",
-					data: "[DONE]",
-					id: String(eventId++),
-				});
-
-				// Log the error in the database
+				// Log the error in the database (only if no fallback or fallback failed)
 				await insertLog({
 					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
@@ -963,40 +962,6 @@ chat.openapi(completions, async (c) => {
 		// Get the error response text
 		const errorResponseText = await res.text();
 
-		// Log the original error before trying fallback
-		await insertLog({
-			organizationId: project.organizationId,
-			projectId: apiKey.projectId,
-			apiKeyId: apiKey.id,
-			providerKeyId: providerKey.id,
-			duration: Date.now() - startTime,
-			usedModel: usedModel,
-			usedProvider: usedProvider,
-			requestedModel: requestedModel,
-			requestedProvider: requestedProvider,
-			messages: messages,
-			responseSize: errorResponseText.length,
-			content: null,
-			finishReason: "fallback_attempt",
-			promptTokens: null,
-			completionTokens: null,
-			totalTokens: null,
-			temperature: temperature || null,
-			maxTokens: max_tokens || null,
-			topP: top_p || null,
-			frequencyPenalty: frequency_penalty || null,
-			presencePenalty: presence_penalty || null,
-			hasError: true,
-			streamed: false,
-			canceled: false,
-			errorDetails: {
-				statusCode: res.status,
-				statusText: res.statusText,
-				responseText: errorResponseText,
-			},
-			estimatedCost: false,
-		});
-
 		const fallbackResult = await handleProviderFallback({
 			c,
 			usedModel,
@@ -1006,6 +971,40 @@ chat.openapi(completions, async (c) => {
 
 		if (fallbackResult) {
 			if (fallbackResult.success) {
+				// Log the original error as a fallback attempt only if fallback is successful
+				await insertLog({
+					organizationId: project.organizationId,
+					projectId: apiKey.projectId,
+					apiKeyId: apiKey.id,
+					providerKeyId: providerKey.id,
+					duration: Date.now() - startTime,
+					usedModel: usedModel,
+					usedProvider: usedProvider,
+					requestedModel: requestedModel,
+					requestedProvider: requestedProvider,
+					messages: messages,
+					responseSize: errorResponseText.length,
+					content: null,
+					finishReason: "fallback_attempt",
+					promptTokens: null,
+					completionTokens: null,
+					totalTokens: null,
+					temperature: temperature || null,
+					maxTokens: max_tokens || null,
+					topP: top_p || null,
+					frequencyPenalty: frequency_penalty || null,
+					presencePenalty: presence_penalty || null,
+					hasError: true,
+					streamed: false,
+					canceled: false,
+					errorDetails: {
+						statusCode: res.status,
+						statusText: res.statusText,
+						responseText: errorResponseText,
+					},
+					estimatedCost: false,
+				});
+
 				// The handler will be called recursively with the updated request
 				return (chat.openapi as any)(completions, c);
 			} else {
@@ -1023,7 +1022,7 @@ chat.openapi(completions, async (c) => {
 			}
 		}
 
-		// Log the error in the database
+		// Log the error in the database (only if no fallback or fallback failed)
 		await insertLog({
 			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
