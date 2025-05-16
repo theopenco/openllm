@@ -24,6 +24,21 @@ const querySchema = z.object({
 	orgId: z.string().optional().openapi({
 		description: "Filter logs by organization ID",
 	}),
+	startDate: z.string().optional().openapi({
+		description: "Filter logs created after this date (ISO string)",
+	}),
+	endDate: z.string().optional().openapi({
+		description: "Filter logs created before this date (ISO string)",
+	}),
+	finishReason: z.string().optional().openapi({
+		description: "Filter logs by finish reason",
+	}),
+	provider: z.string().optional().openapi({
+		description: "Filter logs by provider",
+	}),
+	model: z.string().optional().openapi({
+		description: "Filter logs by model",
+	}),
 	cursor: z.string().optional().openapi({
 		description: "Cursor for pagination (log ID to start after)",
 	}),
@@ -99,6 +114,11 @@ logs.openapi(get, async (c) => {
 		providerKeyId,
 		projectId,
 		orgId,
+		startDate,
+		endDate,
+		finishReason,
+		provider,
+		model,
 		cursor,
 		orderBy = "createdAt_desc",
 		limit: queryLimit,
@@ -226,6 +246,32 @@ logs.openapi(get, async (c) => {
 			in: projectId ? [projectId] : projectIds,
 		},
 	};
+
+	// Add date range filters if provided
+	if (startDate || endDate) {
+		logsWhere.createdAt = {};
+		if (startDate) {
+			logsWhere.createdAt.gte = new Date(startDate);
+		}
+		if (endDate) {
+			logsWhere.createdAt.lte = new Date(endDate);
+		}
+	}
+
+	// Add model filter if provided
+	if (model) {
+		logsWhere.usedModel = model;
+	}
+
+	// Add provider filter if provided
+	if (provider) {
+		logsWhere.usedProvider = provider;
+	}
+
+	// Add finish reason filter if provided
+	if (finishReason) {
+		logsWhere.finishReason = finishReason;
+	}
 
 	// Add apiKeyId filter if provided
 	if (apiKeyId) {
