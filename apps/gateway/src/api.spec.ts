@@ -7,25 +7,38 @@ import {
 	describe,
 	expect,
 	test,
+	vi,
 } from "vitest";
 
 import { app } from ".";
+import { mockLogInsertion } from "./test-utils/mock-log-insertion";
 import {
 	startMockServer,
 	stopMockServer,
 } from "./test-utils/mock-openai-server";
+import { waitForLogs } from "./test-utils/test-helpers";
 
 describe("test", () => {
 	let mockServerUrl: string;
 
-	// Start the mock OpenAI server before all tests
+	// Start the mock OpenAI server and mock log insertion before all tests
 	beforeAll(() => {
+		// Mock the log insertion to directly insert into the database
+		mockLogInsertion();
+		console.log("Log insertion mocked for tests");
+
+		// Start the mock OpenAI server
 		mockServerUrl = startMockServer(3001);
 	});
 
-	// Stop the mock server after all tests
+	// Stop the mock server and restore mocks after all tests
 	afterAll(() => {
+		console.log("Stopping mock server...");
 		stopMockServer();
+
+		// Restore all mocks
+		vi.restoreAllMocks();
+		console.log("Mocks restored after tests");
 	});
 
 	afterEach(async () => {
@@ -74,6 +87,8 @@ describe("test", () => {
 	});
 
 	test("/v1/chat/completions e2e success", async () => {
+		// This test has a longer timeout because it needs to wait for the worker to process logs
+		vi.setConfig({ testTimeout: 15000 });
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
@@ -112,7 +127,8 @@ describe("test", () => {
 		expect(json).toHaveProperty("choices.[0].message.content");
 		expect(json.choices[0].message.content).toMatch(/Hello!/);
 
-		// Check that the request was logged
+		// Wait for the worker to process the log and check that the request was logged
+		await waitForLogs(1);
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
 		expect(logs[0].finishReason).toBe("stop");
@@ -181,6 +197,8 @@ describe("test", () => {
 
 	// test for explicitly specifying a provider in the format "provider/model"
 	test("/v1/chat/completions with explicit provider", async () => {
+		// This test has a longer timeout because it needs to wait for the worker to process logs
+		vi.setConfig({ testTimeout: 15000 });
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
@@ -258,6 +276,8 @@ describe("test", () => {
 
 	// test for openllm/auto special case
 	test("/v1/chat/completions with openllm/auto", async () => {
+		// This test has a longer timeout because it needs to wait for the worker to process logs
+		vi.setConfig({ testTimeout: 15000 });
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
@@ -329,6 +349,8 @@ describe("test", () => {
 
 	// test for provider error response and error logging
 	test("/v1/chat/completions with provider error response", async () => {
+		// This test has a longer timeout because it needs to wait for the worker to process logs
+		vi.setConfig({ testTimeout: 15000 });
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
@@ -372,7 +394,8 @@ describe("test", () => {
 		expect(errorResponse.error).toHaveProperty("message");
 		expect(errorResponse.error).toHaveProperty("type", "gateway_error");
 
-		// Check that the error was logged in the database
+		// Wait for the worker to process the log and check that the error was logged in the database
+		await waitForLogs(1);
 		const logs = await db.query.log.findMany({});
 		expect(logs.length).toBe(1);
 
