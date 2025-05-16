@@ -34,7 +34,8 @@ export async function fetchActivity(days = 7) {
 
 	const res = await fetch(`/api/content/activity?${params}`);
 	if (!res.ok) {
-		throw new Error("Failed to fetch activity data");
+		const errorText = await res.text();
+		throw new Error(`Failed to fetch activity data: ${errorText}`);
 	}
 
 	const data: ActivityResponse = await res.json();
