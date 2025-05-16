@@ -1,9 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 
 import { addPasskey } from "@/components/passkeys/add-passkey";
 import { PasskeyList } from "@/components/passkeys/passkey-list";
 import { CachingSettings } from "@/components/settings/caching-settings";
+import {
+	useDeleteAccount,
+	useUpdatePassword,
+	useUpdateUser,
+} from "@/hooks/useUser";
+import { useSession } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -22,6 +29,7 @@ import {
 	TabsList,
 	TabsTrigger,
 } from "@/lib/components/tabs";
+import { toast } from "@/lib/components/use-toast";
 
 export const Route = createFileRoute("/dashboard/_layout/settings")({
 	component: RouteComponent,
@@ -29,6 +37,104 @@ export const Route = createFileRoute("/dashboard/_layout/settings")({
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
+	const { data: session } = useSession();
+	const user = session?.user;
+
+	const [name, setName] = useState(user?.name || "");
+	const [email, setEmail] = useState(user?.email || "");
+
+	const [currentPassword, setCurrentPassword] = useState("");
+	const [newPassword, setNewPassword] = useState("");
+	const [confirmPassword, setConfirmPassword] = useState("");
+
+	const updateUserMutation = useUpdateUser();
+	const updatePasswordMutation = useUpdatePassword();
+	const deleteAccountMutation = useDeleteAccount();
+	const navigate = useNavigate();
+
+	const handleUpdateUser = async () => {
+		try {
+			await updateUserMutation.mutateAsync({
+				name: name || undefined,
+				email: email || undefined,
+			});
+
+			toast({
+				title: "Success",
+				description: "Your account information has been updated.",
+			});
+		} catch (error) {
+			toast({
+				title: "Error",
+				description:
+					error instanceof Error ? error.message : "An error occurred",
+				variant: "destructive",
+			});
+		}
+	};
+
+	const handleUpdatePassword = async () => {
+		if (newPassword !== confirmPassword) {
+			toast({
+				title: "Error",
+				description: "New passwords do not match",
+				variant: "destructive",
+			});
+			return;
+		}
+
+		try {
+			await updatePasswordMutation.mutateAsync({
+				currentPassword,
+				newPassword,
+			});
+
+			setCurrentPassword("");
+			setNewPassword("");
+			setConfirmPassword("");
+
+			toast({
+				title: "Success",
+				description: "Your password has been updated.",
+			});
+		} catch (error) {
+			toast({
+				title: "Error",
+				description:
+					error instanceof Error ? error.message : "An error occurred",
+				variant: "destructive",
+			});
+		}
+	};
+
+	const handleDeleteAccount = async () => {
+		const confirmed = window.confirm(
+			"Are you sure you want to delete your account? This action cannot be undone.",
+		);
+
+		if (!confirmed) {
+			return;
+		}
+
+		try {
+			await deleteAccountMutation.mutateAsync();
+
+			navigate({ to: "/login" });
+
+			toast({
+				title: "Account Deleted",
+				description: "Your account has been successfully deleted.",
+			});
+		} catch (error) {
+			toast({
+				title: "Error",
+				description:
+					error instanceof Error ? error.message : "An error occurred",
+				variant: "destructive",
+			});
+		}
+	};
+
 	return (
 		<div className="flex flex-col">
 			<div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -64,16 +170,29 @@ function RouteComponent() {
 							<CardContent className="space-y-4">
 								<div className="space-y-2">
 									<Label htmlFor="name">Name</Label>
-									<Input id="name" defaultValue="Admin User" />
+									<Input
+										id="name"
+										value={name}
+										onChange={(e) => setName(e.target.value)}
+									/>
 								</div>
 								<div className="space-y-2">
 									<Label htmlFor="email">Email</Label>
-									<Input id="email" defaultValue="admin@example.com" />
+									<Input
+										id="email"
+										value={email}
+										onChange={(e) => setEmail(e.target.value)}
+									/>
 								</div>
 							</CardContent>
 							<CardFooter className="flex justify-between">
 								<Button variant="outline">Cancel</Button>
-								<Button>Save Changes</Button>
+								<Button
+									onClick={handleUpdateUser}
+									disabled={updateUserMutation.isPending}
+								>
+									{updateUserMutation.isPending ? "Saving..." : "Save Changes"}
+								</Button>
 							</CardFooter>
 						</Card>
 						<Card>
@@ -91,7 +210,15 @@ function RouteComponent() {
 								</p>
 							</CardContent>
 							<CardFooter>
-								<Button variant="destructive">Delete Account</Button>
+								<Button
+									variant="destructive"
+									onClick={handleDeleteAccount}
+									disabled={deleteAccountMutation.isPending}
+								>
+									{deleteAccountMutation.isPending
+										? "Deleting..."
+										: "Delete Account"}
+								</Button>
 							</CardFooter>
 						</Card>
 					</TabsContent>
@@ -104,20 +231,42 @@ function RouteComponent() {
 							<CardContent className="space-y-4">
 								<div className="space-y-2">
 									<Label htmlFor="current-password">Current Password</Label>
-									<Input id="current-password" type="password" />
+									<Input
+										id="current-password"
+										type="password"
+										value={currentPassword}
+										onChange={(e) => setCurrentPassword(e.target.value)}
+									/>
 								</div>
 								<Separator />
 								<div className="space-y-2">
 									<Label htmlFor="new-password">New Password</Label>
-									<Input id="new-password" type="password" />
+									<Input
+										id="new-password"
+										type="password"
+										value={newPassword}
+										onChange={(e) => setNewPassword(e.target.value)}
+									/>
 								</div>
 								<div className="space-y-2">
 									<Label htmlFor="confirm-password">Confirm New Password</Label>
-									<Input id="confirm-password" type="password" />
+									<Input
+										id="confirm-password"
+										type="password"
+										value={confirmPassword}
+										onChange={(e) => setConfirmPassword(e.target.value)}
+									/>
 								</div>
 							</CardContent>
 							<CardFooter>
-								<Button>Update Password</Button>
+								<Button
+									onClick={handleUpdatePassword}
+									disabled={updatePasswordMutation.isPending}
+								>
+									{updatePasswordMutation.isPending
+										? "Updating..."
+										: "Update Password"}
+								</Button>
 							</CardFooter>
 						</Card>
 
