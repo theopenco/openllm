@@ -59,7 +59,7 @@ async function handleProviderFallback({
 	usedModel: string;
 	usedProvider: Provider;
 	requestedModel: string;
-	requestedProvider: string | null;
+	requestedProvider: string | null | undefined;
 	apiKey: any;
 	project: { organizationId: string };
 	providerKey: any;
@@ -67,11 +67,11 @@ async function handleProviderFallback({
 	requestCanBeCanceled: boolean;
 	controller: AbortController;
 	messages: any[];
-	temperature: number | null;
-	max_tokens: number | null;
-	top_p: number | null;
-	frequency_penalty: number | null;
-	presence_penalty: number | null;
+	temperature: number | null | undefined;
+	max_tokens: number | null | undefined;
+	top_p: number | null | undefined;
+	frequency_penalty: number | null | undefined;
+	presence_penalty: number | null | undefined;
 	startTime: number;
 	errorResponseText: string;
 	errorStatus: number;
@@ -623,7 +623,7 @@ chat.openapi(completions, async (c) => {
 
 	// Handle streaming response if requested
 	if (stream) {
-		return streamSSE(c, async (stream) => {
+		return streamSSE(c, async (stream): Promise<void> => {
 			let eventId = 0;
 			let canceled = false;
 
@@ -742,7 +742,7 @@ chat.openapi(completions, async (c) => {
 				if (fallbackResult?.handled) {
 					if (fallbackResult.success) {
 						// The handler will be called recursively with the updated request
-						return chat.openapi(completions, c);
+						return (chat.openapi as any)(completions, c);
 					}
 					return; // Error response has already been sent
 				}
@@ -924,13 +924,8 @@ chat.openapi(completions, async (c) => {
 			}
 
 			// Calculate costs based on the model and token usage
-			const costs = calculateCosts({
-				model: usedModel,
-				provider: usedProvider,
-				promptTokens,
-				completionTokens,
-				totalTokens,
-				content: fullContent,
+			const costs = calculateCosts(usedModel, promptTokens, completionTokens, {
+				completion: fullContent,
 			});
 
 			// Log the request in the database
@@ -1076,7 +1071,7 @@ chat.openapi(completions, async (c) => {
 		if (fallbackResult?.handled) {
 			if (fallbackResult.success) {
 				// The handler will be called recursively with the updated request
-				return chat.openapi(completions, c);
+				return (chat.openapi as any)(completions, c);
 			}
 			return fallbackResult.response; // Error response
 		}
@@ -1174,13 +1169,8 @@ chat.openapi(completions, async (c) => {
 	}
 
 	// Calculate costs based on the model and token usage
-	const costs = calculateCosts({
-		model: usedModel,
-		provider: usedProvider,
-		promptTokens,
-		completionTokens,
-		totalTokens,
-		content,
+	const costs = calculateCosts(usedModel, promptTokens, completionTokens, {
+		completion: content,
 	});
 
 	// Log the request in the database
