@@ -145,18 +145,6 @@ chat.openapi(completions, async (c) => {
 	let usedProvider = requestedProvider;
 	let usedModel = requestedModel;
 
-	if (usedProvider === "openllm" && usedModel === "auto") {
-		// TODO figure out algo
-		usedModel = "gpt-4o-mini";
-		usedProvider = "openai";
-	} else if (usedProvider === "openllm" && usedModel === "custom") {
-		usedProvider = "openllm";
-		usedModel = "custom";
-	} else if (!usedProvider) {
-		// TODO figure out algo
-		usedProvider = modelInfo.providers[0];
-	}
-
 	const auth = c.req.header("Authorization");
 	if (!auth) {
 		throw new HTTPException(401, {
@@ -191,6 +179,100 @@ chat.openapi(completions, async (c) => {
 		throw new HTTPException(401, {
 			message: "Unauthorized: Invalid token",
 		});
+	}
+
+	// Apply routing logic after apiKey is available
+	if (usedProvider === "openllm" && usedModel === "auto") {
+		const providerKeys = await db.query.providerKey.findMany({
+			where: {
+				projectId: {
+					eq: apiKey.projectId,
+				},
+			},
+		});
+
+		const availableProviders = providerKeys.map((key) => key.provider);
+
+		for (const modelDef of models) {
+			if (modelDef.model === "auto" || modelDef.model === "custom") {
+				continue;
+			}
+
+			// Check if any of the model's providers are available
+			const availableModelProviders = modelDef.providers.filter((provider) =>
+				availableProviders.includes(provider),
+			);
+
+			if (availableModelProviders.length > 0) {
+				usedModel = modelDef.model as Model;
+				usedProvider = availableModelProviders[0];
+				break;
+			}
+		}
+
+		if (usedProvider === "openllm") {
+			usedModel = "gpt-4o-mini";
+			usedProvider = "openai";
+		}
+	} else if (usedProvider === "openllm" && usedModel === "custom") {
+		usedProvider = "openllm";
+		usedModel = "custom";
+	} else if (!usedProvider) {
+		if (modelInfo.providers.length === 1) {
+			usedProvider = modelInfo.providers[0];
+		} else {
+			const providerKeys = await db.query.providerKey.findMany({
+				where: {
+					projectId: {
+						eq: apiKey.projectId,
+					},
+					provider: {
+						in: modelInfo.providers,
+					},
+				},
+			});
+
+			const availableProviders = providerKeys.map((key) => key.provider);
+
+			// Filter model providers to only those available
+			const availableModelProviders = modelInfo.providers.filter((provider) =>
+				availableProviders.includes(provider),
+			);
+
+			if (availableModelProviders.length === 0) {
+				throw new HTTPException(400, {
+					message: `No API key set for provider: ${modelInfo.providers[0]}. Please add a provider key in your settings.`,
+				});
+			}
+
+			const modelWithPricing = models.find(
+				(m) => m.model === usedModel && "inputPrice" in m && "outputPrice" in m,
+			);
+
+			if (
+				modelWithPricing &&
+				"inputPrice" in modelWithPricing &&
+				"outputPrice" in modelWithPricing
+			) {
+				let cheapestProvider = availableModelProviders[0];
+				let lowestPrice = Number.MAX_VALUE;
+
+				for (const provider of availableModelProviders) {
+					const totalPrice =
+						(modelWithPricing.inputPrice || 0) +
+						(modelWithPricing.outputPrice || 0);
+
+					if (totalPrice < lowestPrice) {
+						lowestPrice = totalPrice;
+						cheapestProvider = provider;
+					}
+				}
+
+				usedProvider = cheapestProvider;
+			} else {
+				usedProvider = availableModelProviders[0];
+			}
+		}
 	}
 
 	let url: string | undefined;
