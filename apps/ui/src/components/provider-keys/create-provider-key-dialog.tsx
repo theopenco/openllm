@@ -5,6 +5,7 @@ import { useCreateProviderKey, useProviderKeys } from "./hooks/useProviderKeys";
 import anthropicLogo from "@/assets/models/anthropic.svg?react";
 import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
 import InferenceLogo from "@/assets/models/inference-net.svg?react";
+import KlusterLogo from "@/assets/models/kluster-ai.svg?react";
 import OpenAiLogo from "@/assets/models/openai.svg?react";
 import OpenLLMLogo from "@/assets/models/openllm.svg?react";
 import { Button } from "@/lib/components/button";
@@ -36,7 +37,7 @@ const providerLogoComponents: Partial<
 	anthropic: anthropicLogo,
 	"google-vertex": GoogleVertexLogo,
 	"inference.net": InferenceLogo,
-	"kluster.ai": null,
+	"kluster.ai": KlusterLogo,
 };
 
 export function CreateProviderKeyDialog({
