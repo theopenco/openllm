@@ -82,7 +82,14 @@ function RouteComponent() {
 	async function handlePasskeySignIn() {
 		setIsLoading(true);
 		try {
-			await signIn.passkey();
+			const res = await signIn.passkey();
+			if (res?.error) {
+				toast({
+					title: res.error.message || "Failed to sign in with passkey",
+					variant: "destructive",
+				});
+				return;
+			}
 			toast({ title: "Login successful" });
 			navigate({ to: "/dashboard" });
 		} catch (error: any) {

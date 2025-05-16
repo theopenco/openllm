@@ -34,6 +34,7 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 			session: tables.session,
 			account: tables.account,
 			verification: tables.verification,
+			passkey: tables.passkey,
 		},
 	}),
 	emailAndPassword: {

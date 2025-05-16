@@ -28,7 +28,7 @@ export function PasskeyList() {
 	const fetchPasskeys = async () => {
 		setLoading(true);
 		try {
-			const response = await fetch("/api/user/me/passkeys");
+			const response = await fetch("/api/content/user/me/passkeys");
 			if (response.ok) {
 				const data = await response.json();
 				setPasskeys(data.passkeys);
@@ -51,7 +51,7 @@ export function PasskeyList() {
 	const deletePasskey = async (id: string) => {
 		setDeleting(id);
 		try {
-			const response = await fetch(`/api/user/me/passkeys/${id}`, {
+			const response = await fetch(`/api/user/me/content/passkeys/${id}`, {
 				method: "DELETE",
 			});
 			if (response.ok) {

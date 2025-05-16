@@ -60,4 +60,10 @@ export const relations = defineRelations(schema, (r) => ({
 			to: r.providerKey.id,
 		}),
 	},
+	passkey: {
+		user: r.one.user({
+			from: r.passkey.userId,
+			to: r.user.id,
+		}),
+	},
 }));
