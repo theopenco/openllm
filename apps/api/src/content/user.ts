@@ -307,17 +307,37 @@ user.openapi(updatePassword, async (c) => {
 
 	const { currentPassword, newPassword } = await c.req.json();
 
-	const account = await db.query.account.findFirst({
+	const userRecord = await db.query.user.findFirst({
+		where: {
+			id: authUser.id,
+		},
+	});
+
+	if (!userRecord) {
+		throw new HTTPException(404, {
+			message: "User not found",
+		});
+	}
+
+	let account = await db.query.account.findFirst({
 		where: {
 			userId: authUser.id,
 			providerId: "email",
 		},
 	});
 
-	if (!account || !account.password) {
-		throw new HTTPException(404, {
-			message: "Account not found",
-		});
+	if (!account) {
+		const [newAccount] = await db
+			.insert(tables.account)
+			.values({
+				userId: authUser.id,
+				providerId: "email",
+				accountId: authUser.email,
+				password: currentPassword, // Use current password initially
+			})
+			.returning();
+
+		account = newAccount;
 	}
 
 	try {
