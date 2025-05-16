@@ -37,6 +37,7 @@
 		"@steebchen/prettier-config": "^1.4.2",
 		"concurrently": "^9.1.2",
 		"cross-env-shell": "7.0.3",
+		"dotenv": "16.5.0",
 		"esbuild-fix-imports-plugin": "1.0.20",
 		"eslint": "^9.24.0",
 		"husky": "^9.1.7",

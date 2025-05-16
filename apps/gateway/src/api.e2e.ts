@@ -1,4 +1,5 @@
 import { db, tables } from "@openllm/db";
+import "dotenv/config";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
