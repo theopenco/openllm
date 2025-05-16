@@ -2,7 +2,7 @@ import { db, tables } from "@openllm/db";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { app } from "..";
-import { createTestUser } from "../testing";
+import { createTestUser, deleteAll } from "../testing";
 
 describe("activity endpoint", () => {
 	let token: string;
@@ -128,14 +128,7 @@ describe("activity endpoint", () => {
 	});
 
 	afterEach(async () => {
-		// Clean up test data
-		await db.delete(tables.log);
-		await db.delete(tables.providerKey);
-		await db.delete(tables.apiKey);
-		await db.delete(tables.project);
-		await db.delete(tables.userOrganization);
-		await db.delete(tables.organization);
-		await db.delete(tables.user);
+		await deleteAll();
 	});
 
 	test("GET /content/activity should return activity data grouped by day", async () => {
