@@ -41,7 +41,8 @@ export async function fetchLogs(options: FetchLogsOptions = {}) {
 
 	const res = await fetch(`/api/content/logs?${params}`);
 	if (!res.ok) {
-		throw new Error("Failed to fetch logs");
+		const errorText = await res.text();
+		throw new Error(`Failed to fetch logs: ${errorText}`);
 	}
 
 	const data: { logs: Log[] } = await res.json();
