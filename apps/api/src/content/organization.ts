@@ -27,16 +27,6 @@ const getOrganizations = createRoute({
 			},
 			description: "List of organizations the user belongs to",
 		},
-		401: {
-			content: {
-				"application/json": {
-					schema: z.object({
-						message: z.string(),
-					}),
-				},
-			},
-			description: "Unauthorized",
-		},
 	},
 });
 
@@ -82,36 +72,6 @@ const getProjects = createRoute({
 				},
 			},
 			description: "List of projects for the specified organization",
-		},
-		401: {
-			content: {
-				"application/json": {
-					schema: z.object({
-						message: z.string(),
-					}),
-				},
-			},
-			description: "Unauthorized",
-		},
-		403: {
-			content: {
-				"application/json": {
-					schema: z.object({
-						message: z.string(),
-					}),
-				},
-			},
-			description: "Forbidden - User does not have access to this organization",
-		},
-		404: {
-			content: {
-				"application/json": {
-					schema: z.object({
-						message: z.string(),
-					}),
-				},
-			},
-			description: "Organization not found",
 		},
 	},
 });
