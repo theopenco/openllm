@@ -38,7 +38,7 @@ export function useDefaultProject() {
 			const defaultOrg = orgsData.organizations[0];
 
 			const projectsRes = await fetch(
-				`${API_BASE_PROJECTS}?organizationId=${defaultOrg.id}`,
+				`${API_BASE_ORGS}/${defaultOrg.id}/projects`,
 				{
 					credentials: "include",
 				},
