@@ -29,6 +29,179 @@ function getProviderHeaders(
 	}
 }
 
+async function handleProviderFallback({
+	c,
+	usedModel,
+	usedProvider,
+	requestedModel,
+	requestedProvider,
+	apiKey,
+	project,
+	providerKey,
+	requestBody,
+	requestCanBeCanceled,
+	controller,
+	messages,
+	temperature,
+	max_tokens,
+	top_p,
+	frequency_penalty,
+	presence_penalty,
+	startTime,
+	errorResponseText,
+	errorStatus,
+	errorStatusText,
+	isStreaming,
+	stream,
+	eventId,
+}: {
+	c: any;
+	usedModel: string;
+	usedProvider: Provider;
+	requestedModel: string;
+	requestedProvider: string | null;
+	apiKey: any;
+	project: { organizationId: string };
+	providerKey: any;
+	requestBody: any;
+	requestCanBeCanceled: boolean;
+	controller: AbortController;
+	messages: any[];
+	temperature: number | null;
+	max_tokens: number | null;
+	top_p: number | null;
+	frequency_penalty: number | null;
+	presence_penalty: number | null;
+	startTime: number;
+	errorResponseText: string;
+	errorStatus: number;
+	errorStatusText: string;
+	isStreaming: boolean;
+	stream?: any;
+	eventId?: number;
+}) {
+	// Check if model has alternative providers to try
+	const modelInfo = models.find((m) => m.model === usedModel);
+	const providers = modelInfo?.providers as string[] | undefined;
+	const currentProviderIndex = providers?.indexOf(usedProvider) ?? -1;
+
+	if (
+		!providers ||
+		currentProviderIndex < 0 ||
+		currentProviderIndex >= providers.length - 1
+	) {
+		return null;
+	}
+
+	const nextProvider = providers[currentProviderIndex + 1] as Provider;
+	console.log(
+		`Provider ${usedProvider} failed, trying next provider: ${nextProvider}`,
+	);
+
+	// Get the provider key for the next provider
+	const nextProviderKey = await db.query.providerKey.findFirst({
+		where: {
+			projectId: {
+				eq: apiKey.projectId,
+			},
+			provider: {
+				eq: nextProvider,
+			},
+		},
+	});
+
+	if (!nextProviderKey) {
+		// Log the original error and return informative message about missing next provider key
+		await insertLog({
+			organizationId: project.organizationId,
+			projectId: apiKey.projectId,
+			apiKeyId: apiKey.id,
+			providerKeyId: providerKey.id,
+			duration: Date.now() - startTime,
+			usedModel: usedModel,
+			usedProvider: usedProvider,
+			requestedModel: requestedModel,
+			requestedProvider: requestedProvider,
+			messages: messages,
+			responseSize: errorResponseText.length,
+			content: null,
+			finishReason: "gateway_error",
+			promptTokens: null,
+			completionTokens: null,
+			totalTokens: null,
+			temperature: temperature || null,
+			maxTokens: max_tokens || null,
+			topP: top_p || null,
+			frequencyPenalty: frequency_penalty || null,
+			presencePenalty: presence_penalty || null,
+			hasError: true,
+			streamed: isStreaming,
+			canceled: false,
+			errorDetails: {
+				statusCode: errorStatus,
+				statusText: errorStatusText,
+				responseText: errorResponseText,
+			},
+			estimatedCost: false,
+		});
+
+		if (isStreaming && stream) {
+			await stream.writeSSE({
+				event: "error",
+				data: JSON.stringify({
+					error: {
+						message: `Error from provider ${usedProvider}: ${errorStatus} ${errorStatusText}. Could not fallback to ${nextProvider}: No API key set for this provider.`,
+						type: "gateway_error",
+						param: null,
+						code: "gateway_error",
+					},
+				}),
+				id: String(eventId),
+			});
+			await stream.writeSSE({
+				event: "done",
+				data: "[DONE]",
+				id: String(eventId! + 1),
+			});
+			return { handled: true, success: false };
+		}
+
+		return {
+			handled: true,
+			success: false,
+			response: c.json(
+				{
+					error: {
+						message: `Error from provider ${usedProvider}: ${errorStatus} ${errorStatusText}. Could not fallback to ${nextProvider}: No API key set for this provider.`,
+						type: "gateway_error",
+						param: null,
+						code: "gateway_error",
+					},
+				},
+				500,
+			),
+		};
+	}
+
+	// Update the request to use the next provider
+	const originalValid = c.req.valid;
+	c.req.valid = () => ({
+		...originalValid("json"),
+		model: `${nextProvider}/${usedModel}`,
+	});
+
+	// For streaming responses, clean up event listeners before retrying
+	if (isStreaming) {
+		c.req.raw.signal.removeEventListener("abort", (e: any) => {
+			if (requestCanBeCanceled) {
+				controller.abort();
+			}
+		});
+	}
+
+	return { handled: true, success: true, nextProvider, nextProviderKey };
+}
+
 export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
@@ -464,412 +637,117 @@ chat.openapi(completions, async (c) => {
 				}
 			};
 
-			// Add event listener for the abort event on the connection
+			// Add event listener for the 'close' event on the connection
 			c.req.raw.signal.addEventListener("abort", onAbort);
+
+			// Make the request to the provider
+			const headers = getProviderHeaders(usedProvider, providerKey);
+			headers["Content-Type"] = "application/json";
 
 			let res;
 			try {
-				const headers = getProviderHeaders(usedProvider, providerKey);
-				headers["Content-Type"] = "application/json";
-
 				res = await fetch(url, {
 					method: "POST",
 					headers,
 					body: JSON.stringify(requestBody),
-					signal: requestCanBeCanceled ? controller.signal : undefined,
+					signal: controller.signal,
 				});
 			} catch (error) {
-				// Clean up the event listeners
-				c.req.raw.signal.removeEventListener("abort", onAbort);
+				console.error("error", error);
+				await stream.writeSSE({
+					event: "error",
+					data: JSON.stringify({
+						error: {
+							message: `Error from provider: ${error}`,
+							type: "gateway_error",
+							param: null,
+							code: "gateway_error",
+						},
+					}),
+					id: String(eventId++),
+				});
+				await stream.writeSSE({
+					event: "done",
+					data: "[DONE]",
+					id: String(eventId++),
+				});
 
-				if (error instanceof Error && error.name === "AbortError") {
-					console.log("Streaming request was canceled by the client");
+				// Log the error in the database
+				await insertLog({
+					organizationId: project.organizationId,
+					projectId: apiKey.projectId,
+					apiKeyId: apiKey.id,
+					providerKeyId: providerKey.id,
+					duration: Date.now() - startTime,
+					usedModel: usedModel,
+					usedProvider: usedProvider,
+					requestedModel: requestedModel,
+					requestedProvider: requestedProvider,
+					messages: messages,
+					responseSize: 0,
+					content: null,
+					finishReason: "gateway_error",
+					promptTokens: null,
+					completionTokens: null,
+					totalTokens: null,
+					temperature: temperature || null,
+					maxTokens: max_tokens || null,
+					topP: top_p || null,
+					frequencyPenalty: frequency_penalty || null,
+					presencePenalty: presence_penalty || null,
+					hasError: true,
+					streamed: true,
+					canceled: false,
+					errorDetails: {
+						statusCode: 500,
+						statusText: "Error",
+						responseText: String(error),
+					},
+				});
 
-					// Log the canceled request
-					await insertLog({
-						organizationId: project.organizationId,
-						projectId: apiKey.projectId,
-						apiKeyId: apiKey.id,
-						providerKeyId: providerKey.id,
-						duration: Date.now() - startTime,
-						usedModel: usedModel,
-						usedProvider: usedProvider,
-						requestedModel: requestedModel,
-						requestedProvider: requestedProvider,
-						messages: messages,
-						responseSize: 0,
-						content: null,
-						finishReason: "canceled",
-						promptTokens: null,
-						completionTokens: null,
-						totalTokens: null,
-						temperature: temperature || null,
-						maxTokens: max_tokens || null,
-						topP: top_p || null,
-						frequencyPenalty: frequency_penalty || null,
-						presencePenalty: presence_penalty || null,
-						hasError: false,
-						streamed: true,
-						canceled: true,
-						errorDetails: null,
-					});
-
-					// Send a cancellation event to the client
-					await stream.writeSSE({
-						event: "canceled",
-						data: JSON.stringify({
-							message: "Request canceled by client",
-						}),
-						id: String(eventId++),
-					});
-					await stream.writeSSE({
-						event: "done",
-						data: "[DONE]",
-						id: String(eventId++),
-					});
-					return;
-				} else {
-					throw error;
-				}
+				return;
 			}
 
 			if (!res.ok) {
 				console.error("error", url, res.status, res.statusText);
 				const errorResponseText = await res.text();
 
-				// Check if model has alternative providers to try
-				const modelInfo = models.find((m) => m.model === usedModel);
-				const providers = modelInfo?.providers as string[] | undefined;
-				const currentProviderIndex = providers?.indexOf(usedProvider) ?? -1;
+				const fallbackResult = await handleProviderFallback({
+					c,
+					usedModel,
+					usedProvider,
+					requestedModel,
+					requestedProvider,
+					apiKey,
+					project,
+					providerKey,
+					requestBody,
+					requestCanBeCanceled,
+					controller,
+					messages,
+					temperature,
+					max_tokens,
+					top_p,
+					frequency_penalty,
+					presence_penalty,
+					startTime,
+					errorResponseText,
+					errorStatus: res.status,
+					errorStatusText: res.statusText,
+					isStreaming: true,
+					stream,
+					eventId,
+				});
 
-				if (
-					providers &&
-					currentProviderIndex >= 0 &&
-					currentProviderIndex < providers.length - 1
-				) {
-					const nextProvider = providers[currentProviderIndex + 1] as Provider;
-					console.log(
-						`Provider ${usedProvider} failed, trying next provider: ${nextProvider}`,
-					);
-
-					// Get the provider key for the next provider
-					const nextProviderKey = await db.query.providerKey.findFirst({
-						where: {
-							projectId: {
-								eq: apiKey.projectId,
-							},
-							provider: {
-								eq: nextProvider,
-							},
-						},
-					});
-
-					if (!nextProviderKey) {
-						await stream.writeSSE({
-							event: "error",
-							data: JSON.stringify({
-								error: {
-									message: `Error from provider ${usedProvider}: ${res.status} ${res.statusText}. Could not fallback to ${nextProvider}: No API key set for this provider.`,
-									type: "gateway_error",
-									param: null,
-									code: "gateway_error",
-								},
-							}),
-							id: String(eventId++),
-						});
-						await stream.writeSSE({
-							event: "done",
-							data: "[DONE]",
-							id: String(eventId++),
-						});
-
-						// Log the error
-						await insertLog({
-							organizationId: project.organizationId,
-							projectId: apiKey.projectId,
-							apiKeyId: apiKey.id,
-							providerKeyId: providerKey.id,
-							duration: Date.now() - startTime,
-							usedModel: usedModel,
-							usedProvider: usedProvider,
-							requestedModel: requestedModel,
-							requestedProvider: requestedProvider,
-							messages: messages,
-							responseSize: errorResponseText.length,
-							content: null,
-							finishReason: "gateway_error",
-							promptTokens: null,
-							completionTokens: null,
-							totalTokens: null,
-							temperature: temperature || null,
-							maxTokens: max_tokens || null,
-							topP: top_p || null,
-							frequencyPenalty: frequency_penalty || null,
-							presencePenalty: presence_penalty || null,
-							hasError: true,
-							streamed: true,
-							canceled: false,
-							errorDetails: {
-								statusCode: res.status,
-								statusText: res.statusText,
-								responseText: errorResponseText,
-							},
-						});
-
-						return;
+				if (fallbackResult?.handled) {
+					if (fallbackResult.success) {
+						// The handler will be called recursively with the updated request
+						return chat.openapi(completions, c);
 					}
-
-					// Clean up event listeners before retrying
-					c.req.raw.signal.removeEventListener("abort", onAbort);
-
-					// Determine the fallback URL based on provider
-					let fallbackUrl: string;
-					if (nextProviderKey.baseUrl) {
-						fallbackUrl = nextProviderKey.baseUrl;
-					} else {
-						// Use the default URL based on provider
-						switch (nextProvider) {
-							case "openai":
-								fallbackUrl =
-									process.env.OPENAI_BASE_URL || "https://api.openai.com";
-								break;
-							case "anthropic":
-								fallbackUrl =
-									process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com";
-								break;
-							case "google-vertex":
-								fallbackUrl =
-									process.env.VERTEX_BASE_URL ||
-									"https://generativelanguage.googleapis.com";
-								break;
-							default:
-								throw new Error(`No base URL for provider: ${nextProvider}`);
-						}
-					}
-
-					switch (nextProvider) {
-						case "anthropic":
-							fallbackUrl += "/v1/messages";
-							break;
-						case "google-vertex":
-							fallbackUrl += "/v1beta/models/" + usedModel + ":generateContent";
-							break;
-						default:
-							fallbackUrl += "/v1/chat/completions";
-					}
-
-					const fallbackHeaders = getProviderHeaders(
-						nextProvider,
-						nextProviderKey,
-					);
-					fallbackHeaders["Content-Type"] = "application/json";
-
-					try {
-						const fallbackRes = await fetch(fallbackUrl, {
-							method: "POST",
-							headers: fallbackHeaders,
-							body: JSON.stringify(requestBody),
-							signal: requestCanBeCanceled ? controller.signal : undefined,
-						});
-
-						if (!fallbackRes.ok) {
-							// If the fallback also fails, send error
-							const fallbackErrorText = await fallbackRes.text();
-							await stream.writeSSE({
-								event: "error",
-								data: JSON.stringify({
-									error: {
-										message: `Error from fallback provider ${nextProvider}: ${fallbackRes.status} ${fallbackRes.statusText}`,
-										type: "gateway_error",
-										param: null,
-										code: "gateway_error",
-									},
-								}),
-								id: String(eventId++),
-							});
-							await stream.writeSSE({
-								event: "done",
-								data: "[DONE]",
-								id: String(eventId++),
-							});
-
-							// Log the fallback error
-							await insertLog({
-								organizationId: project.organizationId,
-								projectId: apiKey.projectId,
-								apiKeyId: apiKey.id,
-								providerKeyId: nextProviderKey.id,
-								duration: Date.now() - startTime,
-								usedModel: usedModel,
-								usedProvider: nextProvider,
-								requestedModel: requestedModel,
-								requestedProvider: requestedProvider,
-								messages: messages,
-								responseSize: fallbackErrorText.length,
-								content: null,
-								finishReason: "gateway_error",
-								promptTokens: null,
-								completionTokens: null,
-								totalTokens: null,
-								temperature: temperature || null,
-								maxTokens: max_tokens || null,
-								topP: top_p || null,
-								frequencyPenalty: frequency_penalty || null,
-								presencePenalty: presence_penalty || null,
-								hasError: true,
-								streamed: true,
-								canceled: false,
-								errorDetails: {
-									statusCode: fallbackRes.status,
-									statusText: fallbackRes.statusText,
-									responseText: fallbackErrorText,
-								},
-							});
-
-							return;
-						}
-
-						// Process the successful fallback response
-						if (!fallbackRes.body) {
-							await stream.writeSSE({
-								event: "error",
-								data: JSON.stringify({
-									error: {
-										message: "No response body from fallback provider",
-										type: "gateway_error",
-										param: null,
-										code: "gateway_error",
-									},
-								}),
-								id: String(eventId++),
-							});
-							await stream.writeSSE({
-								event: "done",
-								data: "[DONE]",
-								id: String(eventId++),
-							});
-							return;
-						}
-
-						// Process the fallback response stream
-						const fallbackReader = fallbackRes.body.getReader();
-						const fallbackDecoder = new TextDecoder();
-						let content = "";
-						let finishReason = null;
-						let promptTokens = null;
-
-						try {
-							while (true) {
-								const { done, value } = await fallbackReader.read();
-								if (done) {
-									break;
-								}
-
-								const chunk = fallbackDecoder.decode(value);
-								const lines = chunk.split("\n");
-
-								for (const line of lines) {
-									if (line.trim() === "") {
-										continue;
-									}
-
-									if (line.startsWith("data: ")) {
-										if (line.includes("[DONE]")) {
-											await stream.writeSSE({
-												event: "done",
-												data: "[DONE]",
-												id: String(eventId++),
-											});
-										} else {
-											try {
-												const data = JSON.parse(line.substring(6));
-
-												// Forward the data as a proper SSE event
-												await stream.writeSSE({
-													data: JSON.stringify(data),
-													id: String(eventId++),
-												});
-
-												// Extract completion for logging
-												if (data.choices?.[0]?.delta?.content) {
-													content += data.choices[0].delta.content;
-												}
-
-												// Extract finish reason if present
-												if (data.choices?.[0]?.finish_reason) {
-													finishReason = data.choices[0].finish_reason;
-												}
-
-												// Extract token counts if present
-												if (data.usage) {
-													promptTokens = data.usage.prompt_tokens;
-												}
-											} catch (e) {
-												// Ignore parsing errors for incomplete JSON
-											}
-										}
-									}
-								}
-							}
-						} catch (error) {
-							console.error("Error reading fallback stream:", error);
-						}
-
-						// Log the successful fallback request
-						await insertLog({
-							organizationId: project.organizationId,
-							projectId: apiKey.projectId,
-							apiKeyId: apiKey.id,
-							providerKeyId: nextProviderKey.id,
-							duration: Date.now() - startTime,
-							usedModel: usedModel,
-							usedProvider: nextProvider,
-							requestedModel: requestedModel,
-							requestedProvider: requestedProvider,
-							messages: messages,
-							responseSize: content.length,
-							content,
-							finishReason,
-							promptTokens,
-							completionTokens: null,
-							totalTokens: null,
-							temperature: temperature || null,
-							maxTokens: max_tokens || null,
-							topP: top_p || null,
-							frequencyPenalty: frequency_penalty || null,
-							presencePenalty: presence_penalty || null,
-							hasError: false,
-							streamed: true,
-							canceled: canceled,
-							errorDetails: null,
-						});
-
-						return;
-					} catch (fallbackError) {
-						// Handle any errors in the fallback request
-						console.error("Error with fallback provider:", fallbackError);
-						await stream.writeSSE({
-							event: "error",
-							data: JSON.stringify({
-								error: {
-									message: `Error with fallback provider ${nextProvider}: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`,
-									type: "gateway_error",
-									param: null,
-									code: "gateway_error",
-								},
-							}),
-							id: String(eventId++),
-						});
-						await stream.writeSSE({
-							event: "done",
-							data: "[DONE]",
-							id: String(eventId++),
-						});
-
-						return;
-					}
+					return; // Error response has already been sent
 				}
 
+				// If no fallback was possible, send error response
 				await stream.writeSSE({
 					event: "error",
 					data: JSON.stringify({
@@ -924,6 +802,7 @@ chat.openapi(completions, async (c) => {
 				return;
 			}
 
+			// Check if response body is missing
 			if (!res.body) {
 				await stream.writeSSE({
 					event: "error",
@@ -1041,45 +920,51 @@ chat.openapi(completions, async (c) => {
 				}
 			} catch (error) {
 				console.error("Error reading stream:", error);
-			} finally {
-				// Clean up the event listeners
-				c.req.raw.signal.removeEventListener("abort", onAbort);
-
-				// Log the streaming request
-				const duration = Date.now() - startTime;
-				const costs = calculateCosts(usedModel, promptTokens, completionTokens);
-				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
-					apiKeyId: apiKey.id,
-					providerKeyId: providerKey.id,
-					duration,
-					usedModel: usedModel,
-					usedProvider: usedProvider,
-					requestedModel: requestedModel,
-					requestedProvider: requestedProvider,
-					messages: messages,
-					responseSize: fullContent.length,
-					content: fullContent,
-					finishReason: canceled || !finishReason ? "canceled" : finishReason,
-					promptTokens: promptTokens,
-					completionTokens: completionTokens,
-					totalTokens: totalTokens,
-					temperature: temperature || null,
-					maxTokens: max_tokens || null,
-					topP: top_p || null,
-					frequencyPenalty: frequency_penalty || null,
-					presencePenalty: presence_penalty || null,
-					hasError: false,
-					errorDetails: null,
-					streamed: true,
-					canceled: canceled || !finishReason,
-					inputCost: costs.inputCost,
-					outputCost: costs.outputCost,
-					cost: costs.totalCost,
-					estimatedCost: costs.estimatedCost,
-				});
+				// If there's an error reading the stream, we still want to log what we have
 			}
+
+			// Calculate costs based on the model and token usage
+			const costs = calculateCosts({
+				model: usedModel,
+				provider: usedProvider,
+				promptTokens,
+				completionTokens,
+				totalTokens,
+				content: fullContent,
+			});
+
+			// Log the request in the database
+			await insertLog({
+				organizationId: project.organizationId,
+				projectId: apiKey.projectId,
+				apiKeyId: apiKey.id,
+				providerKeyId: providerKey.id,
+				duration: Date.now() - startTime,
+				usedModel: usedModel,
+				usedProvider: usedProvider,
+				requestedModel: requestedModel,
+				requestedProvider: requestedProvider,
+				messages: messages,
+				responseSize: fullContent.length,
+				content: fullContent,
+				finishReason: finishReason,
+				promptTokens: promptTokens,
+				completionTokens: completionTokens,
+				totalTokens: totalTokens,
+				temperature: temperature || null,
+				maxTokens: max_tokens || null,
+				topP: top_p || null,
+				frequencyPenalty: frequency_penalty || null,
+				presencePenalty: presence_penalty || null,
+				hasError: false,
+				errorDetails: null,
+				streamed: true,
+				canceled: canceled || !finishReason,
+				inputCost: costs.inputCost,
+				outputCost: costs.outputCost,
+				cost: costs.totalCost,
+				estimatedCost: costs.estimatedCost,
+			});
 		});
 	}
 
@@ -1105,31 +990,18 @@ chat.openapi(completions, async (c) => {
 			method: "POST",
 			headers,
 			body: JSON.stringify(requestBody),
-			signal: requestCanBeCanceled ? controller.signal : undefined,
+			signal: controller.signal,
 		});
 	} catch (error) {
-		if (error instanceof Error && error.name === "AbortError") {
-			canceled = true;
-			console.log("Request was canceled by the client");
-		} else {
-			throw error;
-		}
-	} finally {
-		// Clean up the event listener
-		c.req.raw.signal.removeEventListener("abort", onAbort);
-	}
+		console.error("error", error);
 
-	const duration = Date.now() - startTime;
-
-	// If the request was canceled, log it and return a response
-	if (canceled) {
-		// Log the canceled request
+		// Log the error in the database
 		await insertLog({
 			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
-			duration,
+			duration: Date.now() - startTime,
 			usedModel: usedModel,
 			usedProvider: usedProvider,
 			requestedModel: requestedModel,
@@ -1137,7 +1009,7 @@ chat.openapi(completions, async (c) => {
 			messages: messages,
 			responseSize: 0,
 			content: null,
-			finishReason: "canceled",
+			finishReason: "gateway_error",
 			promptTokens: null,
 			completionTokens: null,
 			totalTokens: null,
@@ -1146,24 +1018,28 @@ chat.openapi(completions, async (c) => {
 			topP: top_p || null,
 			frequencyPenalty: frequency_penalty || null,
 			presencePenalty: presence_penalty || null,
-			hasError: false,
+			hasError: true,
 			streamed: false,
-			canceled: true,
-			errorDetails: null,
+			canceled: false,
+			errorDetails: {
+				statusCode: 500,
+				statusText: "Error",
+				responseText: String(error),
+			},
 			estimatedCost: false,
 		});
 
 		return c.json(
 			{
 				error: {
-					message: "Request canceled by client",
-					type: "canceled",
+					message: `Error from provider: ${error}`,
+					type: "gateway_error",
 					param: null,
-					code: "request_canceled",
+					code: "gateway_error",
 				},
 			},
-			400,
-		); // Using 400 status code for client closed request
+			500,
+		);
 	}
 
 	if (res && !res.ok) {
@@ -1172,312 +1048,37 @@ chat.openapi(completions, async (c) => {
 		// Get the error response text
 		const errorResponseText = await res.text();
 
-		// Check if model has alternative providers to try
-		const modelInfo = models.find((m) => m.model === usedModel);
-		const providers = modelInfo?.providers as string[] | undefined;
-		const currentProviderIndex = providers?.indexOf(usedProvider) ?? -1;
+		const fallbackResult = await handleProviderFallback({
+			c,
+			usedModel,
+			usedProvider,
+			requestedModel,
+			requestedProvider,
+			apiKey,
+			project,
+			providerKey,
+			requestBody,
+			requestCanBeCanceled,
+			controller,
+			messages,
+			temperature,
+			max_tokens,
+			top_p,
+			frequency_penalty,
+			presence_penalty,
+			startTime: startTime,
+			errorResponseText,
+			errorStatus: res.status,
+			errorStatusText: res.statusText,
+			isStreaming: false,
+		});
 
-		if (
-			providers &&
-			currentProviderIndex >= 0 &&
-			currentProviderIndex < providers.length - 1
-		) {
-			const nextProvider = providers[currentProviderIndex + 1] as Provider;
-			console.log(
-				`Provider ${usedProvider} failed, trying next provider: ${nextProvider}`,
-			);
-
-			// Get the provider key for the next provider
-			const nextProviderKey = await db.query.providerKey.findFirst({
-				where: {
-					projectId: {
-						eq: apiKey.projectId,
-					},
-					provider: {
-						eq: nextProvider,
-					},
-				},
-			});
-
-			if (!nextProviderKey) {
-				// Log the original error and return informative message about missing next provider key
-				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
-					apiKeyId: apiKey.id,
-					providerKeyId: providerKey.id,
-					duration,
-					usedModel: usedModel,
-					usedProvider: usedProvider,
-					requestedModel: requestedModel,
-					requestedProvider: requestedProvider,
-					messages: messages,
-					responseSize: errorResponseText.length,
-					content: null,
-					finishReason: "gateway_error",
-					promptTokens: null,
-					completionTokens: null,
-					totalTokens: null,
-					temperature: temperature || null,
-					maxTokens: max_tokens || null,
-					topP: top_p || null,
-					frequencyPenalty: frequency_penalty || null,
-					presencePenalty: presence_penalty || null,
-					hasError: true,
-					streamed: false,
-					canceled: false,
-					errorDetails: {
-						statusCode: res.status,
-						statusText: res.statusText,
-						responseText: errorResponseText,
-					},
-					estimatedCost: false,
-				});
-
-				return c.json(
-					{
-						error: {
-							message: `Error from provider ${usedProvider}: ${res.status} ${res.statusText}. Could not fallback to ${nextProvider}: No API key set for this provider.`,
-							type: "gateway_error",
-							param: null,
-							code: "gateway_error",
-						},
-					},
-					500,
-				);
+		if (fallbackResult?.handled) {
+			if (fallbackResult.success) {
+				// The handler will be called recursively with the updated request
+				return chat.openapi(completions, c);
 			}
-
-			// Determine the fallback URL based on provider
-			let fallbackUrl: string;
-			if (nextProviderKey.baseUrl) {
-				fallbackUrl = nextProviderKey.baseUrl;
-			} else {
-				// Use the default URL based on provider
-				switch (nextProvider) {
-					case "openai":
-						fallbackUrl =
-							process.env.OPENAI_BASE_URL || "https://api.openai.com";
-						break;
-					case "anthropic":
-						fallbackUrl =
-							process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com";
-						break;
-					case "google-vertex":
-						fallbackUrl =
-							process.env.VERTEX_BASE_URL ||
-							"https://generativelanguage.googleapis.com";
-						break;
-					default:
-						throw new Error(`No base URL for provider: ${nextProvider}`);
-				}
-			}
-
-			switch (nextProvider) {
-				case "anthropic":
-					fallbackUrl += "/v1/messages";
-					break;
-				case "google-vertex":
-					fallbackUrl += "/v1beta/models/" + usedModel + ":generateContent";
-					break;
-				default:
-					fallbackUrl += "/v1/chat/completions";
-			}
-
-			try {
-				const fallbackHeaders = getProviderHeaders(
-					nextProvider,
-					nextProviderKey,
-				);
-				fallbackHeaders["Content-Type"] = "application/json";
-
-				const fallbackRes = await fetch(fallbackUrl, {
-					method: "POST",
-					headers: fallbackHeaders,
-					body: JSON.stringify(requestBody),
-					signal: requestCanBeCanceled ? controller.signal : undefined,
-				});
-
-				if (!fallbackRes.ok) {
-					// If the fallback also fails, return error
-					const fallbackErrorText = await fallbackRes.text();
-
-					// Log the fallback error
-					await insertLog({
-						organizationId: project.organizationId,
-						projectId: apiKey.projectId,
-						apiKeyId: apiKey.id,
-						providerKeyId: nextProviderKey.id,
-						duration: Date.now() - startTime,
-						usedModel: usedModel,
-						usedProvider: nextProvider,
-						requestedModel: requestedModel,
-						requestedProvider: requestedProvider,
-						messages: messages,
-						responseSize: fallbackErrorText.length,
-						content: null,
-						finishReason: "gateway_error",
-						promptTokens: null,
-						completionTokens: null,
-						totalTokens: null,
-						temperature: temperature || null,
-						maxTokens: max_tokens || null,
-						topP: top_p || null,
-						frequencyPenalty: frequency_penalty || null,
-						presencePenalty: presence_penalty || null,
-						hasError: true,
-						streamed: false,
-						canceled: false,
-						errorDetails: {
-							statusCode: fallbackRes.status,
-							statusText: fallbackRes.statusText,
-							responseText: fallbackErrorText,
-						},
-						estimatedCost: false,
-					});
-
-					return c.json(
-						{
-							error: {
-								message: `Error from fallback provider ${nextProvider}: ${fallbackRes.status} ${fallbackRes.statusText}`,
-								type: "gateway_error",
-								param: null,
-								code: "gateway_error",
-							},
-						},
-						500,
-					);
-				}
-
-				// Process the successful fallback response
-				const fallbackJson = await fallbackRes.json();
-
-				// Extract content and token usage based on provider
-				let fallbackContent = null;
-				let fallbackFinishReason = null;
-				let fallbackPromptTokens = null;
-				let fallbackCompletionTokens = null;
-				let fallbackTotalTokens = null;
-
-				switch (nextProvider) {
-					case "anthropic":
-						fallbackContent = fallbackJson.content?.[0]?.text || null;
-						fallbackFinishReason = fallbackJson.stop_reason || null;
-						break;
-					case "google-vertex":
-						fallbackContent =
-							fallbackJson.candidates?.[0]?.content?.parts?.[0]?.text || null;
-						fallbackFinishReason =
-							fallbackJson.candidates?.[0]?.finishReason || null;
-						break;
-					default: // OpenAI format
-						fallbackContent =
-							fallbackJson.choices?.[0]?.message?.content || null;
-						fallbackFinishReason =
-							fallbackJson.choices?.[0]?.finish_reason || null;
-						fallbackPromptTokens = fallbackJson.usage?.prompt_tokens || null;
-						fallbackCompletionTokens =
-							fallbackJson.usage?.completion_tokens || null;
-						fallbackTotalTokens = fallbackJson.usage?.total_tokens || null;
-				}
-
-				const fallbackCosts = calculateCosts(
-					usedModel,
-					fallbackPromptTokens,
-					fallbackCompletionTokens,
-					{
-						prompt: messages.map((m) => m.content).join("\n"),
-						completion: fallbackContent,
-					},
-				);
-
-				// Log the successful fallback request
-				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
-					apiKeyId: apiKey.id,
-					providerKeyId: nextProviderKey.id,
-					duration: Date.now() - startTime,
-					usedModel: usedModel,
-					usedProvider: nextProvider,
-					requestedModel: requestedModel,
-					requestedProvider: requestedProvider,
-					messages: messages,
-					responseSize: JSON.stringify(fallbackJson).length,
-					content: fallbackContent,
-					finishReason: fallbackFinishReason,
-					promptTokens: fallbackPromptTokens,
-					completionTokens: fallbackCompletionTokens,
-					totalTokens: fallbackTotalTokens,
-					temperature: temperature || null,
-					maxTokens: max_tokens || null,
-					topP: top_p || null,
-					frequencyPenalty: frequency_penalty || null,
-					presencePenalty: presence_penalty || null,
-					hasError: false,
-					streamed: false,
-					canceled: false,
-					errorDetails: null,
-					inputCost: fallbackCosts.inputCost,
-					outputCost: fallbackCosts.outputCost,
-					cost: fallbackCosts.totalCost,
-					estimatedCost: fallbackCosts.estimatedCost,
-				});
-
-				// Return the successful fallback response
-				return c.json(fallbackJson);
-			} catch (fallbackError) {
-				// Handle any errors in the fallback request
-				console.error("Error with fallback provider:", fallbackError);
-
-				// Log the error
-				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
-					apiKeyId: apiKey.id,
-					providerKeyId: nextProviderKey.id,
-					duration: Date.now() - startTime,
-					usedModel: usedModel,
-					usedProvider: nextProvider,
-					requestedModel: requestedModel,
-					requestedProvider: requestedProvider,
-					messages: messages,
-					responseSize: 0,
-					content: null,
-					finishReason: "gateway_error",
-					promptTokens: null,
-					completionTokens: null,
-					totalTokens: null,
-					temperature: temperature || null,
-					maxTokens: max_tokens || null,
-					topP: top_p || null,
-					frequencyPenalty: frequency_penalty || null,
-					presencePenalty: presence_penalty || null,
-					hasError: true,
-					streamed: false,
-					canceled: false,
-					errorDetails: {
-						statusCode: 500,
-						statusText: "Internal Server Error",
-						responseText:
-							fallbackError instanceof Error
-								? fallbackError.message
-								: String(fallbackError),
-					},
-					estimatedCost: false,
-				});
-
-				return c.json(
-					{
-						error: {
-							message: `Error with fallback provider ${nextProvider}: ${fallbackError instanceof Error ? fallbackError.message : String(fallbackError)}`,
-							type: "gateway_error",
-							param: null,
-							code: "gateway_error",
-						},
-					},
-					500,
-				);
-			}
+			return fallbackResult.response; // Error response
 		}
 
 		// Log the error in the database
@@ -1486,7 +1087,7 @@ chat.openapi(completions, async (c) => {
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
-			duration,
+			duration: Date.now() - startTime,
 			usedModel: usedModel,
 			usedProvider: usedProvider,
 			requestedModel: requestedModel,
@@ -1536,10 +1137,11 @@ chat.openapi(completions, async (c) => {
 		throw new Error("No response from provider");
 	}
 
-	const json = await res.json();
-	const responseText = JSON.stringify(json);
+	// Parse the response
+	const responseText = await res.text();
+	const json = JSON.parse(responseText);
 
-	// Extract content and token usage based on provider
+	// Extract content and token counts based on provider
 	let content = null;
 	let finishReason = null;
 	let promptTokens = null;
@@ -1548,40 +1150,46 @@ chat.openapi(completions, async (c) => {
 
 	switch (usedProvider) {
 		case "anthropic":
-			content = json.content?.[0]?.text || null;
-			finishReason = json.stop_reason || null;
+			content = json.content[0]?.text;
+			finishReason = json.stop_reason;
 			break;
 		case "google-vertex":
-			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
-			finishReason = json.candidates?.[0]?.finishReason || null;
+			content = json.candidates[0]?.content?.parts[0]?.text;
+			finishReason = json.candidates[0]?.finishReason;
 			break;
 		case "inference.net":
 		case "kluster.ai":
-			content = json.choices?.[0]?.message?.content || null;
-			finishReason = json.choices?.[0]?.finish_reason || null;
-			promptTokens = json.usage?.prompt_tokens || null;
-			completionTokens = json.usage?.completion_tokens || null;
-			totalTokens = json.usage?.total_tokens || null;
+			content = json.choices[0]?.message?.content;
+			finishReason = json.choices[0]?.finish_reason;
+			promptTokens = json.usage?.prompt_tokens;
+			completionTokens = json.usage?.completion_tokens;
+			totalTokens = json.usage?.total_tokens;
 			break;
 		default: // OpenAI format
-			content = json.choices?.[0]?.message?.content || null;
-			finishReason = json.choices?.[0]?.finish_reason || null;
-			promptTokens = json.usage?.prompt_tokens || null;
-			completionTokens = json.usage?.completion_tokens || null;
-			totalTokens = json.usage?.total_tokens || null;
+			content = json.choices[0]?.message?.content;
+			finishReason = json.choices[0]?.finish_reason;
+			promptTokens = json.usage?.prompt_tokens;
+			completionTokens = json.usage?.completion_tokens;
+			totalTokens = json.usage?.total_tokens;
 	}
 
-	// Log the successful request and response
-	const costs = calculateCosts(usedModel, promptTokens, completionTokens, {
-		prompt: messages.map((m) => m.content).join("\n"),
-		completion: content,
+	// Calculate costs based on the model and token usage
+	const costs = calculateCosts({
+		model: usedModel,
+		provider: usedProvider,
+		promptTokens,
+		completionTokens,
+		totalTokens,
+		content,
 	});
+
+	// Log the request in the database
 	await insertLog({
 		organizationId: project.organizationId,
 		projectId: apiKey.projectId,
 		apiKeyId: apiKey.id,
 		providerKeyId: providerKey.id,
-		duration,
+		duration: Date.now() - startTime,
 		usedModel: usedModel,
 		usedProvider: usedProvider,
 		requestedModel: requestedModel,
@@ -1599,9 +1207,9 @@ chat.openapi(completions, async (c) => {
 		frequencyPenalty: frequency_penalty || null,
 		presencePenalty: presence_penalty || null,
 		hasError: false,
-		streamed: false,
-		canceled: false,
 		errorDetails: null,
+		streamed: false,
+		canceled: canceled,
 		inputCost: costs.inputCost,
 		outputCost: costs.outputCost,
 		cost: costs.totalCost,
