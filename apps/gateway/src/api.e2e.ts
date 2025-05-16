@@ -119,7 +119,7 @@ describe("e2e tests with real provider keys", () => {
 				Authorization: `Bearer real-token`,
 			},
 			body: JSON.stringify({
-				model: "anthropic/claude-3-haiku",
+				model: "anthropic/claude-3-5-sonnet-20241022",
 				messages: [
 					{
 						role: "user",
