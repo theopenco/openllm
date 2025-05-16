@@ -18,3 +18,9 @@ jobs:
     secrets: inherit
     with:
       cmd: pnpm run setup && pnpm test
+
+  # Note: e2e tests are run separately with real provider keys
+  # To run e2e tests, use the e2e workflow manually with proper secrets configured
+  # e2e:
+  #   needs: [test]
+  #   uses: ./.github/workflows/e2e.yml
