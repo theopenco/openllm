@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { addPasskey } from "@/components/passkeys/add-passkey";
 import { PasskeyList } from "@/components/passkeys/passkey-list";
+import { CachingSettings } from "@/components/settings/caching-settings";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -34,12 +35,26 @@ function RouteComponent() {
 				<div className="flex items-center justify-between">
 					<h2 className="text-3xl font-bold tracking-tight">Settings</h2>
 				</div>
-				<Tabs defaultValue="account" className="space-y-4">
+				<Tabs defaultValue="preferences" className="space-y-4">
 					<TabsList>
+						<TabsTrigger value="preferences">Preferences</TabsTrigger>
 						<TabsTrigger value="account">Account</TabsTrigger>
 						<TabsTrigger value="security">Security</TabsTrigger>
 						<TabsTrigger value="advanced">Advanced</TabsTrigger>
 					</TabsList>
+					<TabsContent value="preferences" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<CardTitle>Preferences</CardTitle>
+								<CardDescription>
+									Configure application preferences
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-6">
+								<CachingSettings />
+							</CardContent>
+						</Card>
+					</TabsContent>
 					<TabsContent value="account" className="space-y-4">
 						<Card>
 							<CardHeader>
@@ -135,7 +150,7 @@ function RouteComponent() {
 									Configure advanced system settings
 								</CardDescription>
 							</CardHeader>
-							<CardContent>
+							<CardContent className="space-y-6">
 								<p className="text-muted-foreground text-sm">
 									Advanced settings are available in the configuration file.
 								</p>
