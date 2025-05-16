@@ -307,62 +307,28 @@ user.openapi(updatePassword, async (c) => {
 
 	const { currentPassword, newPassword } = await c.req.json();
 
-	const userRecord = await db.query.user.findFirst({
-		where: {
-			id: authUser.id,
-		},
-	});
+	const cookieHeader = c.req.raw.headers.get("cookie");
+	const sessionToken = cookieHeader
+		?.split(";")
+		.map((c) => c.trim())
+		.find((c) => c.startsWith("better-auth.session_token="))
+		?.split("=")[1];
 
-	if (!userRecord) {
-		throw new HTTPException(404, {
-			message: "User not found",
-		});
-	}
-
-	let account = await db.query.account.findFirst({
-		where: {
-			userId: authUser.id,
-			providerId: "email",
-		},
-	});
-
-	if (!account) {
-		const [newAccount] = await db
-			.insert(tables.account)
-			.values({
-				userId: authUser.id,
-				providerId: "email",
-				accountId: authUser.email,
-				password: currentPassword, // Use current password initially
-			})
-			.returning();
-
-		account = newAccount;
-	}
-
-	try {
-		await auth.api.signInEmail({
-			body: {
-				email: authUser.email,
-				password: currentPassword,
-			},
-		});
-	} catch (error) {
+	if (!sessionToken) {
 		throw new HTTPException(401, {
-			message: "Current password is incorrect",
+			message: "Session token not found",
 		});
 	}
 
-	await db
-		.update(tables.account)
-		.set({
-			password: newPassword, // Store the new password directly
-			updatedAt: new Date(),
-		})
-		.where(
-			eq(tables.account.userId, authUser.id) &&
-				eq(tables.account.providerId, "email"),
-		);
+	await auth.api.changePassword({
+		body: {
+			currentPassword,
+			newPassword,
+		},
+		headers: {
+			Cookie: `better-auth.session_token=${sessionToken}`,
+		},
+	});
 
 	return c.json({
 		message: "Password updated successfully",
