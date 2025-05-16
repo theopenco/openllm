@@ -99,6 +99,9 @@ keysProvider.openapi(create, async (c) => {
 	// Check if a provider key already exists for this provider and project
 	const existingKey = await db.query.providerKey.findFirst({
 		where: {
+			status: {
+				ne: "deleted",
+			},
 			provider: {
 				eq: provider,
 			},
