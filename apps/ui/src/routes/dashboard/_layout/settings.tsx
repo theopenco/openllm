@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
 import { addPasskey } from "@/components/passkeys/add-passkey";
@@ -26,6 +27,7 @@ export const Route = createFileRoute("/dashboard/_layout/settings")({
 });
 
 function RouteComponent() {
+	const queryClient = useQueryClient();
 	return (
 		<div className="flex flex-col">
 			<div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
@@ -115,7 +117,13 @@ function RouteComponent() {
 								<PasskeyList />
 							</CardContent>
 							<CardFooter>
-								<Button onClick={() => addPasskey()}>Add Passkey</Button>
+								<Button
+									onClick={async () => {
+										await addPasskey(queryClient);
+									}}
+								>
+									Add Passkey
+								</Button>
 							</CardFooter>
 						</Card>
 					</TabsContent>

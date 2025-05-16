@@ -64,6 +64,7 @@ function RouteComponent() {
 					toast({
 						title: ctx.error.message || "An unknown error occurred",
 						variant: "destructive",
+						className: "text-white",
 					});
 				},
 			},
@@ -73,6 +74,7 @@ function RouteComponent() {
 			toast({
 				title: error.message || "An unknown error occurred",
 				variant: "destructive",
+				className: "text-white",
 			});
 		}
 
@@ -87,6 +89,7 @@ function RouteComponent() {
 				toast({
 					title: res.error.message || "Failed to sign in with passkey",
 					variant: "destructive",
+					className: "text-white",
 				});
 				return;
 			}
@@ -96,6 +99,7 @@ function RouteComponent() {
 			toast({
 				title: error?.message || "Failed to sign in with passkey",
 				variant: "destructive",
+				className: "text-white",
 			});
 		} finally {
 			setIsLoading(false);

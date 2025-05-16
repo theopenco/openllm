@@ -74,6 +74,7 @@ export function CreateProviderKeyDialog({
 				title: "Error",
 				description: "Please select a provider",
 				variant: "destructive",
+				className: "text-white",
 			});
 			return;
 		}
@@ -83,6 +84,7 @@ export function CreateProviderKeyDialog({
 				title: "Error",
 				description: "Please enter the provider API key",
 				variant: "destructive",
+				className: "text-white",
 			});
 			return;
 		}
@@ -92,6 +94,7 @@ export function CreateProviderKeyDialog({
 				title: "Error",
 				description: "Base URL is required for OpenLLM provider",
 				variant: "destructive",
+				className: "text-white",
 			});
 			return;
 		}
@@ -118,6 +121,7 @@ export function CreateProviderKeyDialog({
 					title: "Error",
 					description: error.message,
 					variant: "destructive",
+					className: "text-white",
 				});
 			},
 		});

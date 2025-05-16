@@ -1,7 +1,9 @@
 import { authClient } from "@/lib/auth-client";
 import { toast } from "@/lib/components/use-toast";
 
-export async function addPasskey() {
+import type { QueryClient } from "@tanstack/react-query";
+
+export async function addPasskey(queryClient: QueryClient) {
 	try {
 		const result = await authClient.passkey.addPasskey({
 			authenticatorAttachment: "cross-platform",
@@ -17,13 +19,13 @@ export async function addPasskey() {
 			return;
 		}
 
-		if (result?.data) {
-			toast({
-				title: "Passkey added",
-				description: "You can now sign in using your passkey",
-			});
-		}
-	} catch (error) {
+		toast({
+			title: "Passkey added",
+			description: "You can now sign in using your passkey",
+		});
+
+		queryClient.refetchQueries({ queryKey: ["passkeys"] });
+	} catch {
 		toast({
 			title: "Error adding passkey",
 			description: "An unexpected error occurred",
