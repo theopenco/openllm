@@ -28,8 +28,6 @@ export function useUpdateProject() {
 			}
 			return await res.json();
 		},
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ["projects"] });
-		},
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: ["projects"] }),
 	});
 }

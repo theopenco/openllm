@@ -2,26 +2,11 @@ import crypto from "crypto";
 
 import redisClient from "./redis";
 
-export function generateCacheKey(
-	model: string,
-	messages: any[],
-	temperature?: number,
-	max_tokens?: number,
-	top_p?: number,
-	frequency_penalty?: number,
-	presence_penalty?: number,
-): string {
-	const payload = JSON.stringify({
-		model,
-		messages,
-		temperature,
-		max_tokens,
-		top_p,
-		frequency_penalty,
-		presence_penalty,
-	});
-
-	return crypto.createHash("sha256").update(payload).digest("hex");
+export function generateCacheKey(payload: Record<string, any>): string {
+	return crypto
+		.createHash("sha256")
+		.update(JSON.stringify(payload))
+		.digest("hex");
 }
 
 export async function setCache(

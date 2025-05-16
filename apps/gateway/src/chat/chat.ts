@@ -377,15 +377,15 @@ chat.openapi(completions, async (c) => {
 	let cacheKey: string | null = null;
 	if (cachingEnabled && !stream) {
 		// Don't cache streaming responses
-		cacheKey = generateCacheKey(
-			usedModel,
+		cacheKey = generateCacheKey({
+			model: usedModel,
 			messages,
 			temperature,
 			max_tokens,
 			top_p,
 			frequency_penalty,
 			presence_penalty,
-		);
+		});
 
 		const cachedResponse = cacheKey ? await getCache(cacheKey) : null;
 		if (cachedResponse) {
