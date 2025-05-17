@@ -1,11 +1,19 @@
 name: ci
-on: push
+on:
+  push:
+  merge_group:
 jobs:
   lint:
     uses: ./.github/workflows/run.yml
     secrets: inherit
     with:
       cmd: pnpm lint
+
+  generate:
+    uses: ./.github/workflows/run.yml
+    secrets: inherit
+    with:
+      cmd: pnpm generate && git diff --exit-code
 
   build:
     uses: ./.github/workflows/run.yml
