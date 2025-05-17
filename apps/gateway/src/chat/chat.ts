@@ -35,6 +35,61 @@ function getProviderHeaders(
 	}
 }
 
+async function handleProviderFallback({
+	c,
+	usedModel,
+	usedProvider,
+	apiKey,
+}: {
+	c: any;
+	usedModel: string;
+	usedProvider: Provider;
+	apiKey: any;
+}) {
+	// Check if model has alternative providers to try
+	const modelInfo = models.find((m) => m.model === usedModel);
+	const providers = modelInfo?.providers as string[] | undefined;
+	const currentProviderIndex = providers?.indexOf(usedProvider) ?? -1;
+
+	if (
+		!providers ||
+		currentProviderIndex < 0 ||
+		currentProviderIndex >= providers.length - 1
+	) {
+		return null;
+	}
+
+	const nextProvider = providers[currentProviderIndex + 1] as Provider;
+	console.log(
+		`Provider ${usedProvider} failed, trying next provider: ${nextProvider}`,
+	);
+
+	// Get the provider key for the next provider
+	const nextProviderKey = await db.query.providerKey.findFirst({
+		where: {
+			projectId: {
+				eq: apiKey.projectId,
+			},
+			provider: {
+				eq: nextProvider,
+			},
+		},
+	});
+
+	if (!nextProviderKey) {
+		return { success: false, nextProvider };
+	}
+
+	// Update the request to use the next provider
+	const originalValid = c.req.valid;
+	c.req.valid = () => ({
+		...originalValid("json"),
+		model: `${nextProvider}/${usedModel}`,
+	});
+
+	return { success: true, nextProvider, nextProviderKey };
+}
+
 export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
@@ -522,7 +577,7 @@ chat.openapi(completions, async (c) => {
 
 	// Handle streaming response if requested
 	if (stream) {
-		return streamSSE(c, async (stream) => {
+		return streamSSE(c, async (stream): Promise<void> => {
 			let eventId = 0;
 			let canceled = false;
 
@@ -536,84 +591,28 @@ chat.openapi(completions, async (c) => {
 				}
 			};
 
-			// Add event listener for the abort event on the connection
+			// Add event listener for the 'close' event on the connection
 			c.req.raw.signal.addEventListener("abort", onAbort);
+
+			// Make the request to the provider
+			const headers = getProviderHeaders(usedProvider, providerKey);
+			headers["Content-Type"] = "application/json";
 
 			let res;
 			try {
-				const headers = getProviderHeaders(usedProvider, providerKey);
-				headers["Content-Type"] = "application/json";
-
 				res = await fetch(url, {
 					method: "POST",
 					headers,
 					body: JSON.stringify(requestBody),
-					signal: requestCanBeCanceled ? controller.signal : undefined,
+					signal: controller.signal,
 				});
 			} catch (error) {
-				// Clean up the event listeners
-				c.req.raw.signal.removeEventListener("abort", onAbort);
-
-				if (error instanceof Error && error.name === "AbortError") {
-					console.log("Streaming request was canceled by the client");
-
-					// Log the canceled request
-					await insertLog({
-						organizationId: project.organizationId,
-						projectId: apiKey.projectId,
-						apiKeyId: apiKey.id,
-						providerKeyId: providerKey.id,
-						duration: Date.now() - startTime,
-						usedModel: usedModel,
-						usedProvider: usedProvider,
-						requestedModel: requestedModel,
-						requestedProvider: requestedProvider,
-						messages: messages,
-						responseSize: 0,
-						content: null,
-						finishReason: "canceled",
-						promptTokens: null,
-						completionTokens: null,
-						totalTokens: null,
-						temperature: temperature || null,
-						maxTokens: max_tokens || null,
-						topP: top_p || null,
-						frequencyPenalty: frequency_penalty || null,
-						presencePenalty: presence_penalty || null,
-						hasError: false,
-						streamed: true,
-						canceled: true,
-						errorDetails: null,
-					});
-
-					// Send a cancellation event to the client
-					await stream.writeSSE({
-						event: "canceled",
-						data: JSON.stringify({
-							message: "Request canceled by client",
-						}),
-						id: String(eventId++),
-					});
-					await stream.writeSSE({
-						event: "done",
-						data: "[DONE]",
-						id: String(eventId++),
-					});
-					return;
-				} else {
-					throw error;
-				}
-			}
-
-			if (!res.ok) {
-				console.error("error", url, res.status, res.statusText);
-				const errorResponseText = await res.text();
-
+				console.error("error", error);
 				await stream.writeSSE({
 					event: "error",
 					data: JSON.stringify({
 						error: {
-							message: `Error from provider: ${res.status} ${res.statusText}`,
+							message: `Error from provider: ${error}`,
 							type: "gateway_error",
 							param: null,
 							code: "gateway_error",
@@ -628,6 +627,137 @@ chat.openapi(completions, async (c) => {
 				});
 
 				// Log the error in the database
+				await insertLog({
+					organizationId: project.organizationId,
+					projectId: apiKey.projectId,
+					apiKeyId: apiKey.id,
+					providerKeyId: providerKey.id,
+					duration: Date.now() - startTime,
+					usedModel: usedModel,
+					usedProvider: usedProvider,
+					requestedModel: requestedModel,
+					requestedProvider: requestedProvider,
+					messages: messages,
+					responseSize: 0,
+					content: null,
+					finishReason: "gateway_error",
+					promptTokens: null,
+					completionTokens: null,
+					totalTokens: null,
+					temperature: temperature || null,
+					maxTokens: max_tokens || null,
+					topP: top_p || null,
+					frequencyPenalty: frequency_penalty || null,
+					presencePenalty: presence_penalty || null,
+					hasError: true,
+					streamed: true,
+					canceled: false,
+					errorDetails: {
+						statusCode: 500,
+						statusText: "Error",
+						responseText: String(error),
+					},
+				});
+
+				return;
+			}
+
+			if (!res.ok) {
+				console.error("error", url, res.status, res.statusText);
+				const errorResponseText = await res.text();
+
+				const fallbackResult = await handleProviderFallback({
+					c,
+					usedModel,
+					usedProvider,
+					apiKey,
+				});
+
+				if (fallbackResult) {
+					if (fallbackResult.success) {
+						// Log the original error as a fallback attempt only if fallback is successful
+						await insertLog({
+							organizationId: project.organizationId,
+							projectId: apiKey.projectId,
+							apiKeyId: apiKey.id,
+							providerKeyId: providerKey.id,
+							duration: Date.now() - startTime,
+							usedModel: usedModel,
+							usedProvider: usedProvider,
+							requestedModel: requestedModel,
+							requestedProvider: requestedProvider,
+							messages: messages,
+							responseSize: errorResponseText.length,
+							content: null,
+							finishReason: "fallback_attempt",
+							promptTokens: null,
+							completionTokens: null,
+							totalTokens: null,
+							temperature: temperature || null,
+							maxTokens: max_tokens || null,
+							topP: top_p || null,
+							frequencyPenalty: frequency_penalty || null,
+							presencePenalty: presence_penalty || null,
+							hasError: true,
+							streamed: true,
+							canceled: false,
+							errorDetails: {
+								statusCode: res.status,
+								statusText: res.statusText,
+								responseText: errorResponseText,
+							},
+							estimatedCost: false,
+						});
+
+						c.req.raw.signal.removeEventListener("abort", (e: any) => {
+							if (requestCanBeCanceled) {
+								controller.abort();
+							}
+						});
+
+						// The handler will be called recursively with the updated request
+						return (chat.openapi as any)(completions, c);
+					} else {
+						await stream.writeSSE({
+							event: "error",
+							data: JSON.stringify({
+								error: {
+									message: `Error from provider ${usedProvider}: ${res.status} ${res.statusText}. Could not fallback to ${fallbackResult.nextProvider}: No API key set for this provider.`,
+									type: "gateway_error",
+									param: null,
+									code: "gateway_error",
+								},
+							}),
+							id: String(eventId),
+						});
+						await stream.writeSSE({
+							event: "done",
+							data: "[DONE]",
+							id: String(eventId! + 1),
+						});
+					}
+				} else {
+					// If no fallback was possible, send error response
+					await stream.writeSSE({
+						event: "error",
+						data: JSON.stringify({
+							error: {
+								message: `Error from provider: ${res.status} ${res.statusText}`,
+								type: "gateway_error",
+								param: null,
+								code: "gateway_error",
+							},
+						}),
+						id: String(eventId++),
+					});
+					await stream.writeSSE({
+						event: "done",
+						data: "[DONE]",
+						id: String(eventId++),
+					});
+				}
+
+				// Log the error in the database (only if no fallback or fallback failed)
 				await insertLog({
 					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
@@ -663,6 +793,7 @@ chat.openapi(completions, async (c) => {
 				return;
 			}
 
+			// Check if response body is missing
 			if (!res.body) {
 				await stream.writeSSE({
 					event: "error",
@@ -780,45 +911,46 @@ chat.openapi(completions, async (c) => {
 				}
 			} catch (error) {
 				console.error("Error reading stream:", error);
-			} finally {
-				// Clean up the event listeners
-				c.req.raw.signal.removeEventListener("abort", onAbort);
-
-				// Log the streaming request
-				const duration = Date.now() - startTime;
-				const costs = calculateCosts(usedModel, promptTokens, completionTokens);
-				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
-					apiKeyId: apiKey.id,
-					providerKeyId: providerKey.id,
-					duration,
-					usedModel: usedModel,
-					usedProvider: usedProvider,
-					requestedModel: requestedModel,
-					requestedProvider: requestedProvider,
-					messages: messages,
-					responseSize: fullContent.length,
-					content: fullContent,
-					finishReason: canceled || !finishReason ? "canceled" : finishReason,
-					promptTokens: promptTokens,
-					completionTokens: completionTokens,
-					totalTokens: totalTokens,
-					temperature: temperature || null,
-					maxTokens: max_tokens || null,
-					topP: top_p || null,
-					frequencyPenalty: frequency_penalty || null,
-					presencePenalty: presence_penalty || null,
-					hasError: false,
-					errorDetails: null,
-					streamed: true,
-					canceled: canceled || !finishReason,
-					inputCost: costs.inputCost,
-					outputCost: costs.outputCost,
-					cost: costs.totalCost,
-					estimatedCost: costs.estimatedCost,
-				});
+				// If there's an error reading the stream, we still want to log what we have
 			}
+
+			// Calculate costs based on the model and token usage
+			const costs = calculateCosts(usedModel, promptTokens, completionTokens, {
+				completion: fullContent,
+			});
+
+			// Log the request in the database
+			await insertLog({
+				organizationId: project.organizationId,
+				projectId: apiKey.projectId,
+				apiKeyId: apiKey.id,
+				providerKeyId: providerKey.id,
+				duration: Date.now() - startTime,
+				usedModel: usedModel,
+				usedProvider: usedProvider,
+				requestedModel: requestedModel,
+				requestedProvider: requestedProvider,
+				messages: messages,
+				responseSize: fullContent.length,
+				content: fullContent,
+				finishReason: finishReason,
+				promptTokens: promptTokens,
+				completionTokens: completionTokens,
+				totalTokens: totalTokens,
+				temperature: temperature || null,
+				maxTokens: max_tokens || null,
+				topP: top_p || null,
+				frequencyPenalty: frequency_penalty || null,
+				presencePenalty: presence_penalty || null,
+				hasError: false,
+				errorDetails: null,
+				streamed: true,
+				canceled: canceled || !finishReason,
+				inputCost: costs.inputCost,
+				outputCost: costs.outputCost,
+				cost: costs.totalCost,
+				estimatedCost: costs.estimatedCost,
+			});
 		});
 	}
 
@@ -844,31 +976,18 @@ chat.openapi(completions, async (c) => {
 			method: "POST",
 			headers,
 			body: JSON.stringify(requestBody),
-			signal: requestCanBeCanceled ? controller.signal : undefined,
+			signal: controller.signal,
 		});
 	} catch (error) {
-		if (error instanceof Error && error.name === "AbortError") {
-			canceled = true;
-			console.log("Request was canceled by the client");
-		} else {
-			throw error;
-		}
-	} finally {
-		// Clean up the event listener
-		c.req.raw.signal.removeEventListener("abort", onAbort);
-	}
+		console.error("error", error);
 
-	const duration = Date.now() - startTime;
-
-	// If the request was canceled, log it and return a response
-	if (canceled) {
-		// Log the canceled request
+		// Log the error in the database
 		await insertLog({
 			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
-			duration,
+			duration: Date.now() - startTime,
 			usedModel: usedModel,
 			usedProvider: usedProvider,
 			requestedModel: requestedModel,
@@ -876,7 +995,7 @@ chat.openapi(completions, async (c) => {
 			messages: messages,
 			responseSize: 0,
 			content: null,
-			finishReason: "canceled",
+			finishReason: "gateway_error",
 			promptTokens: null,
 			completionTokens: null,
 			totalTokens: null,
@@ -885,24 +1004,28 @@ chat.openapi(completions, async (c) => {
 			topP: top_p || null,
 			frequencyPenalty: frequency_penalty || null,
 			presencePenalty: presence_penalty || null,
-			hasError: false,
+			hasError: true,
 			streamed: false,
-			canceled: true,
-			errorDetails: null,
+			canceled: false,
+			errorDetails: {
+				statusCode: 500,
+				statusText: "Error",
+				responseText: String(error),
+			},
 			estimatedCost: false,
 		});
 
 		return c.json(
 			{
 				error: {
-					message: "Request canceled by client",
-					type: "canceled",
+					message: `Error from provider: ${error}`,
+					type: "gateway_error",
 					param: null,
-					code: "request_canceled",
+					code: "gateway_error",
 				},
 			},
-			400,
-		); // Using 400 status code for client closed request
+			500,
+		);
 	}
 
 	if (res && !res.ok) {
@@ -911,13 +1034,73 @@ chat.openapi(completions, async (c) => {
 		// Get the error response text
 		const errorResponseText = await res.text();
 
-		// Log the error in the database
+		const fallbackResult = await handleProviderFallback({
+			c,
+			usedModel,
+			usedProvider,
+			apiKey,
+		});
+
+		if (fallbackResult) {
+			if (fallbackResult.success) {
+				// Log the original error as a fallback attempt only if fallback is successful
+				await insertLog({
+					organizationId: project.organizationId,
+					projectId: apiKey.projectId,
+					apiKeyId: apiKey.id,
+					providerKeyId: providerKey.id,
+					duration: Date.now() - startTime,
+					usedModel: usedModel,
+					usedProvider: usedProvider,
+					requestedModel: requestedModel,
+					requestedProvider: requestedProvider,
+					messages: messages,
+					responseSize: errorResponseText.length,
+					content: null,
+					finishReason: "fallback_attempt",
+					promptTokens: null,
+					completionTokens: null,
+					totalTokens: null,
+					temperature: temperature || null,
+					maxTokens: max_tokens || null,
+					topP: top_p || null,
+					frequencyPenalty: frequency_penalty || null,
+					presencePenalty: presence_penalty || null,
+					hasError: true,
+					streamed: false,
+					canceled: false,
+					errorDetails: {
+						statusCode: res.status,
+						statusText: res.statusText,
+						responseText: errorResponseText,
+					},
+					estimatedCost: false,
+				});
+
+				// The handler will be called recursively with the updated request
+				return (chat.openapi as any)(completions, c);
+			} else {
+				return c.json(
+					{
+						error: {
+							message: `Error from provider ${usedProvider}: ${res.status} ${res.statusText}. Could not fallback to ${fallbackResult.nextProvider}: No API key set for this provider.`,
+							type: "gateway_error",
+							param: null,
+							code: "gateway_error",
+						},
+					},
+					500,
+				);
+			}
+		}
+
+		// Log the error in the database (only if no fallback or fallback failed)
 		await insertLog({
 			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
-			duration,
+			duration: Date.now() - startTime,
 			usedModel: usedModel,
 			usedProvider: usedProvider,
 			requestedModel: requestedModel,
@@ -967,10 +1150,11 @@ chat.openapi(completions, async (c) => {
 		throw new Error("No response from provider");
 	}
 
-	const json = await res.json();
-	const responseText = JSON.stringify(json);
+	// Parse the response
+	const responseText = await res.text();
+	const json = JSON.parse(responseText);
 
-	// Extract content and token usage based on provider
+	// Extract content and token counts based on provider
 	let content = null;
 	let finishReason = null;
 	let promptTokens = null;
@@ -979,40 +1163,41 @@ chat.openapi(completions, async (c) => {
 
 	switch (usedProvider) {
 		case "anthropic":
-			content = json.content?.[0]?.text || null;
-			finishReason = json.stop_reason || null;
+			content = json.content[0]?.text;
+			finishReason = json.stop_reason;
 			break;
 		case "google-vertex":
-			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
-			finishReason = json.candidates?.[0]?.finishReason || null;
+			content = json.candidates[0]?.content?.parts[0]?.text;
+			finishReason = json.candidates[0]?.finishReason;
 			break;
 		case "inference.net":
 		case "kluster.ai":
-			content = json.choices?.[0]?.message?.content || null;
-			finishReason = json.choices?.[0]?.finish_reason || null;
-			promptTokens = json.usage?.prompt_tokens || null;
-			completionTokens = json.usage?.completion_tokens || null;
-			totalTokens = json.usage?.total_tokens || null;
+			content = json.choices[0]?.message?.content;
+			finishReason = json.choices[0]?.finish_reason;
+			promptTokens = json.usage?.prompt_tokens;
+			completionTokens = json.usage?.completion_tokens;
+			totalTokens = json.usage?.total_tokens;
 			break;
 		default: // OpenAI format
-			content = json.choices?.[0]?.message?.content || null;
-			finishReason = json.choices?.[0]?.finish_reason || null;
-			promptTokens = json.usage?.prompt_tokens || null;
-			completionTokens = json.usage?.completion_tokens || null;
-			totalTokens = json.usage?.total_tokens || null;
+			content = json.choices[0]?.message?.content;
+			finishReason = json.choices[0]?.finish_reason;
+			promptTokens = json.usage?.prompt_tokens;
+			completionTokens = json.usage?.completion_tokens;
+			totalTokens = json.usage?.total_tokens;
 	}
 
-	// Log the successful request and response
+	// Calculate costs based on the model and token usage
 	const costs = calculateCosts(usedModel, promptTokens, completionTokens, {
-		prompt: messages.map((m) => m.content).join("\n"),
 		completion: content,
 	});
+
+	// Log the request in the database
 	await insertLog({
 		organizationId: project.organizationId,
 		projectId: apiKey.projectId,
 		apiKeyId: apiKey.id,
 		providerKeyId: providerKey.id,
-		duration,
+		duration: Date.now() - startTime,
 		usedModel: usedModel,
 		usedProvider: usedProvider,
 		requestedModel: requestedModel,
@@ -1030,9 +1215,9 @@ chat.openapi(completions, async (c) => {
 		frequencyPenalty: frequency_penalty || null,
 		presencePenalty: presence_penalty || null,
 		hasError: false,
-		streamed: false,
-		canceled: false,
 		errorDetails: null,
+		streamed: false,
+		canceled: canceled,
 		inputCost: costs.inputCost,
 		outputCost: costs.outputCost,
 		cost: costs.totalCost,
