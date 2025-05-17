@@ -12,7 +12,6 @@ import { useState } from "react";
 
 import { Overview } from "@/components/dashboard/overview";
 import { useActivity } from "@/hooks/useActivity";
-import { useSession } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -29,13 +28,8 @@ export const Route = createFileRoute("/dashboard/_layout/")({
 
 export default function Dashboard() {
 	const navigate = useNavigate();
-	const session = useSession();
 	const [days, setDays] = useState<7 | 30>(7);
 	const { data, isLoading } = useActivity(days);
-
-	if (!session.data?.user.id && !session.isPending) {
-		navigate({ to: "/login" });
-	}
 
 	// Calculate total stats from activity data
 	const totalRequests =

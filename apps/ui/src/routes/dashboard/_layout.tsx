@@ -1,7 +1,9 @@
-import { Outlet, createFileRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { MobileHeader } from "@/components/dashboard/mobile-header";
+import { useSession } from "@/lib/auth-client";
 import { SidebarProvider } from "@/lib/components/sidebar";
 
 export const Route = createFileRoute("/dashboard/_layout")({
@@ -9,6 +11,16 @@ export const Route = createFileRoute("/dashboard/_layout")({
 });
 
 function RouteComponent() {
+	const navigate = useNavigate();
+	const session = useSession();
+
+	// Redirect to login if not authenticated
+	useEffect(() => {
+		if (!session.data?.user && !session.isPending) {
+			navigate({ to: "/login" });
+		}
+	}, [session.data, session.isPending, navigate]);
+
 	return (
 		<SidebarProvider>
 			<div className="flex min-h-screen w-full flex-col">
