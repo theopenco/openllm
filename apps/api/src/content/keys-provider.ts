@@ -1,7 +1,6 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db, eq, tables } from "@openllm/db";
 import { providers } from "@openllm/models";
-import { createSelectSchema } from "drizzle-zod";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -10,7 +9,17 @@ import type { ServerTypes } from "../vars";
 export const keysProvider = new OpenAPIHono<ServerTypes>();
 
 // Create a schema for provider key responses
-const providerKeySchema = createSelectSchema(tables.providerKey);
+// Using z.object directly instead of createSelectSchema due to compatibility issues
+const providerKeySchema = z.object({
+	id: z.string(),
+	createdAt: z.date(),
+	updatedAt: z.date(),
+	token: z.string(),
+	provider: z.string(),
+	baseUrl: z.string().nullable(),
+	status: z.enum(["active", "inactive", "deleted"]).nullable(),
+	projectId: z.string(),
+});
 
 // Schema for creating a new provider key
 const createProviderKeySchema = z.object({
@@ -99,6 +108,9 @@ keysProvider.openapi(create, async (c) => {
 	// Check if a provider key already exists for this provider and project
 	const existingKey = await db.query.providerKey.findFirst({
 		where: {
+			status: {
+				ne: "deleted",
+			},
 			provider: {
 				eq: provider,
 			},

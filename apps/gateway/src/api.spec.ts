@@ -7,26 +7,20 @@ import {
 	describe,
 	expect,
 	test,
-	vi,
 } from "vitest";
 
 import { app } from ".";
-import { mockLogInsertion } from "./test-utils/mock-log-insertion";
 import {
 	startMockServer,
 	stopMockServer,
 } from "./test-utils/mock-openai-server";
-import { waitForLogs } from "./test-utils/test-helpers";
+import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
 
 describe("test", () => {
 	let mockServerUrl: string;
 
 	// Start the mock OpenAI server and mock log insertion before all tests
 	beforeAll(() => {
-		// Mock the log insertion to directly insert into the database
-		mockLogInsertion();
-		console.log("Log insertion mocked for tests");
-
 		// Start the mock OpenAI server
 		mockServerUrl = startMockServer(3001);
 	});
@@ -35,23 +29,22 @@ describe("test", () => {
 	afterAll(() => {
 		console.log("Stopping mock server...");
 		stopMockServer();
-
-		// Restore all mocks
-		vi.restoreAllMocks();
-		console.log("Mocks restored after tests");
 	});
 
 	afterEach(async () => {
-		await db.delete(tables.user);
-		await db.delete(tables.account);
-		await db.delete(tables.session);
-		await db.delete(tables.verification);
-		await db.delete(tables.organization);
-		await db.delete(tables.userOrganization);
-		await db.delete(tables.project);
-		await db.delete(tables.apiKey);
-		await db.delete(tables.providerKey);
-		await db.delete(tables.log);
+		await Promise.all([
+			db.delete(tables.user),
+			db.delete(tables.account),
+			db.delete(tables.session),
+			db.delete(tables.verification),
+			db.delete(tables.organization),
+			db.delete(tables.userOrganization),
+			db.delete(tables.project),
+			db.delete(tables.apiKey),
+			db.delete(tables.providerKey),
+			db.delete(tables.log),
+		]);
+		await flushLogs();
 	});
 
 	beforeEach(async () => {
@@ -87,8 +80,6 @@ describe("test", () => {
 	});
 
 	test("/v1/chat/completions e2e success", async () => {
-		// This test has a longer timeout because it needs to wait for the worker to process logs
-		vi.setConfig({ testTimeout: 15000 });
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
@@ -128,8 +119,7 @@ describe("test", () => {
 		expect(json.choices[0].message.content).toMatch(/Hello!/);
 
 		// Wait for the worker to process the log and check that the request was logged
-		await waitForLogs(1);
-		const logs = await db.query.log.findMany({});
+		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
 		expect(logs[0].finishReason).toBe("stop");
 		expect(logs[0].content).toMatch(/Hello!/);
@@ -197,8 +187,6 @@ describe("test", () => {
 
 	// test for explicitly specifying a provider in the format "provider/model"
 	test("/v1/chat/completions with explicit provider", async () => {
-		// This test has a longer timeout because it needs to wait for the worker to process logs
-		vi.setConfig({ testTimeout: 15000 });
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
@@ -276,8 +264,6 @@ describe("test", () => {
 
 	// test for openllm/auto special case
 	test("/v1/chat/completions with openllm/auto", async () => {
-		// This test has a longer timeout because it needs to wait for the worker to process logs
-		vi.setConfig({ testTimeout: 15000 });
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
@@ -349,8 +335,6 @@ describe("test", () => {
 
 	// test for provider error response and error logging
 	test("/v1/chat/completions with provider error response", async () => {
-		// This test has a longer timeout because it needs to wait for the worker to process logs
-		vi.setConfig({ testTimeout: 15000 });
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
@@ -395,8 +379,7 @@ describe("test", () => {
 		expect(errorResponse.error).toHaveProperty("type", "gateway_error");
 
 		// Wait for the worker to process the log and check that the error was logged in the database
-		await waitForLogs(1);
-		const logs = await db.query.log.findMany({});
+		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
 
 		// Verify the log has the correct error fields
@@ -500,7 +483,7 @@ describe("test", () => {
 		expect(json).toHaveProperty("choices.[0].message.content");
 
 		// Check that the request was logged
-		const logs = await db.query.log.findMany({});
+		const logs = await waitForLogs();
 		expect(logs.length).toBe(1);
 		expect(logs[0].finishReason).toBe("stop");
 		expect(logs[0].usedProvider).toBe("inference.net");
@@ -545,7 +528,7 @@ describe("test", () => {
 		expect(json).toHaveProperty("choices.[0].message.content");
 
 		// Check that the request was logged
-		const logs = await db.query.log.findMany({});
+		const logs = await waitForLogs();
 		expect(logs.length).toBe(1);
 		expect(logs[0].finishReason).toBe("stop");
 		expect(logs[0].usedProvider).toBe("kluster.ai");
@@ -590,7 +573,7 @@ describe("test", () => {
 		expect(json).toHaveProperty("choices.[0].message.content");
 
 		// Check that the request was logged and routed to inference.net
-		const logs = await db.query.log.findMany({});
+		const logs = await waitForLogs();
 		expect(logs.length).toBe(1);
 		expect(logs[0].usedProvider).toBe("inference.net");
 	});

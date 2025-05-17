@@ -4,6 +4,12 @@ import { type Model, models, type Provider, providers } from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
 
+import {
+	generateCacheKey,
+	getCache,
+	isCachingEnabled,
+	setCache,
+} from "../lib/cache";
 import { calculateCosts } from "../lib/costs";
 import { insertLog } from "../lib/logs";
 
@@ -238,6 +244,9 @@ chat.openapi(completions, async (c) => {
 	if (usedProvider === "openllm" && usedModel === "auto") {
 		const providerKeys = await db.query.providerKey.findMany({
 			where: {
+				status: {
+					eq: "active",
+				},
 				projectId: {
 					eq: apiKey.projectId,
 				},
@@ -276,6 +285,9 @@ chat.openapi(completions, async (c) => {
 		} else {
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
+					status: {
+						eq: "active",
+					},
 					projectId: {
 						eq: apiKey.projectId,
 					},
@@ -333,6 +345,9 @@ chat.openapi(completions, async (c) => {
 	// Get the provider key for the selected provider
 	const providerKey = await db.query.providerKey.findFirst({
 		where: {
+			status: {
+				eq: "active",
+			},
 			projectId: {
 				eq: apiKey.projectId,
 			},
@@ -419,6 +434,65 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
+	// Check if caching is enabled for this project
+	const { enabled: cachingEnabled, duration: cacheDuration } =
+		await isCachingEnabled(project.id);
+
+	let cacheKey: string | null = null;
+	if (cachingEnabled && !stream) {
+		// Don't cache streaming responses
+		cacheKey = generateCacheKey({
+			model: usedModel,
+			messages,
+			temperature,
+			max_tokens,
+			top_p,
+			frequency_penalty,
+			presence_penalty,
+		});
+
+		const cachedResponse = cacheKey ? await getCache(cacheKey) : null;
+		if (cachedResponse) {
+			console.log("Cache hit for request:", cacheKey);
+
+			// Log the cached request
+			const duration = 0; // No processing time needed
+			await insertLog({
+				organizationId: project.organizationId,
+				projectId: apiKey.projectId,
+				apiKeyId: apiKey.id,
+				providerKeyId: providerKey.id,
+				duration,
+				usedModel: usedModel,
+				usedProvider: usedProvider,
+				requestedModel: requestedModel,
+				requestedProvider: requestedProvider,
+				messages: messages,
+				responseSize: JSON.stringify(cachedResponse).length,
+				content: cachedResponse.choices?.[0]?.message?.content || null,
+				finishReason: "cached",
+				promptTokens: cachedResponse.usage?.prompt_tokens || null,
+				completionTokens: cachedResponse.usage?.completion_tokens || null,
+				totalTokens: cachedResponse.usage?.total_tokens || null,
+				temperature: temperature || null,
+				maxTokens: max_tokens || null,
+				topP: top_p || null,
+				frequencyPenalty: frequency_penalty || null,
+				presencePenalty: presence_penalty || null,
+				hasError: false,
+				streamed: false,
+				canceled: false,
+				errorDetails: null,
+				inputCost: 0,
+				outputCost: 0,
+				cost: 0,
+				estimatedCost: false,
+			});
+
+			return c.json(cachedResponse);
+		}
+	}
+
 	// Check if streaming is requested and if the provider supports it
 	if (stream) {
 		const providerInfo = providers.find((p) => p.id === usedProvider);
@@ -498,8 +572,6 @@ chat.openapi(completions, async (c) => {
 	if (presence_penalty !== undefined) {
 		requestBody.presence_penalty = presence_penalty;
 	}
-
-	console.log("requestBody", requestBody);
 
 	const startTime = Date.now();
 
@@ -1151,6 +1223,10 @@ chat.openapi(completions, async (c) => {
 		cost: costs.totalCost,
 		estimatedCost: costs.estimatedCost,
 	});
+
+	if (cachingEnabled && cacheKey && !stream) {
+		await setCache(cacheKey, json, cacheDuration);
+	}
 
 	return c.json(json);
 });

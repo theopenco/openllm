@@ -60,6 +60,7 @@ function RouteComponent() {
 					toast({
 						title: ctx.error.message || "Failed to sign up",
 						variant: "destructive",
+						className: "text-white",
 					});
 				},
 			},
@@ -69,6 +70,7 @@ function RouteComponent() {
 			toast({
 				title: error.message || "Failed to sign up",
 				variant: "destructive",
+				className: "text-white",
 			});
 		}
 

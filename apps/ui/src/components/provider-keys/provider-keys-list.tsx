@@ -60,7 +60,7 @@ export function ProviderKeysList() {
 	const deleteMutation = useDeleteProviderKey();
 	const toggleMutation = useToggleProviderKeyStatus();
 
-	const keys = data?.providerKeys;
+	const keys = data?.providerKeys.filter((key) => key.status !== "deleted");
 
 	const deleteKey = (id: string) => {
 		deleteMutation.mutate(id);

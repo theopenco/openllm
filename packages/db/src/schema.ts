@@ -6,7 +6,6 @@ import {
 	real,
 	text,
 	timestamp,
-	unique,
 } from "drizzle-orm/pg-core";
 import { customAlphabet } from "nanoid";
 
@@ -87,6 +86,8 @@ export const project = pgTable("project", {
 	updatedAt: timestamp().notNull().defaultNow(),
 	name: text().notNull(),
 	organizationId: text().notNull(),
+	cachingEnabled: boolean().notNull().default(false),
+	cacheDurationSeconds: integer().notNull().default(60),
 });
 
 export const apiKey = pgTable("api_key", {
@@ -107,7 +108,7 @@ export const providerKey = pgTable(
 		id: text().primaryKey().notNull().$defaultFn(shortid),
 		createdAt: timestamp().notNull().defaultNow(),
 		updatedAt: timestamp().notNull().defaultNow(),
-		token: text().notNull().unique(),
+		token: text().notNull(),
 		provider: text().notNull(),
 		baseUrl: text(), // Optional base URL for custom providers
 		status: text({
@@ -115,7 +116,7 @@ export const providerKey = pgTable(
 		}).default("active"),
 		projectId: text().notNull(),
 	},
-	(table) => [unique().on(table.projectId, table.provider)],
+	(table) => [],
 );
 
 export const log = pgTable("log", {
@@ -151,4 +152,20 @@ export const log = pgTable("log", {
 	estimatedCost: boolean().default(false),
 	canceled: boolean().default(false),
 	streamed: boolean().default(false),
+});
+
+export const passkey = pgTable("passkey", {
+	id: text().primaryKey().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
+	name: text(),
+	publicKey: text().notNull(),
+	userId: text()
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	credentialID: text().notNull(),
+	counter: integer().notNull(),
+	deviceType: text(),
+	backedUp: boolean(),
+	transports: text(),
 });

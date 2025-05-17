@@ -1,6 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db, tables } from "@openllm/db";
-import { createSelectSchema } from "drizzle-zod";
+import { db } from "@openllm/db";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -9,7 +8,41 @@ import type { ServerTypes } from "../vars";
 export const logs = new OpenAPIHono<ServerTypes>();
 
 // Use the log schema directly from the database
-const logSchema = createSelectSchema(tables.log);
+// Using z.object directly instead of createSelectSchema due to compatibility issues
+const logSchema = z.object({
+	id: z.string(),
+	createdAt: z.date(),
+	updatedAt: z.date(),
+	organizationId: z.string(),
+	projectId: z.string(),
+	apiKeyId: z.string(),
+	providerKeyId: z.string(),
+	duration: z.number(),
+	requestedModel: z.string(),
+	requestedProvider: z.string().nullable(),
+	usedModel: z.string(),
+	usedProvider: z.string(),
+	responseSize: z.number(),
+	content: z.string().nullable(),
+	finishReason: z.string().nullable(),
+	promptTokens: z.number().nullable(),
+	completionTokens: z.number().nullable(),
+	totalTokens: z.number().nullable(),
+	messages: z.any(),
+	temperature: z.number().nullable(),
+	maxTokens: z.number().nullable(),
+	topP: z.number().nullable(),
+	frequencyPenalty: z.number().nullable(),
+	presencePenalty: z.number().nullable(),
+	hasError: z.boolean().nullable(),
+	errorDetails: z.any().nullable(),
+	cost: z.number().nullable(),
+	inputCost: z.number().nullable(),
+	outputCost: z.number().nullable(),
+	estimatedCost: z.boolean().nullable(),
+	canceled: z.boolean().nullable(),
+	streamed: z.boolean().nullable(),
+});
 
 const querySchema = z.object({
 	apiKeyId: z.string().optional().openapi({
@@ -23,6 +56,21 @@ const querySchema = z.object({
 	}),
 	orgId: z.string().optional().openapi({
 		description: "Filter logs by organization ID",
+	}),
+	startDate: z.string().optional().openapi({
+		description: "Filter logs created after this date (ISO string)",
+	}),
+	endDate: z.string().optional().openapi({
+		description: "Filter logs created before this date (ISO string)",
+	}),
+	finishReason: z.string().optional().openapi({
+		description: "Filter logs by finish reason",
+	}),
+	provider: z.string().optional().openapi({
+		description: "Filter logs by provider",
+	}),
+	model: z.string().optional().openapi({
+		description: "Filter logs by model",
 	}),
 	cursor: z.string().optional().openapi({
 		description: "Cursor for pagination (log ID to start after)",
@@ -99,6 +147,11 @@ logs.openapi(get, async (c) => {
 		providerKeyId,
 		projectId,
 		orgId,
+		startDate,
+		endDate,
+		finishReason,
+		provider,
+		model,
 		cursor,
 		orderBy = "createdAt_desc",
 		limit: queryLimit,
@@ -226,6 +279,32 @@ logs.openapi(get, async (c) => {
 			in: projectId ? [projectId] : projectIds,
 		},
 	};
+
+	// Add date range filters if provided
+	if (startDate || endDate) {
+		logsWhere.createdAt = {};
+		if (startDate) {
+			logsWhere.createdAt.gte = new Date(startDate);
+		}
+		if (endDate) {
+			logsWhere.createdAt.lte = new Date(endDate);
+		}
+	}
+
+	// Add model filter if provided
+	if (model) {
+		logsWhere.usedModel = model;
+	}
+
+	// Add provider filter if provided
+	if (provider) {
+		logsWhere.usedProvider = provider;
+	}
+
+	// Add finish reason filter if provided
+	if (finishReason) {
+		logsWhere.finishReason = finishReason;
+	}
 
 	// Add apiKeyId filter if provided
 	if (apiKeyId) {

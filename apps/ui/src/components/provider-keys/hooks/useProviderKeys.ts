@@ -26,7 +26,8 @@ export function useProviderKeys() {
 			});
 
 			if (!res.ok) {
-				throw new Error("Failed to fetch provider keys");
+				const errorText = await res.text();
+				throw new Error(`Failed to fetch provider keys: ${errorText}`);
 			}
 
 			const data: { providerKeys: ProviderKey[] } = await res.json();
@@ -54,7 +55,8 @@ export function useCreateProviderKey() {
 				credentials: "include",
 			});
 			if (!res.ok) {
-				throw new Error("Failed to add provider key");
+				const errorText = await res.text();
+				throw new Error(`Failed to add provider key: ${errorText}`);
 			}
 			return await res.json();
 		},
@@ -72,7 +74,8 @@ export function useDeleteProviderKey() {
 				credentials: "include",
 			});
 			if (!res.ok) {
-				throw new Error("Failed to delete provider key");
+				const errorText = await res.text();
+				throw new Error(`Failed to delete provider key: ${errorText}`);
 			}
 			return await res.json();
 		},
@@ -98,7 +101,8 @@ export function useToggleProviderKeyStatus() {
 				credentials: "include",
 			});
 			if (!res.ok) {
-				throw new Error("Failed to update provider key status");
+				const errorText = await res.text();
+				throw new Error(`Failed to update provider key status: ${errorText}`);
 			}
 			return await res.json();
 		},
