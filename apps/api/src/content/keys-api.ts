@@ -1,5 +1,6 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { eq, db, shortid, tables } from "@openllm/db";
+import { createSelectSchema } from "drizzle-zod";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -8,16 +9,7 @@ import type { ServerTypes } from "../vars";
 export const keysApi = new OpenAPIHono<ServerTypes>();
 
 // Create a schema for API key responses
-// Using z.object directly instead of createSelectSchema due to compatibility issues
-const apiKeySchema = z.object({
-	id: z.string(),
-	createdAt: z.date(),
-	updatedAt: z.date(),
-	token: z.string(),
-	description: z.string(),
-	status: z.enum(["active", "inactive", "deleted"]).nullable(),
-	projectId: z.string(),
-});
+const apiKeySchema = createSelectSchema(tables.apiKey);
 
 // Schema for creating a new API key
 const createApiKeySchema = z.object({
