@@ -1,6 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db, eq, tables } from "@openllm/db";
-import { createSelectSchema } from "drizzle-zod";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -8,7 +7,16 @@ import type { ServerTypes } from "../vars";
 
 export const projects = new OpenAPIHono<ServerTypes>();
 
-const projectSchema = createSelectSchema(tables.project);
+// Define schema directly with Zod instead of using createSelectSchema
+const projectSchema = z.object({
+	id: z.string(),
+	createdAt: z.date(),
+	updatedAt: z.date(),
+	name: z.string(),
+	organizationId: z.string(),
+	cachingEnabled: z.boolean(),
+	cacheDurationSeconds: z.number(),
+});
 
 const updateProjectCachingSchema = z.object({
 	cachingEnabled: z.boolean().optional(),
