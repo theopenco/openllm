@@ -1,6 +1,8 @@
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
 
 import { useActivity } from "@/hooks/useActivity";
+import { Button } from "@/lib/components/button";
 import { Progress } from "@/lib/components/progress";
 import {
 	Table,
@@ -13,9 +15,36 @@ import {
 
 import type { ActivityModelUsage } from "@/hooks/useActivity";
 
+type SortColumn = "model" | "provider" | "requestCount" | "totalTokens";
+type SortDirection = "asc" | "desc";
+
 export function ModelUsageTable() {
 	const [days, setDays] = useState<7 | 30>(7);
+	const [sortColumn, setSortColumn] = useState<SortColumn>("totalTokens");
+	const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 	const { data, isLoading, error } = useActivity(days);
+
+	const handleSort = (column: SortColumn) => {
+		if (sortColumn === column) {
+			setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+		} else {
+			setSortColumn(column);
+			setSortDirection(
+				column === "model" || column === "provider" ? "asc" : "desc",
+			);
+		}
+	};
+
+	const getSortIcon = (column: SortColumn) => {
+		if (sortColumn !== column) {
+			return <ArrowUpDown className="ml-2 h-4 w-4" />;
+		}
+		return sortDirection === "asc" ? (
+			<ArrowUp className="ml-2 h-4 w-4" />
+		) : (
+			<ArrowDown className="ml-2 h-4 w-4" />
+		);
+	};
 
 	if (isLoading) {
 		return (
@@ -59,44 +88,92 @@ export function ModelUsageTable() {
 		});
 	});
 
-	const models = Array.from(modelMap.values()).sort(
-		(a, b) => b.totalTokens - a.totalTokens,
-	);
+	const sortedModels = Array.from(modelMap.values()).sort((a, b) => {
+		const aValue = a[sortColumn];
+		const bValue = b[sortColumn];
 
-	const totalTokens = models.reduce((sum, model) => sum + model.totalTokens, 0);
+		if (typeof aValue === "string" && typeof bValue === "string") {
+			return sortDirection === "asc"
+				? aValue.localeCompare(bValue)
+				: bValue.localeCompare(aValue);
+		} else {
+			return sortDirection === "asc"
+				? (aValue as number) - (bValue as number)
+				: (bValue as number) - (aValue as number);
+		}
+	});
+
+	const totalTokens = sortedModels.reduce(
+		(sum, model) => sum + model.totalTokens,
+		0,
+	);
 
 	return (
 		<div>
 			<div className="flex items-center justify-end space-x-2 mb-4">
-				<button
-					className={`px-3 py-1 text-sm rounded-md ${
-						days === 7 ? "bg-primary text-primary-foreground" : "bg-muted"
-					}`}
+				<Button
+					variant={days === 7 ? "default" : "outline"}
+					size="sm"
 					onClick={() => setDays(7)}
 				>
 					7 Days
-				</button>
-				<button
-					className={`px-3 py-1 text-sm rounded-md ${
-						days === 30 ? "bg-primary text-primary-foreground" : "bg-muted"
-					}`}
+				</Button>
+				<Button
+					variant={days === 30 ? "default" : "outline"}
+					size="sm"
 					onClick={() => setDays(30)}
 				>
 					30 Days
-				</button>
+				</Button>
 			</div>
 			<Table>
 				<TableHeader>
 					<TableRow>
-						<TableHead>Model</TableHead>
-						<TableHead>Provider</TableHead>
-						<TableHead>Requests</TableHead>
-						<TableHead>Tokens</TableHead>
+						<TableHead>
+							<Button
+								variant="ghost"
+								onClick={() => handleSort("model")}
+								className="flex items-center p-0 h-auto font-semibold"
+							>
+								Model
+								{getSortIcon("model")}
+							</Button>
+						</TableHead>
+						<TableHead>
+							<Button
+								variant="ghost"
+								onClick={() => handleSort("provider")}
+								className="flex items-center p-0 h-auto font-semibold"
+							>
+								Provider
+								{getSortIcon("provider")}
+							</Button>
+						</TableHead>
+						<TableHead>
+							<Button
+								variant="ghost"
+								onClick={() => handleSort("requestCount")}
+								className="flex items-center p-0 h-auto font-semibold"
+							>
+								Requests
+								{getSortIcon("requestCount")}
+							</Button>
+						</TableHead>
+						<TableHead>
+							<Button
+								variant="ghost"
+								onClick={() => handleSort("totalTokens")}
+								className="flex items-center p-0 h-auto font-semibold"
+							>
+								Tokens
+								{getSortIcon("totalTokens")}
+							</Button>
+						</TableHead>
 						<TableHead>Usage</TableHead>
 					</TableRow>
 				</TableHeader>
 				<TableBody>
-					{models.map((model, index) => {
+					{sortedModels.map((model, index) => {
 						const percentage =
 							totalTokens === 0
 								? 0
