@@ -92,9 +92,7 @@ export function ApiKeysList() {
 					<TableHead>Name</TableHead>
 					<TableHead>API Key</TableHead>
 					<TableHead>Created</TableHead>
-					<TableHead>Last Used</TableHead>
 					<TableHead>Status</TableHead>
-					<TableHead>Restrictions</TableHead>
 					<TableHead className="text-right">Actions</TableHead>
 				</TableRow>
 			</TableHeader>
@@ -117,7 +115,6 @@ export function ApiKeysList() {
 							</div>
 						</TableCell>
 						<TableCell>{key.createdAt}</TableCell>
-						<TableCell>{key.updatedAt}</TableCell>
 						<TableCell>
 							<Badge
 								variant={key.status === "active" ? "default" : "secondary"}
@@ -125,7 +122,6 @@ export function ApiKeysList() {
 								{key.status}
 							</Badge>
 						</TableCell>
-						<TableCell>key.restrictions</TableCell>
 						<TableCell className="text-right">
 							<DropdownMenu>
 								<DropdownMenuTrigger asChild>

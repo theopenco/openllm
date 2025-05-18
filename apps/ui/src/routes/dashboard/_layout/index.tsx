@@ -87,7 +87,10 @@ export default function Dashboard() {
 							</CardHeader>
 							<CardContent>
 								{isLoading ? (
-									<div className="text-2xl font-bold">Loading...</div>
+									<>
+										<div className="text-2xl font-bold">Loading...</div>
+										<p className="text-muted-foreground text-xs">–</p>
+									</>
 								) : (
 									<>
 										<div className="text-2xl font-bold">
@@ -109,7 +112,10 @@ export default function Dashboard() {
 							</CardHeader>
 							<CardContent>
 								{isLoading ? (
-									<div className="text-2xl font-bold">Loading...</div>
+									<>
+										<div className="text-2xl font-bold">Loading...</div>
+										<p className="text-muted-foreground text-xs">–</p>
+									</>
 								) : (
 									<>
 										<div className="text-2xl font-bold">
@@ -131,7 +137,10 @@ export default function Dashboard() {
 							</CardHeader>
 							<CardContent>
 								{isLoading ? (
-									<div className="text-2xl font-bold">Loading...</div>
+									<>
+										<div className="text-2xl font-bold">Loading...</div>
+										<p className="text-muted-foreground text-xs">–</p>
+									</>
 								) : (
 									<>
 										<div className="text-2xl font-bold">
