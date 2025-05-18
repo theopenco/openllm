@@ -231,6 +231,9 @@ importers:
       '@hookform/resolvers':
         specifier: 5.0.1
         version: 5.0.1(react-hook-form@7.56.1(react@19.1.0))
+      '@openllm/models':
+        specifier: workspace:*
+        version: link:../../packages/models
       '@radix-ui/react-alert-dialog':
         specifier: 1.1.13
         version: 1.1.13(@types/react-dom@19.1.5(@types/react@19.1.4))(@types/react@19.1.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
