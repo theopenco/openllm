@@ -10,6 +10,7 @@ import {
 } from "recharts";
 
 import { useActivity } from "@/hooks/useActivity";
+import { Button } from "@/lib/components/button";
 
 export function CostBreakdownChart() {
 	const [days, setDays] = useState<7 | 30>(7);
@@ -71,22 +72,20 @@ export function CostBreakdownChart() {
 	return (
 		<div>
 			<div className="flex items-center justify-end space-x-2 mb-4">
-				<button
-					className={`px-3 py-1 text-sm rounded-md ${
-						days === 7 ? "bg-primary text-primary-foreground" : "bg-muted"
-					}`}
+				<Button
+					variant={days === 7 ? "default" : "outline"}
+					size="sm"
 					onClick={() => setDays(7)}
 				>
 					7 Days
-				</button>
-				<button
-					className={`px-3 py-1 text-sm rounded-md ${
-						days === 30 ? "bg-primary text-primary-foreground" : "bg-muted"
-					}`}
+				</Button>
+				<Button
+					variant={days === 30 ? "default" : "outline"}
+					size="sm"
 					onClick={() => setDays(30)}
 				>
 					30 Days
-				</button>
+				</Button>
 			</div>
 			<ResponsiveContainer width="100%" height={350}>
 				<PieChart>
