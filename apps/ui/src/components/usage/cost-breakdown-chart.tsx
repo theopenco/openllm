@@ -1,3 +1,4 @@
+import { providers } from "@openllm/models";
 import { useState } from "react";
 import {
 	Cell,
@@ -55,17 +56,14 @@ export function CostBreakdownChart() {
 		}))
 		.sort((a, b) => b.value - a.value);
 
-	function getProviderColor(provider: string) {
-		const colorMap: Record<string, string> = {
-			OpenAI: "#0ea5e9",
-			Anthropic: "#8b5cf6",
-			"Mistral AI": "#10b981",
-			Meta: "#f59e0b",
-			Google: "#ef4444",
-			Azure: "#6366f1",
-		};
+	function getProviderColor(providerName: string) {
+		// Find the provider in the providers array by name (case-insensitive)
+		const provider = providers.find(
+			(p) => p.name.toLowerCase() === providerName.toLowerCase(),
+		);
 
-		return colorMap[provider] || "#94a3b8"; // Default color for unknown providers
+		// Return the color if found, otherwise use a default color
+		return provider?.color || "#94a3b8"; // Default color for unknown providers
 	}
 
 	const totalCost = chartData.reduce((sum, item) => sum + item.value, 0);
