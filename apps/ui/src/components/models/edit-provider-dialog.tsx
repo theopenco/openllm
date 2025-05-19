@@ -19,13 +19,25 @@ import {
 	SelectValue,
 } from "@/lib/components/select";
 
+import type { providers } from "@openllm/models";
 import type React from "react";
 
 interface Provider {
 	id: string;
-	name: string;
+	name: ProviderName;
 	baseUrl: string;
-	models: string[];
+	models: never[];
+	status: string;
+	priority: string;
+}
+
+type ProviderName = (typeof providers)[number]["name"];
+
+interface UpdatedProvider {
+	id: string;
+	name: ProviderName;
+	baseUrl: string;
+	models: never[];
 	status: string;
 	priority: string;
 }
@@ -34,7 +46,7 @@ interface EditProviderDialogProps {
 	provider: Provider;
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
-	onSave: (provider: Provider) => void;
+	onSave: (updatedProvider: UpdatedProvider) => void;
 }
 
 export function EditProviderDialog({
@@ -43,7 +55,7 @@ export function EditProviderDialog({
 	onOpenChange,
 	onSave,
 }: EditProviderDialogProps) {
-	const [name, setName] = useState(provider.name);
+	const [name, setName] = useState<ProviderName>(provider.name);
 	const [baseUrl, setBaseUrl] = useState(provider.baseUrl);
 	const [apiKey, setApiKey] = useState("");
 	const [priority, setPriority] = useState(provider.priority);
@@ -86,7 +98,7 @@ export function EditProviderDialog({
 						<Input
 							id="name"
 							value={name}
-							onChange={(e) => setName(e.target.value)}
+							onChange={(e) => setName(e.target.value as ProviderName)}
 							required
 						/>
 					</div>
