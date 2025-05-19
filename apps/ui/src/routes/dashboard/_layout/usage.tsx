@@ -1,11 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Download } from "lucide-react";
 
 import { CostBreakdownChart } from "@/components/usage/cost-breakdown-chart";
 import { ErrorRateChart } from "@/components/usage/error-rate-chart";
 import { ModelUsageTable } from "@/components/usage/model-usage-table";
 import { UsageChart } from "@/components/usage/usage-chart";
-import { Button } from "@/lib/components/button";
 import {
 	Card,
 	CardContent,
@@ -30,17 +28,13 @@ function RouteComponent() {
 			<div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
 				<div className="flex items-center justify-between">
 					<h2 className="text-3xl font-bold tracking-tight">Usage & Metrics</h2>
-					<Button variant="outline">
-						<Download className="mr-2 h-4 w-4" />
-						Export Data
-					</Button>
 				</div>
 				<Tabs defaultValue="requests" className="space-y-4">
 					<TabsList>
 						<TabsTrigger value="requests">Requests</TabsTrigger>
-						{/* <TabsTrigger value="models">Models</TabsTrigger> */}
+						<TabsTrigger value="models">Models</TabsTrigger>
 						<TabsTrigger value="errors">Errors</TabsTrigger>
-						{/* <TabsTrigger value="costs">Costs</TabsTrigger> */}
+						<TabsTrigger value="costs">Costs</TabsTrigger>
 					</TabsList>
 					<TabsContent value="requests" className="space-y-4">
 						<Card>
