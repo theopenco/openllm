@@ -19,7 +19,6 @@ import {
 	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
-	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuItem,
@@ -53,9 +52,9 @@ export function DashboardSidebar() {
 
 			<SidebarContent className="px-2 py-4">
 				<SidebarGroup>
-					<SidebarGroupLabel className="text-muted-foreground px-2 text-xs font-medium">
+					{/* <SidebarGroupLabel className="text-muted-foreground px-2 text-xs font-medium">
 						Navigation
-					</SidebarGroupLabel>
+					</SidebarGroupLabel> */}
 					<SidebarGroupContent className="mt-2">
 						<SidebarMenu>
 							{[
