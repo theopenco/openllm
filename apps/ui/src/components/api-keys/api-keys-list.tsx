@@ -42,7 +42,7 @@ export function ApiKeysList() {
 	const deleteMutation = useDeleteApiKey();
 	const toggleMutation = useToggleApiKeyStatus();
 
-	const keys = data?.apiKeys;
+	const keys = data?.apiKeys.filter((key) => key.status !== "deleted");
 
 	const deleteKey = (id: string) => {
 		deleteMutation.mutate(id);
