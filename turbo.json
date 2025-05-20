@@ -1,6 +1,11 @@
 {
+	"remoteCache": {
+		"teamSlug": "ducktors",
+		"apiUrl": "https://trrc.ducktors.dev"
+	},
 	"$schema": "https://turbo.build/schema.json",
-	"pipeline": {
+	"dangerouslyDisablePackageManagerCheck": true,
+	"tasks": {
 		"build": {
 			"dependsOn": ["^build"],
 			"outputs": [
