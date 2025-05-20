@@ -45,9 +45,12 @@ const features = [
 
 export default function Features() {
 	return (
-		<section id="features" className="py-20 border-b border-zinc-800">
+		<section
+			id="features"
+			className="py-20 border-b border-zinc-200 dark:border-zinc-800"
+		>
 			<div className="container mx-auto px-4">
-				<h2 className="text-3xl font-bold tracking-tight mb-12 text-center">
+				<h2 className="text-3xl font-bold tracking-tight mb-12 text-center text-zinc-900 dark:text-white">
 					Features
 				</h2>
 
@@ -55,13 +58,17 @@ export default function Features() {
 					{features.map((feature, index) => (
 						<div
 							key={index}
-							className="p-6 border border-zinc-800 rounded-lg hover:border-zinc-700 transition-colors"
+							className="p-6 border border-zinc-300 dark:border-zinc-800 rounded-lg hover:border-zinc-400 dark:hover:border-zinc-700 transition-colors bg-white dark:bg-zinc-900"
 						>
-							<div className="p-2 bg-zinc-900 inline-block rounded-lg mb-4">
+							<div className="p-2 bg-zinc-100 dark:bg-zinc-800 inline-block rounded-lg mb-4 text-zinc-800 dark:text-white">
 								{feature.icon}
 							</div>
-							<h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-							<p className="text-zinc-400">{feature.description}</p>
+							<h3 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-white">
+								{feature.title}
+							</h3>
+							<p className="text-zinc-600 dark:text-zinc-400">
+								{feature.description}
+							</p>
 						</div>
 					))}
 				</div>

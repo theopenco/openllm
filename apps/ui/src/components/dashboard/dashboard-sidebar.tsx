@@ -25,6 +25,7 @@ import {
 	SidebarMenuItem,
 	SidebarRail,
 } from "@/lib/components/sidebar";
+import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
 
 export function DashboardSidebar() {
@@ -42,8 +43,8 @@ export function DashboardSidebar() {
 			<SidebarHeader className="border-b">
 				<div className="flex h-14 items-center px-4">
 					<Link to="/dashboard" className="inline-flex items-center space-x-2">
-						<div className="h-8 w-8 rounded-full bg-white" />
-						<span className="text-xl font-bold tracking-tight">OpenLLM</span>
+						<Logo className="h-8 w-8 rounded-full text-black dark:text-white" />
+						<span className="text-xl font-bold tracking-tight">Ai Gateway</span>
 					</Link>
 				</div>
 			</SidebarHeader>
