@@ -15,6 +15,7 @@ export const tsup = defineConfig({
 		fixExtensionsPlugin(), // https://github.com/egoist/tsup/issues/953#issuecomment-2434492992
 	],
 	banner: {
+		// fix dynamic require for now
 		js: `import { createRequire } from 'module'; const require = createRequire(import.meta.url);`,
 	},
 });

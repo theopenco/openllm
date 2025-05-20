@@ -5,18 +5,17 @@
 		"apiUrl": "https://trrc.ducktors.dev"
 	},
 	"dangerouslyDisablePackageManagerCheck": true,
+	"globalDependencies": [
+		"tsup.config.ts",
+		"package.json",
+		"pnpm-lock.yaml",
+		"pnpm-workspace.yaml",
+		"tsup.config.ts",
+		"tsconfig.json",
+		"turbo.json"
+	],
 	"tasks": {
 		"build": {
-			"inputs": [
-				"$TURBO_DEFAULT$",
-				"../../tsup.config.ts",
-				"../../package.json",
-				"../../pnpm-lock.yaml",
-				"../../pnpm-workspace.yaml",
-				"../../tsup.config.ts",
-				"../../tsconfig.json",
-				"../../turbo.json"
-			],
 			"dependsOn": ["^build"],
 			"outputs": [
 				"dist/**",
