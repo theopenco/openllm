@@ -42,6 +42,7 @@ const logSchema = z.object({
 	estimatedCost: z.boolean().nullable(),
 	canceled: z.boolean().nullable(),
 	streamed: z.boolean().nullable(),
+	cached: z.boolean().nullable(),
 });
 
 const querySchema = z.object({

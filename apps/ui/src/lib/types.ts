@@ -39,4 +39,6 @@ export interface Log {
 	// Stream information
 	canceled?: boolean;
 	streamed?: boolean;
+	// Cache information
+	cached?: boolean;
 }
