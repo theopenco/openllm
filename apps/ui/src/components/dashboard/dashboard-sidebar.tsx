@@ -79,7 +79,7 @@ export function DashboardSidebar() {
 								},
 								{
 									href: "/dashboard/models",
-									label: "Models & Providers",
+									label: "Models",
 									icon: CreditCard,
 								},
 								{
