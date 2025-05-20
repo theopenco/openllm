@@ -39,7 +39,6 @@ COPY --from=init /tini /tini
 ENTRYPOINT ["/tini", "--"]
 COPY --from=builder /bin/pnpm /bin/pnpm
 
-# Production images for each app
 FROM runtime AS api
 WORKDIR /app/temp
 COPY --from=builder /app/apps ./apps
@@ -48,7 +47,8 @@ COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-
 RUN pnpm --filter=api --prod deploy ../dist/api
 RUN rm -rf /app/temp
 WORKDIR /app/dist/api
-EXPOSE 3002
+EXPOSE 80
+ENV PORT=80
 CMD ["pnpm", "start"]
 
 FROM runtime AS gateway
@@ -59,28 +59,33 @@ COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-
 RUN pnpm --filter=gateway --prod deploy ../dist/gateway
 RUN rm -rf /app/temp
 WORKDIR /app/dist/gateway
-EXPOSE 4001
+EXPOSE 80
+ENV PORT=80
 CMD ["pnpm", "start"]
 
-FROM runtime AS ui
-WORKDIR /app/temp
-COPY --from=builder /app/apps ./apps
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-RUN pnpm --filter=ui --prod deploy ../dist/ui
-RUN rm -rf /app/temp
-WORKDIR /app/dist/ui
-EXPOSE 4002
-CMD ["pnpm", "start"]
+# Base static image with Nginx
+FROM nginx:alpine AS static-base
 
-FROM runtime AS docs
-WORKDIR /app/temp
-COPY --from=builder /app/apps ./apps
-COPY --from=builder /app/packages ./packages
-COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-RUN pnpm --filter=docs --prod deploy ../dist/docs
-RUN rm -rf /app/temp
-WORKDIR /app/dist/docs
-EXPOSE 3005
-CMD ["pnpm", "start"]
+# Copy Nginx configuration
+COPY infra/nginx-static.conf /etc/nginx/nginx.conf
 
+# Create a simple 404 page
+RUN echo "<html><body><h1>404 - Page Not Found</h1></body></html>" > /usr/share/nginx/html/404.html
+
+EXPOSE 80
+
+COPY --from=init /tini /tini
+ENTRYPOINT ["/tini", "--"]
+CMD ["nginx", "-g", "daemon off;"]
+
+# UI static image
+FROM static-base AS ui
+
+# Copy UI static files directly to the root
+COPY --from=builder /app/apps/ui/.output/public/ /usr/share/nginx/html/
+
+# Docs static image
+FROM static-base AS docs
+
+# Copy docs static files directly to the root
+COPY --from=builder /app/apps/docs/out/ /usr/share/nginx/html/

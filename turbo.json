@@ -24,6 +24,7 @@
 				".vercel/**",
 				".output/**",
 				".vinxi/**",
+				"out/**",
 				"openapi.json"
 			]
 		},

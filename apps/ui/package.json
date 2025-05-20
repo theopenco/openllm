@@ -13,9 +13,9 @@
 		".vercel"
 	],
 	"scripts": {
-		"build": "vinxi build",
+		"build": "SERVER_PRESET=static vinxi build",
 		"dev": "vinxi dev --port 3002",
-		"start": "PORT=3002 vinxi start"
+		"start": "vinxi serve --dir .output/public/"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "5.0.1",

@@ -14,7 +14,7 @@ export default defineConfig({
 			routes: ["/"],
 			crawlLinks: true,
 		},
-		preset: "node-server",
+		preset: process.env.SERVER_PRESET || "static",
 	},
 	tsr: {
 		appDirectory: "./src",

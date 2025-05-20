@@ -3,11 +3,11 @@ import { serve } from "@hono/node-server";
 import { app } from "./index";
 import { startWorker } from "./worker";
 
-const port = 4001; // +process.env.PORT ||
+const port = Number(process.env.PORT) || 4001;
 
 console.log("listening on port", port);
 
-startWorker();
+void startWorker();
 
 serve({
 	port,

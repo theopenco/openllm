@@ -130,7 +130,7 @@ for app in "${APPS[@]}"; do
 
   # Change to the app's dist directory, build it, and start it
   cd dist/$app
-  pnpm start &
+  PORT="${APP_PORTS[$app]}" pnpm start &
   app_pid=$!
   PIDS+=($app_pid)
   cd ../..
