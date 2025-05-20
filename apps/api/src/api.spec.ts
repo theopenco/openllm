@@ -9,8 +9,8 @@ test("/", async () => {
 	expect(text).toMatch(/"message":"OK"/);
 });
 
-test("/content/user/me", async () => {
-	const res = await app.request("/content/user/me");
+test("/user/me", async () => {
+	const res = await app.request("/user/me");
 	expect(res.status).toBe(401);
 	const text = await res.text();
 	expect(text).toMatch(/Unauthorized/);

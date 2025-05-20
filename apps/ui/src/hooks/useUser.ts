@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-const API_BASE = "/api/content/user";
+const API_BASE = "/api/user";
 
 export interface UserUpdateData {
 	name?: string;

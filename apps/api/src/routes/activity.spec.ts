@@ -131,9 +131,9 @@ describe("activity endpoint", () => {
 		await deleteAll();
 	});
 
-	test("GET /content/activity should return activity data grouped by day", async () => {
+	test("GET /activity should return activity data grouped by day", async () => {
 		// Mock authentication
-		const res = await app.request("/content/activity?days=7", {
+		const res = await app.request("/activity?days=7", {
 			headers: {
 				Cookie: token,
 			},
@@ -168,8 +168,8 @@ describe("activity endpoint", () => {
 		expect(modelData).toHaveProperty("cost");
 	});
 
-	test("GET /content/activity should require days parameter", async () => {
-		const res = await app.request("/content/activity", {
+	test("GET /activity should require days parameter", async () => {
+		const res = await app.request("/activity", {
 			headers: {
 				Authorization: "Bearer test-token",
 				Cookie: token,
@@ -179,8 +179,8 @@ describe("activity endpoint", () => {
 		expect(res.status).toBe(400);
 	});
 
-	test("GET /content/activity should require authentication", async () => {
-		const res = await app.request("/content/activity?days=7");
+	test("GET /activity should require authentication", async () => {
+		const res = await app.request("/activity?days=7");
 		expect(res.status).toBe(401);
 	});
 });
