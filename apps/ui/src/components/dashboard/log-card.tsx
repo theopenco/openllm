@@ -7,8 +7,7 @@ import {
 	ChevronDown,
 	ChevronUp,
 	Clock,
-	Code,
-	DollarSign,
+	Coins,
 	Package,
 	Zap,
 } from "lucide-react";
@@ -100,12 +99,8 @@ export function LogCard({ log }: { log: Log }) {
 							<span>{formatDuration(log.duration)}</span>
 						</div>
 						<div className="flex items-center gap-1">
-							<DollarSign className="h-3.5 w-3.5" />
+							<Coins className="h-3.5 w-3.5" />
 							<span>{log.cost ? `$${log.cost.toFixed(6)}` : "?"}</span>
-						</div>
-						<div className="flex items-center gap-1">
-							<Code className="h-3.5 w-3.5" />
-							<span>{log.apiKeyId}</span>
 						</div>
 						<span className="ml-auto">{formattedTime}</span>
 					</div>
