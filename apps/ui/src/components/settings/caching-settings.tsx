@@ -93,6 +93,8 @@ export function CachingSettings() {
 					/>
 					<p className="text-muted-foreground text-sm self-center">
 						(Min: 10, Max: 31,536,000 - one year)
+						<br />
+						Note: changing this setting may take up to 5 minutes to take effect.
 					</p>
 				</div>
 			</div>

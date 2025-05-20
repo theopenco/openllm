@@ -43,13 +43,13 @@ describe("keys route", () => {
 		});
 	});
 
-	test("GET /content/keys/api unauthorized", async () => {
-		const res = await app.request("/content/keys/api");
+	test("GET /keys/api unauthorized", async () => {
+		const res = await app.request("/keys/api");
 		expect(res.status).toBe(401);
 	});
 
-	test("POST /content/keys/api unauthorized", async () => {
-		const res = await app.request("/content/keys/api", {
+	test("POST /keys/api unauthorized", async () => {
+		const res = await app.request("/keys/api", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -61,15 +61,15 @@ describe("keys route", () => {
 		expect(res.status).toBe(401);
 	});
 
-	test("DELETE /content/keys/api/test-api-key-id unauthorized", async () => {
-		const res = await app.request("/content/keys/api/test-api-key-id", {
+	test("DELETE /keys/api/test-api-key-id unauthorized", async () => {
+		const res = await app.request("/keys/api/test-api-key-id", {
 			method: "DELETE",
 		});
 		expect(res.status).toBe(401);
 	});
 
-	test("PATCH /content/keys/api/test-api-key-id unauthorized", async () => {
-		const res = await app.request("/content/keys/api/test-api-key-id", {
+	test("PATCH /keys/api/test-api-key-id unauthorized", async () => {
+		const res = await app.request("/keys/api/test-api-key-id", {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",
@@ -81,8 +81,8 @@ describe("keys route", () => {
 		expect(res.status).toBe(401);
 	});
 
-	test("GET /content/keys/api", async () => {
-		const res = await app.request("/content/keys/api", {
+	test("GET /keys/api", async () => {
+		const res = await app.request("/keys/api", {
 			headers: {
 				Cookie: token,
 			},
@@ -94,8 +94,8 @@ describe("keys route", () => {
 		expect(json.apiKeys[0].description).toBe("Test API Key");
 	});
 
-	test("PATCH /content/keys/api/:id", async () => {
-		const res = await app.request("/content/keys/api/test-api-key-id", {
+	test("PATCH /keys/api/:id", async () => {
+		const res = await app.request("/keys/api/test-api-key-id", {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json",

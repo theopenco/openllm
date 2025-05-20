@@ -43,13 +43,13 @@ describe("provider keys route", () => {
 		});
 	});
 
-	test("GET /content/keys/provider unauthorized", async () => {
-		const res = await app.request("/content/keys/provider");
+	test("GET /keys/provider unauthorized", async () => {
+		const res = await app.request("/keys/provider");
 		expect(res.status).toBe(401);
 	});
 
-	test("POST /content/keys/provider unauthorized", async () => {
-		const res = await app.request("/content/keys/provider", {
+	test("POST /keys/provider unauthorized", async () => {
+		const res = await app.request("/keys/provider", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -61,34 +61,28 @@ describe("provider keys route", () => {
 		expect(res.status).toBe(401);
 	});
 
-	test("DELETE /content/keys/provider/test-provider-key-id unauthorized", async () => {
-		const res = await app.request(
-			"/content/keys/provider/test-provider-key-id",
-			{
-				method: "DELETE",
-			},
-		);
+	test("DELETE /keys/provider/test-provider-key-id unauthorized", async () => {
+		const res = await app.request("/keys/provider/test-provider-key-id", {
+			method: "DELETE",
+		});
 		expect(res.status).toBe(401);
 	});
 
-	test("PATCH /content/keys/provider/test-provider-key-id unauthorized", async () => {
-		const res = await app.request(
-			"/content/keys/provider/test-provider-key-id",
-			{
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json",
-				},
-				body: JSON.stringify({
-					status: "inactive",
-				}),
+	test("PATCH /keys/provider/test-provider-key-id unauthorized", async () => {
+		const res = await app.request("/keys/provider/test-provider-key-id", {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
 			},
-		);
+			body: JSON.stringify({
+				status: "inactive",
+			}),
+		});
 		expect(res.status).toBe(401);
 	});
 
-	test("GET /content/keys/provider", async () => {
-		const res = await app.request("/content/keys/provider", {
+	test("GET /keys/provider", async () => {
+		const res = await app.request("/keys/provider", {
 			headers: {
 				Cookie: token,
 			},
@@ -100,8 +94,8 @@ describe("provider keys route", () => {
 		expect(json.providerKeys[0].provider).toBe("openai");
 	});
 
-	test("POST /content/keys/provider", async () => {
-		const res = await app.request("/content/keys/provider", {
+	test("POST /keys/provider", async () => {
+		const res = await app.request("/keys/provider", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -130,8 +124,8 @@ describe("provider keys route", () => {
 		expect(providerKey?.provider).toBe("inference.net");
 	});
 
-	test("POST /content/keys/provider with invalid provider", async () => {
-		const res = await app.request("/content/keys/provider", {
+	test("POST /keys/provider with invalid provider", async () => {
+		const res = await app.request("/keys/provider", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -144,8 +138,8 @@ describe("provider keys route", () => {
 		expect(res.status).toBe(400);
 	});
 
-	test("POST /content/keys/provider with duplicate provider", async () => {
-		const res = await app.request("/content/keys/provider", {
+	test("POST /keys/provider with duplicate provider", async () => {
+		const res = await app.request("/keys/provider", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -158,20 +152,17 @@ describe("provider keys route", () => {
 		expect(res.status).toBe(400);
 	});
 
-	test("PATCH /content/keys/provider/:id", async () => {
-		const res = await app.request(
-			"/content/keys/provider/test-provider-key-id",
-			{
-				method: "PATCH",
-				headers: {
-					"Content-Type": "application/json",
-					Cookie: token,
-				},
-				body: JSON.stringify({
-					status: "inactive",
-				}),
+	test("PATCH /keys/provider/:id", async () => {
+		const res = await app.request("/keys/provider/test-provider-key-id", {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json",
+				Cookie: token,
 			},
-		);
+			body: JSON.stringify({
+				status: "inactive",
+			}),
+		});
 		expect(res.status).toBe(200);
 		const json = await res.json();
 		expect(json).toHaveProperty("message");
@@ -190,16 +181,13 @@ describe("provider keys route", () => {
 		expect(providerKey?.status).toBe("inactive");
 	});
 
-	test("DELETE /content/keys/provider/:id", async () => {
-		const res = await app.request(
-			"/content/keys/provider/test-provider-key-id",
-			{
-				method: "DELETE",
-				headers: {
-					Cookie: token,
-				},
+	test("DELETE /keys/provider/:id", async () => {
+		const res = await app.request("/keys/provider/test-provider-key-id", {
+			method: "DELETE",
+			headers: {
+				Cookie: token,
 			},
-		);
+		});
 		expect(res.status).toBe(200);
 		const json = await res.json();
 		expect(json).toHaveProperty("message");

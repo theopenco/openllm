@@ -21,6 +21,8 @@ export interface DailyActivity {
 	inputCost: number;
 	errorCount: number;
 	errorRate: number;
+	cacheCount: number;
+	cacheRate: number;
 	modelBreakdown: ActivityModelUsage[];
 }
 
@@ -32,7 +34,7 @@ export async function fetchActivity(days = 7) {
 	const params = new URLSearchParams();
 	params.append("days", days.toString());
 
-	const res = await fetch(`/api/content/activity?${params}`);
+	const res = await fetch(`/api/activity?${params}`);
 	if (!res.ok) {
 		const errorText = await res.text();
 		throw new Error(`Failed to fetch activity data: ${errorText}`);

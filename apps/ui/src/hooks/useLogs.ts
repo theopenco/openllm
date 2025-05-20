@@ -39,7 +39,7 @@ export async function fetchLogs(options: FetchLogsOptions = {}) {
 		params.append("model", model);
 	}
 
-	const res = await fetch(`/api/content/logs?${params}`);
+	const res = await fetch(`/api/logs?${params}`);
 	if (!res.ok) {
 		const errorText = await res.text();
 		throw new Error(`Failed to fetch logs: ${errorText}`);

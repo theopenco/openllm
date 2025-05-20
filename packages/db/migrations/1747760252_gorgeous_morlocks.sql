@@ -57,7 +57,8 @@ CREATE TABLE "log" (
 	"output_cost" real,
 	"estimated_cost" boolean DEFAULT false,
 	"canceled" boolean DEFAULT false,
-	"streamed" boolean DEFAULT false
+	"streamed" boolean DEFAULT false,
+	"cached" boolean DEFAULT false
 );
 --> statement-breakpoint
 CREATE TABLE "organization" (

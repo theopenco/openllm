@@ -98,6 +98,16 @@ export default function Dashboard() {
 										</div>
 										<p className="text-muted-foreground text-xs">
 											Last {days} days
+											{data && data.length > 0 && (
+												<span className="ml-1">
+													•{" "}
+													{(
+														data.reduce((sum, day) => sum + day.cacheRate, 0) /
+														data.length
+													).toFixed(1)}
+													% cached
+												</span>
+											)}
 										</p>
 									</>
 								)}

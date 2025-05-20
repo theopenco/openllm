@@ -1,7 +1,7 @@
 import { useSuspenseQuery } from "@tanstack/react-query";
 
-const API_BASE_ORGS = "/api/content/orgs";
-const API_BASE_PROJECTS = "/api/content/projects";
+const API_BASE_ORGS = "/api/orgs";
+const API_BASE_PROJECTS = "/api/projects";
 
 export interface Project {
 	id: string;

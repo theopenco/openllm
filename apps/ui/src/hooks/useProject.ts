@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
-const API_BASE = "/api/content/projects";
+const API_BASE = "/api/projects";
 
 export interface ProjectSettings {
 	cachingEnabled?: boolean;
