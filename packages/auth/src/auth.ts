@@ -19,12 +19,12 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 		updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated)
 	},
 	basePath: "/auth",
-	trustedOrigins: ["http://localhost:3002"],
+	trustedOrigins: [process.env.VITE_APP_URL || "http://localhost:3002"],
 	plugins: [
 		passkey({
 			rpID: process.env.PASSKEY_RP_ID || "localhost",
 			rpName: process.env.PASSKEY_RP_NAME || "OpenLLM",
-			origin: process.env.PASSKEY_ORIGIN || "http://localhost:3002",
+			origin: process.env.VITE_APP_URL || "http://localhost:3002",
 		}),
 	],
 	database: drizzleAdapter(db, {
