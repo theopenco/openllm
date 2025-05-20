@@ -45,7 +45,11 @@ mockOpenAIServer.post("/v1/chat/completions", async (c) => {
 
 	// Check if this request should trigger an error response
 	const shouldError = body.messages.some(
-		(msg: any) => msg.role === "user" && msg.content.includes("TRIGGER_ERROR"),
+		(msg: any) =>
+			msg.role === "user" &&
+			(msg.content.includes("TRIGGER_ERROR") ||
+				(msg.content.includes("TRIGGER_PROVIDER_ERROR") &&
+					body.model === "gpt-4o-mini")),
 	);
 
 	if (shouldError) {
