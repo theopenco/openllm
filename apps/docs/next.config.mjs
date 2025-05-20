@@ -8,7 +8,7 @@ const config = {
 	eslint: {
 		ignoreDuringBuilds: true,
 	},
-	basePath: process.env.NODE_ENV === "production" ? "/docs" : undefined,
+	basePath: undefined,
 };
 
 export default withMDX(config);
