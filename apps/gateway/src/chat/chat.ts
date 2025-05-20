@@ -398,8 +398,6 @@ chat.openapi(completions, async (c) => {
 
 		const cachedResponse = cacheKey ? await getCache(cacheKey) : null;
 		if (cachedResponse) {
-			console.log("Cache hit for request:", cacheKey);
-
 			// Log the cached request
 			const duration = 0; // No processing time needed
 			await insertLog({
@@ -415,7 +413,7 @@ chat.openapi(completions, async (c) => {
 				messages: messages,
 				responseSize: JSON.stringify(cachedResponse).length,
 				content: cachedResponse.choices?.[0]?.message?.content || null,
-				finishReason: "cached",
+				finishReason: cachedResponse.choices?.[0]?.finish_reason || null,
 				promptTokens: cachedResponse.usage?.prompt_tokens || null,
 				completionTokens: cachedResponse.usage?.completion_tokens || null,
 				totalTokens: cachedResponse.usage?.total_tokens || null,
@@ -432,6 +430,7 @@ chat.openapi(completions, async (c) => {
 				outputCost: 0,
 				cost: 0,
 				estimatedCost: false,
+				cached: true,
 			});
 
 			return c.json(cachedResponse);
@@ -555,8 +554,6 @@ chat.openapi(completions, async (c) => {
 				c.req.raw.signal.removeEventListener("abort", onAbort);
 
 				if (error instanceof Error && error.name === "AbortError") {
-					console.log("Streaming request was canceled by the client");
-
 					// Log the canceled request
 					await insertLog({
 						organizationId: project.organizationId,
@@ -584,6 +581,7 @@ chat.openapi(completions, async (c) => {
 						streamed: true,
 						canceled: true,
 						errorDetails: null,
+						cached: false,
 					});
 
 					// Send a cancellation event to the client
@@ -658,6 +656,7 @@ chat.openapi(completions, async (c) => {
 						statusText: res.statusText,
 						responseText: errorResponseText,
 					},
+					cached: false,
 				});
 
 				return;
@@ -817,6 +816,7 @@ chat.openapi(completions, async (c) => {
 					outputCost: costs.outputCost,
 					cost: costs.totalCost,
 					estimatedCost: costs.estimatedCost,
+					cached: false,
 				});
 			}
 		});
@@ -849,7 +849,6 @@ chat.openapi(completions, async (c) => {
 	} catch (error) {
 		if (error instanceof Error && error.name === "AbortError") {
 			canceled = true;
-			console.log("Request was canceled by the client");
 		} else {
 			throw error;
 		}
@@ -890,6 +889,7 @@ chat.openapi(completions, async (c) => {
 			canceled: true,
 			errorDetails: null,
 			estimatedCost: false,
+			cached: false,
 		});
 
 		return c.json(
@@ -943,6 +943,7 @@ chat.openapi(completions, async (c) => {
 				responseText: errorResponseText,
 			},
 			estimatedCost: false,
+			cached: false,
 		});
 
 		// Return a 500 error response
@@ -1037,6 +1038,7 @@ chat.openapi(completions, async (c) => {
 		outputCost: costs.outputCost,
 		cost: costs.totalCost,
 		estimatedCost: costs.estimatedCost,
+		cached: false,
 	});
 
 	if (cachingEnabled && cacheKey && !stream) {

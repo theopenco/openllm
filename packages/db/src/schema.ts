@@ -152,6 +152,7 @@ export const log = pgTable("log", {
 	estimatedCost: boolean().default(false),
 	canceled: boolean().default(false),
 	streamed: boolean().default(false),
+	cached: boolean().default(false),
 });
 
 export const passkey = pgTable("passkey", {
