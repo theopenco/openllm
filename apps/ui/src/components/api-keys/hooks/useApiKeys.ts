@@ -4,7 +4,7 @@ import {
 	useSuspenseQuery,
 } from "@tanstack/react-query";
 
-const API_BASE = "/api/content/keys/api";
+const API_BASE = "/api/keys/api";
 
 export interface ApiKey {
 	id: string;
