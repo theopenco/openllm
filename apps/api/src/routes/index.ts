@@ -11,10 +11,10 @@ import { user } from "./user";
 
 import type { ServerTypes } from "../vars";
 
-export const content = new OpenAPIHono<ServerTypes>();
+export const routes = new OpenAPIHono<ServerTypes>();
 
 // Middleware to verify authentication
-content.use("/*", async (c, next) => {
+routes.use("/*", async (c, next) => {
 	const session = await auth.api.getSession({ headers: c.req.raw.headers });
 
 	if (!session?.user) {
@@ -27,14 +27,14 @@ content.use("/*", async (c, next) => {
 	return await next();
 });
 
-content.route("/user", user);
+routes.route("/user", user);
 
-content.route("/logs", logs);
+routes.route("/logs", logs);
 
-content.route("/activity", activity);
+routes.route("/activity", activity);
 
-content.route("/keys", keysApi);
-content.route("/keys", keysProvider);
-content.route("/projects", projects);
+routes.route("/keys", keysApi);
+routes.route("/keys", keysProvider);
+routes.route("/projects", projects);
 
-content.route("/orgs", organization);
+routes.route("/orgs", organization);

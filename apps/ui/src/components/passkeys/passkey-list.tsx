@@ -16,7 +16,7 @@ import { toast } from "@/lib/components/use-toast";
 import type { Passkey } from "./types";
 
 async function fetchPasskeys(): Promise<Passkey[]> {
-	const response = await fetch("/api/content/user/me/passkeys");
+	const response = await fetch("/api/user/me/passkeys");
 	if (!response.ok) {
 		throw new Error("Failed to fetch passkeys");
 	}
@@ -25,7 +25,7 @@ async function fetchPasskeys(): Promise<Passkey[]> {
 }
 
 async function deletePasskeyRequest(id: string): Promise<void> {
-	const response = await fetch(`/api/content/user/me/passkeys/${id}`, {
+	const response = await fetch(`/api/user/me/passkeys/${id}`, {
 		method: "DELETE",
 	});
 	if (!response.ok) {

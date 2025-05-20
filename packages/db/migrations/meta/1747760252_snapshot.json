@@ -1,5 +1,5 @@
 {
-	"id": "c48bfb9a-1653-4155-9977-dab0fb27ef77",
+	"id": "00fce32f-5fac-4d56-a90b-b1d0abff61ff",
 	"prevId": "00000000-0000-0000-0000-000000000000",
 	"version": "7",
 	"dialect": "postgresql",
@@ -368,6 +368,13 @@
 				},
 				"streamed": {
 					"name": "streamed",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": false,
+					"default": false
+				},
+				"cached": {
+					"name": "cached",
 					"type": "boolean",
 					"primaryKey": false,
 					"notNull": false,

@@ -3,8 +3,7 @@ import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { z } from "zod";
 
 import { authHandler } from "./auth/handler";
-import { content } from "./content";
-import { exposed } from "./exposed";
+import { routes } from "./routes";
 
 import type { ServerTypes } from "./vars";
 
@@ -36,9 +35,7 @@ app.openapi(root, async (c) => {
 
 app.route("/", authHandler);
 
-app.route("/content", content);
-
-app.route("/public", exposed);
+app.route("/", routes);
 
 app.doc("/json", {
 	servers: [

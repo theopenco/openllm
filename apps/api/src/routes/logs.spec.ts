@@ -134,7 +134,7 @@ describe("logs route", () => {
 	});
 
 	test("should return 401 when not authenticated", async () => {
-		const res = await app.request("/content/logs");
+		const res = await app.request("/logs");
 		expect(res.status).toBe(401);
 	});
 
@@ -142,7 +142,7 @@ describe("logs route", () => {
 	describe("filter functionality", () => {
 		test("should filter logs by projectId", async () => {
 			const params = new URLSearchParams({ projectId: "test-project-id" });
-			const res = await app.request("/content/logs?" + params, {
+			const res = await app.request("/logs?" + params, {
 				method: "GET",
 				headers: {
 					Cookie: token,
@@ -161,7 +161,7 @@ describe("logs route", () => {
 
 		test("should filter by second projectId", async () => {
 			const params = new URLSearchParams({ projectId: "test-project-id-2" });
-			const res = await app.request("/content/logs?" + params, {
+			const res = await app.request("/logs?" + params, {
 				method: "GET",
 				headers: {
 					Cookie: token,
@@ -218,7 +218,7 @@ describe("logs route", () => {
 		});
 
 		test("should return default limit of 50 logs", async () => {
-			const res = await app.request("/content/logs", {
+			const res = await app.request("/logs", {
 				method: "GET",
 				headers: {
 					Cookie: token,
@@ -236,7 +236,7 @@ describe("logs route", () => {
 
 		test("should respect custom limit parameter", async () => {
 			const params = new URLSearchParams({ limit: "10" });
-			const res = await app.request("/content/logs?" + params, {
+			const res = await app.request("/logs?" + params, {
 				method: "GET",
 				headers: {
 					Cookie: token,
@@ -255,7 +255,7 @@ describe("logs route", () => {
 		test("should paginate using cursor", async () => {
 			// Get first page
 			const firstPageRes = await app.request(
-				"/content/logs?limit=10&projectId=test-project-id",
+				"/logs?limit=10&projectId=test-project-id",
 				{
 					method: "GET",
 					headers: {
@@ -277,15 +277,12 @@ describe("logs route", () => {
 				cursor: cursor,
 				projectId: "test-project-id", // Explicitly specify the project ID
 			});
-			const secondPageRes = await app.request(
-				"/content/logs?" + secondPageParams,
-				{
-					method: "GET",
-					headers: {
-						Cookie: token,
-					},
+			const secondPageRes = await app.request("/logs?" + secondPageParams, {
+				method: "GET",
+				headers: {
+					Cookie: token,
 				},
-			);
+			});
 
 			expect(secondPageRes.status).toBe(200);
 			const secondPageJson = await secondPageRes.json();
