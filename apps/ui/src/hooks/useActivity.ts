@@ -21,6 +21,8 @@ export interface DailyActivity {
 	inputCost: number;
 	errorCount: number;
 	errorRate: number;
+	cacheCount: number;
+	cacheRate: number;
 	modelBreakdown: ActivityModelUsage[];
 }
 

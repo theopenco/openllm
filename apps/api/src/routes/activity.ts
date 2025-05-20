@@ -30,6 +30,8 @@ const dailyActivitySchema = z.object({
 	outputCost: z.number(),
 	errorCount: z.number(),
 	errorRate: z.number(),
+	cacheCount: z.number(),
+	cacheRate: z.number(),
 	modelBreakdown: z.array(modelUsageSchema),
 });
 
@@ -125,7 +127,8 @@ activity.openapi(getActivity, async (c) => {
 			COALESCE(SUM("input_cost"), 0)        as "inputCost",
 			COALESCE(SUM("output_cost"), 0)       as "outputCost",
 			COUNT(*)                              as "requestCount",
-			COALESCE(SUM(CASE WHEN "has_error" = true THEN 1 ELSE 0 END), 0) as "errorCount"
+			COALESCE(SUM(CASE WHEN "has_error" = true THEN 1 ELSE 0 END), 0) as "errorCount",
+			COALESCE(SUM(CASE WHEN "cached" = true THEN 1 ELSE 0 END), 0) as "cacheCount"
 		FROM "log"
 		WHERE "project_id" IN (${sql.join(projectIds)})
 			AND "created_at" >= ${startDate}
@@ -164,6 +167,8 @@ activity.openapi(getActivity, async (c) => {
 				outputCost: 0,
 				errorCount: 0,
 				errorRate: 0,
+				cacheCount: 0,
+				cacheRate: 0,
 				modelBreakdown: [],
 			});
 		}
@@ -179,9 +184,14 @@ activity.openapi(getActivity, async (c) => {
 		dayData.inputCost += inputCost;
 		dayData.outputCost += outputCost;
 		dayData.errorCount += Number(log.errorCount || 0);
+		dayData.cacheCount += Number(log.cacheCount || 0);
 		dayData.errorRate =
 			dayData.requestCount > 0
 				? (dayData.errorCount / dayData.requestCount) * 100
+				: 0;
+		dayData.cacheRate =
+			dayData.requestCount > 0
+				? (dayData.cacheCount / dayData.requestCount) * 100
 				: 0;
 
 		// Add the model breakdown
