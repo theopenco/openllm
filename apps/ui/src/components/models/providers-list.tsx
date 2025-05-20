@@ -1,30 +1,32 @@
 "use client";
 
-import { Edit, MoreHorizontal, Trash } from "lucide-react";
+import { providers as defaultProviders } from "@openllm/models";
+// import { Edit, MoreHorizontal, Trash } from "lucide-react";
 import { useState } from "react";
+// import { toast } from "sonner";
 
-import { EditProviderDialog } from "@/components/models/edit-provider-dialog";
-import {
-	AlertDialog,
-	AlertDialogAction,
-	AlertDialogCancel,
-	AlertDialogContent,
-	AlertDialogDescription,
-	AlertDialogFooter,
-	AlertDialogHeader,
-	AlertDialogTitle,
-	AlertDialogTrigger,
-} from "@/lib/components/alert-dialog";
+// import { EditProviderDialog } from "@/components/models/edit-provider-dialog";
+// import {
+// 	AlertDialog,
+// 	AlertDialogAction,
+// 	AlertDialogCancel,
+// 	AlertDialogContent,
+// 	AlertDialogDescription,
+// 	AlertDialogFooter,
+// 	AlertDialogHeader,
+// 	AlertDialogTitle,
+// 	AlertDialogTrigger,
+// } from "@/lib/components/alert-dialog";
 import { Badge } from "@/lib/components/badge";
-import { Button } from "@/lib/components/button";
-import {
-	DropdownMenu,
-	DropdownMenuContent,
-	DropdownMenuItem,
-	DropdownMenuLabel,
-	DropdownMenuSeparator,
-	DropdownMenuTrigger,
-} from "@/lib/components/dropdown-menu";
+// import { Button } from "@/lib/components/button";
+// import {
+// 	DropdownMenu,
+// 	DropdownMenuContent,
+// 	DropdownMenuItem,
+// 	DropdownMenuLabel,
+// 	DropdownMenuSeparator,
+// 	DropdownMenuTrigger,
+// } from "@/lib/components/dropdown-menu";
 import {
 	Table,
 	TableBody,
@@ -33,76 +35,46 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/lib/components/table";
-import { toast } from "@/lib/components/use-toast";
-
-const providers = [
-	{
-		id: "1",
-		name: "OpenAI",
-		baseUrl: "https://api.openai.com/v1",
-		models: ["gpt-4o", "gpt-3.5-turbo"],
-		status: "connected",
-		priority: "high",
-	},
-	{
-		id: "2",
-		name: "Anthropic",
-		baseUrl: "https://api.anthropic.com/v1",
-		models: ["claude-3-sonnet", "claude-3-haiku"],
-		status: "connected",
-		priority: "medium",
-	},
-	{
-		id: "3",
-		name: "Mistral AI",
-		baseUrl: "https://api.mistral.ai/v1",
-		models: ["mistral-large", "mistral-small"],
-		status: "connected",
-		priority: "low",
-	},
-	{
-		id: "4",
-		name: "Meta",
-		baseUrl: "https://llama.meta.ai/v1",
-		models: ["llama-3-70b", "llama-3-8b"],
-		status: "disconnected",
-		priority: "low",
-	},
-];
 
 export function ProvidersList() {
-	const [providersList, setProvidersList] = useState(providers);
-	const [editingProvider, setEditingProvider] = useState<
-		(typeof providers)[0] | null
-	>(null);
-	const [editDialogOpen, setEditDialogOpen] = useState(false);
+	const [providersList, _setProvidersList] = useState(() =>
+		defaultProviders.map((provider, index) => ({
+			id: index.toString(),
+			name: provider.name,
+			baseUrl: `https://${provider.id}.api.fake/v1`,
+			models: [],
+			status: "connected",
+			priority: "medium",
+		})),
+	);
 
-	const deleteProvider = (id: string) => {
-		setProvidersList(providersList.filter((provider) => provider.id !== id));
-		toast({
-			title: "Provider Deleted",
-			description: "The provider has been removed from your gateway.",
-		});
-	};
+	// const [editingProvider, setEditingProvider] = useState<
+	// 	(typeof providersList)[0] | null
+	// >(null);
+	// const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-	const editProvider = (provider: (typeof providers)[0]) => {
-		setEditingProvider(provider);
-		setEditDialogOpen(true);
-	};
+	// const deleteProvider = (id: string) => {
+	// 	setProvidersList((prev) => prev.filter((p) => p.id !== id));
+	// 	toast("Provider Deleted", {
+	// 		description: "The provider has been removed from your gateway.",
+	// 	});
+	// };
 
-	const saveProvider = (updatedProvider: (typeof providers)[0]) => {
-		setProvidersList(
-			providersList.map((provider) =>
-				provider.id === updatedProvider.id ? updatedProvider : provider,
-			),
-		);
-		toast({
-			title: "Provider Updated",
-			description: "The provider settings have been updated.",
-		});
-		setEditDialogOpen(false);
-		setEditingProvider(null);
-	};
+	// const editProvider = (provider: (typeof providersList)[0]) => {
+	// 	setEditingProvider(provider);
+	// 	setEditDialogOpen(true);
+	// };
+
+	// const saveProvider = (updatedProvider: (typeof providersList)[0]) => {
+	// 	setProvidersList((prev) =>
+	// 		prev.map((p) => (p.id === updatedProvider.id ? updatedProvider : p)),
+	// 	);
+	// 	toast("Provider Updated", {
+	// 		description: "The provider settings have been updated.",
+	// 	});
+	// 	setEditDialogOpen(false);
+	// 	setEditingProvider(null);
+	// };
 
 	return (
 		<>
@@ -114,7 +86,7 @@ export function ProvidersList() {
 						<TableHead>Models</TableHead>
 						<TableHead>Status</TableHead>
 						<TableHead>Priority</TableHead>
-						<TableHead className="text-right">Actions</TableHead>
+						{/* <TableHead className="text-right">Actions</TableHead> */}
 					</TableRow>
 				</TableHeader>
 				<TableBody>
@@ -124,7 +96,9 @@ export function ProvidersList() {
 							<TableCell className="font-mono text-xs">
 								{provider.baseUrl}
 							</TableCell>
-							<TableCell>{provider.models.join(", ")}</TableCell>
+							<TableCell>
+								{provider.models.length > 0 ? provider.models.join(", ") : "—"}
+							</TableCell>
 							<TableCell>
 								<Badge
 									variant={
@@ -148,7 +122,7 @@ export function ProvidersList() {
 									{provider.priority}
 								</Badge>
 							</TableCell>
-							<TableCell className="text-right">
+							{/* <TableCell className="text-right">
 								<DropdownMenu>
 									<DropdownMenuTrigger asChild>
 										<Button variant="ghost" size="icon" className="h-8 w-8">
@@ -178,9 +152,7 @@ export function ProvidersList() {
 														Are you absolutely sure?
 													</AlertDialogTitle>
 													<AlertDialogDescription>
-														This action cannot be undone. This will permanently
-														delete the provider configuration and remove it from
-														your gateway.
+														This will permanently remove this provider.
 													</AlertDialogDescription>
 												</AlertDialogHeader>
 												<AlertDialogFooter>
@@ -196,20 +168,20 @@ export function ProvidersList() {
 										</AlertDialog>
 									</DropdownMenuContent>
 								</DropdownMenu>
-							</TableCell>
+							</TableCell> */}
 						</TableRow>
 					))}
 				</TableBody>
 			</Table>
 
-			{editingProvider && (
+			{/* {editingProvider && (
 				<EditProviderDialog
 					provider={editingProvider}
 					open={editDialogOpen}
 					onOpenChange={setEditDialogOpen}
 					onSave={saveProvider}
 				/>
-			)}
+			)} */}
 		</>
 	);
 }

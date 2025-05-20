@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+// import { Plus } from "lucide-react";
 
-import { AddProviderDialog } from "@/components/models/add-provider-dialog";
+// import { AddProviderDialog } from "@/components/models/add-provider-dialog";
+import { ModelsList } from "@/components/models/models-list";
 import { ProvidersList } from "@/components/models/providers-list";
-import { Button } from "@/lib/components/button";
+// import { Button } from "@/lib/components/button";
 import {
 	Card,
 	CardContent,
@@ -30,12 +31,12 @@ function RouteComponent() {
 					<h2 className="text-3xl font-bold tracking-tight">
 						Models & Providers
 					</h2>
-					<AddProviderDialog>
+					{/* <AddProviderDialog>
 						<Button>
 							<Plus className="mr-2 h-4 w-4" />
 							Add Provider
 						</Button>
-					</AddProviderDialog>
+					</AddProviderDialog> */}
 				</div>
 				<Tabs defaultValue="providers" className="space-y-4">
 					<TabsList>
@@ -64,10 +65,7 @@ function RouteComponent() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<p className="text-muted-foreground text-sm">
-									Models are automatically detected from your connected
-									providers.
-								</p>
+								<ModelsList />
 							</CardContent>
 						</Card>
 					</TabsContent>
