@@ -32,7 +32,7 @@ export default function Hero() {
 						className="border-zinc-300 dark:border-zinc-800 bg-transparent text-zinc-900 dark:text-white hover:text-black dark:hover:text-white hover:border-zinc-500 dark:hover:border-zinc-700 px-8 py-6 text-base"
 						asChild
 					>
-						<a href="https://llmgateway.io/docs" target="_blank">
+						<a href="https://docs.llmgateway.io" target="_blank">
 							View Documentation
 							<ArrowRight className="ml-2 h-4 w-4" />
 						</a>

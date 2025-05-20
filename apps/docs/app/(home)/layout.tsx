@@ -1,21 +1,14 @@
-import { HomeLayout } from "fumadocs-ui/layouts/home";
+import { DocsLayout } from "fumadocs-ui/layouts/docs";
 
 import { baseOptions } from "@/app/layout.config";
+import { source } from "@/lib/source";
 
 import type { ReactNode } from "react";
 
 export default function Layout({ children }: { children: ReactNode }) {
 	return (
-		<HomeLayout
-			{...baseOptions}
-			links={[
-				{
-					text: "Documentation",
-					url: "/docs",
-				},
-			]}
-		>
+		<DocsLayout tree={source.pageTree} {...baseOptions}>
 			{children}
-		</HomeLayout>
+		</DocsLayout>
 	);
 }

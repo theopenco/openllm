@@ -4,7 +4,7 @@ import { createOpenAPI, attachFile } from "fumadocs-openapi/server";
 import { docs } from "@/.source";
 
 export const source = loader({
-	baseUrl: "/docs",
+	baseUrl: "/",
 	source: docs.toFumadocsSource(),
 	pageTree: {
 		attachFile,

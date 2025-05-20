@@ -24,7 +24,7 @@ export default function Navbar() {
 						Features
 					</a>
 					<a
-						href="https://llmgateway.io/docs"
+						href="https://docs.llmgateway.io"
 						target="_blank"
 						className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
 					>
