@@ -1,6 +1,6 @@
-# OpenLLM
+# LLM Gateway
 
-OpenLLM is an open-source API gateway for Large Language Models (LLMs). It acts as a middleware between your applications and various LLM providers, allowing you to:
+LLM Gateway is an open-source API gateway for Large Language Models (LLMs). It acts as a middleware between your applications and various LLM providers, allowing you to:
 
 - Route requests to multiple LLM providers (OpenAI, Anthropic, Google Vertex AI, and others)
 - Manage API keys for different providers in one place
@@ -16,17 +16,17 @@ OpenLLM is an open-source API gateway for Large Language Models (LLMs). It acts 
 
 ## Getting Started
 
-You can use OpenLLM in two ways:
+You can use LLM Gateway in two ways:
 
-- **Hosted Version**: For immediate use without setup, visit [openllm.org](https://openllm.org) to create an account and get an API key.
-- **Self-Hosted**: Deploy OpenLLM on your own infrastructure for complete control over your data and configuration.
+- **Hosted Version**: For immediate use without setup, visit [llmgateway.io](https://llmgateway.io) to create an account and get an API key.
+- **Self-Hosted**: Deploy LLM Gateway on your own infrastructure for complete control over your data and configuration.
 
-### Using OpenLLM API
+### Using LLM Gateway API
 
 ```http
-POST https://api.openllm.org/v1/chat/completions
+POST https://api.llmgateway.io/v1/chat/completions
 Content-Type: application/json
-Authorization: Bearer your-openllm-api-key
+Authorization: Bearer your-llmgateway-api-key
 
 {
   "model": "gpt-4o",

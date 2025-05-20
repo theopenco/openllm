@@ -12,7 +12,7 @@ export default function CallToAction() {
 						Ready to Simplify Your LLM Integration?
 					</h2>
 					<p className="text-zinc-600 dark:text-zinc-400 mb-10">
-						Start using Ai Gateway today and take control of your AI
+						Start using LLM Gateway today and take control of your AI
 						infrastructure.
 					</p>
 
@@ -29,7 +29,7 @@ export default function CallToAction() {
 							asChild
 						>
 							<a href={GITHUB_URL} target="_blank">
-								Self-host Ai Gateway
+								Self-host LLM Gateway
 							</a>
 						</Button>
 					</div>

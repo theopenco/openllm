@@ -32,7 +32,7 @@ import { toast } from "@/lib/components/use-toast";
 const providerLogoComponents: Partial<
 	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>> | null>
 > = {
-	openllm: OpenLLMLogo,
+	llmgateway: OpenLLMLogo,
 	openai: OpenAiLogo,
 	anthropic: anthropicLogo,
 	"google-vertex": GoogleVertexLogo,
@@ -90,10 +90,10 @@ export function CreateProviderKeyDialog({
 			return;
 		}
 
-		if (selectedProvider === "openllm" && !baseUrl) {
+		if (selectedProvider === "llmgateway" && !baseUrl) {
 			toast({
 				title: "Error",
-				description: "Base URL is required for OpenLLM provider",
+				description: "Base URL is required for LLM Gateway provider",
 				variant: "destructive",
 				className: "text-white",
 			});
@@ -197,7 +197,7 @@ export function CreateProviderKeyDialog({
 							required
 						/>
 					</div>
-					{selectedProvider === "openllm" && (
+					{selectedProvider === "llmgateway" && (
 						<div className="space-y-2">
 							<Label htmlFor="baseUrl">Base URL</Label>
 							<Input
@@ -208,7 +208,7 @@ export function CreateProviderKeyDialog({
 								required
 							/>
 							<p className="text-muted-foreground text-xs">
-								Required for OpenLLM provider
+								Required for LLM Gateway provider
 							</p>
 						</div>
 					)}

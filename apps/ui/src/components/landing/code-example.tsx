@@ -31,9 +31,9 @@ export default function CodeExample() {
 						</div>
 						<pre className="p-4 overflow-x-auto text-sm">
 							<code className="text-zinc-800 dark:text-zinc-300">
-								{`POST https://api.ai-gateway.theopenco.org/v1/chat/completions
+								{`POST https://api.llmgateway.io/v1/chat/completions
 Content-Type: application/json
-Authorization: Bearer your-openllm-api-key
+Authorization: Bearer your-llmgateway-api-key
 
 {
   "model": "gpt-4o",
@@ -46,7 +46,7 @@ Authorization: Bearer your-openllm-api-key
 					</div>
 
 					<p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
-						Ai Gateway routes your request to the appropriate provider while
+						LLM Gateway routes your request to the appropriate provider while
 						tracking usage and performance.
 					</p>
 				</div>

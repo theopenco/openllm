@@ -44,7 +44,9 @@ export function DashboardSidebar() {
 				<div className="flex h-14 items-center px-4">
 					<Link to="/dashboard" className="inline-flex items-center space-x-2">
 						<Logo className="h-8 w-8 rounded-full text-black dark:text-white" />
-						<span className="text-xl font-bold tracking-tight">Ai Gateway</span>
+						<span className="text-xl font-bold tracking-tight">
+							LLM Gateway
+						</span>
 					</Link>
 				</div>
 			</SidebarHeader>

@@ -66,7 +66,7 @@ export function CreateApiKeyDialog({
 						<DialogHeader>
 							<DialogTitle>Create API Key</DialogTitle>
 							<DialogDescription>
-								Create a new API key to access OpenLLM.
+								Create a new API key to access LLM Gateway.
 							</DialogDescription>
 						</DialogHeader>
 						<form onSubmit={handleSubmit} className="space-y-4 py-4">

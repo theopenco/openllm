@@ -12,10 +12,10 @@ export interface ProviderDefinition {
 
 export const providers = [
 	{
-		id: "openllm",
-		name: "OpenLLM",
+		id: "llmgateway",
+		name: "LLM Gateway",
 		description:
-			"OpenLLM is a framework for building and deploying large language models.",
+			"LLMGateway is a framework for building and deploying large language models.",
 		streaming: true,
 		cancellation: true,
 		color: "#6366f1",

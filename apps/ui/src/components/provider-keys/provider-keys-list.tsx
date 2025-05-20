@@ -47,7 +47,7 @@ import { toast } from "@/lib/components/use-toast";
 export const providerLogoComponents: Partial<
 	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>>>
 > = {
-	openllm: OpenLLMLogo,
+	llmgateway: OpenLLMLogo,
 	openai: OpenAILogo,
 	anthropic: AnthropicLogo,
 	"google-vertex": GoogleVertexLogo,

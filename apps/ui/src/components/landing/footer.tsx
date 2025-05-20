@@ -10,11 +10,11 @@ export default function Footer() {
 						<div className="flex items-center space-x-2">
 							<Logo className="h-8 w-8 rounded-full text-black dark:text-white" />
 							<span className="text-lg font-bold tracking-tight text-zinc-900 dark:text-white">
-								Ai Gateway
+								LLM Gateway
 							</span>
 						</div>
 						<p className="text-zinc-600 dark:text-zinc-500 text-sm mt-2">
-							© {new Date().getFullYear()} Ai Gateway. All rights reserved.
+							© {new Date().getFullYear()} LLM Gateway. All rights reserved.
 						</p>
 					</div>
 

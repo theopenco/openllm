@@ -45,7 +45,7 @@ app.doc("/json", {
 		{
 			url:
 				process.env.NODE_ENV === "production"
-					? "https://api.openllm.com"
+					? "https://api.llmgateway.io"
 					: "http://localhost:3002/api",
 		},
 	],

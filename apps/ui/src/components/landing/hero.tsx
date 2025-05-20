@@ -44,7 +44,7 @@ export default function Hero() {
 					<div className="h-[400px] w-full max-w-4xl mx-auto border border-zinc-300 dark:border-zinc-800 rounded-lg overflow-hidden relative">
 						<img
 							src={imageSrc}
-							alt="OpenLLM Dashboard"
+							alt="LLM Gateway Dashboard"
 							className="w-full h-full object-cover"
 						/>
 					</div>

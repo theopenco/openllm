@@ -91,7 +91,7 @@ describe("test", () => {
 		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
 			token: "sk-test-key",
-			provider: "openllm",
+			provider: "llmgateway",
 			projectId: "project-id",
 			baseUrl: mockServerUrl,
 		});
@@ -103,7 +103,7 @@ describe("test", () => {
 				Authorization: `Bearer real-token`,
 			},
 			body: JSON.stringify({
-				model: "openllm/custom",
+				model: "llmgateway/custom",
 				messages: [
 					{
 						role: "user",
@@ -262,8 +262,8 @@ describe("test", () => {
 		);
 	});
 
-	// test for openllm/auto special case
-	test("/v1/chat/completions with openllm/auto", async () => {
+	// test for llmgateway/auto special case
+	test("/v1/chat/completions with llmgateway/auto", async () => {
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
@@ -287,11 +287,11 @@ describe("test", () => {
 				Authorization: `Bearer real-token`,
 			},
 			body: JSON.stringify({
-				model: "openllm/auto",
+				model: "llmgateway/auto",
 				messages: [
 					{
 						role: "user",
-						content: "Hello with openllm/auto!",
+						content: "Hello with llmgateway/auto!",
 					},
 				],
 			}),
@@ -346,7 +346,7 @@ describe("test", () => {
 		await db.insert(tables.providerKey).values({
 			id: "provider-key-id",
 			token: "sk-test-key",
-			provider: "openllm",
+			provider: "llmgateway",
 			projectId: "project-id",
 			baseUrl: mockServerUrl,
 		});
@@ -359,7 +359,7 @@ describe("test", () => {
 				Authorization: `Bearer real-token`,
 			},
 			body: JSON.stringify({
-				model: "openllm/custom",
+				model: "llmgateway/custom",
 				messages: [
 					{
 						role: "user",
