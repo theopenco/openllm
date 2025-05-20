@@ -6,7 +6,6 @@ import {
 	LayoutDashboard,
 	LogOutIcon,
 	Settings,
-	Zap,
 	Activity,
 	KeyRound,
 } from "lucide-react";
@@ -42,12 +41,9 @@ export function DashboardSidebar() {
 		<Sidebar variant="floating">
 			<SidebarHeader className="border-b">
 				<div className="flex h-14 items-center px-4">
-					<Link
-						to="/dashboard"
-						className="flex items-center gap-2 font-semibold"
-					>
-						<Zap className="text-primary h-5 w-5" />
-						<span className="text-lg">OpenLLM</span>
+					<Link to="/dashboard" className="inline-flex items-center space-x-2">
+						<div className="h-8 w-8 rounded-full bg-white" />
+						<span className="text-xl font-bold tracking-tight">OpenLLM</span>
 					</Link>
 				</div>
 			</SidebarHeader>
