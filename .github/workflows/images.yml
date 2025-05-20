@@ -38,8 +38,8 @@ jobs:
           context: .
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/openllm-${{ matrix.app }}:${{ steps.get_sha.outputs.short_sha }}
-            ghcr.io/${{ github.repository_owner }}/openllm-${{ matrix.app }}:latest
+            ghcr.io/${{ github.repository }}-${{ matrix.app }}:${{ steps.get_sha.outputs.short_sha }}
+            ghcr.io/${{ github.repository }}-${{ matrix.app }}:latest
           target: ${{ matrix.app }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
