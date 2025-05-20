@@ -13,6 +13,6 @@ export default [
 		},
 	},
 	{
-		ignores: ["**/.source/", "**/.output/"],
+		ignores: ["**/.source/", "**/.output/", "**/out/"],
 	},
 ];
