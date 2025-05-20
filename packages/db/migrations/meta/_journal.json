@@ -8,6 +8,13 @@
 			"when": 1747734298198,
 			"tag": "0000_small_nextwave",
 			"breakpoints": true
+		},
+		{
+			"idx": 1,
+			"version": "7",
+			"when": 1747759970306,
+			"tag": "0001_rapid_shinobi_shaw",
+			"breakpoints": true
 		}
 	]
 }
