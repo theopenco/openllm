@@ -24,11 +24,11 @@ export interface ModelDefinition {
 export const models = [
 	{
 		model: "custom", // custom provider which expects base URL to be set
-		providers: ["openllm"],
+		providers: ["llmgateway"],
 	},
 	{
 		model: "auto", // native automatic routing
-		providers: ["openllm"],
+		providers: ["llmgateway"],
 	},
 	{
 		model: "gpt-3.5-turbo",

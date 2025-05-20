@@ -37,7 +37,7 @@ function RouteComponent() {
 						<CardHeader>
 							<CardTitle>Your API Keys</CardTitle>
 							<CardDescription>
-								Manage your API keys for accessing OpenLLM
+								Manage your API keys for accessing LLM Gateway
 							</CardDescription>
 						</CardHeader>
 						<CardContent>

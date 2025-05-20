@@ -97,7 +97,7 @@ keysApi.openapi(create, async (c) => {
 	const projectId = userOrgs[0].organization.projects[0].id;
 
 	// Generate a token with a prefix for better identification
-	const token = `openllm_` + shortid();
+	const token = `llmgateway_` + shortid();
 
 	// Create the API key
 	const [apiKey] = await db

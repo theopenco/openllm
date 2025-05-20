@@ -186,7 +186,7 @@ chat.openapi(completions, async (c) => {
 	}
 
 	// Apply routing logic after apiKey is available
-	if (usedProvider === "openllm" && usedModel === "auto") {
+	if (usedProvider === "llmgateway" && usedModel === "auto") {
 		const providerKeys = await db.query.providerKey.findMany({
 			where: {
 				status: {
@@ -217,12 +217,12 @@ chat.openapi(completions, async (c) => {
 			}
 		}
 
-		if (usedProvider === "openllm") {
+		if (usedProvider === "llmgateway") {
 			usedModel = "gpt-4o-mini";
 			usedProvider = "openai";
 		}
-	} else if (usedProvider === "openllm" && usedModel === "custom") {
-		usedProvider = "openllm";
+	} else if (usedProvider === "llmgateway" && usedModel === "custom") {
+		usedProvider = "llmgateway";
 		usedModel = "custom";
 	} else if (!usedProvider) {
 		if (modelInfo.providers.length === 1) {
@@ -314,7 +314,7 @@ chat.openapi(completions, async (c) => {
 	} else {
 		// Otherwise use the default URL or environment variable
 		switch (usedProvider) {
-			case "openllm": {
+			case "llmgateway": {
 				if (usedModel !== "custom") {
 					throw new HTTPException(400, {
 						message: `Invalid model: ${usedModel} for provider: ${usedProvider}`,

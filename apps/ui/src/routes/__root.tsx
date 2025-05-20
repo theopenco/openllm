@@ -7,6 +7,7 @@ import {
 	Scripts,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { ThemeProvider } from "next-themes";
 
 import appCss from "@/globals.css?url";
 import { Toaster } from "@/lib/components/toaster";
@@ -29,7 +30,7 @@ export const Route = createRootRouteWithContext<{
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "OpenLLM – AI Gateway",
+				title: "LLM Gateway",
 			},
 		],
 	}),
@@ -57,10 +58,21 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
             localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
             )`}
 				</ScriptOnce>
-				{children}
+				<ThemeProvider
+					attribute="class"
+					defaultTheme="system"
+					enableSystem
+					storageKey="theme"
+				>
+					{children}
+				</ThemeProvider>
 				<Toaster />
-				<TanStackRouterDevtools position="top-right" />
-				<ReactQueryDevtools buttonPosition="bottom-right" />
+				{process.env.NODE_ENV === "development" && (
+					<>
+						<TanStackRouterDevtools position="top-right" />
+						<ReactQueryDevtools buttonPosition="bottom-right" />
+					</>
+				)}
 				<Scripts />
 			</body>
 		</html>

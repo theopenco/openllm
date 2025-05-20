@@ -13,7 +13,7 @@ async function generate() {
 	await OpenAPI.generateFiles({
 		input: [
 			process.env.NODE_ENV === "production"
-				? "https://api.openllm.com"
+				? "https://api.llmgateway.io"
 				: "../gateway/openapi.json",
 		],
 		output: out,

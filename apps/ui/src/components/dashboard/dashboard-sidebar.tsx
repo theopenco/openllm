@@ -6,7 +6,6 @@ import {
 	LayoutDashboard,
 	LogOutIcon,
 	Settings,
-	Zap,
 	Activity,
 	KeyRound,
 } from "lucide-react";
@@ -26,6 +25,7 @@ import {
 	SidebarMenuItem,
 	SidebarRail,
 } from "@/lib/components/sidebar";
+import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
 
 export function DashboardSidebar() {
@@ -42,12 +42,11 @@ export function DashboardSidebar() {
 		<Sidebar variant="floating">
 			<SidebarHeader className="border-b">
 				<div className="flex h-14 items-center px-4">
-					<Link
-						to="/dashboard"
-						className="flex items-center gap-2 font-semibold"
-					>
-						<Zap className="text-primary h-5 w-5" />
-						<span className="text-lg">OpenLLM</span>
+					<Link to="/dashboard" className="inline-flex items-center space-x-2">
+						<Logo className="h-8 w-8 rounded-full text-black dark:text-white" />
+						<span className="text-xl font-bold tracking-tight">
+							LLM Gateway
+						</span>
 					</Link>
 				</div>
 			</SidebarHeader>
@@ -83,7 +82,7 @@ export function DashboardSidebar() {
 								},
 								{
 									href: "/dashboard/models",
-									label: "Models & Providers",
+									label: "Models",
 									icon: CreditCard,
 								},
 								{
