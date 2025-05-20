@@ -1,7 +1,7 @@
 import * as OpenAPI from "fumadocs-openapi";
 import { rimraf } from "rimraf";
 
-const out = "./docs/(api)";
+const out = "./content/(api)";
 
 async function generate() {
 	await rimraf(out, {

@@ -42,7 +42,7 @@ export default function Footer() {
 							<ul className="space-y-2">
 								<li>
 									<a
-										href="#docs-link"
+										href="https://docs.llmgateway.io"
 										target="_blank"
 										className="text-sm hover:text-black dark:hover:text-white"
 									>
