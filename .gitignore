@@ -5,7 +5,7 @@ packages/**/*.js
 apps/**/*.js
 *spec.yaml
 .turbo/
-.pnpm-store
+.pnpm-store/
 .idea/
 openapi.json
-!.turbo/config.json
+.DS_Store
