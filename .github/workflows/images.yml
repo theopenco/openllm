@@ -8,9 +8,6 @@ on:
 jobs:
   push:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app: [api, gateway, ui, docs]
     permissions:
       contents: read
       packages: write
@@ -32,14 +29,63 @@ jobs:
         id: get_sha
         run: echo "short_sha=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
-      - name: Build and push
+      # Build the shared builder stage once
+      - name: Build shared builder image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: builder
+          push: false
+          load: true
+          tags: builder:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Build and push all app images in parallel
+      - name: Build and push api image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/openllm-${{ matrix.app }}:${{ steps.get_sha.outputs.short_sha }}
-            ghcr.io/${{ github.repository_owner }}/openllm-${{ matrix.app }}:latest
-          target: ${{ matrix.app }}
+            ghcr.io/${{ github.repository_owner }}/openllm-api:${{ steps.get_sha.outputs.short_sha }}
+            ghcr.io/${{ github.repository_owner }}/openllm-api:latest
+          target: api
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          build-contexts: builder=docker-image://builder:latest
+
+      - name: Build and push gateway image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/openllm-gateway:${{ steps.get_sha.outputs.short_sha }}
+            ghcr.io/${{ github.repository_owner }}/openllm-gateway:latest
+          target: gateway
+          cache-from: type=gha
+          build-contexts: builder=docker-image://builder:latest
+
+      - name: Build and push ui image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/openllm-ui:${{ steps.get_sha.outputs.short_sha }}
+            ghcr.io/${{ github.repository_owner }}/openllm-ui:latest
+          target: ui
+          cache-from: type=gha
+          build-contexts: builder=docker-image://builder:latest
+
+      - name: Build and push docs image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ github.repository_owner }}/openllm-docs:${{ steps.get_sha.outputs.short_sha }}
+            ghcr.io/${{ github.repository_owner }}/openllm-docs:latest
+          target: docs
+          cache-from: type=gha
+          build-contexts: builder=docker-image://builder:latest
