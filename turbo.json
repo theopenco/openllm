@@ -1,12 +1,21 @@
 {
+	"$schema": "https://turbo.build/schema.json",
 	"remoteCache": {
 		"teamSlug": "ducktors",
 		"apiUrl": "https://trrc.ducktors.dev"
 	},
-	"$schema": "https://turbo.build/schema.json",
 	"dangerouslyDisablePackageManagerCheck": true,
 	"tasks": {
 		"build": {
+			"inputs": [
+				"$TURBO_DEFAULT$",
+				"../../tsup.config.ts",
+				"../../*.json",
+				"../../*.yaml",
+				"../../*.ts",
+				"../../*.mts",
+				"../../*.mjs"
+			],
 			"dependsOn": ["^build"],
 			"outputs": [
 				"dist/**",
