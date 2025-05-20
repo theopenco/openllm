@@ -1,9 +1,9 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 
-import { signin } from "./signin";
+import { register } from "./register";
 
 import type { ServerTypes } from "../vars";
 
 export const exposed = new OpenAPIHono<ServerTypes>();
 
-exposed.route("/auth", signin);
+exposed.route("/auth", register);
