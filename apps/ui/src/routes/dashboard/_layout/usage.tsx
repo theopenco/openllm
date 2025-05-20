@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { CacheRateChart } from "@/components/usage/cache-rate-chart";
 import { CostBreakdownChart } from "@/components/usage/cost-breakdown-chart";
 import { ErrorRateChart } from "@/components/usage/error-rate-chart";
 import { ModelUsageTable } from "@/components/usage/model-usage-table";
@@ -34,6 +35,7 @@ function RouteComponent() {
 						<TabsTrigger value="requests">Requests</TabsTrigger>
 						<TabsTrigger value="models">Models</TabsTrigger>
 						<TabsTrigger value="errors">Errors</TabsTrigger>
+						<TabsTrigger value="cache">Cache</TabsTrigger>
 						<TabsTrigger value="costs">Costs</TabsTrigger>
 					</TabsList>
 					<TabsContent value="requests" className="space-y-4">
@@ -70,6 +72,19 @@ function RouteComponent() {
 							</CardHeader>
 							<CardContent className="h-[400px]">
 								<ErrorRateChart />
+							</CardContent>
+						</Card>
+					</TabsContent>
+					<TabsContent value="cache" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<CardTitle>Cache Rate</CardTitle>
+								<CardDescription>
+									API request cache rate over time
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="h-[400px]">
+								<CacheRateChart />
 							</CardContent>
 						</Card>
 					</TabsContent>
