@@ -7,9 +7,8 @@ import {
 	ChevronDown,
 	ChevronUp,
 	Clock,
-	Code,
-	Cpu,
-	DollarSign,
+	Coins,
+	Package,
 	Zap,
 } from "lucide-react";
 import prettyBytes from "pretty-bytes";
@@ -84,11 +83,15 @@ export function LogCard({ log }: { log: Log }) {
 					</div>
 					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-sm text-muted-foreground">
 						<div className="flex items-center gap-1">
-							<Cpu className="h-3.5 w-3.5" />
+							<Package className="h-3.5 w-3.5" />
 							<span>{log.usedModel}</span>
 						</div>
 						<div className="flex items-center gap-1">
 							<Zap className="h-3.5 w-3.5" />
+							<span>{log.cached ? "Cached" : "Not cached"}</span>
+						</div>
+						<div className="flex items-center gap-1">
+							<Clock className="h-3.5 w-3.5" />
 							<span>{log.totalTokens} tokens</span>
 						</div>
 						<div className="flex items-center gap-1">
@@ -96,12 +99,8 @@ export function LogCard({ log }: { log: Log }) {
 							<span>{formatDuration(log.duration)}</span>
 						</div>
 						<div className="flex items-center gap-1">
-							<DollarSign className="h-3.5 w-3.5" />
+							<Coins className="h-3.5 w-3.5" />
 							<span>{log.cost ? `$${log.cost.toFixed(6)}` : "?"}</span>
-						</div>
-						<div className="flex items-center gap-1">
-							<Code className="h-3.5 w-3.5" />
-							<span>{log.apiKeyId}</span>
 						</div>
 						<span className="ml-auto">{formattedTime}</span>
 					</div>
@@ -180,6 +179,17 @@ export function LogCard({ log }: { log: Log }) {
 									{log.canceled ? (
 										<>
 											<Ban className="h-3.5 w-3.5 text-amber-500" />
+											<span>Yes</span>
+										</>
+									) : (
+										<span>No</span>
+									)}
+								</div>
+								<div className="text-muted-foreground">Cached</div>
+								<div className="flex items-center gap-1">
+									{log.cached ? (
+										<>
+											<Zap className="h-3.5 w-3.5 text-blue-500" />
 											<span>Yes</span>
 										</>
 									) : (
