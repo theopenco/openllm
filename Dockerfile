@@ -12,6 +12,11 @@ RUN curl -fsSL "https://github.com/pnpm/pnpm/releases/download/v$(cat .tool-vers
 
 # Copy package files and install dependencies
 COPY .npmrc package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+# copy config files for proper turbo cache
+COPY tsup.config.ts tsup.config.ts tsconfig.json turbo.json ./
+
+# copy package.json files
 COPY apps/api/package.json ./apps/api/
 COPY apps/gateway/package.json ./apps/gateway/
 COPY apps/ui/package.json ./apps/ui/
