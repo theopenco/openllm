@@ -29,7 +29,14 @@ COPY . .
 RUN pnpm build
 
 
+FROM base AS init
+RUN apk add --no-cache tini && \
+    /sbin/tini --version && \
+    cp /sbin/tini /tini
+
 FROM base AS runtime
+COPY --from=init /tini /tini
+ENTRYPOINT ["/tini", "--"]
 COPY --from=builder /bin/pnpm /bin/pnpm
 
 # Production images for each app
