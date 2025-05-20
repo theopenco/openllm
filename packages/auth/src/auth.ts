@@ -4,6 +4,11 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
 import { passkey } from "better-auth/plugins/passkey";
 
+const url =
+	process.env.NODE_ENV === "production"
+		? "https://llmgateway.io"
+		: "http://localhost:3002";
+
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	advanced: {
 		defaultCookieAttributes: {
@@ -19,12 +24,12 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 		updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated)
 	},
 	basePath: "/auth",
-	trustedOrigins: [process.env.VITE_APP_URL || "http://localhost:3002"],
+	trustedOrigins: [url],
 	plugins: [
 		passkey({
 			rpID: process.env.PASSKEY_RP_ID || "localhost",
 			rpName: process.env.PASSKEY_RP_NAME || "OpenLLM",
-			origin: process.env.VITE_APP_URL || "http://localhost:3002",
+			origin: url,
 		}),
 	],
 	database: drizzleAdapter(db, {
