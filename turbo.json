@@ -10,11 +10,12 @@
 			"inputs": [
 				"$TURBO_DEFAULT$",
 				"../../tsup.config.ts",
-				"../../*.json",
-				"../../*.yaml",
-				"../../*.ts",
-				"../../*.mts",
-				"../../*.mjs"
+				"../../package.json",
+				"../../pnpm-lock.yaml",
+				"../../pnpm-workspace.yaml",
+				"../../tsup.config.ts",
+				"../../tsconfig.json",
+				"../../turbo.json"
 			],
 			"dependsOn": ["^build"],
 			"outputs": [
