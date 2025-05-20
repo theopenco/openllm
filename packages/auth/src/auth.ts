@@ -4,6 +4,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
 import { passkey } from "better-auth/plugins/passkey";
 
+const url = process.env.UI_URL || "http://localhost:3002";
+
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	advanced: {
 		defaultCookieAttributes: {
@@ -19,12 +21,12 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 		updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated)
 	},
 	basePath: "/auth",
-	trustedOrigins: [process.env.VITE_APP_URL || "http://localhost:3002"],
+	trustedOrigins: ["*"],
 	plugins: [
 		passkey({
 			rpID: process.env.PASSKEY_RP_ID || "localhost",
 			rpName: process.env.PASSKEY_RP_NAME || "OpenLLM",
-			origin: process.env.VITE_APP_URL || "http://localhost:3002",
+			origin: url,
 		}),
 	],
 	database: drizzleAdapter(db, {
@@ -42,7 +44,7 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 		autoSignIn: true,
 	},
 	secret: process.env.AUTH_SECRET || "your-secret-key",
-	baseURL: process.env.AUTH_URL || "http://localhost:4002",
+	baseURL: url || "http://localhost:4002",
 	hooks: {
 		after: createAuthMiddleware(async (ctx) => {
 			// Check if this is a signup event
