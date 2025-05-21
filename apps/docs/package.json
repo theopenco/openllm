@@ -3,7 +3,9 @@
 	"version": "0.0.0",
 	"private": true,
 	"files": [
-		".next"
+		".source",
+		".next",
+		"out"
 	],
 	"scripts": {
 		"build": "next build",

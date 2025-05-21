@@ -114,17 +114,6 @@ export function getProviderEndpoint(
 }
 
 /**
- * Get the endpoint URL for validating a provider API key
- * @deprecated Use getProviderEndpoint instead
- */
-export function getValidationEndpoint(
-	provider: ProviderId,
-	baseUrl?: string,
-): string {
-	return getProviderEndpoint(provider, baseUrl);
-}
-
-/**
  * Validate a provider API key by making a minimal request
  */
 export async function validateProviderKey(
@@ -139,7 +128,7 @@ export async function validateProviderKey(
 	}
 
 	try {
-		const endpoint = getValidationEndpoint(provider, baseUrl);
+		const endpoint = getProviderEndpoint(provider, baseUrl);
 		const payload = createValidationPayload(provider);
 		const headers = getProviderHeaders(provider, { token });
 		headers["Content-Type"] = "application/json";
