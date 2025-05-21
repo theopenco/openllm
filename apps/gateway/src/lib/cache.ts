@@ -71,3 +71,32 @@ export async function isCachingEnabled(
 		return { enabled: false, duration: 0 };
 	}
 }
+
+export async function getProject(projectId: string): Promise<any | null> {
+	try {
+		const projectCacheKey = `project:${projectId}`;
+		const cachedProject = await getCache(projectCacheKey);
+
+		if (cachedProject) {
+			return cachedProject;
+		}
+
+		const { db } = await import("@openllm/db");
+		const project = await db.query.project.findFirst({
+			where: {
+				id: {
+					eq: projectId,
+				},
+			},
+		});
+
+		if (project) {
+			await setCache(projectCacheKey, project, 60);
+		}
+
+		return project;
+	} catch (error) {
+		console.error("Error fetching project:", error);
+		return null;
+	}
+}

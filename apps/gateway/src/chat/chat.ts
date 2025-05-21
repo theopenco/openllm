@@ -7,6 +7,7 @@ import { streamSSE } from "hono/streaming";
 import {
 	generateCacheKey,
 	getCache,
+	getProject,
 	isCachingEnabled,
 	setCache,
 } from "../lib/cache";
@@ -288,13 +289,7 @@ chat.openapi(completions, async (c) => {
 	let url: string | undefined;
 
 	// Get the provider key for the selected provider based on project mode
-	const project = await db.query.project.findFirst({
-		where: {
-			id: {
-				eq: apiKey.projectId,
-			},
-		},
-	});
+	const project = await getProject(apiKey.projectId);
 
 	if (!project) {
 		throw new HTTPException(500, {

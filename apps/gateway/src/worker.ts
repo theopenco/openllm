@@ -1,5 +1,6 @@
 import { db, log, organization, eq, sql } from "@openllm/db";
 
+import { getProject } from "./lib/cache";
 import { consumeFromQueue, LOG_QUEUE } from "./lib/redis";
 
 import type { LogInsertData } from "./lib/logs";
@@ -27,13 +28,7 @@ export async function processLogQueue(): Promise<void> {
 				continue;
 			}
 
-			const project = await db.query.project.findFirst({
-				where: {
-					id: {
-						eq: data.projectId,
-					},
-				},
-			});
+			const project = await getProject(data.projectId);
 
 			if (project?.mode === "credits") {
 				await db
