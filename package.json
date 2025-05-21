@@ -29,6 +29,9 @@
 		"extends": "@steebchen/commitlint-config"
 	},
 	"prettier": "@steebchen/prettier-config",
+	"dependencies": {
+		"@radix-ui/react-radio-group": "1.3.7"
+	},
 	"devDependencies": {
 		"@steebchen/commitlint-config": "^1.5.2",
 		"@steebchen/eslint-config": "^1.5.2",
