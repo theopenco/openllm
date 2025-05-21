@@ -1,6 +1,13 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { db } from "@openllm/db";
-import { type Model, models, type Provider, providers } from "@openllm/models";
+import {
+	type Model,
+	models,
+	type Provider,
+	providers,
+	getProviderHeaders,
+	getProviderEndpoint,
+} from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
 
@@ -14,26 +21,6 @@ import { calculateCosts } from "../lib/costs";
 import { insertLog } from "../lib/logs";
 
 import type { ServerTypes } from "../vars";
-
-function getProviderHeaders(
-	provider: Provider,
-	providerKey: any,
-): Record<string, string> {
-	switch (provider) {
-		case "anthropic":
-			return {
-				"x-api-key": providerKey.token,
-				"anthropic-version": "2023-06-01", // Use an appropriate version
-			};
-		case "google-vertex":
-		case "kluster.ai":
-		case "openai":
-		default:
-			return {
-				Authorization: `Bearer ${providerKey.token}`,
-			};
-	}
-}
 
 export const chat = new OpenAPIHono<ServerTypes>();
 
@@ -308,60 +295,28 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	// First check if the provider key has a baseUrl set (for custom providers or testing)
-	if (providerKey.baseUrl) {
-		url = providerKey.baseUrl;
-	} else {
-		// Otherwise use the default URL or environment variable
-		switch (usedProvider) {
-			case "llmgateway": {
-				if (usedModel !== "custom") {
-					throw new HTTPException(400, {
-						message: `Invalid model: ${usedModel} for provider: ${usedProvider}`,
-					});
-				}
-				// For openllm/custom, baseUrl is required
-				break;
-			}
-			case "openai":
-				url = process.env.OPENAI_BASE_URL || "https://api.openai.com";
-				break;
-			case "anthropic":
-				url = process.env.ANTHROPIC_BASE_URL || "https://api.anthropic.com";
-				break;
-			case "google-vertex":
-				url =
-					process.env.VERTEX_BASE_URL ||
-					"https://generativelanguage.googleapis.com";
-				break;
-			default:
-				throw new HTTPException(500, {
-					message: `could not use provider: ${usedProvider}`,
-				});
+	try {
+		url = getProviderEndpoint(
+			usedProvider,
+			providerKey.baseUrl || undefined,
+			usedModel,
+		);
+	} catch (error) {
+		if (usedProvider === "llmgateway" && usedModel !== "custom") {
+			throw new HTTPException(400, {
+				message: `Invalid model: ${usedModel} for provider: ${usedProvider}`,
+			});
 		}
+
+		throw new HTTPException(500, {
+			message: `Could not use provider: ${usedProvider}. ${error instanceof Error ? error.message : ""}`,
+		});
 	}
 
 	if (!url) {
 		throw new HTTPException(400, {
 			message: `No base URL set for provider: ${usedProvider}. Please add a base URL in your settings.`,
 		});
-	}
-
-	switch (usedProvider) {
-		case "anthropic":
-			url += "/v1/messages";
-			break;
-		case "google-vertex":
-			url += "/v1beta/models/" + usedModel + ":generateContent";
-			break;
-		case "inference.net":
-			url += "/v1/chat/completions";
-			break;
-		case "kluster.ai":
-			url += "/v1/chat/completions";
-			break;
-		default:
-			url += "/v1/chat/completions";
 	}
 
 	// Get the project associated with this API key
