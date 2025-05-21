@@ -7,7 +7,7 @@ import { z } from "zod";
 import type { ServerTypes } from "../vars";
 
 const stripe = new Stripe("sk_test_stripe_secret_key", {
-	apiVersion: "2023-10-16",
+	apiVersion: "2025-04-30.basil",
 });
 
 export const payments = new OpenAPIHono<ServerTypes>();
@@ -78,7 +78,7 @@ payments.openapi(createPaymentIntent, async (c) => {
 		});
 
 		return c.json({
-			clientSecret: paymentIntent.client_secret,
+			clientSecret: paymentIntent.client_secret || "",
 		});
 	} catch (error) {
 		console.error("Stripe error:", error);
