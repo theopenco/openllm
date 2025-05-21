@@ -65,11 +65,12 @@ export function createValidationPayload(provider: ProviderId): any {
 }
 
 /**
- * Get the endpoint URL for validating a provider API key
+ * Get the endpoint URL for a provider API call
  */
-export function getValidationEndpoint(
+export function getProviderEndpoint(
 	provider: ProviderId,
 	baseUrl?: string,
+	model?: string,
 ): string {
 	let url: string;
 
@@ -77,6 +78,8 @@ export function getValidationEndpoint(
 		url = baseUrl;
 	} else {
 		switch (provider) {
+			case "llmgateway":
+				throw new Error(`Provider ${provider} requires a baseUrl`);
 			case "openai":
 				url = "https://api.openai.com";
 				break;
@@ -97,13 +100,28 @@ export function getValidationEndpoint(
 		case "anthropic":
 			return `${url}/v1/messages`;
 		case "google-vertex":
+			if (model) {
+				return `${url}/v1beta/models/${model}:generateContent`;
+			}
 			return `${url}/v1beta/models/gemini-1.0-pro:generateContent`;
 		case "inference.net":
 		case "kluster.ai":
 		case "openai":
+		case "llmgateway":
 		default:
 			return `${url}/v1/chat/completions`;
 	}
+}
+
+/**
+ * Get the endpoint URL for validating a provider API key
+ * @deprecated Use getProviderEndpoint instead
+ */
+export function getValidationEndpoint(
+	provider: ProviderId,
+	baseUrl?: string,
+): string {
+	return getProviderEndpoint(provider, baseUrl);
 }
 
 /**
