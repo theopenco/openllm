@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db, eq, tables } from "@openllm/db";
-import { providers } from "@openllm/models";
+import { providers, validateProviderKey } from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -126,14 +126,13 @@ keysProvider.openapi(create, async (c) => {
 		});
 	}
 
-	const { validateProviderKey } = await import("@openllm/models");
-
 	try {
+		const isTestEnv = process.env.NODE_ENV === "test";
 		const validationResult = await validateProviderKey(
 			provider,
 			userToken,
 			baseUrl,
-			true, // Skip validation in tests to avoid making actual API requests
+			isTestEnv,
 		);
 
 		if (!validationResult.valid) {
