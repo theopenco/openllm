@@ -6,7 +6,6 @@ import { app } from "..";
 import { createTestUser, deleteAll } from "../testing";
 
 console.log("process.env.NODE_ENV", process.env.NODE_ENV);
-
 describe("e2e tests for provider keys", () => {
 	let token: string;
 
