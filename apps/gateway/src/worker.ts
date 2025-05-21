@@ -35,7 +35,6 @@ export async function processLogQueue(): Promise<void> {
 					.update(organization)
 					.set({
 						credits: sql`${organization.credits} - ${data.cost}`,
-						updatedAt: new Date(),
 					})
 					.where(eq(organization.id, data.organizationId));
 			}
