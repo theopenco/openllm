@@ -53,8 +53,12 @@ export function CreateProviderKeyDialog({
 	const { data: providerKeysData, isLoading } = useProviderKeys();
 	const createMutation = useCreateProviderKey();
 
-	// Filter out providers that already have keys
+	// Filter out providers that already have keys and llmgateway provider
 	const availableProviders = providers.filter((provider) => {
+		if (provider.id === "llmgateway") {
+			return false;
+		}
+
 		if (isLoading || !providerKeysData?.providerKeys) {
 			return true;
 		}
