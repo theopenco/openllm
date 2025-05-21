@@ -9,6 +9,7 @@ export interface Project {
 	cachingEnabled: boolean;
 	cacheDurationSeconds: number;
 	organizationId: string;
+	mode: "api-keys" | "credits";
 }
 
 export interface Organization {

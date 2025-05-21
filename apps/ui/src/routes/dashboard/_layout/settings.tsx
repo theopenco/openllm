@@ -5,6 +5,7 @@ import { useState } from "react";
 import { addPasskey } from "@/components/passkeys/add-passkey";
 import { PasskeyList } from "@/components/passkeys/passkey-list";
 import { CachingSettings } from "@/components/settings/caching-settings";
+import { ProjectModeSettings } from "@/components/settings/project-mode-settings";
 import {
 	useDeleteAccount,
 	useUpdatePassword,
@@ -157,6 +158,8 @@ function RouteComponent() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-6">
+								<ProjectModeSettings />
+								<Separator className="my-6" />
 								<CachingSettings />
 							</CardContent>
 						</Card>

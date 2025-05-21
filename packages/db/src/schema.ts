@@ -70,6 +70,7 @@ export const organization = pgTable("organization", {
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp().notNull().defaultNow(),
 	name: text().notNull(),
+	credits: real().notNull().default(0),
 });
 
 export const userOrganization = pgTable("user_organization", {
@@ -88,6 +89,11 @@ export const project = pgTable("project", {
 	organizationId: text().notNull(),
 	cachingEnabled: boolean().notNull().default(false),
 	cacheDurationSeconds: integer().notNull().default(60),
+	mode: text({
+		enum: ["api-keys", "credits"],
+	})
+		.notNull()
+		.default("api-keys"),
 });
 
 export const apiKey = pgTable("api_key", {

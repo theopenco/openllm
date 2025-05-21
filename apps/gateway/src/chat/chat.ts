@@ -287,24 +287,108 @@ chat.openapi(completions, async (c) => {
 
 	let url: string | undefined;
 
-	// Get the provider key for the selected provider
-	const providerKey = await db.query.providerKey.findFirst({
+	// Get the provider key for the selected provider based on project mode
+	const project = await db.query.project.findFirst({
 		where: {
-			status: {
-				eq: "active",
-			},
-			projectId: {
+			id: {
 				eq: apiKey.projectId,
-			},
-			provider: {
-				eq: usedProvider,
 			},
 		},
 	});
 
-	if (!providerKey) {
+	if (!project) {
+		throw new HTTPException(500, {
+			message: "Could not find project",
+		});
+	}
+
+	let providerKey;
+
+	if (project.mode === "api-keys") {
+		// Get the provider key from the database (existing logic)
+		providerKey = await db.query.providerKey.findFirst({
+			where: {
+				status: {
+					eq: "active",
+				},
+				projectId: {
+					eq: apiKey.projectId,
+				},
+				provider: {
+					eq: usedProvider,
+				},
+			},
+		});
+
+		if (!providerKey) {
+			throw new HTTPException(400, {
+				message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings.`,
+			});
+		}
+	} else if (project.mode === "credits") {
+		// Check if the organization has enough credits
+		const organization = await db.query.organization.findFirst({
+			where: {
+				id: {
+					eq: project.organizationId,
+				},
+			},
+		});
+
+		if (!organization) {
+			throw new HTTPException(500, {
+				message: "Could not find organization",
+			});
+		}
+
+		if (organization.credits <= 0) {
+			throw new HTTPException(402, {
+				message: "Organization has insufficient credits",
+			});
+		}
+
+		let token: string | undefined;
+
+		switch (usedProvider) {
+			case "openai":
+				token = process.env.OPENAI_API_KEY;
+				break;
+			case "anthropic":
+				token = process.env.ANTHROPIC_API_KEY;
+				break;
+			case "google-vertex":
+				token = process.env.VERTEX_API_KEY;
+				break;
+			case "inference.net":
+				token = process.env.INFERENCE_API_KEY;
+				break;
+			case "kluster.ai":
+				token = process.env.KLUSTER_API_KEY;
+				break;
+			default:
+				throw new HTTPException(400, {
+					message: `No environment variable set for provider: ${usedProvider}`,
+				});
+		}
+
+		if (!token) {
+			throw new HTTPException(400, {
+				message: `No API key set in environment for provider: ${usedProvider}`,
+			});
+		}
+
+		providerKey = {
+			id: `env-${usedProvider}`,
+			token,
+			provider: usedProvider,
+			status: "active",
+			projectId: apiKey.projectId,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
+	} else {
 		throw new HTTPException(400, {
-			message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings.`,
+			message: `Invalid project mode: ${project.mode}`,
 		});
 	}
 
@@ -362,21 +446,6 @@ chat.openapi(completions, async (c) => {
 			break;
 		default:
 			url += "/v1/chat/completions";
-	}
-
-	// Get the project associated with this API key
-	const project = await db.query.project.findFirst({
-		where: {
-			id: {
-				eq: apiKey.projectId,
-			},
-		},
-	});
-
-	if (!project) {
-		throw new HTTPException(500, {
-			message: "Could not find project associated with this API key",
-		});
 	}
 
 	// Check if caching is enabled for this project
