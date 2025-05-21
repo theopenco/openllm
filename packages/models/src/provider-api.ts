@@ -113,9 +113,10 @@ export async function validateProviderKey(
 	provider: ProviderId,
 	token: string,
 	baseUrl?: string,
+	skipValidation = false,
 ): Promise<{ valid: boolean; error?: string }> {
-	// Skip validation in test environment
-	if (process.env.NODE_ENV === "test") {
+	// Skip validation if requested (e.g. in test environment)
+	if (skipValidation) {
 		return { valid: true };
 	}
 

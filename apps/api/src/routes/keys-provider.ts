@@ -133,6 +133,7 @@ keysProvider.openapi(create, async (c) => {
 			provider,
 			userToken,
 			baseUrl,
+			true, // Skip validation in tests to avoid making actual API requests
 		);
 
 		if (!validationResult.valid) {
