@@ -100,3 +100,72 @@ export async function getProject(projectId: string): Promise<any | null> {
 		return null;
 	}
 }
+
+export async function getOrganization(
+	organizationId: string,
+): Promise<any | null> {
+	try {
+		const orgCacheKey = `organization:${organizationId}`;
+		const cachedOrg = await getCache(orgCacheKey);
+
+		if (cachedOrg) {
+			return cachedOrg;
+		}
+
+		const { db } = await import("@openllm/db");
+		const organization = await db.query.organization.findFirst({
+			where: {
+				id: {
+					eq: organizationId,
+				},
+			},
+		});
+
+		if (organization) {
+			await setCache(orgCacheKey, organization, 60);
+		}
+
+		return organization;
+	} catch (error) {
+		console.error("Error fetching organization:", error);
+		return null;
+	}
+}
+
+export async function getProviderKey(
+	projectId: string,
+	provider: string,
+): Promise<any | null> {
+	try {
+		const providerKeyCacheKey = `provider_key:${projectId}:${provider}`;
+		const cachedProviderKey = await getCache(providerKeyCacheKey);
+
+		if (cachedProviderKey) {
+			return cachedProviderKey;
+		}
+
+		const { db } = await import("@openllm/db");
+		const providerKey = await db.query.providerKey.findFirst({
+			where: {
+				status: {
+					eq: "active",
+				},
+				projectId: {
+					eq: projectId,
+				},
+				provider: {
+					eq: provider,
+				},
+			},
+		});
+
+		if (providerKey) {
+			await setCache(providerKeyCacheKey, providerKey, 60);
+		}
+
+		return providerKey;
+	} catch (error) {
+		console.error("Error fetching provider key:", error);
+		return null;
+	}
+}

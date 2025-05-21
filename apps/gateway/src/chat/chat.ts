@@ -7,7 +7,9 @@ import { streamSSE } from "hono/streaming";
 import {
 	generateCacheKey,
 	getCache,
+	getOrganization,
 	getProject,
+	getProviderKey,
 	isCachingEnabled,
 	setCache,
 } from "../lib/cache";
@@ -300,20 +302,8 @@ chat.openapi(completions, async (c) => {
 	let providerKey;
 
 	if (project.mode === "api-keys") {
-		// Get the provider key from the database (existing logic)
-		providerKey = await db.query.providerKey.findFirst({
-			where: {
-				status: {
-					eq: "active",
-				},
-				projectId: {
-					eq: apiKey.projectId,
-				},
-				provider: {
-					eq: usedProvider,
-				},
-			},
-		});
+		// Get the provider key from the database using cached helper function
+		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
 
 		if (!providerKey) {
 			throw new HTTPException(400, {
@@ -321,14 +311,8 @@ chat.openapi(completions, async (c) => {
 			});
 		}
 	} else if (project.mode === "credits") {
-		// Check if the organization has enough credits
-		const organization = await db.query.organization.findFirst({
-			where: {
-				id: {
-					eq: project.organizationId,
-				},
-			},
-		});
+		// Check if the organization has enough credits using cached helper function
+		const organization = await getOrganization(project.organizationId);
 
 		if (!organization) {
 			throw new HTTPException(500, {
