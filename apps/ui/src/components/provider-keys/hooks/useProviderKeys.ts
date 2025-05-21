@@ -55,8 +55,10 @@ export function useCreateProviderKey() {
 				credentials: "include",
 			});
 			if (!res.ok) {
-				const errorText = await res.text();
-				throw new Error(`Failed to add provider key: ${errorText}`);
+				const errorData = await res.json().catch(() => ({
+					message: "Failed to add provider key. Please try again.",
+				}));
+				throw new Error(errorData.message || "Failed to add provider key");
 			}
 			return await res.json();
 		},

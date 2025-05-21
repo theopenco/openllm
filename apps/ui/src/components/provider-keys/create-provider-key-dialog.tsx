@@ -49,6 +49,7 @@ export function CreateProviderKeyDialog({
 	const [selectedProvider, setSelectedProvider] = useState<string>("");
 	const [baseUrl, setBaseUrl] = useState("");
 	const [token, setToken] = useState("");
+	const [isValidating, setIsValidating] = useState(false);
 
 	const { data: providerKeysData, isLoading } = useProviderKeys();
 	const createMutation = useCreateProviderKey();
@@ -113,15 +114,24 @@ export function CreateProviderKeyDialog({
 			payload.baseUrl = baseUrl;
 		}
 
+		setIsValidating(true);
+		toast({
+			title: "Validating API Key",
+			description: "Please wait while we validate your API key...",
+		});
+
 		createMutation.mutate(payload, {
 			onSuccess: () => {
+				setIsValidating(false);
 				toast({
 					title: "Provider Key Created",
-					description: "The provider key has been created successfully.",
+					description:
+						"The provider key has been validated and created successfully.",
 				});
 				setOpen(false);
 			},
 			onError: (error) => {
+				setIsValidating(false);
 				toast({
 					title: "Error",
 					description: error.message,
@@ -222,9 +232,11 @@ export function CreateProviderKeyDialog({
 						</Button>
 						<Button
 							type="submit"
-							disabled={availableProviders.length === 0 || isLoading}
+							disabled={
+								availableProviders.length === 0 || isLoading || isValidating
+							}
 						>
-							Add Provider Key
+							{isValidating ? "Validating..." : "Add Provider Key"}
 						</Button>
 					</DialogFooter>
 				</form>

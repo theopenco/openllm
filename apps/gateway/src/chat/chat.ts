@@ -1,6 +1,12 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { db } from "@openllm/db";
-import { type Model, models, type Provider, providers } from "@openllm/models";
+import {
+	type Model,
+	models,
+	type Provider,
+	providers,
+	getProviderHeaders,
+} from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
 
@@ -14,26 +20,6 @@ import { calculateCosts } from "../lib/costs";
 import { insertLog } from "../lib/logs";
 
 import type { ServerTypes } from "../vars";
-
-function getProviderHeaders(
-	provider: Provider,
-	providerKey: any,
-): Record<string, string> {
-	switch (provider) {
-		case "anthropic":
-			return {
-				"x-api-key": providerKey.token,
-				"anthropic-version": "2023-06-01", // Use an appropriate version
-			};
-		case "google-vertex":
-		case "kluster.ai":
-		case "openai":
-		default:
-			return {
-				Authorization: `Bearer ${providerKey.token}`,
-			};
-	}
-}
 
 export const chat = new OpenAPIHono<ServerTypes>();
 

@@ -126,6 +126,27 @@ keysProvider.openapi(create, async (c) => {
 		});
 	}
 
+	const { validateProviderKey } = await import("@openllm/models");
+
+	try {
+		const validationResult = await validateProviderKey(
+			provider,
+			userToken,
+			baseUrl,
+		);
+
+		if (!validationResult.valid) {
+			throw new HTTPException(400, {
+				message: `Invalid API key: ${validationResult.error || "Unknown error"}`,
+			});
+		}
+	} catch (error) {
+		throw new HTTPException(400, {
+			message:
+				error instanceof Error ? error.message : "Failed to validate API key",
+		});
+	}
+
 	// Use the user-provided token
 	// Create the provider key
 	const [providerKey] = await db
