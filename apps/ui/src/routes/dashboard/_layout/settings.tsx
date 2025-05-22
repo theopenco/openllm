@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { PaymentMethodsManagement } from "@/components/credits/payment-methods-management";
 import { addPasskey } from "@/components/passkeys/add-passkey";
 import { PasskeyList } from "@/components/passkeys/passkey-list";
 import { CachingSettings } from "@/components/settings/caching-settings";
@@ -146,6 +147,7 @@ function RouteComponent() {
 						<TabsTrigger value="preferences">Preferences</TabsTrigger>
 						<TabsTrigger value="account">Account</TabsTrigger>
 						<TabsTrigger value="security">Security</TabsTrigger>
+						<TabsTrigger value="payment">Payment</TabsTrigger>
 						<TabsTrigger value="advanced">Advanced</TabsTrigger>
 					</TabsList>
 					<TabsContent value="preferences" className="space-y-4">
@@ -289,6 +291,19 @@ function RouteComponent() {
 									Add Passkey
 								</Button>
 							</CardFooter>
+						</Card>
+					</TabsContent>
+					<TabsContent value="payment" className="space-y-4">
+						<Card>
+							<CardHeader>
+								<CardTitle>Payment Methods</CardTitle>
+								<CardDescription>
+									Manage your payment methods for topping up credits
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<PaymentMethodsManagement />
+							</CardContent>
 						</Card>
 					</TabsContent>
 					<TabsContent value="advanced" className="space-y-4">

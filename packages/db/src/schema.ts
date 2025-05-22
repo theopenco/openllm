@@ -70,6 +70,7 @@ export const organization = pgTable("organization", {
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp().notNull().defaultNow(),
 	name: text().notNull(),
+	stripeCustomerId: text(),
 });
 
 export const userOrganization = pgTable("user_organization", {
@@ -169,4 +170,14 @@ export const passkey = pgTable("passkey", {
 	deviceType: text(),
 	backedUp: boolean(),
 	transports: text(),
+});
+
+export const paymentMethod = pgTable("payment_method", {
+	id: text().primaryKey().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp().notNull().defaultNow(),
+	stripePaymentMethodId: text().notNull(),
+	organizationId: text().notNull(),
+	type: text().notNull(), // "card", "sepa_debit", etc.
+	isDefault: boolean().notNull().default(false),
 });
