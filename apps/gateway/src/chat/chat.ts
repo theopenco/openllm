@@ -25,6 +25,45 @@ import { insertLog } from "../lib/logs";
 
 import type { ServerTypes } from "../vars";
 
+/**
+ * Get provider token from environment variables
+ * @param usedProvider The provider to get the token for
+ * @returns The token for the provider or undefined if not found
+ */
+function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
+	let token: string | undefined;
+
+	switch (usedProvider) {
+		case "openai":
+			token = process.env.OPENAI_API_KEY;
+			break;
+		case "anthropic":
+			token = process.env.ANTHROPIC_API_KEY;
+			break;
+		case "google-vertex":
+			token = process.env.VERTEX_API_KEY;
+			break;
+		case "inference.net":
+			token = process.env.INFERENCE_API_KEY;
+			break;
+		case "kluster.ai":
+			token = process.env.KLUSTER_API_KEY;
+			break;
+		default:
+			throw new HTTPException(400, {
+				message: `No environment variable set for provider: ${usedProvider}`,
+			});
+	}
+
+	if (!token) {
+		throw new HTTPException(400, {
+			message: `No API key set in environment for provider: ${usedProvider}`,
+		});
+	}
+
+	return token;
+}
+
 export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
@@ -313,35 +352,7 @@ chat.openapi(completions, async (c) => {
 			});
 		}
 
-		let token: string | undefined;
-
-		switch (usedProvider) {
-			case "openai":
-				token = process.env.OPENAI_API_KEY;
-				break;
-			case "anthropic":
-				token = process.env.ANTHROPIC_API_KEY;
-				break;
-			case "google-vertex":
-				token = process.env.VERTEX_API_KEY;
-				break;
-			case "inference.net":
-				token = process.env.INFERENCE_API_KEY;
-				break;
-			case "kluster.ai":
-				token = process.env.KLUSTER_API_KEY;
-				break;
-			default:
-				throw new HTTPException(400, {
-					message: `No environment variable set for provider: ${usedProvider}`,
-				});
-		}
-
-		if (!token) {
-			throw new HTTPException(400, {
-				message: `No API key set in environment for provider: ${usedProvider}`,
-			});
-		}
+		const token = getProviderTokenFromEnv(usedProvider);
 
 		providerKey = {
 			id: `env-${usedProvider}`,
@@ -373,35 +384,7 @@ chat.openapi(completions, async (c) => {
 				});
 			}
 
-			let token: string | undefined;
-
-			switch (usedProvider) {
-				case "openai":
-					token = process.env.OPENAI_API_KEY;
-					break;
-				case "anthropic":
-					token = process.env.ANTHROPIC_API_KEY;
-					break;
-				case "google-vertex":
-					token = process.env.VERTEX_API_KEY;
-					break;
-				case "inference.net":
-					token = process.env.INFERENCE_API_KEY;
-					break;
-				case "kluster.ai":
-					token = process.env.KLUSTER_API_KEY;
-					break;
-				default:
-					throw new HTTPException(400, {
-						message: `No environment variable set for provider: ${usedProvider}`,
-					});
-			}
-
-			if (!token) {
-				throw new HTTPException(400, {
-					message: `No API key set in environment for provider: ${usedProvider}`,
-				});
-			}
+			const token = getProviderTokenFromEnv(usedProvider);
 
 			providerKey = {
 				id: `env-${usedProvider}`,
