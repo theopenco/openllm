@@ -473,6 +473,7 @@ chat.openapi(completions, async (c) => {
 				break;
 			case "anthropic":
 				envToken = process.env.ANTHROPIC_API_KEY;
+				console.log("using anthropic key", envToken);
 				break;
 			case "google-vertex":
 				envToken = process.env.VERTEX_API_KEY;

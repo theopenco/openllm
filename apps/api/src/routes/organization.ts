@@ -13,7 +13,7 @@ const organizationSchema = z.object({
 	createdAt: z.date(),
 	updatedAt: z.date(),
 	name: z.string(),
-	credits: z.number(),
+	credits: z.string(),
 });
 
 const projectSchema = z.object({

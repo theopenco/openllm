@@ -186,8 +186,8 @@ export default function Dashboard() {
 									</>
 								) : (
 									<>
-										<div className="text-2xl font-bold">
-											${organization?.credits.toFixed(2)}
+										<div className="text-2xl font-bold truncate overflow-ellipsis">
+											${Number(organization?.credits).toFixed(8)}
 										</div>
 										<p className="text-muted-foreground text-xs">
 											Available balance

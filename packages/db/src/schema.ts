@@ -1,5 +1,6 @@
 import {
 	boolean,
+	decimal,
 	integer,
 	json,
 	pgTable,
@@ -83,7 +84,7 @@ export const organization = pgTable("organization", {
 		.$onUpdate(() => new Date()),
 	name: text().notNull(),
 	stripeCustomerId: text(),
-	credits: real().notNull().default(0),
+	credits: decimal().notNull().default("0"),
 });
 
 export const userOrganization = pgTable("user_organization", {
