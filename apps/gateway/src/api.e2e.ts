@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, test } from "vitest";
 import { app } from ".";
 import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
 
-console.log("process.env.NODE_ENV", process.env.NODE_ENV);
 describe("e2e tests with real provider keys", () => {
 	afterEach(async () => {
 		await Promise.all([
@@ -140,6 +139,8 @@ describe("e2e tests with real provider keys", () => {
 		expect(res.status).toBe(200);
 		expect(res.headers.get("content-type")).toContain("text/event-stream");
 
+		await readAll(res.body);
+
 		// Wait for the worker to process the log
 		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
@@ -235,6 +236,8 @@ describe("e2e tests with real provider keys", () => {
 		expect(res.status).toBe(200);
 		expect(res.headers.get("content-type")).toContain("text/event-stream");
 
+		await readAll(res.body);
+
 		// Wait for the worker to process the log
 		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
@@ -289,3 +292,14 @@ describe("e2e tests with real provider keys", () => {
 		expect(logs[0].usedProvider).toBe("google-vertex");
 	});
 });
+
+async function readAll(
+	stream: ReadableStream<Uint8Array<ArrayBufferLike>> | null,
+) {
+	if (!stream) {
+		return;
+	}
+	for await (const chunk of stream) {
+		console.log(chunk.toString());
+	}
+}
