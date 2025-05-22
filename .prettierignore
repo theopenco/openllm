@@ -5,3 +5,4 @@ routeTree.gen.ts
 .output
 .source
 out
+migrations
