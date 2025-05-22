@@ -20,6 +20,7 @@ export interface Log {
 	responseSize: number;
 	content: string;
 	finishReason: string;
+	unifiedFinishReason: string;
 	promptTokens: number;
 	completionTokens: number;
 	totalTokens: number;

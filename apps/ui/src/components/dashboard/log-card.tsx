@@ -44,16 +44,16 @@ export function LogCard({ log }: { log: Log }) {
 		return `${(ms / 1000).toFixed(2)}s`;
 	};
 
-	// Determine status icon and color based on error status or finish reason
+	// Determine status icon and color based on error status or unified finish reason
 	let StatusIcon = CheckCircle2;
 	let color = "text-green-500";
 	let bgColor = "bg-green-100";
 
-	if (log.hasError || log.finishReason === "error") {
+	if (log.hasError || log.unifiedFinishReason === "error") {
 		StatusIcon = AlertCircle;
 		color = "text-red-500";
 		bgColor = "bg-red-100";
-	} else if (log.finishReason !== "stop") {
+	} else if (log.unifiedFinishReason !== "completed") {
 		StatusIcon = AlertCircle;
 		color = "text-yellow-500";
 		bgColor = "bg-yellow-100";
@@ -78,7 +78,7 @@ export function LogCard({ log }: { log: Log }) {
 							variant={log.hasError ? "destructive" : "default"}
 							className="ml-2"
 						>
-							{log.finishReason}
+							{log.unifiedFinishReason || log.finishReason}
 						</Badge>
 					</div>
 					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-sm text-muted-foreground">
@@ -161,8 +161,14 @@ export function LogCard({ log }: { log: Log }) {
 								<div>{log.completionTokens}</div>
 								<div className="text-muted-foreground">Total Tokens</div>
 								<div className="font-medium">{log.totalTokens}</div>
-								<div className="text-muted-foreground">Finish Reason</div>
+								<div className="text-muted-foreground">
+									Original Finish Reason
+								</div>
 								<div>{log.finishReason}</div>
+								<div className="text-muted-foreground">
+									Unified Finish Reason
+								</div>
+								<div>{log.unifiedFinishReason}</div>
 								<div className="text-muted-foreground">Streamed</div>
 								<div className="flex items-center gap-1">
 									{log.streamed ? (
