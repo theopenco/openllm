@@ -41,4 +41,6 @@ export interface Log {
 	streamed?: boolean;
 	// Cache information
 	cached?: boolean;
+	// Mode information
+	mode?: string;
 }
