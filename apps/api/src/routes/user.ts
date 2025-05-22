@@ -235,7 +235,6 @@ user.openapi(updateUser, async (c) => {
 		.update(tables.user)
 		.set({
 			...updateData,
-			updatedAt: new Date(),
 		})
 		.where(eq(tables.user.id, authUser.id))
 		.returning();

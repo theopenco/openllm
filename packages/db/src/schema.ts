@@ -18,7 +18,10 @@ export const shortid = (size = 20) => generate(size);
 export const user = pgTable("user", {
 	id: text().primaryKey().$defaultFn(shortid),
 	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
 	name: text(),
 	email: text().notNull().unique(),
 	emailVerified: boolean().notNull().default(false),
@@ -30,7 +33,10 @@ export const session = pgTable("session", {
 	expiresAt: timestamp().notNull().defaultNow(),
 	token: text().notNull().unique(),
 	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
 	ipAddress: text(),
 	userAgent: text(),
 	userId: text()
@@ -53,7 +59,10 @@ export const account = pgTable("account", {
 	scope: text(),
 	password: text(),
 	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
 });
 
 export const verification = pgTable("verification", {
@@ -62,13 +71,16 @@ export const verification = pgTable("verification", {
 	value: text().notNull(),
 	expiresAt: timestamp().notNull().defaultNow(),
 	createdAt: timestamp(),
-	updatedAt: timestamp(),
+	updatedAt: timestamp().$onUpdate(() => new Date()),
 });
 
 export const organization = pgTable("organization", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
 	name: text().notNull(),
 	stripeCustomerId: text(),
 });
@@ -76,7 +88,10 @@ export const organization = pgTable("organization", {
 export const userOrganization = pgTable("user_organization", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
 	userId: text().notNull(),
 	organizationId: text().notNull(),
 });
@@ -84,7 +99,10 @@ export const userOrganization = pgTable("user_organization", {
 export const project = pgTable("project", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
 	name: text().notNull(),
 	organizationId: text().notNull(),
 	cachingEnabled: boolean().notNull().default(false),
@@ -94,7 +112,10 @@ export const project = pgTable("project", {
 export const apiKey = pgTable("api_key", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
 	token: text().notNull().unique(),
 	description: text().notNull(),
 	status: text({
@@ -108,7 +129,10 @@ export const providerKey = pgTable(
 	{
 		id: text().primaryKey().notNull().$defaultFn(shortid),
 		createdAt: timestamp().notNull().defaultNow(),
-		updatedAt: timestamp().notNull().defaultNow(),
+		updatedAt: timestamp()
+			.notNull()
+			.defaultNow()
+			.$onUpdate(() => new Date()),
 		token: text().notNull(),
 		provider: text().notNull(),
 		baseUrl: text(), // Optional base URL for custom providers
@@ -123,7 +147,10 @@ export const providerKey = pgTable(
 export const log = pgTable("log", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
 	organizationId: text().notNull(),
 	projectId: text().notNull(),
 	apiKeyId: text().notNull(),
@@ -159,7 +186,10 @@ export const log = pgTable("log", {
 export const passkey = pgTable("passkey", {
 	id: text().primaryKey().$defaultFn(shortid),
 	createdAt: timestamp().notNull().defaultNow(),
-	updatedAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
 	name: text(),
 	publicKey: text().notNull(),
 	userId: text()

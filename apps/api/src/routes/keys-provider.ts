@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db, eq, tables } from "@openllm/db";
-import { providers } from "@openllm/models";
+import { providers, validateProviderKey } from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -123,6 +123,27 @@ keysProvider.openapi(create, async (c) => {
 	if (existingKey) {
 		throw new HTTPException(400, {
 			message: `A key for provider '${provider}' already exists for this project`,
+		});
+	}
+
+	try {
+		const isTestEnv = process.env.NODE_ENV === "test";
+		const validationResult = await validateProviderKey(
+			provider,
+			userToken,
+			baseUrl,
+			isTestEnv,
+		);
+
+		if (!validationResult.valid) {
+			throw new HTTPException(400, {
+				message: `Invalid API key: ${validationResult.error || "Unknown error"}`,
+			});
+		}
+	} catch (error) {
+		throw new HTTPException(400, {
+			message:
+				error instanceof Error ? error.message : "Failed to validate API key",
 		});
 	}
 
@@ -319,7 +340,6 @@ keysProvider.openapi(deleteKey, async (c) => {
 		.update(tables.providerKey)
 		.set({
 			status: "deleted",
-			updatedAt: new Date(),
 		})
 		.where(eq(tables.providerKey.id, id));
 
@@ -439,7 +459,6 @@ keysProvider.openapi(updateStatus, async (c) => {
 		.update(tables.providerKey)
 		.set({
 			status,
-			updatedAt: new Date(),
 		})
 		.where(eq(tables.providerKey.id, id))
 		.returning();
