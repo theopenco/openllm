@@ -15,6 +15,13 @@
 			"when": 1747915707361,
 			"tag": "1747915707_zippy_makkari",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1747921176792,
+			"tag": "1747921176_empty_spectrum",
+			"breakpoints": true
 		}
 	]
 }

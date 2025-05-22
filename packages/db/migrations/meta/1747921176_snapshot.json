@@ -1,6 +1,6 @@
 {
-	"id": "551c096d-bbfa-4d3f-b713-6ecb5a3d41d2",
-	"prevId": "00fce32f-5fac-4d56-a90b-b1d0abff61ff",
+	"id": "39ef3d5e-4c74-4194-aa0e-3815e7eb5dfb",
+	"prevId": "0b73efb3-a897-4b4f-b26f-18cd4327bd23",
 	"version": "7",
 	"dialect": "postgresql",
 	"tables": {
@@ -419,6 +419,12 @@
 					"primaryKey": false,
 					"notNull": true
 				},
+				"stripe_customer_id": {
+					"name": "stripe_customer_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
 				"credits": {
 					"name": "credits",
 					"type": "real",
@@ -520,6 +526,64 @@
 					"onUpdate": "no action"
 				}
 			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.payment_method": {
+			"name": "payment_method",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"stripe_payment_method_id": {
+					"name": "stripe_payment_method_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"organization_id": {
+					"name": "organization_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"type": {
+					"name": "type",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"is_default": {
+					"name": "is_default",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
 			"compositePrimaryKeys": {},
 			"uniqueConstraints": {},
 			"policies": {},
