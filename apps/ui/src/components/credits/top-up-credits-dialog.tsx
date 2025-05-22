@@ -31,7 +31,10 @@ import { toast } from "@/lib/components/use-toast";
 
 import type React from "react";
 
-const stripePromise = loadStripe("pk_test_stripe_publishable_key");
+const stripePromise = loadStripe(
+	process.env.VITE_STRIPE_PUBLIC_KEY ||
+		"pk_test_51RRXM1CYKGHizcWTfXxFSEzN8gsUQkg2efi2FN5KO2M2hxdV9QPCjeZMPaZQHSAatxpK9wDcSeilyYU14gz2qA2p00R4q5xU1R",
+);
 
 export function TopUpCreditsButton() {
 	return (

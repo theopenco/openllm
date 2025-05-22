@@ -1,5 +1,6 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import "dotenv/config";
 import { z } from "zod";
 
 import { authHandler } from "./auth/handler";
