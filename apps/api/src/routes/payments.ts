@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import type { ServerTypes } from "../vars";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_123", {
 	apiVersion: "2025-04-30.basil",
 });
 
