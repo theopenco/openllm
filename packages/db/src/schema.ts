@@ -10,6 +10,18 @@ import {
 } from "drizzle-orm/pg-core";
 import { customAlphabet } from "nanoid";
 
+export const UnifiedFinishReason = {
+	COMPLETED: "completed",
+	LENGTH_LIMIT: "length_limit",
+	CONTENT_FILTER: "content_filter",
+	ERROR: "error",
+	CANCELED: "canceled",
+	UNKNOWN: "unknown",
+} as const;
+
+export type UnifiedFinishReason =
+	(typeof UnifiedFinishReason)[keyof typeof UnifiedFinishReason];
+
 const generate = customAlphabet(
 	"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
 );
@@ -170,6 +182,7 @@ export const log = pgTable("log", {
 	responseSize: integer().notNull(),
 	content: text(),
 	finishReason: text(),
+	unifiedFinishReason: text(),
 	promptTokens: integer(),
 	completionTokens: integer(),
 	totalTokens: integer(),
