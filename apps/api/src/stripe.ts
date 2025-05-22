@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db, eq, tables } from "@openllm/db";
+import { db, eq, sql, tables } from "@openllm/db";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -47,6 +47,7 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 		switch (event.type) {
 			case "payment_intent.succeeded":
 				console.log("Payment succeeded:", event.data.object);
+				await handlePaymentIntentSucceeded(event.data.object);
 				break;
 			case "payment_intent.payment_failed":
 				console.log("Payment failed:", event.data.object);
@@ -66,6 +67,43 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 		});
 	}
 });
+
+async function handlePaymentIntentSucceeded(paymentIntent: any) {
+	const { metadata, amount } = paymentIntent;
+	const { organizationId } = metadata;
+
+	if (!organizationId) {
+		console.error("Missing organizationId in paymentIntent metadata");
+		return;
+	}
+
+	const organization = await db.query.organization.findFirst({
+		where: {
+			id: organizationId,
+		},
+	});
+
+	if (!organization) {
+		console.error(`Organization not found: ${organizationId}`);
+		return;
+	}
+
+	// Convert amount from cents to dollars
+	const amountInDollars = amount / 100;
+
+	// Update organization credits
+	await db
+		.update(tables.organization)
+		.set({
+			credits: sql`${tables.organization.credits} + ${amountInDollars}`,
+			updatedAt: new Date(),
+		})
+		.where(eq(tables.organization.id, organizationId));
+
+	console.log(
+		`Added ${amountInDollars} credits to organization ${organizationId}`,
+	);
+}
 
 async function handleSetupIntentSucceeded(setupIntent: any) {
 	const { metadata, payment_method } = setupIntent;
