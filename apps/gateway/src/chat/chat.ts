@@ -214,124 +214,63 @@ chat.openapi(completions, async (c) => {
 	} else if (usedProvider === "llmgateway" && usedModel === "custom") {
 		usedProvider = "llmgateway";
 		usedModel = "custom";
-	} else if (usedProvider && usedProvider !== "llmgateway") {
-		if (
-			![
-				"openai",
-				"anthropic",
-				"google-vertex",
-				"inference.net",
-				"kluster.ai",
-			].includes(usedProvider)
-		) {
-			throw new HTTPException(400, {
-				message: `Unsupported provider: ${usedProvider}`,
-			});
-		}
-
-		// Get the project to check its mode
-		const project = await getProject(apiKey.projectId);
-
-		if (!project) {
-			throw new HTTPException(500, {
-				message: "Could not find project",
-			});
-		}
-
-		if (project.mode === "api-keys") {
-			const providerKey = await getProviderKey(apiKey.projectId, usedProvider);
-
-			if (!providerKey) {
-				throw new HTTPException(400, {
-					message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings.`,
-				});
-			}
-		}
 	} else if (!usedProvider) {
 		if (modelInfo.providers.length === 1) {
 			usedProvider = modelInfo.providers[0];
 		} else {
-			// Get the project to check its mode
-			const project = await getProject(apiKey.projectId);
+			const providerKeys = await db.query.providerKey.findMany({
+				where: {
+					status: {
+						eq: "active",
+					},
+					projectId: {
+						eq: apiKey.projectId,
+					},
+					provider: {
+						in: modelInfo.providers,
+					},
+				},
+			});
 
-			if (!project) {
-				throw new HTTPException(500, {
-					message: "Could not find project",
+			const availableProviders = providerKeys.map((key) => key.provider);
+
+			// Filter model providers to only those available
+			const availableModelProviders = modelInfo.providers.filter((provider) =>
+				availableProviders.includes(provider),
+			);
+
+			if (availableModelProviders.length === 0) {
+				throw new HTTPException(400, {
+					message: `No API key set for provider: ${modelInfo.providers[0]}. Please add a provider key in your settings.`,
 				});
 			}
 
-			if (project.mode === "api-keys") {
-				const providerKeys = await db.query.providerKey.findMany({
-					where: {
-						status: {
-							eq: "active",
-						},
-						projectId: {
-							eq: apiKey.projectId,
-						},
-						provider: {
-							in: modelInfo.providers,
-						},
-					},
-				});
+			const modelWithPricing = models.find(
+				(m) => m.model === usedModel && "inputPrice" in m && "outputPrice" in m,
+			);
 
-				const availableProviders = providerKeys.map((key) => key.provider);
+			if (
+				modelWithPricing &&
+				"inputPrice" in modelWithPricing &&
+				"outputPrice" in modelWithPricing
+			) {
+				let cheapestProvider = availableModelProviders[0];
+				let lowestPrice = Number.MAX_VALUE;
 
-				// Filter model providers to only those available
-				const availableModelProviders = modelInfo.providers.filter((provider) =>
-					availableProviders.includes(provider),
-				);
+				for (const provider of availableModelProviders) {
+					const totalPrice =
+						(modelWithPricing.inputPrice || 0) +
+						(modelWithPricing.outputPrice || 0);
 
-				if (availableModelProviders.length === 0) {
-					throw new HTTPException(400, {
-						message: `No API key set for provider: ${modelInfo.providers[0]}. Please add a provider key in your settings.`,
-					});
-				}
-
-				const modelWithPricing = models.find(
-					(m) =>
-						m.model === usedModel && "inputPrice" in m && "outputPrice" in m,
-				);
-
-				if (
-					modelWithPricing &&
-					"inputPrice" in modelWithPricing &&
-					"outputPrice" in modelWithPricing
-				) {
-					let cheapestProvider = availableModelProviders[0];
-					let lowestPrice = Number.MAX_VALUE;
-
-					for (const provider of availableModelProviders) {
-						const totalPrice =
-							(modelWithPricing.inputPrice || 0) +
-							(modelWithPricing.outputPrice || 0);
-
-						if (totalPrice < lowestPrice) {
-							lowestPrice = totalPrice;
-							cheapestProvider = provider;
-						}
+					if (totalPrice < lowestPrice) {
+						lowestPrice = totalPrice;
+						cheapestProvider = provider;
 					}
-
-					usedProvider = cheapestProvider;
-				} else {
-					usedProvider = availableModelProviders[0];
 				}
+
+				usedProvider = cheapestProvider;
 			} else {
-				usedProvider = modelInfo.providers[0];
-
-				if (
-					![
-						"openai",
-						"anthropic",
-						"google-vertex",
-						"inference.net",
-						"kluster.ai",
-					].includes(usedProvider)
-				) {
-					throw new HTTPException(400, {
-						message: `Unsupported provider: ${usedProvider}`,
-					});
-				}
+				usedProvider = availableModelProviders[0];
 			}
 		}
 	}
@@ -347,99 +286,7 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	let providerKey: any;
-	let envToken: string | undefined;
-
-	if (
-		![
-			"openai",
-			"anthropic",
-			"google-vertex",
-			"inference.net",
-			"kluster.ai",
-			"llmgateway",
-		].includes(usedProvider)
-	) {
-		throw new HTTPException(400, {
-			message: `Unsupported provider: ${usedProvider}`,
-		});
-	}
-
-	if (modelInput === "gpt-4o-mini" || requestedModel === "gpt-4o-mini") {
-		usedProvider = "openai";
-
-		if (project.mode === "api-keys") {
-			const openaiProviderKey = await getProviderKey(
-				apiKey.projectId,
-				"openai",
-			);
-			if (!openaiProviderKey) {
-				throw new HTTPException(400, {
-					message: `No API key set for provider: openai. Please add a provider key in your settings.`,
-				});
-			}
-		} else if (project.mode === "credits") {
-			// Check if the environment variable is set for OpenAI
-			if (!process.env.OPENAI_API_KEY) {
-				throw new HTTPException(400, {
-					message: `No API key set for provider: openai. Please add a provider key in your settings.`,
-				});
-			}
-		}
-	}
-
-	if (usedModel.includes("llama") && !requestedProvider) {
-		// Check if kluster.ai is in the providers list
-		const hasKlusterProvider = modelInfo.providers.some(
-			(provider) => provider === "kluster.ai",
-		);
-
-		if (hasKlusterProvider) {
-			if (project.mode === "api-keys") {
-				const explicitProviderKey = await getProviderKey(
-					apiKey.projectId,
-					"kluster.ai",
-				);
-				if (!explicitProviderKey) {
-					throw new HTTPException(400, {
-						message: `No API key set for provider: kluster.ai. Please add a provider key in your settings.`,
-					});
-				}
-			} else if (project.mode === "credits") {
-				// Check if the environment variable is set for kluster.ai
-				if (!process.env.KLUSTER_API_KEY) {
-					throw new HTTPException(400, {
-						message: `No API key set for provider: kluster.ai. Please add a provider key in your settings.`,
-					});
-				}
-			}
-		}
-	}
-
-	if (
-		modelInput.startsWith("kluster.ai/") ||
-		requestedModel.startsWith("kluster.ai/") ||
-		usedProvider === "kluster.ai"
-	) {
-		if (project.mode === "api-keys") {
-			const klusterProviderKey = await getProviderKey(
-				apiKey.projectId,
-				"kluster.ai",
-			);
-			if (!klusterProviderKey) {
-				throw new HTTPException(400, {
-					message: `No API key set for provider: kluster.ai. Please add a provider key in your settings.`,
-				});
-			}
-		} else if (project.mode === "credits") {
-			// Check if the environment variable is set for kluster.ai
-			if (!process.env.KLUSTER_API_KEY) {
-				throw new HTTPException(400, {
-					message: `No API key set for provider: kluster.ai. Please add a provider key in your settings.`,
-				});
-			}
-		}
-	}
+	let providerKey;
 
 	if (project.mode === "api-keys") {
 		// Get the provider key from the database using cached helper function
@@ -466,40 +313,46 @@ chat.openapi(completions, async (c) => {
 			});
 		}
 
-		// Get the token from the environment variable
+		let token: string | undefined;
+
 		switch (usedProvider) {
 			case "openai":
-				envToken = process.env.OPENAI_API_KEY;
+				token = process.env.OPENAI_API_KEY;
 				break;
 			case "anthropic":
-				envToken = process.env.ANTHROPIC_API_KEY;
+				token = process.env.ANTHROPIC_API_KEY;
 				console.log("using anthropic key", envToken);
 				break;
 			case "google-vertex":
-				envToken = process.env.VERTEX_API_KEY;
+				token = process.env.VERTEX_API_KEY;
 				break;
 			case "inference.net":
-				envToken = process.env.INFERENCE_API_KEY;
+				token = process.env.INFERENCE_API_KEY;
 				break;
 			case "kluster.ai":
-				envToken = process.env.KLUSTER_API_KEY;
-				break;
-			case "llmgateway":
-				if (usedModel === "custom") {
-					envToken = "dummy-token";
-				}
+				token = process.env.KLUSTER_API_KEY;
 				break;
 			default:
 				throw new HTTPException(400, {
-					message: `Unsupported provider: ${usedProvider}`,
+					message: `No environment variable set for provider: ${usedProvider}`,
 				});
 		}
 
-		if (!envToken) {
+		if (!token) {
 			throw new HTTPException(400, {
-				message: `No API key set in environment for provider: ${usedProvider}. Please contact support.`,
+				message: `No API key set in environment for provider: ${usedProvider}`,
 			});
 		}
+
+		providerKey = {
+			id: `env-${usedProvider}`,
+			token,
+			provider: usedProvider,
+			status: "active",
+			projectId: apiKey.projectId,
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		};
 	} else {
 		throw new HTTPException(400, {
 			message: `Invalid project mode: ${project.mode}`,
@@ -507,12 +360,11 @@ chat.openapi(completions, async (c) => {
 	}
 
 	try {
-		const baseUrl =
-			project.mode === "api-keys" && providerKey?.baseUrl
-				? providerKey.baseUrl
-				: undefined;
-
-		url = getProviderEndpoint(usedProvider, baseUrl, usedModel);
+		url = getProviderEndpoint(
+			usedProvider,
+			providerKey.baseUrl || undefined,
+			usedModel,
+		);
 	} catch (error) {
 		if (usedProvider === "llmgateway" && usedModel !== "custom") {
 			throw new HTTPException(400, {
@@ -529,6 +381,23 @@ chat.openapi(completions, async (c) => {
 		throw new HTTPException(400, {
 			message: `No base URL set for provider: ${usedProvider}. Please add a base URL in your settings.`,
 		});
+	}
+
+	switch (usedProvider) {
+		case "anthropic":
+			url += "/v1/messages";
+			break;
+		case "google-vertex":
+			url += "/v1beta/models/" + usedModel + ":generateContent";
+			break;
+		case "inference.net":
+			url += "/v1/chat/completions";
+			break;
+		case "kluster.ai":
+			url += "/v1/chat/completions";
+			break;
+		default:
+			url += "/v1/chat/completions";
 	}
 
 	// Check if caching is enabled for this project
@@ -556,8 +425,7 @@ chat.openapi(completions, async (c) => {
 				organizationId: project.organizationId,
 				projectId: apiKey.projectId,
 				apiKeyId: apiKey.id,
-				providerKeyId:
-					project.mode === "credits" ? `env-${usedProvider}` : providerKey.id,
+				providerKeyId: providerKey.id,
 				duration,
 				usedModel: usedModel,
 				usedProvider: usedProvider,
@@ -693,16 +561,7 @@ chat.openapi(completions, async (c) => {
 
 			let res;
 			try {
-				if (project.mode === "credits" && !envToken) {
-					throw new HTTPException(400, {
-						message: `No API key set in environment for provider: ${usedProvider}`,
-					});
-				}
-
-				const headers =
-					project.mode === "credits"
-						? getProviderHeaders(usedProvider, { token: envToken || "" })
-						: getProviderHeaders(usedProvider, providerKey);
+				const headers = getProviderHeaders(usedProvider, providerKey);
 				headers["Content-Type"] = "application/json";
 
 				res = await fetch(url, {
@@ -721,10 +580,7 @@ chat.openapi(completions, async (c) => {
 						organizationId: project.organizationId,
 						projectId: apiKey.projectId,
 						apiKeyId: apiKey.id,
-						providerKeyId:
-							project.mode === "credits"
-								? `env-${usedProvider}`
-								: providerKey?.id,
+						providerKeyId: providerKey.id,
 						duration: Date.now() - startTime,
 						usedModel: usedModel,
 						usedProvider: usedProvider,
@@ -790,49 +646,39 @@ chat.openapi(completions, async (c) => {
 					id: String(eventId++),
 				});
 
-				// Check if this is a test error trigger to avoid duplicate logs
-				const isTestErrorTrigger = messages.some(
-					(msg) => msg.role === "user" && msg.content.includes("TRIGGER_ERROR"),
-				);
-
-				if (!isTestErrorTrigger) {
-					// Log the error in the database
-					await insertLog({
-						organizationId: project.organizationId,
-						projectId: apiKey.projectId,
-						apiKeyId: apiKey.id,
-						providerKeyId:
-							project.mode === "credits"
-								? `env-${usedProvider}`
-								: providerKey.id,
-						duration: Date.now() - startTime,
-						usedModel: usedModel,
-						usedProvider: usedProvider,
-						requestedModel: requestedModel,
-						requestedProvider: requestedProvider,
-						messages: messages,
-						responseSize: errorResponseText.length,
-						content: null,
-						finishReason: "gateway_error",
-						promptTokens: null,
-						completionTokens: null,
-						totalTokens: null,
-						temperature: temperature || null,
-						maxTokens: max_tokens || null,
-						topP: top_p || null,
-						frequencyPenalty: frequency_penalty || null,
-						presencePenalty: presence_penalty || null,
-						hasError: true,
-						streamed: true,
-						canceled: false,
-						errorDetails: {
-							statusCode: res.status,
-							statusText: res.statusText,
-							responseText: errorResponseText,
-						},
-						cached: false,
-					});
-				}
+				// Log the error in the database
+				await insertLog({
+					organizationId: project.organizationId,
+					projectId: apiKey.projectId,
+					apiKeyId: apiKey.id,
+					providerKeyId: providerKey.id,
+					duration: Date.now() - startTime,
+					usedModel: usedModel,
+					usedProvider: usedProvider,
+					requestedModel: requestedModel,
+					requestedProvider: requestedProvider,
+					messages: messages,
+					responseSize: errorResponseText.length,
+					content: null,
+					finishReason: "gateway_error",
+					promptTokens: null,
+					completionTokens: null,
+					totalTokens: null,
+					temperature: temperature || null,
+					maxTokens: max_tokens || null,
+					topP: top_p || null,
+					frequencyPenalty: frequency_penalty || null,
+					presencePenalty: presence_penalty || null,
+					hasError: true,
+					streamed: true,
+					canceled: false,
+					errorDetails: {
+						statusCode: res.status,
+						statusText: res.statusText,
+						responseText: errorResponseText,
+					},
+					cached: false,
+				});
 
 				return;
 			}
@@ -965,10 +811,7 @@ chat.openapi(completions, async (c) => {
 					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
-					providerKeyId:
-						project.mode === "credits"
-							? `env-${usedProvider}`
-							: providerKey?.id,
+					providerKeyId: providerKey.id,
 					duration,
 					usedModel: usedModel,
 					usedProvider: usedProvider,
@@ -1015,16 +858,7 @@ chat.openapi(completions, async (c) => {
 	let canceled = false;
 	let res;
 	try {
-		if (project.mode === "credits" && !envToken) {
-			throw new HTTPException(400, {
-				message: `No API key set in environment for provider: ${usedProvider}`,
-			});
-		}
-
-		const headers =
-			project.mode === "credits"
-				? getProviderHeaders(usedProvider, { token: envToken || "" })
-				: getProviderHeaders(usedProvider, providerKey);
+		const headers = getProviderHeaders(usedProvider, providerKey);
 		headers["Content-Type"] = "application/json";
 
 		res = await fetch(url, {
@@ -1036,13 +870,8 @@ chat.openapi(completions, async (c) => {
 	} catch (error) {
 		if (error instanceof Error && error.name === "AbortError") {
 			canceled = true;
-		} else if (error instanceof HTTPException) {
-			throw error;
 		} else {
-			console.error("Error in fetch:", error);
-			throw new HTTPException(500, {
-				message: `Error connecting to provider: ${error instanceof Error ? error.message : "Unknown error"}`,
-			});
+			throw error;
 		}
 	} finally {
 		// Clean up the event listener
@@ -1058,8 +887,7 @@ chat.openapi(completions, async (c) => {
 			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
-			providerKeyId:
-				project.mode === "credits" ? `env-${usedProvider}` : providerKey?.id,
+			providerKeyId: providerKey.id,
 			duration,
 			usedModel: usedModel,
 			usedProvider: usedProvider,
@@ -1104,48 +932,40 @@ chat.openapi(completions, async (c) => {
 		// Get the error response text
 		const errorResponseText = await res.text();
 
-		// Check if this is a test error trigger to avoid duplicate logs
-		const isTestErrorTrigger = messages.some(
-			(msg) => msg.role === "user" && msg.content.includes("TRIGGER_ERROR"),
-		);
-
-		if (!isTestErrorTrigger) {
-			// Log the error in the database
-			await insertLog({
-				organizationId: project.organizationId,
-				projectId: apiKey.projectId,
-				apiKeyId: apiKey.id,
-				providerKeyId:
-					project.mode === "credits" ? `env-${usedProvider}` : providerKey?.id,
-				duration,
-				usedModel: usedModel,
-				usedProvider: usedProvider,
-				requestedModel: requestedModel,
-				requestedProvider: requestedProvider,
-				messages: messages,
-				responseSize: errorResponseText.length,
-				content: null,
-				finishReason: "gateway_error",
-				promptTokens: null,
-				completionTokens: null,
-				totalTokens: null,
-				temperature: temperature || null,
-				maxTokens: max_tokens || null,
-				topP: top_p || null,
-				frequencyPenalty: frequency_penalty || null,
-				presencePenalty: presence_penalty || null,
-				hasError: true,
-				streamed: false,
-				canceled: false,
-				errorDetails: {
-					statusCode: res.status,
-					statusText: res.statusText,
-					responseText: errorResponseText,
-				},
-				estimatedCost: false,
-				cached: false,
-			});
-		}
+		// Log the error in the database
+		await insertLog({
+			organizationId: project.organizationId,
+			projectId: apiKey.projectId,
+			apiKeyId: apiKey.id,
+			providerKeyId: providerKey.id,
+			duration,
+			usedModel: usedModel,
+			usedProvider: usedProvider,
+			requestedModel: requestedModel,
+			requestedProvider: requestedProvider,
+			messages: messages,
+			responseSize: errorResponseText.length,
+			content: null,
+			finishReason: "gateway_error",
+			promptTokens: null,
+			completionTokens: null,
+			totalTokens: null,
+			temperature: temperature || null,
+			maxTokens: max_tokens || null,
+			topP: top_p || null,
+			frequencyPenalty: frequency_penalty || null,
+			presencePenalty: presence_penalty || null,
+			hasError: true,
+			streamed: false,
+			canceled: false,
+			errorDetails: {
+				statusCode: res.status,
+				statusText: res.statusText,
+				responseText: errorResponseText,
+			},
+			estimatedCost: false,
+			cached: false,
+		});
 
 		// Return a 500 error response
 		return c.json(
@@ -1179,43 +999,29 @@ chat.openapi(completions, async (c) => {
 	let completionTokens = null;
 	let totalTokens = null;
 
-	// Check if this is a test error trigger
-	const isTestErrorTrigger = messages.some(
-		(msg) => msg.role === "user" && msg.content.includes("TRIGGER_ERROR"),
-	);
-
-	if (isTestErrorTrigger) {
-		finishReason = "gateway_error";
-		content = "Error triggered by test";
-	} else {
-		switch (usedProvider) {
-			case "anthropic":
-				content = json.content?.[0]?.text || null;
-				finishReason = json.stop_reason || null;
-				break;
-			case "google-vertex":
-				content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
-				finishReason = json.candidates?.[0]?.finishReason || null;
-				break;
-			case "inference.net":
-			case "kluster.ai":
-				content = json.choices?.[0]?.message?.content || null;
-				finishReason = isTestErrorTrigger
-					? "gateway_error"
-					: json.choices?.[0]?.finish_reason || null;
-				promptTokens = json.usage?.prompt_tokens || null;
-				completionTokens = json.usage?.completion_tokens || null;
-				totalTokens = json.usage?.total_tokens || null;
-				break;
-			default: // OpenAI format
-				content = json.choices?.[0]?.message?.content || null;
-				finishReason = isTestErrorTrigger
-					? "gateway_error"
-					: json.choices?.[0]?.finish_reason || null;
-				promptTokens = json.usage?.prompt_tokens || null;
-				completionTokens = json.usage?.completion_tokens || null;
-				totalTokens = json.usage?.total_tokens || null;
-		}
+	switch (usedProvider) {
+		case "anthropic":
+			content = json.content?.[0]?.text || null;
+			finishReason = json.stop_reason || null;
+			break;
+		case "google-vertex":
+			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
+			finishReason = json.candidates?.[0]?.finishReason || null;
+			break;
+		case "inference.net":
+		case "kluster.ai":
+			content = json.choices?.[0]?.message?.content || null;
+			finishReason = json.choices?.[0]?.finish_reason || null;
+			promptTokens = json.usage?.prompt_tokens || null;
+			completionTokens = json.usage?.completion_tokens || null;
+			totalTokens = json.usage?.total_tokens || null;
+			break;
+		default: // OpenAI format
+			content = json.choices?.[0]?.message?.content || null;
+			finishReason = json.choices?.[0]?.finish_reason || null;
+			promptTokens = json.usage?.prompt_tokens || null;
+			completionTokens = json.usage?.completion_tokens || null;
+			totalTokens = json.usage?.total_tokens || null;
 	}
 
 	// Log the successful request and response
@@ -1227,8 +1033,7 @@ chat.openapi(completions, async (c) => {
 		organizationId: project.organizationId,
 		projectId: apiKey.projectId,
 		apiKeyId: apiKey.id,
-		providerKeyId:
-			project.mode === "credits" ? `env-${usedProvider}` : providerKey?.id,
+		providerKeyId: providerKey.id,
 		duration,
 		usedModel: usedModel,
 		usedProvider: usedProvider,
