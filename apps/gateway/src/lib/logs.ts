@@ -31,6 +31,9 @@ export function getUnifiedFinishReason(
 			if (finishReason === "max_tokens") {
 				return UnifiedFinishReason.LENGTH_LIMIT;
 			}
+			if (finishReason === "end_turn") {
+				return UnifiedFinishReason.COMPLETED;
+			}
 			break;
 		case "google-vertex":
 			if (finishReason === "STOP") {
