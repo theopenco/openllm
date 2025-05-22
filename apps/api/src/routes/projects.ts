@@ -16,13 +16,13 @@ const projectSchema = z.object({
 	organizationId: z.string(),
 	cachingEnabled: z.boolean(),
 	cacheDurationSeconds: z.number(),
-	mode: z.enum(["api-keys", "credits"]),
+	mode: z.enum(["api-keys", "credits", "hybrid"]),
 });
 
 const updateProjectCachingSchema = z.object({
 	cachingEnabled: z.boolean().optional(),
 	cacheDurationSeconds: z.number().min(10).max(31536000).optional(), // Min 10 seconds, max 1 year
-	mode: z.enum(["api-keys", "credits"]).optional(),
+	mode: z.enum(["api-keys", "credits", "hybrid"]).optional(),
 });
 
 const updateProject = createRoute({

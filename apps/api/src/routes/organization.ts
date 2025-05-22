@@ -24,7 +24,7 @@ const projectSchema = z.object({
 	organizationId: z.string(),
 	cachingEnabled: z.boolean(),
 	cacheDurationSeconds: z.number(),
-	mode: z.enum(["api-keys", "credits"]),
+	mode: z.enum(["api-keys", "credits", "hybrid"]),
 });
 
 const getOrganizations = createRoute({
