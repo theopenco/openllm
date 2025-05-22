@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import type { ServerTypes } from "../vars";
 
-const stripe = new Stripe("sk_test_stripe_secret_key", {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
 	apiVersion: "2025-04-30.basil",
 });
 
@@ -120,6 +120,8 @@ payments.openapi(webhookHandler, async (c) => {
 		const webhookSecret = "whsec_test_webhook_secret";
 
 		const event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+
+		console.log(event);
 
 		switch (event.type) {
 			case "payment_intent.succeeded":
