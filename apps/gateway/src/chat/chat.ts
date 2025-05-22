@@ -479,6 +479,7 @@ chat.openapi(completions, async (c) => {
 				estimatedCost: false,
 				cached: true,
 				mode: project.mode,
+				usedMode: providerKey.id.startsWith("env-") ? "credits" : "api-keys",
 			});
 
 			return c.json(cachedResponse);
@@ -631,6 +632,9 @@ chat.openapi(completions, async (c) => {
 						errorDetails: null,
 						cached: false,
 						mode: project.mode,
+						usedMode: providerKey.id.startsWith("env-")
+							? "credits"
+							: "api-keys",
 					});
 
 					// Send a cancellation event to the client
@@ -707,6 +711,7 @@ chat.openapi(completions, async (c) => {
 					},
 					cached: false,
 					mode: project.mode,
+					usedMode: providerKey.id.startsWith("env-") ? "credits" : "api-keys",
 				});
 
 				return;
@@ -868,6 +873,7 @@ chat.openapi(completions, async (c) => {
 					estimatedCost: costs.estimatedCost,
 					cached: false,
 					mode: project.mode,
+					usedMode: providerKey.id.startsWith("env-") ? "credits" : "api-keys",
 				});
 			}
 		});
@@ -942,6 +948,7 @@ chat.openapi(completions, async (c) => {
 			estimatedCost: false,
 			cached: false,
 			mode: project.mode,
+			usedMode: providerKey.id.startsWith("env-") ? "credits" : "api-keys",
 		});
 
 		return c.json(
@@ -997,6 +1004,7 @@ chat.openapi(completions, async (c) => {
 			estimatedCost: false,
 			cached: false,
 			mode: project.mode,
+			usedMode: providerKey.id.startsWith("env-") ? "credits" : "api-keys",
 		});
 
 		// Return a 500 error response
@@ -1093,6 +1101,7 @@ chat.openapi(completions, async (c) => {
 		estimatedCost: costs.estimatedCost,
 		cached: false,
 		mode: project.mode,
+		usedMode: providerKey.id.startsWith("env-") ? "credits" : "api-keys",
 	});
 
 	if (cachingEnabled && cacheKey && !stream) {

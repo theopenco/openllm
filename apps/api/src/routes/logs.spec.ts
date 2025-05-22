@@ -197,7 +197,7 @@ describe("logs route", () => {
 	describe("pagination functionality", () => {
 		beforeEach(async () => {
 			// Add more logs for pagination testing with different timestamps
-			const additionalLogs = [];
+			const additionalLogs: (typeof tables.log.$inferInsert)[] = [];
 			const now = new Date();
 
 			for (let i = 3; i <= 60; i++) {
