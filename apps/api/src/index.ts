@@ -1,9 +1,11 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import "dotenv/config";
 import { z } from "zod";
 
 import { authHandler } from "./auth/handler";
 import { routes } from "./routes";
+import { stripeRoutes } from "./stripe";
 
 import type { ServerTypes } from "./vars";
 
@@ -32,6 +34,8 @@ const root = createRoute({
 app.openapi(root, async (c) => {
 	return c.json({ message: "OK" });
 });
+
+app.route("/stripe", stripeRoutes);
 
 app.route("/", authHandler);
 

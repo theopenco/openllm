@@ -116,9 +116,7 @@ projects.openapi(updateProject, async (c) => {
 		});
 	}
 
-	const updateData: any = {
-		updatedAt: new Date(),
-	};
+	const updateData: any = {};
 
 	if (cachingEnabled !== undefined) {
 		updateData.cachingEnabled = cachingEnabled;

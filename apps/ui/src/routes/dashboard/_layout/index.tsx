@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { TopUpCreditsButton } from "@/components/credits/top-up-credits-dialog";
 import { Overview } from "@/components/dashboard/overview";
 import { useActivity } from "@/hooks/useActivity";
 import { Button } from "@/lib/components/button";
@@ -58,6 +59,7 @@ export default function Dashboard() {
 				<div className="flex items-center justify-between space-y-2">
 					<h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
 					<div className="flex items-center space-x-2">
+						<TopUpCreditsButton />
 						<Button>
 							<Plus className="mr-2 h-4 w-4" />
 							Add Provider
