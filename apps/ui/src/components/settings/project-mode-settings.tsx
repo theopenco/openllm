@@ -14,7 +14,9 @@ export function ProjectModeSettings() {
 	const { data: defaultProject, isError } = useDefaultProject();
 	const updateProject = useUpdateProject();
 
-	const [mode, setMode] = useState(defaultProject?.mode || "api-keys");
+	const [mode, setMode] = useState<"api-keys" | "credits" | "hybrid">(
+		defaultProject?.mode || "api-keys",
+	);
 
 	if (isError || !defaultProject) {
 		return (
@@ -61,7 +63,13 @@ export function ProjectModeSettings() {
 			<Separator />
 
 			<div className="space-y-4">
-				<RadioGroup value={mode} onValueChange={setMode} className="space-y-2">
+				<RadioGroup
+					value={mode}
+					onValueChange={(value: "api-keys" | "credits" | "hybrid") =>
+						setMode(value)
+					}
+					className="space-y-2"
+				>
 					<div className="flex items-start space-x-2">
 						<RadioGroupItem value="api-keys" id="api-keys" />
 						<div className="space-y-1">
@@ -81,6 +89,18 @@ export function ProjectModeSettings() {
 							</Label>
 							<p className="text-muted-foreground text-sm">
 								Use your organization credits and our internal API keys
+							</p>
+						</div>
+					</div>
+					<div className="flex items-start space-x-2">
+						<RadioGroupItem value="hybrid" id="hybrid" />
+						<div className="space-y-1">
+							<Label htmlFor="hybrid" className="font-medium">
+								Hybrid
+							</Label>
+							<p className="text-muted-foreground text-sm">
+								Use your own API keys when available, fall back to credits when
+								needed
 							</p>
 						</div>
 					</div>

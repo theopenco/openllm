@@ -110,7 +110,7 @@ export const project = pgTable("project", {
 	cachingEnabled: boolean().notNull().default(false),
 	cacheDurationSeconds: integer().notNull().default(60),
 	mode: text({
-		enum: ["api-keys", "credits"],
+		enum: ["api-keys", "credits", "hybrid"],
 	})
 		.notNull()
 		.default("api-keys"),
