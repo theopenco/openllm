@@ -15,14 +15,15 @@ export async function flushLogs() {
  */
 export async function waitForLogs(
 	expectedCount = 1,
-	maxWaitMs = 10000, // Increased default timeout to 10 seconds
+	maxWaitMs = 10000,
 	intervalMs = 100,
 ) {
-	await processLogQueue();
 	const startTime = Date.now();
 	console.log(`Waiting for ${expectedCount} logs (timeout: ${maxWaitMs}ms)...`);
 
 	while (Date.now() - startTime < maxWaitMs) {
+		await processLogQueue();
+
 		const logs = await db.query.log.findMany({});
 
 		if (logs.length >= expectedCount) {
