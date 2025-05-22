@@ -15,6 +15,11 @@ export async function setCache(
 	value: any,
 	expirationSeconds: number,
 ): Promise<void> {
+	if (process.env.NODE_ENV === "test") {
+		// todo temp disable caching in test mode
+		return;
+	}
+
 	try {
 		await redisClient.set(key, JSON.stringify(value), "EX", expirationSeconds);
 	} catch (error) {

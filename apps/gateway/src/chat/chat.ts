@@ -382,23 +382,6 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	switch (usedProvider) {
-		case "anthropic":
-			url += "/v1/messages";
-			break;
-		case "google-vertex":
-			url += "/v1beta/models/" + usedModel + ":generateContent";
-			break;
-		case "inference.net":
-			url += "/v1/chat/completions";
-			break;
-		case "kluster.ai":
-			url += "/v1/chat/completions";
-			break;
-		default:
-			url += "/v1/chat/completions";
-	}
-
 	// Check if caching is enabled for this project
 	const { enabled: cachingEnabled, duration: cacheDuration } =
 		await isCachingEnabled(project.id);
