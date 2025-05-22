@@ -16,10 +16,34 @@ export async function processLogQueue(): Promise<void> {
 		const logData = message.map((i) => JSON.parse(i) as LogInsertData);
 
 		await db.insert(log).values(
-			logData.map((i) => ({
-				createdAt: new Date(),
-				...i,
-			})),
+			logData.map((i) => {
+				if (i.hasError === undefined) {
+					i.hasError = false;
+				}
+				if (i.estimatedCost === undefined) {
+					i.estimatedCost = false;
+				}
+				if (i.canceled === undefined) {
+					i.canceled = false;
+				}
+				if (i.streamed === undefined) {
+					i.streamed = false;
+				}
+				if (i.cached === undefined) {
+					i.cached = false;
+				}
+				if (i.mode === undefined) {
+					i.mode = "api-keys";
+				}
+				if (i.usedMode === undefined) {
+					i.usedMode = "api-keys";
+				}
+
+				return {
+					createdAt: new Date(),
+					...i,
+				};
+			}),
 		);
 
 		for (const data of logData) {
