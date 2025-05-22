@@ -15,6 +15,11 @@ export type LogInsertData = Omit<
 export type LogData = InferInsertModel<typeof log>;
 
 export async function insertLog(logData: LogInsertData): Promise<unknown> {
+	logData.usedMode = determineUsedMode(logData.providerKeyId);
 	await publishToQueue(LOG_QUEUE, logData);
 	return 1; // Return 1 to match test expectations
+}
+
+function determineUsedMode(providerKeyId: string): "api-keys" | "credits" {
+	return providerKeyId.startsWith("env-") ? "credits" : "api-keys";
 }
