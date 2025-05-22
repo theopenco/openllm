@@ -193,6 +193,11 @@ export const log = pgTable("log", {
 	})
 		.notNull()
 		.default("api-keys"),
+	usedMode: text({
+		enum: ["api-keys", "credits"],
+	})
+		.notNull()
+		.default("api-keys"),
 });
 
 export const passkey = pgTable("passkey", {

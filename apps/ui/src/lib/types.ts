@@ -43,4 +43,5 @@ export interface Log {
 	cached?: boolean;
 	// Mode information
 	mode?: string;
+	usedMode?: string;
 }

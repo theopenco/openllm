@@ -64,6 +64,10 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 	return token;
 }
 
+function determineUsedMode(providerKeyId: string): "api-keys" | "credits" {
+	return providerKeyId.startsWith("env-") ? "credits" : "api-keys";
+}
+
 export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
@@ -452,6 +456,7 @@ chat.openapi(completions, async (c) => {
 				projectId: apiKey.projectId,
 				apiKeyId: apiKey.id,
 				providerKeyId: providerKey.id,
+				usedMode: determineUsedMode(providerKey.id),
 				duration,
 				usedModel: usedModel,
 				usedProvider: usedProvider,
@@ -680,6 +685,7 @@ chat.openapi(completions, async (c) => {
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
 					providerKeyId: providerKey.id,
+					usedMode: determineUsedMode(providerKey.id),
 					duration: Date.now() - startTime,
 					usedModel: usedModel,
 					usedProvider: usedProvider,
@@ -841,6 +847,7 @@ chat.openapi(completions, async (c) => {
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
 					providerKeyId: providerKey.id,
+					usedMode: determineUsedMode(providerKey.id),
 					duration,
 					usedModel: usedModel,
 					usedProvider: usedProvider,
@@ -918,6 +925,7 @@ chat.openapi(completions, async (c) => {
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
+			usedMode: determineUsedMode(providerKey.id),
 			duration,
 			usedModel: usedModel,
 			usedProvider: usedProvider,
@@ -969,6 +977,7 @@ chat.openapi(completions, async (c) => {
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
+			usedMode: determineUsedMode(providerKey.id),
 			duration,
 			usedModel: usedModel,
 			usedProvider: usedProvider,
