@@ -6,6 +6,7 @@ import keysApi from "./keys-api";
 import keysProvider from "./keys-provider";
 import { logs } from "./logs";
 import organization from "./organization";
+import { payments } from "./payments";
 import projects from "./projects";
 import { user } from "./user";
 
@@ -38,3 +39,4 @@ routes.route("/keys", keysProvider);
 routes.route("/projects", projects);
 
 routes.route("/orgs", organization);
+routes.route("/payments", payments);

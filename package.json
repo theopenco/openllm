@@ -29,6 +29,11 @@
 		"extends": "@steebchen/commitlint-config"
 	},
 	"prettier": "@steebchen/prettier-config",
+	"dependencies": {
+		"@stripe/react-stripe-js": "3.7.0",
+		"@stripe/stripe-js": "7.3.0",
+		"stripe": "18.1.1"
+	},
 	"devDependencies": {
 		"@steebchen/commitlint-config": "^1.5.2",
 		"@steebchen/eslint-config": "^1.5.2",
