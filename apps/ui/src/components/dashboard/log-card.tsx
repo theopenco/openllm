@@ -234,6 +234,10 @@ export function LogCard({ log }: { log: Log }) {
 								<div className="font-mono text-xs">{log.apiKeyId}</div>
 								<div className="text-muted-foreground">Provider Key ID</div>
 								<div className="font-mono text-xs">{log.providerKeyId}</div>
+								<div className="text-muted-foreground">Mode</div>
+								<div>{log.mode || "api-keys"}</div>
+								<div className="text-muted-foreground">Used Mode</div>
+								<div>{log.usedMode || "api-keys"}</div>
 							</div>
 						</div>
 					</div>
