@@ -29,7 +29,7 @@ export async function processLogQueue(): Promise<void> {
 
 			const project = await getProject(data.projectId);
 
-			if (project?.mode === "credits") {
+			if (project?.mode !== "api-keys") {
 				await db
 					.update(organization)
 					.set({

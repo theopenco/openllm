@@ -25,6 +25,45 @@ import { insertLog } from "../lib/logs";
 
 import type { ServerTypes } from "../vars";
 
+/**
+ * Get provider token from environment variables
+ * @param usedProvider The provider to get the token for
+ * @returns The token for the provider or undefined if not found
+ */
+function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
+	let token: string | undefined;
+
+	switch (usedProvider) {
+		case "openai":
+			token = process.env.OPENAI_API_KEY;
+			break;
+		case "anthropic":
+			token = process.env.ANTHROPIC_API_KEY;
+			break;
+		case "google-vertex":
+			token = process.env.VERTEX_API_KEY;
+			break;
+		case "inference.net":
+			token = process.env.INFERENCE_API_KEY;
+			break;
+		case "kluster.ai":
+			token = process.env.KLUSTER_API_KEY;
+			break;
+		default:
+			throw new HTTPException(400, {
+				message: `No environment variable set for provider: ${usedProvider}`,
+			});
+	}
+
+	if (!token) {
+		throw new HTTPException(400, {
+			message: `No API key set in environment for provider: ${usedProvider}`,
+		});
+	}
+
+	return token;
+}
+
 export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
@@ -313,35 +352,7 @@ chat.openapi(completions, async (c) => {
 			});
 		}
 
-		let token: string | undefined;
-
-		switch (usedProvider) {
-			case "openai":
-				token = process.env.OPENAI_API_KEY;
-				break;
-			case "anthropic":
-				token = process.env.ANTHROPIC_API_KEY;
-				break;
-			case "google-vertex":
-				token = process.env.VERTEX_API_KEY;
-				break;
-			case "inference.net":
-				token = process.env.INFERENCE_API_KEY;
-				break;
-			case "kluster.ai":
-				token = process.env.KLUSTER_API_KEY;
-				break;
-			default:
-				throw new HTTPException(400, {
-					message: `No environment variable set for provider: ${usedProvider}`,
-				});
-		}
-
-		if (!token) {
-			throw new HTTPException(400, {
-				message: `No API key set in environment for provider: ${usedProvider}`,
-			});
-		}
+		const token = getProviderTokenFromEnv(usedProvider);
 
 		providerKey = {
 			id: `env-${usedProvider}`,
@@ -352,6 +363,39 @@ chat.openapi(completions, async (c) => {
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		};
+	} else if (project.mode === "hybrid") {
+		// First try to get the provider key from the database
+		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
+
+		if (!providerKey) {
+			// Check if the organization has enough credits
+			const organization = await getOrganization(project.organizationId);
+
+			if (!organization) {
+				throw new HTTPException(500, {
+					message: "Could not find organization",
+				});
+			}
+
+			if (organization.credits <= 0) {
+				throw new HTTPException(402, {
+					message:
+						"No API key set for provider and organization has insufficient credits",
+				});
+			}
+
+			const token = getProviderTokenFromEnv(usedProvider);
+
+			providerKey = {
+				id: `env-${usedProvider}`,
+				token,
+				provider: usedProvider,
+				status: "active",
+				projectId: apiKey.projectId,
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			};
+		}
 	} else {
 		throw new HTTPException(400, {
 			message: `Invalid project mode: ${project.mode}`,
@@ -802,7 +846,7 @@ chat.openapi(completions, async (c) => {
 					messages: messages,
 					responseSize: fullContent.length,
 					content: fullContent,
-					finishReason: canceled || !finishReason ? "canceled" : finishReason,
+					finishReason: finishReason,
 					promptTokens: promptTokens,
 					completionTokens: completionTokens,
 					totalTokens: totalTokens,
@@ -814,7 +858,7 @@ chat.openapi(completions, async (c) => {
 					hasError: false,
 					errorDetails: null,
 					streamed: true,
-					canceled: canceled || !finishReason,
+					canceled: canceled,
 					inputCost: costs.inputCost,
 					outputCost: costs.outputCost,
 					cost: costs.totalCost,
