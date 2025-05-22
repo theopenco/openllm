@@ -5,6 +5,7 @@ const API_BASE = "/api/projects";
 export interface ProjectSettings {
 	cachingEnabled?: boolean;
 	cacheDurationSeconds?: number;
+	mode?: "api-keys" | "credits";
 }
 
 export function useUpdateProject() {

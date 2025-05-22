@@ -1,5 +1,6 @@
-import { db, log } from "@openllm/db";
+import { db, log, organization, eq, sql } from "@openllm/db";
 
+import { getProject } from "./lib/cache";
 import { consumeFromQueue, LOG_QUEUE } from "./lib/redis";
 
 import type { LogInsertData } from "./lib/logs";
@@ -20,6 +21,23 @@ export async function processLogQueue(): Promise<void> {
 				...i,
 			})),
 		);
+
+		for (const data of logData) {
+			if (!data.cost || data.cached) {
+				continue;
+			}
+
+			const project = await getProject(data.projectId);
+
+			if (project?.mode === "credits") {
+				await db
+					.update(organization)
+					.set({
+						credits: sql`${organization.credits} - ${data.cost}`,
+					})
+					.where(eq(organization.id, data.organizationId));
+			}
+		}
 	} catch (error) {
 		console.error("Error processing log message:", error);
 	}

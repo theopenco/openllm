@@ -13,6 +13,7 @@ const organizationSchema = z.object({
 	createdAt: z.date(),
 	updatedAt: z.date(),
 	name: z.string(),
+	credits: z.string(),
 });
 
 const projectSchema = z.object({
@@ -23,6 +24,7 @@ const projectSchema = z.object({
 	organizationId: z.string(),
 	cachingEnabled: z.boolean(),
 	cacheDurationSeconds: z.number(),
+	mode: z.enum(["api-keys", "credits"]),
 });
 
 const getOrganizations = createRoute({

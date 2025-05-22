@@ -16,11 +16,13 @@ const projectSchema = z.object({
 	organizationId: z.string(),
 	cachingEnabled: z.boolean(),
 	cacheDurationSeconds: z.number(),
+	mode: z.enum(["api-keys", "credits"]),
 });
 
 const updateProjectCachingSchema = z.object({
 	cachingEnabled: z.boolean().optional(),
 	cacheDurationSeconds: z.number().min(10).max(31536000).optional(), // Min 10 seconds, max 1 year
+	mode: z.enum(["api-keys", "credits"]).optional(),
 });
 
 const updateProject = createRoute({
@@ -82,7 +84,7 @@ projects.openapi(updateProject, async (c) => {
 	}
 
 	const { id } = c.req.param();
-	const { cachingEnabled, cacheDurationSeconds } = await c.req.json();
+	const { cachingEnabled, cacheDurationSeconds, mode } = await c.req.json();
 
 	const userOrgs = await db.query.userOrganization.findMany({
 		where: {
@@ -122,6 +124,10 @@ projects.openapi(updateProject, async (c) => {
 
 	if (cacheDurationSeconds !== undefined) {
 		updateData.cacheDurationSeconds = cacheDurationSeconds;
+	}
+
+	if (mode !== undefined) {
+		updateData.mode = mode;
 	}
 
 	const [updatedProject] = await db

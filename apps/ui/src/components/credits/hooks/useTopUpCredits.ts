@@ -31,6 +31,9 @@ export function useTopUpCredits() {
 
 			return await res.json();
 		},
-		onSuccess: () => {},
+		onSuccess: () => {
+			// Invalidate organization query to refresh credits
+			queryClient.invalidateQueries({ queryKey: ["organization"] });
+		},
 	});
 }

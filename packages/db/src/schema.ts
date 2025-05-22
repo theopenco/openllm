@@ -1,5 +1,6 @@
 import {
 	boolean,
+	decimal,
 	integer,
 	json,
 	pgTable,
@@ -83,6 +84,7 @@ export const organization = pgTable("organization", {
 		.$onUpdate(() => new Date()),
 	name: text().notNull(),
 	stripeCustomerId: text(),
+	credits: decimal().notNull().default("0"),
 });
 
 export const userOrganization = pgTable("user_organization", {
@@ -107,6 +109,11 @@ export const project = pgTable("project", {
 	organizationId: text().notNull(),
 	cachingEnabled: boolean().notNull().default(false),
 	cacheDurationSeconds: integer().notNull().default(60),
+	mode: text({
+		enum: ["api-keys", "credits"],
+	})
+		.notNull()
+		.default("api-keys"),
 });
 
 export const apiKey = pgTable("api_key", {

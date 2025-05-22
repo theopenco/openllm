@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const API_BASE = "/api/payments";
 
@@ -8,6 +8,8 @@ interface TopUpWithSavedMethodParams {
 }
 
 export function useTopUpCreditsWithSavedMethod() {
+	const queryClient = useQueryClient();
+
 	return useMutation({
 		mutationFn: async ({
 			amount,
@@ -26,6 +28,10 @@ export function useTopUpCreditsWithSavedMethod() {
 			}
 
 			return await res.json();
+		},
+		onSuccess: () => {
+			// Invalidate organization query to refresh credits
+			queryClient.invalidateQueries({ queryKey: ["organization"] });
 		},
 	});
 }

@@ -23,6 +23,7 @@
 		"drizzle-zod": "0.7.1",
 		"hono": "^4.7.6",
 		"hono-openapi": "^0.4.6",
+		"stripe": "18.1.1",
 		"zod": "3.24.3",
 		"zod-openapi": "^4.2.4"
 	},
