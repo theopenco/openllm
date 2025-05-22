@@ -9,7 +9,6 @@ test("/", async () => {
 	expect(data).toHaveProperty("message", "OK");
 	expect(data).toHaveProperty("health");
 	expect(data.health).toHaveProperty("status");
-	expect(data.health).toHaveProperty("redis");
 	expect(data.health).toHaveProperty("database");
 });
 

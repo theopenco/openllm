@@ -5,7 +5,6 @@ import "dotenv/config";
 import { z } from "zod";
 
 import { authHandler } from "./auth/handler";
-import redisClient from "./lib/redis";
 import { routes } from "./routes";
 import { stripeRoutes } from "./stripe";
 
@@ -26,10 +25,6 @@ const root = createRoute({
 							message: z.string(),
 							health: z.object({
 								status: z.string(),
-								redis: z.object({
-									connected: z.boolean(),
-									error: z.string().optional(),
-								}),
 								database: z.object({
 									connected: z.boolean(),
 									error: z.string().optional(),
@@ -50,15 +45,6 @@ app.openapi(root, async (c) => {
 		redis: { connected: false, error: undefined as string | undefined },
 		database: { connected: false, error: undefined as string | undefined },
 	};
-
-	try {
-		await redisClient.ping();
-		health.redis.connected = true;
-	} catch (error) {
-		health.status = "error";
-		health.redis.error = "Redis connection failed";
-		console.error("Redis healthcheck failed:", error);
-	}
 
 	try {
 		await db.query.user.findFirst({});
