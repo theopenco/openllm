@@ -188,6 +188,11 @@ export const log = pgTable("log", {
 	canceled: boolean().default(false),
 	streamed: boolean().default(false),
 	cached: boolean().default(false),
+	mode: text({
+		enum: ["api-keys", "credits", "hybrid"],
+	})
+		.notNull()
+		.default("api-keys"),
 });
 
 export const passkey = pgTable("passkey", {
