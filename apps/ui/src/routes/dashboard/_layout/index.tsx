@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
 	AlertCircle,
 	ArrowUpRight,
+	CreditCard,
 	Key,
 	KeyRound,
 	Plus,
@@ -13,6 +14,7 @@ import { useState } from "react";
 import { TopUpCreditsButton } from "@/components/credits/top-up-credits-dialog";
 import { Overview } from "@/components/dashboard/overview";
 import { useActivity } from "@/hooks/useActivity";
+import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -31,6 +33,8 @@ export default function Dashboard() {
 	const navigate = useNavigate();
 	const [days, setDays] = useState<7 | 30>(7);
 	const { data, isLoading } = useActivity(days);
+	const { data: organization, isLoading: isLoadingOrg } =
+		useDefaultOrganization();
 
 	// Calculate total stats from activity data
 	const totalRequests =
@@ -79,7 +83,7 @@ export default function Dashboard() {
 				</Tabs>
 
 				<div className="space-y-4">
-					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+					<div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
 						<Card>
 							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 								<CardTitle className="text-sm font-medium">
@@ -162,6 +166,31 @@ export default function Dashboard() {
 											<span>${totalInputCost.toFixed(2)} input</span>
 											&nbsp;+&nbsp;
 											<span>${totalOutputCost.toFixed(2)} output</span>
+										</p>
+									</>
+								)}
+							</CardContent>
+						</Card>
+						<Card>
+							<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+								<CardTitle className="text-sm font-medium">
+									Organization Credits
+								</CardTitle>
+								<CreditCard className="text-muted-foreground h-4 w-4" />
+							</CardHeader>
+							<CardContent>
+								{isLoadingOrg ? (
+									<>
+										<div className="text-2xl font-bold">Loading...</div>
+										<p className="text-muted-foreground text-xs">–</p>
+									</>
+								) : (
+									<>
+										<div className="text-2xl font-bold">
+											${organization?.credits.toFixed(2)}
+										</div>
+										<p className="text-muted-foreground text-xs">
+											Available balance
 										</p>
 									</>
 								)}
