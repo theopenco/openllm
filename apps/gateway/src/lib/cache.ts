@@ -1,3 +1,4 @@
+import { db } from "@openllm/db";
 import crypto from "crypto";
 
 import redisClient from "./redis";
@@ -45,7 +46,6 @@ export async function isCachingEnabled(
 			return JSON.parse(cachedConfig);
 		}
 
-		const { db } = await import("@openllm/db");
 		const project = await db.query.project.findFirst({
 			where: {
 				id: {
@@ -68,11 +68,11 @@ export async function isCachingEnabled(
 		return config;
 	} catch (error) {
 		console.error("Error checking if caching is enabled:", error);
-		return { enabled: false, duration: 0 };
+		throw error;
 	}
 }
 
-export async function getProject(projectId: string): Promise<any | null> {
+export async function getProject(projectId: string): Promise<any> {
 	try {
 		const projectCacheKey = `project:${projectId}`;
 		const cachedProject = await getCache(projectCacheKey);
@@ -81,7 +81,6 @@ export async function getProject(projectId: string): Promise<any | null> {
 			return cachedProject;
 		}
 
-		const { db } = await import("@openllm/db");
 		const project = await db.query.project.findFirst({
 			where: {
 				id: {
@@ -97,13 +96,11 @@ export async function getProject(projectId: string): Promise<any | null> {
 		return project;
 	} catch (error) {
 		console.error("Error fetching project:", error);
-		return null;
+		throw error;
 	}
 }
 
-export async function getOrganization(
-	organizationId: string,
-): Promise<any | null> {
+export async function getOrganization(organizationId: string): Promise<any> {
 	try {
 		const orgCacheKey = `organization:${organizationId}`;
 		const cachedOrg = await getCache(orgCacheKey);
@@ -112,7 +109,6 @@ export async function getOrganization(
 			return cachedOrg;
 		}
 
-		const { db } = await import("@openllm/db");
 		const organization = await db.query.organization.findFirst({
 			where: {
 				id: {
@@ -128,14 +124,14 @@ export async function getOrganization(
 		return organization;
 	} catch (error) {
 		console.error("Error fetching organization:", error);
-		return null;
+		throw error;
 	}
 }
 
 export async function getProviderKey(
 	projectId: string,
 	provider: string,
-): Promise<any | null> {
+): Promise<any> {
 	try {
 		const providerKeyCacheKey = `provider_key:${projectId}:${provider}`;
 		const cachedProviderKey = await getCache(providerKeyCacheKey);
@@ -144,7 +140,6 @@ export async function getProviderKey(
 			return cachedProviderKey;
 		}
 
-		const { db } = await import("@openllm/db");
 		const providerKey = await db.query.providerKey.findFirst({
 			where: {
 				status: {
@@ -166,6 +161,6 @@ export async function getProviderKey(
 		return providerKey;
 	} catch (error) {
 		console.error("Error fetching provider key:", error);
-		return null;
+		throw error;
 	}
 }
