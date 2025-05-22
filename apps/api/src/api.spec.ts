@@ -5,8 +5,12 @@ import { app } from ".";
 test("/", async () => {
 	const res = await app.request("/");
 	expect(res.status).toBe(200);
-	const text = await res.text();
-	expect(text).toMatch(/"message":"OK"/);
+	const data = await res.json();
+	expect(data).toHaveProperty("message", "OK");
+	expect(data).toHaveProperty("health");
+	expect(data.health).toHaveProperty("status");
+	expect(data.health).toHaveProperty("redis");
+	expect(data.health).toHaveProperty("database");
 });
 
 test("/user/me", async () => {
