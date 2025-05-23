@@ -207,6 +207,148 @@
           }
         }
       }
+    },
+    "/v1/models": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "List of available models",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "created": {
+                            "type": "number"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "architecture": {
+                            "type": "object",
+                            "properties": {
+                              "input_modalities": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "text",
+                                    "image"
+                                  ]
+                                }
+                              },
+                              "output_modalities": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "text"
+                                  ]
+                                }
+                              },
+                              "tokenizer": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "input_modalities",
+                              "output_modalities"
+                            ]
+                          },
+                          "top_provider": {
+                            "type": "object",
+                            "properties": {
+                              "is_moderated": {
+                                "type": "boolean"
+                              }
+                            },
+                            "required": [
+                              "is_moderated"
+                            ]
+                          },
+                          "pricing": {
+                            "type": "object",
+                            "properties": {
+                              "prompt": {
+                                "type": "string"
+                              },
+                              "completion": {
+                                "type": "string"
+                              },
+                              "image": {
+                                "type": "string"
+                              },
+                              "request": {
+                                "type": "string"
+                              },
+                              "input_cache_read": {
+                                "type": "string"
+                              },
+                              "input_cache_write": {
+                                "type": "string"
+                              },
+                              "web_search": {
+                                "type": "string"
+                              },
+                              "internal_reasoning": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "prompt",
+                              "completion"
+                            ]
+                          },
+                          "context_length": {
+                            "type": "number"
+                          },
+                          "hugging_face_id": {
+                            "type": "string"
+                          },
+                          "per_request_limits": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "type": "string"
+                            }
+                          },
+                          "supported_parameters": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "created",
+                          "architecture",
+                          "top_provider",
+                          "pricing"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
