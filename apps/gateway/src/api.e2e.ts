@@ -193,6 +193,8 @@ describe("e2e tests with real provider keys", () => {
 		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
 		expect(logs[0].usedProvider).toBe("anthropic");
+		expect(logs[0].finishReason).not.toBeNull();
+		expect(logs[0].unifiedFinishReason).not.toBeNull();
 	});
 
 	test("/v1/chat/completions with Anthropic streaming", async () => {
@@ -243,6 +245,8 @@ describe("e2e tests with real provider keys", () => {
 		expect(logs.length).toBe(1);
 		expect(logs[0].usedProvider).toBe("anthropic");
 		expect(logs[0].streamed).toBe(true);
+		expect(logs[0].finishReason).not.toBeNull();
+		expect(logs[0].unifiedFinishReason).not.toBeNull();
 	});
 
 	test("/v1/chat/completions with Google Vertex", async () => {

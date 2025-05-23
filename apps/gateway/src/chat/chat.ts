@@ -785,6 +785,9 @@ chat.openapi(completions, async (c) => {
 											if (data.stop_reason) {
 												finishReason = data.stop_reason;
 											}
+											if (data.delta?.stop_reason) {
+												finishReason = data.delta.stop_reason;
+											}
 											break;
 										case "google-vertex":
 											if (

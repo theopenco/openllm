@@ -1,5 +1,5 @@
 {
-  "id": "2dda516d-4d10-49ec-9ee7-8af08d645433",
+  "id": "1b064f36-d135-4458-828a-a7a17657fda8",
   "prevId": "e7c87f0c-d474-4d24-9b4e-9853d144d6ae",
   "version": "7",
   "dialect": "postgresql",
@@ -269,6 +269,12 @@
         },
         "finish_reason": {
           "name": "finish_reason",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "unified_finish_reason": {
+          "name": "unified_finish_reason",
           "type": "text",
           "primaryKey": false,
           "notNull": false
