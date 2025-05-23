@@ -783,6 +783,17 @@ chat.openapi(completions, async (c) => {
 											if (data.delta?.stop_reason) {
 												finishReason = data.delta.stop_reason;
 											}
+											if (data.usage) {
+												// For streaming, Anthropic might only provide output_tokens
+												if (data.usage.input_tokens !== undefined) {
+													promptTokens = data.usage.input_tokens;
+												}
+												if (data.usage.output_tokens !== undefined) {
+													completionTokens = data.usage.output_tokens;
+												}
+												totalTokens =
+													(promptTokens || 0) + (completionTokens || 0);
+											}
 											break;
 										case "google-vertex":
 											if (
@@ -838,7 +849,15 @@ chat.openapi(completions, async (c) => {
 
 				// Log the streaming request
 				const duration = Date.now() - startTime;
-				const costs = calculateCosts(usedModel, promptTokens, completionTokens);
+				const costs = calculateCosts(
+					usedModel,
+					promptTokens,
+					completionTokens,
+					{
+						prompt: messages.map((m) => m.content).join("\n"),
+						completion: fullContent,
+					},
+				);
 				await insertLog({
 					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
@@ -1038,6 +1057,12 @@ chat.openapi(completions, async (c) => {
 		case "anthropic":
 			content = json.content?.[0]?.text || null;
 			finishReason = json.stop_reason || null;
+			promptTokens = json.usage?.input_tokens || null;
+			completionTokens = json.usage?.output_tokens || null;
+			totalTokens =
+				json.usage?.input_tokens && json.usage?.output_tokens
+					? json.usage.input_tokens + json.usage.output_tokens
+					: null;
 			break;
 		case "google-vertex":
 			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;

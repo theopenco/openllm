@@ -247,6 +247,9 @@ describe("e2e tests with real provider keys", () => {
 		expect(logs[0].streamed).toBe(true);
 		expect(logs[0].finishReason).not.toBeNull();
 		expect(logs[0].unifiedFinishReason).not.toBeNull();
+		expect(logs[0].inputCost).not.toBeNull();
+		expect(logs[0].outputCost).not.toBeNull();
+		expect(logs[0].cost).not.toBeNull();
 	});
 
 	test("/v1/chat/completions with Google Vertex", async () => {
