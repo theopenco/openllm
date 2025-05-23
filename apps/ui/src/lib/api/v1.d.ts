@@ -20,7 +20,7 @@ export interface paths {
 			};
 			requestBody?: never;
 			responses: {
-				/** @description Response object. */
+				/** @description Health check response. */
 				200: {
 					headers: {
 						[name: string]: unknown;
@@ -28,6 +28,13 @@ export interface paths {
 					content: {
 						"application/json": {
 							message: string;
+							health: {
+								status: string;
+								database: {
+									connected: boolean;
+									error?: string;
+								};
+							};
 						};
 					};
 				};
@@ -260,7 +267,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	"/user/me/passkeys/{id}": {
+	"/user/me/passkeys/:id": {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -604,7 +611,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	"/keys/api/{id}": {
+	"/keys/api/:id": {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -814,7 +821,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	"/keys/provider/{id}": {
+	"/keys/provider/:id": {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -938,7 +945,7 @@ export interface paths {
 		};
 		trace?: never;
 	};
-	"/projects/{id}": {
+	"/projects/:id": {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -1062,7 +1069,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	"/orgs/{id}/projects": {
+	"/orgs/:id/projects": {
 		parameters: {
 			query?: never;
 			header?: never;
@@ -1280,7 +1287,7 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
-	"/payments/payment-methods/{id}": {
+	"/payments/payment-methods/:id": {
 		parameters: {
 			query?: never;
 			header?: never;

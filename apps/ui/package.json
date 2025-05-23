@@ -14,8 +14,8 @@
 	],
 	"scripts": {
 		"build": "SERVER_PRESET=static vinxi build",
-		"codegen": "npx openapi-typescript ../api/openapi.json -o ./src/lib/api/v1.d.ts",
 		"dev": "vinxi dev --port 3002",
+		"generate": "openapi-typescript ../api/openapi.json -o ./src/lib/api/v1.d.ts",
 		"start": "vinxi serve --dir .output/public/"
 	},
 	"dependencies": {
@@ -46,6 +46,7 @@
 		"@tanstack/react-table": "^8.21.2",
 		"@tanstack/router-core": "1.120.3",
 		"@tanstack/router-plugin": "^1.119.0",
+		"api": "workspace:*",
 		"better-auth": "1.2.7",
 		"class-variance-authority": "0.7.1",
 		"clsx": "^2.0.0",
