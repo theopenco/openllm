@@ -42,15 +42,13 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 
 		const event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
 
-		console.log(event);
+		console.log(JSON.stringify({ kind: "stripe-event", payload: event }));
 
 		switch (event.type) {
 			case "payment_intent.succeeded":
-				console.log("Payment succeeded:", event.data.object);
 				await handlePaymentIntentSucceeded(event.data.object);
 				break;
 			case "payment_intent.payment_failed":
-				console.log("Payment failed:", event.data.object);
 				break;
 			case "setup_intent.succeeded":
 				await handleSetupIntentSucceeded(event.data.object);
@@ -99,6 +97,16 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
 			updatedAt: new Date(),
 		})
 		.where(eq(tables.organization.id, organizationId));
+
+	// Insert entry into organization_action table
+	await db.insert(tables.organizationAction).values({
+		organizationId,
+		type: "credit",
+		amount: amountInDollars.toString(),
+		description: "Payment received via Stripe",
+		createdAt: new Date(),
+		updatedAt: new Date(),
+	});
 
 	console.log(
 		`Added ${amountInDollars} credits to organization ${organizationId}`,
