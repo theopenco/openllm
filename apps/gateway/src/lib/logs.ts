@@ -68,12 +68,17 @@ export function getUnifiedFinishReason(
  */
 export type LogInsertData = Omit<
 	InferInsertModel<typeof log>,
-	"id" | "createdAt" | "updatedAt" | "usedMode" | "unifiedFinishReason"
+	"id" | "createdAt" | "updatedAt"
+>;
+
+export type InsertLogData = Omit<
+	LogInsertData,
+	"usedMode" | "unifiedFinishReason"
 >;
 
 export type LogData = InferInsertModel<typeof log>;
 
-export async function insertLog(logData: LogInsertData): Promise<unknown> {
+export async function insertLog(logData: InsertLogData): Promise<unknown> {
 	const item: InferInsertModel<typeof log> = {
 		...logData,
 		usedMode: determineUsedMode(logData.providerKeyId),
