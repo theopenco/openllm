@@ -14,10 +14,12 @@
 	],
 	"scripts": {
 		"build": "SERVER_PRESET=static vinxi build",
+		"codegen": "npx openapi-typescript ../api/openapi.json -o ./src/lib/api/v1.d.ts",
 		"dev": "vinxi dev --port 3002",
 		"start": "vinxi serve --dir .output/public/"
 	},
 	"dependencies": {
+		"@hey-api/client-fetch": "0.10.1",
 		"@hookform/resolvers": "5.0.1",
 		"@openllm/models": "workspace:*",
 		"@radix-ui/react-alert-dialog": "1.1.13",
@@ -50,6 +52,8 @@
 		"date-fns": "4.1.0",
 		"lucide-react": "^0.488.0",
 		"next-themes": "^0.4.6",
+		"openapi-fetch": "0.14.0",
+		"openapi-react-query": "0.5.0",
 		"pretty-bytes": "7.0.0",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
@@ -71,6 +75,7 @@
 		"@types/react-dom": "^19.1.5",
 		"@vitejs/plugin-react": "^4.4.1",
 		"autoprefixer": "10.4.15",
+		"openapi-typescript": "7.8.0",
 		"postcss": "8.5.3",
 		"typescript": "^5.8.2",
 		"vite": "^6.3.4",
