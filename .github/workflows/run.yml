@@ -34,7 +34,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: ${{ inputs.cmd }}
-        run: >
+        run: |
           set -eux
           ${{ inputs.cmd }}
         env:
