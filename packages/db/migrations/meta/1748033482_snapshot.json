@@ -1,6 +1,6 @@
 {
-  "id": "601c6360-d6f9-4f89-bf92-7c7d876a93e5",
-  "prevId": "7dbf1946-1d7e-4cf0-854e-78e92000dc65",
+  "id": "1b064f36-d135-4458-828a-a7a17657fda8",
+  "prevId": "e7c87f0c-d474-4d24-9b4e-9853d144d6ae",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -391,6 +391,20 @@
           "primaryKey": false,
           "notNull": false,
           "default": false
+        },
+        "mode": {
+          "name": "mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'api-keys'"
+        },
+        "used_mode": {
+          "name": "used_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'api-keys'"
         }
       },
       "indexes": {},
