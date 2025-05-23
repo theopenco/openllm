@@ -1,1 +1,0 @@
-ALTER TABLE "log" ADD COLUMN "used_mode" text DEFAULT 'api-keys' NOT NULL;
