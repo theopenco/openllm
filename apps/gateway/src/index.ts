@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { chat } from "./chat/chat";
 import redisClient from "./lib/redis";
+import { models } from "./models";
 
 import type { ServerTypes } from "./vars";
 
@@ -88,6 +89,7 @@ app.openapi(root, async (c) => {
 const v1 = new OpenAPIHono<ServerTypes>();
 
 v1.route("/chat", chat);
+v1.route("/models", models);
 
 app.route("/v1", v1);
 
