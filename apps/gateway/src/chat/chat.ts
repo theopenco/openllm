@@ -280,7 +280,7 @@ chat.openapi(completions, async (c) => {
 
 			if (availableModelProviders.length === 0) {
 				throw new HTTPException(400, {
-					message: `No API key set for provider: ${modelInfo.providers[0]}. Please add a provider key in your settings.`,
+					message: `No API key set for provider: ${modelInfo.providers[0]}. Please add a provider key in your settings or add credits and switch to credits or hybrid mode.`,
 				});
 			}
 
@@ -333,7 +333,7 @@ chat.openapi(completions, async (c) => {
 
 		if (!providerKey) {
 			throw new HTTPException(400, {
-				message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings.`,
+				message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings or add credits and switch to credits or hybrid mode.`,
 			});
 		}
 	} else if (project.mode === "credits") {
