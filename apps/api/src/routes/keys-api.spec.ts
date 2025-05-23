@@ -94,7 +94,7 @@ describe("keys route", () => {
 		expect(json.apiKeys[0].description).toBe("Test API Key");
 	});
 
-	test("PATCH /keys/api/:id", async () => {
+	test("PATCH /keys/api/{id}", async () => {
 		const res = await app.request("/keys/api/test-api-key-id", {
 			method: "PATCH",
 			headers: {

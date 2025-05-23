@@ -27,7 +27,7 @@ const updateProjectCachingSchema = z.object({
 
 const updateProject = createRoute({
 	method: "patch",
-	path: "/:id",
+	path: "/{id}",
 	request: {
 		params: z.object({
 			id: z.string(),
