@@ -241,3 +241,18 @@ export const paymentMethod = pgTable("payment_method", {
 	type: text().notNull(), // "card", "sepa_debit", etc.
 	isDefault: boolean().notNull().default(false),
 });
+
+export const organizationAction = pgTable("organization_action", {
+	id: text().primaryKey().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+	organizationId: text().notNull(),
+	type: text({
+		enum: ["credit", "debit"],
+	}).notNull(),
+	amount: decimal().notNull(),
+	description: text(),
+});
