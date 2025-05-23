@@ -68,20 +68,21 @@ export function getUnifiedFinishReason(
  */
 export type LogInsertData = Omit<
 	InferInsertModel<typeof log>,
-	"id" | "createdAt" | "updatedAt"
+	"id" | "createdAt" | "updatedAt" | "usedMode" | "unifiedFinishReason"
 >;
 
 export type LogData = InferInsertModel<typeof log>;
 
 export async function insertLog(logData: LogInsertData): Promise<unknown> {
-	if (logData.unifiedFinishReason === undefined) {
-		logData.unifiedFinishReason = getUnifiedFinishReason(
+	const item: InferInsertModel<typeof log> = {
+		...logData,
+		usedMode: determineUsedMode(logData.providerKeyId),
+		unifiedFinishReason: getUnifiedFinishReason(
 			logData.finishReason,
 			logData.usedProvider,
-		);
-	}
-	(logData as any).usedMode = determineUsedMode(logData.providerKeyId);
-	await publishToQueue(LOG_QUEUE, logData);
+		),
+	};
+	await publishToQueue(LOG_QUEUE, item);
 	return 1; // Return 1 to match test expectations
 }
 
