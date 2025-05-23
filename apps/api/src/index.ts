@@ -1,5 +1,6 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
+import { db } from "@openllm/db";
 import "dotenv/config";
 import { z } from "zod";
 
@@ -22,17 +23,39 @@ const root = createRoute({
 					schema: z
 						.object({
 							message: z.string(),
+							health: z.object({
+								status: z.string(),
+								database: z.object({
+									connected: z.boolean(),
+									error: z.string().optional(),
+								}),
+							}),
 						})
 						.openapi({}),
 				},
 			},
-			description: "Response object.",
+			description: "Health check response.",
 		},
 	},
 });
 
 app.openapi(root, async (c) => {
-	return c.json({ message: "OK" });
+	const health = {
+		status: "ok",
+		redis: { connected: false, error: undefined as string | undefined },
+		database: { connected: false, error: undefined as string | undefined },
+	};
+
+	try {
+		await db.query.user.findFirst({});
+		health.database.connected = true;
+	} catch (error) {
+		health.status = "error";
+		health.database.error = "Database connection failed";
+		console.error("Database healthcheck failed:", error);
+	}
+
+	return c.json({ message: "OK", health });
 });
 
 app.route("/stripe", stripeRoutes);

@@ -478,6 +478,7 @@ chat.openapi(completions, async (c) => {
 				cost: 0,
 				estimatedCost: false,
 				cached: true,
+				mode: project.mode,
 			});
 
 			return c.json(cachedResponse);
@@ -629,6 +630,7 @@ chat.openapi(completions, async (c) => {
 						canceled: true,
 						errorDetails: null,
 						cached: false,
+						mode: project.mode,
 					});
 
 					// Send a cancellation event to the client
@@ -704,6 +706,7 @@ chat.openapi(completions, async (c) => {
 						responseText: errorResponseText,
 					},
 					cached: false,
+					mode: project.mode,
 				});
 
 				return;
@@ -864,6 +867,7 @@ chat.openapi(completions, async (c) => {
 					cost: costs.totalCost,
 					estimatedCost: costs.estimatedCost,
 					cached: false,
+					mode: project.mode,
 				});
 			}
 		});
@@ -937,6 +941,7 @@ chat.openapi(completions, async (c) => {
 			errorDetails: null,
 			estimatedCost: false,
 			cached: false,
+			mode: project.mode,
 		});
 
 		return c.json(
@@ -991,6 +996,7 @@ chat.openapi(completions, async (c) => {
 			},
 			estimatedCost: false,
 			cached: false,
+			mode: project.mode,
 		});
 
 		// Return a 500 error response
@@ -1086,6 +1092,7 @@ chat.openapi(completions, async (c) => {
 		cost: costs.totalCost,
 		estimatedCost: costs.estimatedCost,
 		cached: false,
+		mode: project.mode,
 	});
 
 	if (cachingEnabled && cacheKey && !stream) {
