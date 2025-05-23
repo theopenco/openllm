@@ -1,1 +1,0 @@
-ALTER TABLE "log" ADD COLUMN "unified_finish_reason" text;
