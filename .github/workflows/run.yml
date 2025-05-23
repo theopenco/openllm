@@ -34,7 +34,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: ${{ inputs.cmd }}
-        run: ${{ inputs.cmd }}
+        run: |
+          set -eux
+          ${{ inputs.cmd }}
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
