@@ -56,12 +56,6 @@ export const models = [
 		outputPrice: 0.0000018,
 	},
 	{
-		model: "llama-3.3-70b-instruct",
-		providers: ["inference.net", "kluster.ai"],
-		inputPrice: 0.0000009,
-		outputPrice: 0.0000027,
-	},
-	{
 		model: "claude-3-7-sonnet-20250219",
 		providers: ["anthropic"],
 		inputPrice: 0.000003,
@@ -85,58 +79,10 @@ export const models = [
 		inputPrice: 0.00001,
 		outputPrice: 0.00003,
 	},
-	{
-		model: "gpt-4-vision",
-		providers: ["openai"],
-		inputPrice: 0.00001,
-		outputPrice: 0.00003,
-	},
-	{
-		model: "gpt-3.5-turbo-instruct",
-		providers: ["openai"],
-		inputPrice: 0.0000015,
-		outputPrice: 0.000002,
-	},
-	{
-		model: "claude-3-opus",
-		providers: ["anthropic"],
-		inputPrice: 0.000015,
-		outputPrice: 0.000075,
-	},
-	{
-		model: "claude-3.5-sonnet",
-		providers: ["anthropic"],
-		inputPrice: 0.000003,
-		outputPrice: 0.000015,
-	},
-	{
-		model: "claude-2.1",
-		providers: ["anthropic"],
-		inputPrice: 0.000008,
-		outputPrice: 0.000024,
-	},
-	{
-		model: "claude-instant",
-		providers: ["anthropic"],
-		inputPrice: 0.0000004,
-		outputPrice: 0.0000016,
-	},
-	{
-		model: "llama-3.1-8b-instruct",
-		providers: ["inference.net", "kluster.ai"],
-		inputPrice: 0.0000002,
-		outputPrice: 0.0000006,
-	},
-	{
-		model: "llama-3.1-70b-instruct",
-		providers: ["inference.net", "kluster.ai"],
-		inputPrice: 0.0000009,
-		outputPrice: 0.0000027,
-	},
-	{
-		model: "llama-3-8b-instruct",
-		providers: ["inference.net", "kluster.ai"],
-		inputPrice: 0.0000002,
-		outputPrice: 0.0000006,
-	},
+	// {
+	// 	model: "llama-3.3-70b-instruct",
+	// 	providers: ["inference.net", "kluster.ai"],
+	// 	inputPrice: 0.0000009,
+	// 	outputPrice: 0.0000027,
+	// },
 ] as const satisfies ModelDefinition[];
