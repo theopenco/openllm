@@ -187,7 +187,10 @@ describe("e2e tests with real provider keys", () => {
 
 		expect(res.status).toBe(200);
 		const json = await res.json();
-		expect(json).toHaveProperty("content");
+		expect(json).toHaveProperty("choices.[0].message.content");
+		expect(json).toHaveProperty("usage.prompt_tokens");
+		expect(json).toHaveProperty("usage.completion_tokens");
+		expect(json).toHaveProperty("usage.total_tokens");
 
 		// Wait for the worker to process the log
 		const logs = await waitForLogs(1);
