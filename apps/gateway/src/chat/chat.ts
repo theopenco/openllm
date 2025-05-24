@@ -809,7 +809,7 @@ chat.openapi(completions, async (c) => {
 									const data = JSON.parse(line.substring(6));
 
 									// Forward the data as a proper SSE event
-									// Transform Anthropic streaming responses to OpenAI format
+									// Transform non-OpenAI streaming responses to OpenAI format
 									let transformedData = data;
 									if (usedProvider === "anthropic") {
 										if (data.delta?.text) {
@@ -848,6 +848,53 @@ chat.openapi(completions, async (c) => {
 													},
 												],
 												usage: data.usage || null,
+											};
+										}
+									} else if (
+										usedProvider === "google-vertex" ||
+										usedProvider === "google-ai-studio"
+									) {
+										if (
+											data.candidates &&
+											data.candidates[0]?.content?.parts[0]?.text
+										) {
+											transformedData = {
+												id: `chatcmpl-${Date.now()}`,
+												object: "chat.completion.chunk",
+												created: Math.floor(Date.now() / 1000),
+												model: usedModel,
+												choices: [
+													{
+														index: 0,
+														delta: {
+															content: data.candidates[0].content.parts[0].text,
+														},
+														finish_reason: null,
+													},
+												],
+												usage: null,
+											};
+										} else if (
+											data.candidates &&
+											data.candidates[0]?.finishReason
+										) {
+											transformedData = {
+												id: `chatcmpl-${Date.now()}`,
+												object: "chat.completion.chunk",
+												created: Math.floor(Date.now() / 1000),
+												model: usedModel,
+												choices: [
+													{
+														index: 0,
+														delta: {},
+														finish_reason:
+															data.candidates[0].finishReason === "STOP"
+																? "stop"
+																: data.candidates[0].finishReason.toLowerCase() ||
+																	"stop",
+													},
+												],
+												usage: null,
 											};
 										}
 									}
@@ -937,50 +984,58 @@ chat.openapi(completions, async (c) => {
 				// Clean up the event listeners
 				c.req.raw.signal.removeEventListener("abort", onAbort);
 
-				// Log the streaming request
-				const duration = Date.now() - startTime;
-				const costs = calculateCosts(
-					usedModel,
-					promptTokens,
-					completionTokens,
-					{
-						prompt: messages.map((m) => m.content).join("\n"),
-						completion: fullContent,
-					},
-				);
-				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
-					apiKeyId: apiKey.id,
-					providerKeyId: providerKey.id,
-					duration,
-					usedModel: usedModel,
-					usedProvider: usedProvider,
-					requestedModel: requestedModel,
-					requestedProvider: requestedProvider,
-					messages: messages,
-					responseSize: fullContent.length,
-					content: fullContent,
-					finishReason: finishReason,
-					promptTokens: promptTokens,
-					completionTokens: completionTokens,
-					totalTokens: totalTokens,
-					temperature: temperature || null,
-					maxTokens: max_tokens || null,
-					topP: top_p || null,
-					frequencyPenalty: frequency_penalty || null,
-					presencePenalty: presence_penalty || null,
-					hasError: false,
-					errorDetails: null,
-					streamed: true,
-					canceled: canceled,
-					inputCost: costs.inputCost,
-					outputCost: costs.outputCost,
-					cost: costs.totalCost,
-					estimatedCost: costs.estimatedCost,
-					cached: false,
-					mode: project.mode,
-				});
+				if (!canceled) {
+					// Log the streaming request
+					const duration = Date.now() - startTime;
+					const costs = calculateCosts(
+						usedModel,
+						promptTokens,
+						completionTokens,
+						{
+							prompt: messages.map((m) => m.content).join("\n"),
+							completion: fullContent,
+						},
+					);
+
+					// Ensure finishReason is never null for Google AI Studio
+					if (usedProvider === "google-ai-studio" && !finishReason) {
+						finishReason = "stop";
+					}
+
+					await insertLog({
+						organizationId: project.organizationId,
+						projectId: apiKey.projectId,
+						apiKeyId: apiKey.id,
+						providerKeyId: providerKey.id,
+						duration,
+						usedModel: usedModel,
+						usedProvider: usedProvider,
+						requestedModel: requestedModel,
+						requestedProvider: requestedProvider,
+						messages: messages,
+						responseSize: fullContent.length,
+						content: fullContent,
+						finishReason: finishReason,
+						promptTokens: promptTokens,
+						completionTokens: completionTokens,
+						totalTokens: totalTokens,
+						temperature: temperature || null,
+						maxTokens: max_tokens || null,
+						topP: top_p || null,
+						frequencyPenalty: frequency_penalty || null,
+						presencePenalty: presence_penalty || null,
+						hasError: false,
+						errorDetails: null,
+						streamed: true,
+						canceled: canceled,
+						inputCost: costs.inputCost,
+						outputCost: costs.outputCost,
+						cost: costs.totalCost,
+						estimatedCost: costs.estimatedCost,
+						cached: false,
+						mode: project.mode,
+					});
+				}
 			}
 		});
 	}
