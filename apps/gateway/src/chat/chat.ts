@@ -52,6 +52,9 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 		case "kluster.ai":
 			token = process.env.KLUSTER_AI_API_KEY;
 			break;
+		case "together.ai":
+			token = process.env.TOGETHER_AI_API_KEY;
+			break;
 		default:
 			throw new HTTPException(400, {
 				message: `No environment variable set for provider: ${usedProvider}`,
@@ -155,7 +158,8 @@ chat.openapi(completions, async (c) => {
 	if (modelInput.includes("/")) {
 		const split = modelInput.split("/");
 		requestedProvider = split[0] as Provider;
-		requestedModel = split[1] as Model;
+		// Handle model names with multiple slashes (e.g. together.ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo)
+		requestedModel = split.slice(1).join("/") as Model;
 	}
 
 	if (requestedProvider && !providers.find((p) => p.id === requestedProvider)) {
@@ -860,6 +864,7 @@ chat.openapi(completions, async (c) => {
 											break;
 										case "inference.net":
 										case "kluster.ai":
+										case "together.ai":
 											if (data.choices && data.choices[0]) {
 												if (data.choices[0].delta?.content) {
 													fullContent += data.choices[0].delta.content;
@@ -1123,6 +1128,7 @@ chat.openapi(completions, async (c) => {
 			break;
 		case "inference.net":
 		case "kluster.ai":
+		case "together.ai":
 			content = json.choices?.[0]?.message?.content || null;
 			finishReason = json.choices?.[0]?.finish_reason || null;
 			promptTokens = json.usage?.prompt_tokens || null;

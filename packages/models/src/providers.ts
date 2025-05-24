@@ -74,6 +74,15 @@ export const providers = [
 		cancellation: false,
 		color: "#f59e0b",
 	},
+	{
+		id: "together.ai",
+		name: "Together AI",
+		description:
+			"Together AI is a platform for running large language models in the cloud with fast inference.",
+		streaming: true,
+		cancellation: true,
+		color: "#ff6b35",
+	},
 ] as const satisfies ProviderDefinition[];
 
 export type ProviderId = (typeof providers)[number]["id"];
