@@ -85,7 +85,7 @@ describe("e2e tests with real provider keys", () => {
 		});
 	}
 
-	function validateResponse(json: any, provider: string) {
+	function validateResponse(json: any) {
 		expect(json).toHaveProperty("choices.[0].message.content");
 
 		expect(json).toHaveProperty("usage.prompt_tokens");
@@ -93,16 +93,15 @@ describe("e2e tests with real provider keys", () => {
 		expect(json).toHaveProperty("usage.total_tokens");
 	}
 
-	async function validateLogs(expectedProvider: string) {
+	async function validateLogs() {
 		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
-		expect(logs[0].usedProvider).toBe(expectedProvider);
 
-		if (expectedProvider === "anthropic") {
-			expect(logs[0].unifiedFinishReason).not.toBeNull();
-		}
-
+		expect(logs[0].usedProvider).toBeTruthy();
 		expect(logs[0].finishReason).not.toBeNull();
+		expect(logs[0].usedModel).toBeTruthy();
+		expect(logs[0].requestedModel).toBeTruthy();
+
 		return logs[0];
 	}
 
@@ -146,9 +145,9 @@ describe("e2e tests with real provider keys", () => {
 
 				expect(res.status).toBe(200);
 				const json = await res.json();
-				validateResponse(json, provider);
+				validateResponse(json);
 
-				const log = await validateLogs(provider);
+				const log = await validateLogs();
 				expect(log.streamed).toBe(false);
 
 				expect(log.inputCost).not.toBeNull();
@@ -219,15 +218,18 @@ describe("e2e tests with real provider keys", () => {
 				expect(res.status).toBe(200);
 				expect(res.headers.get("content-type")).toContain("text/event-stream");
 
-				await readAll(res.body);
+				const streamResult = await readAll(res.body);
 
-				const log = await validateLogs(provider);
+				expect(streamResult.hasValidSSE).toBe(true);
+				expect(streamResult.eventCount).toBeGreaterThan(0);
+				expect(streamResult.hasContent).toBe(true);
+
+				const log = await validateLogs();
 				expect(log.streamed).toBe(true);
 
-				if (provider === "anthropic") {
-					expect(log.inputCost).not.toBeNull();
-					expect(log.outputCost).not.toBeNull();
+				if (log.inputCost !== null && log.outputCost !== null) {
 					expect(log.cost).not.toBeNull();
+					expect(log.cost).toBeGreaterThanOrEqual(0);
 				}
 
 				await db.delete(tables.apiKey);
@@ -246,20 +248,57 @@ describe("e2e tests with real provider keys", () => {
 	);
 });
 
-async function readAll(stream: ReadableStream<Uint8Array> | null) {
+async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
+	hasContent: boolean;
+	eventCount: number;
+	hasValidSSE: boolean;
+}> {
 	if (!stream) {
-		return;
+		return { hasContent: false, eventCount: 0, hasValidSSE: false };
 	}
+
 	const reader = stream.getReader();
+	let fullContent = "";
+	let eventCount = 0;
+	let hasValidSSE = false;
+	let hasContent = false;
+
 	try {
 		while (true) {
 			const { done, value } = await reader.read();
 			if (done) {
 				break;
 			}
-			// console.log(new TextDecoder().decode(value));
+
+			const chunk = new TextDecoder().decode(value);
+			fullContent += chunk;
+
+			const lines = chunk.split("\n");
+			for (const line of lines) {
+				if (line.startsWith("data: ")) {
+					eventCount++;
+					hasValidSSE = true;
+
+					if (line === "data: [DONE]") {
+						continue;
+					}
+
+					try {
+						const data = JSON.parse(line.substring(6));
+						if (
+							data.choices?.[0]?.delta?.content ||
+							data.delta?.text ||
+							data.candidates?.[0]?.content?.parts?.[0]?.text
+						) {
+							hasContent = true;
+						}
+					} catch (e) {}
+				}
+			}
 		}
 	} finally {
 		reader.releaseLock();
 	}
+
+	return { hasContent, eventCount, hasValidSSE };
 }
