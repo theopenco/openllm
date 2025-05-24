@@ -152,7 +152,7 @@ describe("provider keys route", () => {
 		expect(res.status).toBe(400);
 	});
 
-	test("PATCH /keys/provider/:id", async () => {
+	test("PATCH /keys/provider/{id}", async () => {
 		const res = await app.request("/keys/provider/test-provider-key-id", {
 			method: "PATCH",
 			headers: {
@@ -181,7 +181,7 @@ describe("provider keys route", () => {
 		expect(providerKey?.status).toBe("inactive");
 	});
 
-	test("DELETE /keys/provider/:id", async () => {
+	test("DELETE /keys/provider/{id}", async () => {
 		const res = await app.request("/keys/provider/test-provider-key-id", {
 			method: "DELETE",
 			headers: {

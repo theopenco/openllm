@@ -1,19 +1,29 @@
+import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useState } from "react";
 
 import { useDefaultProject } from "@/hooks/useDefaultProject";
-import { useUpdateProject } from "@/hooks/useProject";
 import { Button } from "@/lib/components/button";
 import { Checkbox } from "@/lib/components/checkbox";
 import { Input } from "@/lib/components/input";
 import { Label } from "@/lib/components/label";
 import { Separator } from "@/lib/components/separator";
 import { useToast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 export function CachingSettings() {
 	const { toast } = useToast();
+	const queryClient = useQueryClient();
 	const { data: defaultProject, isError } = useDefaultProject();
-	const updateProject = useUpdateProject();
+
+	const updateProject = $api.useMutation("patch", "/projects/{id}", {
+		onSuccess: (data) => {
+			const queryKey = $api.queryOptions("get", "/orgs/{id}/projects", {
+				params: { path: { id: data.project.organizationId } },
+			}).queryKey;
+			queryClient.invalidateQueries({ queryKey });
+		},
+	});
 
 	const [cachingEnabled, setCachingEnabled] = useState(
 		defaultProject?.cachingEnabled || false,
@@ -36,8 +46,8 @@ export function CachingSettings() {
 	const handleSave = async () => {
 		try {
 			await updateProject.mutateAsync({
-				id: defaultProject.id,
-				settings: {
+				params: { path: { id: defaultProject.id } },
+				body: {
 					cachingEnabled,
 					cacheDurationSeconds,
 				},
@@ -47,7 +57,7 @@ export function CachingSettings() {
 				title: "Settings saved",
 				description: "Your caching settings have been updated.",
 			});
-		} catch (error) {
+		} catch {
 			toast({
 				title: "Error",
 				description: "Failed to save caching settings.",
@@ -92,7 +102,7 @@ export function CachingSettings() {
 						className="w-32"
 					/>
 					<p className="text-muted-foreground text-sm self-center">
-						(Min: 10, Max: 31,536,000 - one year)
+						(Min: 10, Max: 31,536,000 — one year)
 						<br />
 						Note: changing this setting may take up to 5 minutes to take effect.
 					</p>

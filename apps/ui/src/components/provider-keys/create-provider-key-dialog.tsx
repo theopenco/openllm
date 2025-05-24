@@ -1,7 +1,7 @@
 import { providers, type ProviderId } from "@openllm/models";
-import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import React, { useState } from "react";
 
-import { useCreateProviderKey, useProviderKeys } from "./hooks/useProviderKeys";
 import anthropicLogo from "@/assets/models/anthropic.svg?react";
 import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
 import InferenceLogo from "@/assets/models/inference-net.svg?react";
@@ -28,6 +28,7 @@ import {
 	SelectValue,
 } from "@/lib/components/select";
 import { toast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 const providerLogoComponents: Partial<
 	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>> | null>
@@ -46,15 +47,19 @@ export function CreateProviderKeyDialog({
 	children: React.ReactNode;
 }) {
 	const [open, setOpen] = useState(false);
-	const [selectedProvider, setSelectedProvider] = useState<string>("");
+	const [selectedProvider, setSelectedProvider] = useState("");
 	const [baseUrl, setBaseUrl] = useState("");
 	const [token, setToken] = useState("");
 	const [isValidating, setIsValidating] = useState(false);
 
-	const { data: providerKeysData, isLoading } = useProviderKeys();
-	const createMutation = useCreateProviderKey();
+	const queryKey = $api.queryOptions("get", "/keys/provider").queryKey;
+	const queryClient = useQueryClient();
 
-	// Filter out providers that already have keys and llmgateway provider
+	const { data: providerKeysData, isPending: isLoading } =
+		$api.useSuspenseQuery("get", "/keys/provider");
+
+	const createMutation = $api.useMutation("post", "/keys/provider");
+
 	const availableProviders = providers.filter((provider) => {
 		if (provider.id === "llmgateway") {
 			return false;
@@ -64,31 +69,21 @@ export function CreateProviderKeyDialog({
 			return true;
 		}
 
-		// Check if this provider already has a key (that's not deleted)
 		const existingKey = providerKeysData.providerKeys.find(
-			(key) => key.provider === provider.id && key.status !== "deleted",
+			(key: any) => key.provider === provider.id && key.status !== "deleted",
 		);
-
 		return !existingKey;
 	});
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!selectedProvider) {
+		if (!selectedProvider || !token) {
 			toast({
 				title: "Error",
-				description: "Please select a provider",
-				variant: "destructive",
-				className: "text-white",
-			});
-			return;
-		}
-
-		if (!token) {
-			toast({
-				title: "Error",
-				description: "Please enter the provider API key",
+				description: !selectedProvider
+					? "Please select a provider"
+					: "Please enter the provider API key",
 				variant: "destructive",
 				className: "text-white",
 			});
@@ -107,44 +102,45 @@ export function CreateProviderKeyDialog({
 
 		const payload: { provider: string; token: string; baseUrl?: string } = {
 			provider: selectedProvider,
-			token: token,
+			token,
 		};
-
 		if (baseUrl) {
 			payload.baseUrl = baseUrl;
 		}
 
 		setIsValidating(true);
-		toast({
-			title: "Validating API Key",
-			description: "Please wait while we validate your API key...",
-		});
+		toast({ title: "Validating API Key", description: "Please wait..." });
 
-		createMutation.mutate(payload, {
-			onSuccess: () => {
-				setIsValidating(false);
-				toast({
-					title: "Provider Key Created",
-					description:
-						"The provider key has been validated and created successfully.",
-				});
-				setOpen(false);
+		createMutation.mutate(
+			{ body: payload },
+			{
+				onSuccess: (newKey) => {
+					setIsValidating(false);
+					toast({
+						title: "Provider Key Created",
+						description: "The provider key has been validated and saved.",
+					});
+					queryClient.setQueryData(queryKey, (old: any) => ({
+						...old,
+						providerKeys: [...(old?.providerKeys ?? []), newKey],
+					}));
+					setOpen(false);
+				},
+				onError: (error: any) => {
+					setIsValidating(false);
+					toast({
+						title: "Error",
+						description: error?.message ?? "Failed to create key",
+						variant: "destructive",
+						className: "text-white",
+					});
+				},
 			},
-			onError: (error) => {
-				setIsValidating(false);
-				toast({
-					title: "Error",
-					description: error.message,
-					variant: "destructive",
-					className: "text-white",
-				});
-			},
-		});
+		);
 	};
 
 	const handleClose = () => {
 		setOpen(false);
-		// Reset form after dialog is closed
 		setTimeout(() => {
 			setSelectedProvider("");
 			setBaseUrl("");
@@ -178,21 +174,17 @@ export function CreateProviderKeyDialog({
 										Loading providers...
 									</SelectItem>
 								) : availableProviders.length > 0 ? (
-									<>
-										{availableProviders.map((provider) => {
-											const Logo = providerLogoComponents[provider.id];
-											return (
-												<SelectItem key={provider.id} value={provider.id}>
-													<div className="flex items-center gap-2">
-														{typeof Logo === "function" && (
-															<Logo className="h-4 w-4 text-white" />
-														)}
-														<span>{provider.name}</span>
-													</div>
-												</SelectItem>
-											);
-										})}
-									</>
+									availableProviders.map((provider) => {
+										const Logo = providerLogoComponents[provider.id];
+										return (
+											<SelectItem key={provider.id} value={provider.id}>
+												<div className="flex items-center gap-2">
+													{Logo && <Logo className="h-4 w-4 text-white" />}
+													<span>{provider.name}</span>
+												</div>
+											</SelectItem>
+										);
+									})
 								) : (
 									<SelectItem value="none" disabled>
 										All providers already have keys
@@ -201,6 +193,7 @@ export function CreateProviderKeyDialog({
 							</SelectContent>
 						</Select>
 					</div>
+
 					<div className="space-y-2">
 						<Label htmlFor="token">Provider API Key</Label>
 						<Input
@@ -211,6 +204,7 @@ export function CreateProviderKeyDialog({
 							required
 						/>
 					</div>
+
 					{selectedProvider === "llmgateway" && (
 						<div className="space-y-2">
 							<Label htmlFor="baseUrl">Base URL</Label>
@@ -226,6 +220,7 @@ export function CreateProviderKeyDialog({
 							</p>
 						</div>
 					)}
+
 					<DialogFooter>
 						<Button type="button" variant="outline" onClick={handleClose}>
 							Cancel

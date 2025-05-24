@@ -78,7 +78,8 @@ export function LogCard({ log }: { log: Log }) {
 							variant={log.hasError ? "destructive" : "default"}
 							className="ml-2"
 						>
-							{log.unifiedFinishReason || log.finishReason}
+							{/* {log.unifiedFinishReason || log.finishReason} */}
+							{log.finishReason}
 						</Badge>
 					</div>
 					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-sm text-muted-foreground">
@@ -168,7 +169,8 @@ export function LogCard({ log }: { log: Log }) {
 								<div className="text-muted-foreground">
 									Unified Finish Reason
 								</div>
-								<div>{log.unifiedFinishReason}</div>
+								{/* <div>{log.unifiedFinishReason}</div> */}
+								<div>{null}</div>
 								<div className="text-muted-foreground">Streamed</div>
 								<div className="flex items-center gap-1">
 									{log.streamed ? (
@@ -235,9 +237,10 @@ export function LogCard({ log }: { log: Log }) {
 								<div className="text-muted-foreground">Provider Key ID</div>
 								<div className="font-mono text-xs">{log.providerKeyId}</div>
 								<div className="text-muted-foreground">Mode</div>
-								<div>{log.mode || "api-keys"}</div>
+								{/* <div>{log.mode || "api-keys"}</div> */}
+								<div>api-keys</div>
 								<div className="text-muted-foreground">Used Mode</div>
-								<div>{log.usedMode || "api-keys"}</div>
+								<div>{log.usedModel || "api-keys"}</div>
 							</div>
 						</div>
 					</div>

@@ -1,7 +1,7 @@
 import { addDays, format, parseISO, subDays } from "date-fns";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 
-import type { DailyActivity } from "@/hooks/useActivity";
+import type { DailyActivity } from "@/types/activity";
 
 interface OverviewProps {
 	data?: DailyActivity[];

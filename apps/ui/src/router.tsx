@@ -5,16 +5,17 @@ import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import "./globals.css";
 import { routeTree } from "./routeTree.gen";
 
-export function createRouter() {
-	const queryClient = new QueryClient({
-		defaultOptions: {
-			queries: {
-				refetchOnWindowFocus: false,
-				staleTime: 1000 * 60, // 1 minute
-			},
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			refetchOnWindowFocus: false,
+			staleTime: 1000 * 60, // 1 minute
+			retry: false,
 		},
-	});
+	},
+});
 
+export function createRouter() {
 	return routerWithQueryClient(
 		createTanStackRouter({
 			routeTree,

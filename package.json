@@ -11,7 +11,7 @@
 		"clean:node_modules": "find . -type d -name \"node_modules\" -exec rm -rf {} +",
 		"dev": "turbo run dev",
 		"format": "eslint --fix . && prettier --write .",
-		"generate": "turbo run generate",
+		"generate": "turbo run generate && pnpm format",
 		"postinstall": "husky && sync-editorconfig || true",
 		"lint": "eslint . && prettier --check .",
 		"migrate": "pnpm --filter db migrate",

@@ -1,13 +1,11 @@
-import { models } from "@openllm/models";
-import { providers } from "@openllm/models";
+import { models, providers } from "@openllm/models";
 import { useState } from "react";
 
-import { LogCard } from "./log-card";
+import { LogCard } from "../dashboard/log-card";
 import {
-	DateRangeSelect,
 	type DateRange,
+	DateRangeSelect,
 } from "@/components/date-range-select";
-import { useLogs } from "@/hooks/useLogs";
 import {
 	Select,
 	SelectContent,
@@ -15,6 +13,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/lib/components/select";
+import { $api } from "@/lib/fetch-client";
 
 const FINISH_REASONS = ["stop", "length", "error", "content_filter"];
 
@@ -24,12 +23,16 @@ export function RecentLogs() {
 	const [provider, setProvider] = useState<string | undefined>();
 	const [model, setModel] = useState<string | undefined>();
 
-	const { data, isLoading, error } = useLogs({
-		orderBy: "createdAt_desc",
-		dateRange,
-		finishReason,
-		provider,
-		model,
+	const { data, isLoading, error } = $api.useSuspenseQuery("get", "/logs", {
+		params: {
+			query: {
+				orderBy: "createdAt_desc",
+				dateRange,
+				finishReason,
+				provider,
+				model,
+			},
+		},
 	});
 
 	const handleDateRangeChange = (_value: string, range: DateRange) => {
@@ -90,8 +93,8 @@ export function RecentLogs() {
 				<div>Error loading logs</div>
 			) : (
 				<div className="space-y-4">
-					{data?.length ? (
-						data.map((log) => <LogCard key={log.id} log={log} />)
+					{data?.logs.length ? (
+						data.logs.map((log) => <LogCard key={log.id} log={log} />)
 					) : (
 						<div className="py-4 text-center text-muted-foreground">
 							No logs found matching the selected filters.
