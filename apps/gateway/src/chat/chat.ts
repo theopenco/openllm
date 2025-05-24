@@ -1165,34 +1165,6 @@ chat.openapi(completions, async (c) => {
 			};
 			break;
 		}
-		case "anthropic": {
-			transformedResponse = {
-				id: `chatcmpl-${Date.now()}`,
-				object: "chat.completion",
-				created: Math.floor(Date.now() / 1000),
-				model: usedModel,
-				choices: [
-					{
-						index: 0,
-						message: {
-							role: "assistant",
-							content: content,
-						},
-						finish_reason:
-							finishReason === "end_turn"
-								? "stop"
-								: finishReason?.toLowerCase() || "stop",
-					},
-				],
-				usage: {
-					prompt_tokens: promptTokens,
-					completion_tokens: completionTokens,
-					total_tokens: totalTokens,
-				},
-			};
-			break;
-		}
-		// OpenAI, inference.net, kluster.ai already return OpenAI format
 	}
 
 	if (cachingEnabled && cacheKey && !stream) {
