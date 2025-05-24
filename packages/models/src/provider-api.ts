@@ -40,12 +40,23 @@ export function createValidationPayload(provider: ProviderId): any {
 				messages: [minimalMessage],
 			};
 		}
-		case "google-vertex":
-		case "google-ai-studio": {
+		case "google-vertex": {
 			return {
 				contents: [
 					{
 						role: "user",
+						parts: [{ text: "Hello" }],
+					},
+				],
+				generationConfig: {
+					maxOutputTokens: 1,
+				},
+			};
+		}
+		case "google-ai-studio": {
+			return {
+				contents: [
+					{
 						parts: [{ text: "Hello" }],
 					},
 				],
