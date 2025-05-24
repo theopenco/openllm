@@ -69,7 +69,10 @@ export const models = [
 	},
 	{
 		model: "gemini-2.0-flash",
-		providers: ["google-vertex", "google-ai-studio"],
+		providers: [
+			// "google-vertex",
+			"google-ai-studio",
+		],
 		inputPrice: 0.00000015,
 		outputPrice: 0.0000006,
 	},
