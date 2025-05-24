@@ -47,10 +47,10 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 			token = process.env.GOOGLE_AI_STUDIO_API_KEY;
 			break;
 		case "inference.net":
-			token = process.env.INFERENCE_API_KEY;
+			token = process.env.INFERENCE_NET_API_KEY;
 			break;
 		case "kluster.ai":
-			token = process.env.KLUSTER_API_KEY;
+			token = process.env.KLUSTER_AI_API_KEY;
 			break;
 		default:
 			throw new HTTPException(400, {
