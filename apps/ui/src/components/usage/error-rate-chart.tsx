@@ -10,12 +10,14 @@ import {
 	CartesianGrid,
 } from "recharts";
 
-import { useActivity } from "@/hooks/useActivity";
 import { Button } from "@/lib/components/button";
+import { $api } from "@/lib/fetch-client";
 
 export function ErrorRateChart() {
 	const [days, setDays] = useState<7 | 30>(7);
-	const { data, isLoading, error } = useActivity(days);
+	const { data, isLoading, error } = $api.useSuspenseQuery("get", "/activity", {
+		params: { query: { days: String(days) } },
+	});
 
 	if (isLoading) {
 		return (
@@ -33,7 +35,7 @@ export function ErrorRateChart() {
 		);
 	}
 
-	if (!data || data.length === 0) {
+	if (!data || data.activity.length === 0) {
 		return (
 			<div className="flex h-[350px] items-center justify-center">
 				<p className="text-muted-foreground">No error rate data available</p>
@@ -50,7 +52,7 @@ export function ErrorRateChart() {
 		dateRange.push(format(date, "yyyy-MM-dd"));
 	}
 
-	const dataByDate = new Map(data.map((item) => [item.date, item]));
+	const dataByDate = new Map(data.activity.map((item) => [item.date, item]));
 
 	const chartData = dateRange.map((date) => {
 		if (dataByDate.has(date)) {
