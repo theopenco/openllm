@@ -6,8 +6,8 @@ import { PaymentMethodsManagement } from "@/components/credits/payment-methods-m
 import { addPasskey } from "@/components/passkeys/add-passkey";
 import { PasskeyList } from "@/components/passkeys/passkey-list";
 import { CachingSettings } from "@/components/settings/caching-settings";
-import { LoadingSettings } from "@/components/settings/loading-settings";
 import { ProjectModeSettings } from "@/components/settings/project-mode-settings";
+import { SettingsLoading } from "@/components/settings/settings-loading";
 import {
 	useDeleteAccount,
 	useUpdatePassword,
@@ -36,7 +36,7 @@ import { toast } from "@/lib/components/use-toast";
 
 export const Route = createFileRoute("/dashboard/_layout/settings")({
 	component: RouteComponent,
-	pendingComponent: () => <LoadingSettings />,
+	pendingComponent: () => <SettingsLoading />,
 	errorComponent: ({ error }) => <div>{error.message}</div>,
 });
 
