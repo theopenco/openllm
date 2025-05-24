@@ -14,7 +14,6 @@ const logSchema = z.object({
 	createdAt: z.date(),
 	updatedAt: z.date(),
 	organizationId: z.string(),
-	projectId: z.string(),
 	apiKeyId: z.string(),
 	providerKeyId: z.string(),
 	duration: z.number(),
@@ -244,8 +243,8 @@ logs.openapi(get, async (c) => {
 			});
 		}
 
-		// Check if the API key belongs to one of the user's projects
-		if (!projectIds.includes(apiKey.projectId)) {
+		// Check if the API key belongs to one of the user's organizations
+		if (!organizationIds.includes(apiKey.organizationId)) {
 			throw new HTTPException(403, {
 				message: "You don't have access to this API key",
 			});
@@ -266,8 +265,8 @@ logs.openapi(get, async (c) => {
 			});
 		}
 
-		// Check if the provider key belongs to one of the user's projects
-		if (!projectIds.includes(providerKey.projectId)) {
+		// Check if the provider key belongs to one of the user's organizations
+		if (!organizationIds.includes(providerKey.organizationId)) {
 			throw new HTTPException(403, {
 				message: "You don't have access to this provider key",
 			});
@@ -275,9 +274,16 @@ logs.openapi(get, async (c) => {
 	}
 
 	// Build the logs query with all applicable filters
+	// If projectId filter is provided, use the organizations of those projects
+	const targetOrganizationIds = projectId
+		? projects.map((p) => p.organizationId)
+		: orgId
+			? [orgId]
+			: organizationIds;
+
 	const logsWhere: any = {
-		projectId: {
-			in: projectId ? [projectId] : projectIds,
+		organizationId: {
+			in: targetOrganizationIds,
 		},
 	};
 
