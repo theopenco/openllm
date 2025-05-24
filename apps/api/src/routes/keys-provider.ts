@@ -18,7 +18,7 @@ const providerKeySchema = z.object({
 	provider: z.string(),
 	baseUrl: z.string().nullable(),
 	status: z.enum(["active", "inactive", "deleted"]).nullable(),
-	projectId: z.string(),
+	organizationId: z.string(),
 });
 
 // Schema for creating a new provider key
@@ -102,10 +102,10 @@ keysProvider.openapi(create, async (c) => {
 		});
 	}
 
-	// Use the first project for simplicity
-	const projectId = userOrgs[0].organization.projects[0].id;
+	// Use the organization directly
+	const organizationId = userOrgs[0].organization.id;
 
-	// Check if a provider key already exists for this provider and project
+	// Check if a provider key already exists for this provider and organization
 	const existingKey = await db.query.providerKey.findFirst({
 		where: {
 			status: {
@@ -114,15 +114,15 @@ keysProvider.openapi(create, async (c) => {
 			provider: {
 				eq: provider,
 			},
-			projectId: {
-				eq: projectId,
+			organizationId: {
+				eq: organizationId,
 			},
 		},
 	});
 
 	if (existingKey) {
 		throw new HTTPException(400, {
-			message: `A key for provider '${provider}' already exists for this project`,
+			message: `A key for provider '${provider}' already exists for this organization`,
 		});
 	}
 
@@ -153,7 +153,7 @@ keysProvider.openapi(create, async (c) => {
 		.insert(tables.providerKey)
 		.values({
 			token: userToken,
-			projectId,
+			organizationId,
 			provider,
 			baseUrl,
 		})
@@ -221,16 +221,14 @@ keysProvider.openapi(list, async (c) => {
 		return c.json({ providerKeys: [] });
 	}
 
-	// Get all project IDs the user has access to
-	const projectIds = userOrgs.flatMap((org) =>
-		org.organization!.projects.map((project) => project.id),
-	);
+	// Get all organization IDs the user has access to
+	const organizationIds = userOrgs.map((org) => org.organization!.id);
 
-	// Get all provider keys for these projects
+	// Get all provider keys for these organizations
 	const providerKeys = await db.query.providerKey.findMany({
 		where: {
-			projectId: {
-				in: projectIds,
+			organizationId: {
+				in: organizationIds,
 			},
 		},
 	});

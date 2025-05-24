@@ -68,7 +68,7 @@ export function getUnifiedFinishReason(
  */
 export type LogInsertData = Omit<
 	InferInsertModel<typeof log>,
-	"id" | "createdAt" | "updatedAt"
+	"id" | "createdAt" | "updatedAt" | "projectId"
 >;
 
 export type LogData = InferInsertModel<typeof log>;

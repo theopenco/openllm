@@ -16,7 +16,7 @@ const apiKeySchema = z.object({
 	token: z.string(),
 	description: z.string(),
 	status: z.enum(["active", "inactive", "deleted"]).nullable(),
-	projectId: z.string(),
+	organizationId: z.string(),
 });
 
 // Schema for creating a new API key
@@ -93,8 +93,8 @@ keysApi.openapi(create, async (c) => {
 		});
 	}
 
-	// Use the first project for simplicity
-	const projectId = userOrgs[0].organization.projects[0].id;
+	// Use the organization directly
+	const organizationId = userOrgs[0].organization.id;
 
 	// Generate a token with a prefix for better identification
 	const token = `llmgateway_` + shortid();
@@ -104,7 +104,7 @@ keysApi.openapi(create, async (c) => {
 		.insert(tables.apiKey)
 		.values({
 			token,
-			projectId,
+			organizationId,
 			description,
 		})
 		.returning();
@@ -171,16 +171,14 @@ keysApi.openapi(list, async (c) => {
 		return c.json({ apiKeys: [] });
 	}
 
-	// Get all project IDs the user has access to
-	const projectIds = userOrgs.flatMap((org) =>
-		org.organization!.projects.map((project) => project.id),
-	);
+	// Get all organization IDs the user has access to
+	const organizationIds = userOrgs.map((org) => org.organization!.id);
 
-	// Get all API keys for these projects
+	// Get all API keys for these organizations
 	const apiKeys = await db.query.apiKey.findMany({
 		where: {
-			projectId: {
-				in: projectIds,
+			organizationId: {
+				in: organizationIds,
 			},
 		},
 	});

@@ -13,6 +13,8 @@ export const relations = defineRelations(schema, (r) => ({
 	organization: {
 		userOrganizations: r.many.userOrganization(),
 		projects: r.many.project(),
+		apiKeys: r.many.apiKey(),
+		providerKeys: r.many.providerKey(),
 	},
 	userOrganization: {
 		user: r.one.user({
@@ -33,24 +35,20 @@ export const relations = defineRelations(schema, (r) => ({
 		logs: r.many.log(),
 	},
 	apiKey: {
-		project: r.one.project({
-			from: r.apiKey.projectId,
-			to: r.project.id,
+		organization: r.one.organization({
+			from: r.apiKey.organizationId,
+			to: r.organization.id,
 		}),
 		logs: r.many.log(),
 	},
 	providerKey: {
-		project: r.one.project({
-			from: r.providerKey.projectId,
-			to: r.project.id,
+		organization: r.one.organization({
+			from: r.providerKey.organizationId,
+			to: r.organization.id,
 		}),
 		logs: r.many.log(),
 	},
 	log: {
-		project: r.one.project({
-			from: r.log.projectId,
-			to: r.project.id,
-		}),
 		apiKey: r.one.apiKey({
 			from: r.log.apiKeyId,
 			to: r.apiKey.id,
