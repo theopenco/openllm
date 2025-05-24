@@ -298,11 +298,109 @@ describe("e2e tests with real provider keys", () => {
 		expect(logs.length).toBe(1);
 		expect(logs[0].usedProvider).toBe("google-vertex");
 	});
+
+	test("/v1/chat/completions with Google AI Studio", async () => {
+		if (!process.env.GOOGLE_AI_STUDIO_API_KEY) {
+			console.log("Skipping Google AI Studio test - no API key provided");
+			return;
+		}
+
+		await db.insert(tables.apiKey).values({
+			id: "token-id",
+			token: "real-token",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-id",
+			token: process.env.GOOGLE_AI_STUDIO_API_KEY,
+			provider: "google-ai-studio",
+			projectId: "project-id",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "google-ai-studio/gemini-2.0-flash",
+				messages: [
+					{
+						role: "user",
+						content: "Hello! This is an e2e test.",
+					},
+				],
+			}),
+		});
+
+		const json = await res.json();
+		console.log("json", json);
+		expect(res.status).toBe(200);
+		expect(json).toHaveProperty("choices.[0].message.content");
+
+		// Wait for the worker to process the log
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].usedProvider).toBe("google-ai-studio");
+	});
+
+	test("/v1/chat/completions with Google AI Studio streaming", async () => {
+		if (!process.env.GOOGLE_AI_STUDIO_API_KEY) {
+			console.log(
+				"Skipping Google AI Studio streaming test - no API key provided",
+			);
+			return;
+		}
+
+		await db.insert(tables.apiKey).values({
+			id: "token-id",
+			token: "real-token",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-id",
+			token: process.env.GOOGLE_AI_STUDIO_API_KEY,
+			provider: "google-ai-studio",
+			projectId: "project-id",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "google-ai-studio/gemini-2.0-flash",
+				messages: [
+					{
+						role: "user",
+						content: "Hello! This is a streaming e2e test.",
+					},
+				],
+				stream: true,
+			}),
+		});
+
+		expect(res.status).toBe(200);
+		expect(res.headers.get("content-type")).toContain("text/event-stream");
+
+		await readAll(res.body);
+
+		// Wait for the worker to process the log
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].usedProvider).toBe("google-ai-studio");
+		expect(logs[0].streamed).toBe(true);
+	});
 });
 
-async function readAll(
-	stream: ReadableStream<Uint8Array<ArrayBufferLike>> | null,
-) {
+async function readAll(stream: ReadableStream<Uint8Array> | null) {
 	if (!stream) {
 		return;
 	}

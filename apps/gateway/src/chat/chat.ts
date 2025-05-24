@@ -1,12 +1,12 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { db } from "@openllm/db";
 import {
+	getProviderEndpoint,
+	getProviderHeaders,
 	type Model,
 	models,
 	type Provider,
 	providers,
-	getProviderHeaders,
-	getProviderEndpoint,
 } from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
@@ -42,6 +42,9 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 			break;
 		case "google-vertex":
 			token = process.env.VERTEX_API_KEY;
+			break;
+		case "google-ai-studio":
+			token = process.env.GOOGLE_AI_STUDIO_API_KEY;
 			break;
 		case "inference.net":
 			token = process.env.INFERENCE_API_KEY;
@@ -407,6 +410,7 @@ chat.openapi(completions, async (c) => {
 			usedProvider,
 			providerKey.baseUrl || undefined,
 			usedModel,
+			usedProvider === "google-ai-studio" ? providerKey.token : undefined,
 		);
 	} catch (error) {
 		if (usedProvider === "llmgateway" && usedModel !== "custom") {
@@ -522,16 +526,15 @@ chat.openapi(completions, async (c) => {
 			}));
 			break;
 		}
-		case "google-vertex": {
+		case "google-vertex":
+		case "google-ai-studio": {
 			delete requestBody.model; // Not used in body
 			delete requestBody.stream; // Handled differently
+			delete requestBody.messages; // Not used in body for Google AI Studio
 
-			const vertexMessages = messages.map((m) => ({
-				role: m.role,
+			requestBody.contents = messages.map((m) => ({
 				parts: [{ text: m.content }],
 			}));
-
-			requestBody.contents = vertexMessages;
 			requestBody.generationConfig = {};
 
 			// Add optional parameters if they are provided
@@ -544,6 +547,11 @@ chat.openapi(completions, async (c) => {
 			if (top_p !== undefined) {
 				requestBody.generationConfig.topP = top_p;
 			}
+
+			console.log(
+				"Google AI Studio request body:",
+				JSON.stringify(requestBody, null, 2),
+			);
 			break;
 		}
 	}
@@ -796,6 +804,7 @@ chat.openapi(completions, async (c) => {
 											}
 											break;
 										case "google-vertex":
+										case "google-ai-studio":
 											if (
 												data.candidates &&
 												data.candidates[0]?.content?.parts[0]?.text
@@ -1065,6 +1074,7 @@ chat.openapi(completions, async (c) => {
 					: null;
 			break;
 		case "google-vertex":
+		case "google-ai-studio":
 			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
 			finishReason = json.candidates?.[0]?.finishReason || null;
 			break;
@@ -1123,9 +1133,43 @@ chat.openapi(completions, async (c) => {
 		mode: project.mode,
 	});
 
-	if (cachingEnabled && cacheKey && !stream) {
-		await setCache(cacheKey, json, cacheDuration);
+	// Transform response to OpenAI format for non-OpenAI providers
+	let transformedResponse = json;
+
+	switch (usedProvider) {
+		case "google-vertex":
+		case "google-ai-studio": {
+			transformedResponse = {
+				id: `chatcmpl-${Date.now()}`,
+				object: "chat.completion",
+				created: Math.floor(Date.now() / 1000),
+				model: usedModel,
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: "assistant",
+							content: content,
+						},
+						finish_reason:
+							finishReason === "STOP"
+								? "stop"
+								: finishReason?.toLowerCase() || "stop",
+					},
+				],
+				usage: {
+					prompt_tokens: promptTokens,
+					completion_tokens: completionTokens,
+					total_tokens: totalTokens,
+				},
+			};
+			break;
+		}
 	}
 
-	return c.json(json);
+	if (cachingEnabled && cacheKey && !stream) {
+		await setCache(cacheKey, transformedResponse, cacheDuration);
+	}
+
+	return c.json(transformedResponse);
 });

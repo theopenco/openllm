@@ -75,7 +75,7 @@ export const models = [
 	},
 	{
 		model: "gemini-2.0-flash",
-		providers: ["google-vertex"],
+		providers: ["google-vertex", "google-ai-studio"],
 		inputPrice: 0.00000015,
 		outputPrice: 0.0000006,
 	},
@@ -120,24 +120,6 @@ export const models = [
 		providers: ["anthropic"],
 		inputPrice: 0.0000004,
 		outputPrice: 0.0000016,
-	},
-	{
-		model: "gemini-1.5-pro",
-		providers: ["google-vertex"],
-		inputPrice: 0.0000007,
-		outputPrice: 0.0000028,
-	},
-	{
-		model: "gemini-1.0-pro",
-		providers: ["google-vertex"],
-		inputPrice: 0.00000025,
-		outputPrice: 0.0000005,
-	},
-	{
-		model: "gemini-1.0-ultra",
-		providers: ["google-vertex"],
-		inputPrice: 0.00000125,
-		outputPrice: 0.00000375,
 	},
 	{
 		model: "llama-3.1-8b-instruct",
