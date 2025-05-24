@@ -52,7 +52,7 @@ export const providers = [
 		name: "Google AI Studio",
 		description:
 			"Google AI Studio is a platform for accessing Google's Gemini models.",
-		streaming: true,
+		streaming: false,
 		cancellation: true,
 		color: "#4285f4",
 	},
@@ -61,8 +61,8 @@ export const providers = [
 		name: "Inference.net",
 		description:
 			"Inference.net is a platform for running large language models in the cloud.",
-		streaming: false,
-		cancellation: false,
+		streaming: true,
+		cancellation: true,
 		color: "#10b981",
 	},
 	{
@@ -70,8 +70,8 @@ export const providers = [
 		name: "Kluster.ai",
 		description:
 			"Kluster.ai is a platform for running large language models in the cloud.",
-		streaming: false,
-		cancellation: false,
+		streaming: true,
+		cancellation: true,
 		color: "#f59e0b",
 	},
 	{

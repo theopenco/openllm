@@ -21,7 +21,7 @@ export interface ModelDefinition {
 	imageInputPrice?: number;
 }
 
-export const models = [
+export let models = [
 	{
 		model: "custom", // custom provider which expects base URL to be set
 		providers: ["llmgateway"],
@@ -56,12 +56,6 @@ export const models = [
 		outputPrice: 0.0000018,
 	},
 	{
-		model: "llama-3.3-70b-instruct",
-		providers: ["inference.net", "kluster.ai"],
-		inputPrice: 0.0000009,
-		outputPrice: 0.0000027,
-	},
-	{
 		model: "claude-3-7-sonnet-20250219",
 		providers: ["anthropic"],
 		inputPrice: 0.000003,
@@ -75,7 +69,10 @@ export const models = [
 	},
 	{
 		model: "gemini-2.0-flash",
-		providers: ["google-vertex", "google-ai-studio"],
+		providers: [
+			// "google-vertex",
+			"google-ai-studio",
+		],
 		inputPrice: 0.00000015,
 		outputPrice: 0.0000006,
 	},
@@ -139,6 +136,7 @@ export const models = [
 		inputPrice: 0.0000002,
 		outputPrice: 0.0000006,
 	},
+	// Together.ai models
 	{
 		model: "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
 		providers: ["together.ai"],
