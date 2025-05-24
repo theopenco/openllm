@@ -956,10 +956,30 @@ chat.openapi(completions, async (c) => {
 
 				// Log the streaming request
 				const duration = Date.now() - startTime;
+
+				// Calculate estimated tokens for Anthropic if not provided
+				let calculatedPromptTokens = promptTokens;
+				let calculatedCompletionTokens = completionTokens;
+
+				if (
+					usedProvider === "anthropic" &&
+					(!promptTokens || !completionTokens)
+				) {
+					if (!promptTokens) {
+						calculatedPromptTokens =
+							messages.reduce((acc, m) => acc + (m.content?.length || 0), 0) /
+							4;
+					}
+
+					if (!completionTokens) {
+						calculatedCompletionTokens = fullContent.length / 4;
+					}
+				}
+
 				const costs = calculateCosts(
 					usedModel,
-					promptTokens,
-					completionTokens,
+					calculatedPromptTokens,
+					calculatedCompletionTokens,
 					{
 						prompt: messages.map((m) => m.content).join("\n"),
 						completion: fullContent,
