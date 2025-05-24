@@ -883,6 +883,21 @@ chat.openapi(completions, async (c) => {
 												}
 												totalTokens =
 													(promptTokens || 0) + (completionTokens || 0);
+											} else if (finishReason) {
+												if (!promptTokens) {
+													promptTokens =
+														messages.reduce(
+															(acc, m) => acc + (m.content?.length || 0),
+															0,
+														) / 4;
+												}
+
+												if (!completionTokens) {
+													completionTokens = fullContent.length / 4;
+												}
+
+												totalTokens =
+													(promptTokens || 0) + (completionTokens || 0);
 											}
 											break;
 										case "google-vertex":
