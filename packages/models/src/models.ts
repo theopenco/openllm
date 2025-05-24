@@ -21,7 +21,7 @@ export interface ModelDefinition {
 	imageInputPrice?: number;
 }
 
-export const models = [
+export let models = [
 	{
 		model: "custom", // custom provider which expects base URL to be set
 		providers: ["llmgateway"],

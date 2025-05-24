@@ -52,7 +52,7 @@ export const providers = [
 		name: "Google AI Studio",
 		description:
 			"Google AI Studio is a platform for accessing Google's Gemini models.",
-		streaming: true,
+		streaming: false,
 		cancellation: true,
 		color: "#4285f4",
 	},

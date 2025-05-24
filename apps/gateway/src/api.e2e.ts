@@ -88,11 +88,9 @@ describe("e2e tests with real provider keys", () => {
 	function validateResponse(json: any, provider: string) {
 		expect(json).toHaveProperty("choices.[0].message.content");
 
-		if (provider !== "google-vertex" && provider !== "google-ai-studio") {
-			expect(json).toHaveProperty("usage.prompt_tokens");
-			expect(json).toHaveProperty("usage.completion_tokens");
-			expect(json).toHaveProperty("usage.total_tokens");
-		}
+		expect(json).toHaveProperty("usage.prompt_tokens");
+		expect(json).toHaveProperty("usage.completion_tokens");
+		expect(json).toHaveProperty("usage.total_tokens");
 	}
 
 	async function validateLogs(expectedProvider: string) {
@@ -140,7 +138,7 @@ describe("e2e tests with real provider keys", () => {
 						messages: [
 							{
 								role: "user",
-								content: "Hello! This is an e2e test.",
+								content: "Hello, just reply 'OK'!",
 							},
 						],
 					}),
@@ -153,11 +151,9 @@ describe("e2e tests with real provider keys", () => {
 				const log = await validateLogs(provider);
 				expect(log.streamed).toBe(false);
 
-				if (provider === "anthropic") {
-					expect(log.inputCost).not.toBeNull();
-					expect(log.outputCost).not.toBeNull();
-					expect(log.cost).not.toBeNull();
-				}
+				expect(log.inputCost).not.toBeNull();
+				expect(log.outputCost).not.toBeNull();
+				expect(log.cost).not.toBeNull();
 
 				await db.delete(tables.apiKey);
 				await db.delete(tables.providerKey);
