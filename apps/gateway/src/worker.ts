@@ -5,6 +5,8 @@ import { consumeFromQueue, LOG_QUEUE } from "./lib/redis";
 
 import type { LogInsertData } from "./lib/logs";
 
+const SERVICE_FEE_MULTIPLIER = 1.05;
+
 export async function processLogQueue(): Promise<void> {
 	const message = await consumeFromQueue(LOG_QUEUE);
 
@@ -30,10 +32,11 @@ export async function processLogQueue(): Promise<void> {
 			const project = await getProject(data.projectId);
 
 			if (project?.mode !== "api-keys") {
+				const costWithServiceFee = data.cost * SERVICE_FEE_MULTIPLIER;
 				await db
 					.update(organization)
 					.set({
-						credits: sql`${organization.credits} - ${data.cost}`,
+						credits: sql`${organization.credits} - ${costWithServiceFee}`,
 					})
 					.where(eq(organization.id, data.organizationId));
 			}
