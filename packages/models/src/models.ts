@@ -122,36 +122,6 @@ export const models = [
 		outputPrice: 0.0000016,
 	},
 	{
-		model: "gemini-1.5-pro",
-		providers: ["google-vertex", "google-ai-studio"],
-		inputPrice: 0.0000007,
-		outputPrice: 0.0000028,
-	},
-	{
-		model: "gemini-1.0-pro",
-		providers: ["google-vertex", "google-ai-studio"],
-		inputPrice: 0.00000025,
-		outputPrice: 0.0000005,
-	},
-	{
-		model: "gemini-1.0-ultra",
-		providers: ["google-vertex", "google-ai-studio"],
-		inputPrice: 0.00000125,
-		outputPrice: 0.00000375,
-	},
-	{
-		model: "gemini-2.5-flash-preview-05-20",
-		providers: ["google-ai-studio"],
-		inputPrice: 0.00000015,
-		outputPrice: 0.0000006,
-	},
-	{
-		model: "gemini-2.5-pro-preview",
-		providers: ["google-ai-studio"],
-		inputPrice: 0.0000007,
-		outputPrice: 0.0000028,
-	},
-	{
 		model: "llama-3.1-8b-instruct",
 		providers: ["inference.net", "kluster.ai"],
 		inputPrice: 0.0000002,

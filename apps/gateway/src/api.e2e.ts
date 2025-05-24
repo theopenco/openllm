@@ -326,7 +326,7 @@ describe("e2e tests with real provider keys", () => {
 				Authorization: `Bearer real-token`,
 			},
 			body: JSON.stringify({
-				model: "google-ai-studio/gemini-2.5-flash-preview-05-20",
+				model: "google-ai-studio/gemini-2.0-flash",
 				messages: [
 					{
 						role: "user",
@@ -336,8 +336,9 @@ describe("e2e tests with real provider keys", () => {
 			}),
 		});
 
-		expect(res.status).toBe(200);
 		const json = await res.json();
+		console.log("json", json);
+		expect(res.status).toBe(200);
 		expect(json).toHaveProperty("choices.[0].message.content");
 
 		// Wait for the worker to process the log
@@ -375,7 +376,7 @@ describe("e2e tests with real provider keys", () => {
 				Authorization: `Bearer real-token`,
 			},
 			body: JSON.stringify({
-				model: "google-ai-studio/gemini-2.5-flash-preview-05-20",
+				model: "google-ai-studio/gemini-2.0-flash",
 				messages: [
 					{
 						role: "user",
