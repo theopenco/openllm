@@ -247,7 +247,7 @@ keysProvider.openapi(list, async (c) => {
 // Soft-delete a provider key
 const deleteKey = createRoute({
 	method: "delete",
-	path: "/provider/:id",
+	path: "/provider/{id}",
 	request: {
 		params: z.object({
 			id: z.string(),
@@ -351,7 +351,7 @@ keysProvider.openapi(deleteKey, async (c) => {
 // Update provider key status
 const updateStatus = createRoute({
 	method: "patch",
-	path: "/provider/:id",
+	path: "/provider/{id}",
 	request: {
 		params: z.object({
 			id: z.string(),

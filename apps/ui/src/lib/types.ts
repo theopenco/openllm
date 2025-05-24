@@ -14,35 +14,29 @@ export interface Log {
 	providerKeyId: string;
 	duration: number;
 	requestedModel: string;
-	requestedProvider: string;
+	requestedProvider: string | null;
 	usedModel: string;
 	usedProvider: string;
 	responseSize: number;
-	content: string;
-	finishReason: string;
-	unifiedFinishReason: string;
-	promptTokens: number;
-	completionTokens: number;
-	totalTokens: number;
-	messages: { content: string; role: string }[];
-	temperature: number;
-	maxTokens: number;
-	topP: number;
-	frequencyPenalty: number;
-	presencePenalty: number;
-	// Cost information
-	cost?: number;
-	inputCost?: number;
-	outputCost?: number;
-	// Error information
-	hasError?: boolean;
-	errorDetails?: ErrorDetails;
-	// Stream information
-	canceled?: boolean;
-	streamed?: boolean;
-	// Cache information
-	cached?: boolean;
-	// Mode information
-	mode?: string;
-	usedMode?: string;
+	content: string | null;
+	finishReason: string | null;
+	promptTokens: number | null;
+	completionTokens: number | null;
+	totalTokens: number | null;
+	messages?: unknown;
+	temperature: number | null;
+	maxTokens: number | null;
+	topP: number | null;
+	frequencyPenalty: number | null;
+	presencePenalty: number | null;
+	hasError: boolean | null;
+	errorDetails?: any;
+	cost: number | null;
+	inputCost: number | null;
+	outputCost: number | null;
+	estimatedCost: boolean | null;
+	canceled: boolean | null;
+	streamed: boolean | null;
+	cached: boolean | null;
+	unifiedFinishReason?: string | null;
 }
