@@ -264,8 +264,9 @@ chat.openapi(completions, async (c) => {
 						anthropic: "ANTHROPIC_API_KEY",
 						"google-vertex": "VERTEX_API_KEY",
 						"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
-						"inference.net": "INFERENCE_API_KEY",
-						"kluster.ai": "KLUSTER_API_KEY",
+						"inference.net": "INFERENCE_NET_API_KEY",
+						"kluster.ai": "KLUSTER_AI_API_KEY",
+						"together.ai": "TOGETHER_AI_API_KEY",
 					};
 					if (process.env[envVarMap[provider as keyof typeof envVarMap]]) {
 						envProviders.push(provider);
@@ -923,6 +924,38 @@ chat.openapi(completions, async (c) => {
 													finishReason = data.choices[0].finish_reason;
 												}
 											}
+
+											// Extract token counts if available
+											if (data.usage) {
+												if (data.usage.prompt_tokens !== undefined) {
+													promptTokens = data.usage.prompt_tokens;
+												}
+												if (data.usage.completion_tokens !== undefined) {
+													completionTokens = data.usage.completion_tokens;
+												}
+												if (data.usage.total_tokens !== undefined) {
+													totalTokens = data.usage.total_tokens;
+												} else {
+													totalTokens =
+														(promptTokens || 0) + (completionTokens || 0);
+												}
+											} else if (finishReason) {
+												// Estimate tokens if not provided
+												if (!promptTokens) {
+													promptTokens =
+														messages.reduce(
+															(acc, m) => acc + (m.content?.length || 0),
+															0,
+														) / 4;
+												}
+
+												if (!completionTokens) {
+													completionTokens = fullContent.length / 4;
+												}
+
+												totalTokens =
+													(promptTokens || 0) + (completionTokens || 0);
+											}
 											break;
 										default: // OpenAI format
 											if (data.choices && data.choices[0]) {
@@ -1217,7 +1250,14 @@ chat.openapi(completions, async (c) => {
 	let calculatedPromptTokens = promptTokens;
 	let calculatedCompletionTokens = completionTokens;
 
-	if (usedProvider === "anthropic" && (!promptTokens || !completionTokens)) {
+	// Estimate tokens if not provided by the API
+	if (
+		(usedProvider === "anthropic" ||
+			usedProvider === "inference.net" ||
+			usedProvider === "kluster.ai" ||
+			usedProvider === "together.ai") &&
+		(!promptTokens || !completionTokens)
+	) {
 		if (!promptTokens) {
 			calculatedPromptTokens =
 				messages.reduce((acc, m) => acc + (m.content?.length || 0), 0) / 4;
@@ -1328,6 +1368,34 @@ chat.openapi(completions, async (c) => {
 					total_tokens: totalTokens,
 				},
 			};
+			break;
+		}
+		case "inference.net":
+		case "kluster.ai":
+		case "together.ai": {
+			if (!transformedResponse.id) {
+				transformedResponse = {
+					id: `chatcmpl-${Date.now()}`,
+					object: "chat.completion",
+					created: Math.floor(Date.now() / 1000),
+					model: usedModel,
+					choices: [
+						{
+							index: 0,
+							message: {
+								role: "assistant",
+								content: content,
+							},
+							finish_reason: finishReason || "stop",
+						},
+					],
+					usage: {
+						prompt_tokens: promptTokens,
+						completion_tokens: completionTokens,
+						total_tokens: totalTokens,
+					},
+				};
+			}
 			break;
 		}
 	}

@@ -289,7 +289,11 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 						if (
 							data.choices?.[0]?.delta?.content ||
 							data.delta?.text ||
-							data.candidates?.[0]?.content?.parts?.[0]?.text
+							data.candidates?.[0]?.content?.parts?.[0]?.text ||
+							data.choices?.[0]?.finish_reason ||
+							data.stop_reason ||
+							data.delta?.stop_reason ||
+							data.candidates?.[0]?.finishReason
 						) {
 							hasContent = true;
 						}
