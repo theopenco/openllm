@@ -587,10 +587,6 @@ chat.openapi(completions, async (c) => {
 				requestBody.generationConfig.topP = top_p;
 			}
 
-			console.log(
-				"Google AI Studio request body:",
-				JSON.stringify(requestBody, null, 2),
-			);
 			break;
 		}
 	}
