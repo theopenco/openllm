@@ -30,6 +30,10 @@ export function getProviderHeaders(
  * Create a minimal valid request payload for a provider to test the API key
  */
 export function createValidationPayload(provider: ProviderId): any {
+	const systemMessage = {
+		role: "system",
+		content: "You are a helpful assistant.",
+	};
 	const minimalMessage = { role: "user", content: "Hello" };
 
 	switch (provider) {
@@ -37,7 +41,7 @@ export function createValidationPayload(provider: ProviderId): any {
 			return {
 				model: "claude-3-haiku-20240307",
 				max_tokens: 1,
-				messages: [minimalMessage],
+				messages: [systemMessage, minimalMessage],
 			};
 		}
 		case "google-vertex": {
@@ -45,7 +49,7 @@ export function createValidationPayload(provider: ProviderId): any {
 				contents: [
 					{
 						role: "user",
-						parts: [{ text: "Hello" }],
+						parts: [{ text: "You are a helpful assistant. Hello" }],
 					},
 				],
 				generationConfig: {
@@ -57,7 +61,7 @@ export function createValidationPayload(provider: ProviderId): any {
 			return {
 				contents: [
 					{
-						parts: [{ text: "Hello" }],
+						parts: [{ text: "You are a helpful assistant. Hello" }],
 					},
 				],
 				generationConfig: {
@@ -72,7 +76,7 @@ export function createValidationPayload(provider: ProviderId): any {
 			return {
 				model: "gpt-3.5-turbo",
 				max_tokens: 1,
-				messages: [minimalMessage],
+				messages: [systemMessage, minimalMessage],
 			};
 		}
 	}
