@@ -252,6 +252,7 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	hasContent: boolean;
 	eventCount: number;
 	hasValidSSE: boolean;
+	rawContent?: string;
 }> {
 	if (!stream) {
 		return { hasContent: false, eventCount: 0, hasValidSSE: false };
@@ -273,8 +274,14 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 			const chunk = new TextDecoder().decode(value);
 			fullContent += chunk;
 
+			console.log(`Stream chunk: ${JSON.stringify(chunk)}`);
+
 			const lines = chunk.split("\n");
 			for (const line of lines) {
+				if (line.trim()) {
+					console.log(`Stream line: ${JSON.stringify(line)}`);
+				}
+
 				if (line.startsWith("data: ")) {
 					eventCount++;
 					hasValidSSE = true;
@@ -292,7 +299,9 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 						) {
 							hasContent = true;
 						}
-					} catch (e) {}
+					} catch (e) {
+						console.error(`Error parsing JSON: ${e}`);
+					}
 				}
 			}
 		}
@@ -300,5 +309,5 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 		reader.releaseLock();
 	}
 
-	return { hasContent, eventCount, hasValidSSE };
+	return { hasContent, eventCount, hasValidSSE, rawContent: fullContent };
 }
