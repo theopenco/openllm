@@ -773,9 +773,52 @@ chat.openapi(completions, async (c) => {
 									const data = JSON.parse(line.substring(6));
 
 									// Forward the data as a proper SSE event
+									// Transform Anthropic streaming responses to OpenAI format
+									let transformedData = data;
+									if (usedProvider === "anthropic") {
+										if (data.delta?.text) {
+											transformedData = {
+												id: data.id || `chatcmpl-${Date.now()}`,
+												object: "chat.completion.chunk",
+												created: data.created || Math.floor(Date.now() / 1000),
+												model: data.model || usedModel,
+												choices: [
+													{
+														index: 0,
+														delta: {
+															content: data.delta.text,
+														},
+														finish_reason: null,
+													},
+												],
+												usage: data.usage || null,
+											};
+										} else if (data.stop_reason || data.delta?.stop_reason) {
+											const stopReason =
+												data.stop_reason || data.delta?.stop_reason;
+											transformedData = {
+												id: data.id || `chatcmpl-${Date.now()}`,
+												object: "chat.completion.chunk",
+												created: data.created || Math.floor(Date.now() / 1000),
+												model: data.model || usedModel,
+												choices: [
+													{
+														index: 0,
+														delta: {},
+														finish_reason:
+															stopReason === "end_turn"
+																? "stop"
+																: stopReason?.toLowerCase() || "stop",
+													},
+												],
+												usage: data.usage || null,
+											};
+										}
+									}
+
 									await stream.writeSSE({
 										event: "chunk",
-										data: JSON.stringify(data),
+										data: JSON.stringify(transformedData),
 										id: String(eventId++),
 									});
 
@@ -1153,6 +1196,33 @@ chat.openapi(completions, async (c) => {
 						},
 						finish_reason:
 							finishReason === "STOP"
+								? "stop"
+								: finishReason?.toLowerCase() || "stop",
+					},
+				],
+				usage: {
+					prompt_tokens: promptTokens,
+					completion_tokens: completionTokens,
+					total_tokens: totalTokens,
+				},
+			};
+			break;
+		}
+		case "anthropic": {
+			transformedResponse = {
+				id: `chatcmpl-${Date.now()}`,
+				object: "chat.completion",
+				created: Math.floor(Date.now() / 1000),
+				model: usedModel,
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: "assistant",
+							content: content,
+						},
+						finish_reason:
+							finishReason === "end_turn"
 								? "stop"
 								: finishReason?.toLowerCase() || "stop",
 					},
