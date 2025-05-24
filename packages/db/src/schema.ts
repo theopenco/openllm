@@ -192,25 +192,21 @@ export const log = pgTable("log", {
 	topP: real(),
 	frequencyPenalty: real(),
 	presencePenalty: real(),
-	hasError: boolean().default(false),
+	hasError: boolean(),
 	errorDetails: json(),
 	cost: real(),
 	inputCost: real(),
 	outputCost: real(),
-	estimatedCost: boolean().default(false),
-	canceled: boolean().default(false),
-	streamed: boolean().default(false),
-	cached: boolean().default(false),
+	estimatedCost: boolean(),
+	canceled: boolean(),
+	streamed: boolean(),
+	cached: boolean(),
 	mode: text({
 		enum: ["api-keys", "credits", "hybrid"],
-	})
-		.notNull()
-		.default("api-keys"),
+	}).notNull(),
 	usedMode: text({
 		enum: ["api-keys", "credits"],
-	})
-		.notNull()
-		.default("api-keys"),
+	}).notNull(),
 });
 
 export const passkey = pgTable("passkey", {
