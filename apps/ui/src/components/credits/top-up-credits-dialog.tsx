@@ -4,9 +4,8 @@ import {
 	useElements,
 	useStripe,
 } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
 import { CreditCard, Plus } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/lib/components/button";
 import { Checkbox } from "@/lib/components/checkbox";
@@ -23,11 +22,11 @@ import { Input } from "@/lib/components/input";
 import { Label } from "@/lib/components/label";
 import { toast } from "@/lib/components/use-toast";
 import { $api } from "@/lib/fetch-client";
+import { loadStripeNow } from "@/lib/stripe";
 
-const stripePromise = loadStripe(
-	process.env.VITE_STRIPE_PUBLIC_KEY ||
-		"pk_test_51RRXM1CYKGHizcWTfXxFSEzN8gsUQkg2efi2FN5KO2M2hxdV9QPCjeZMPaZQHSAatxpK9wDcSeilyYU14gz2qA2p00R4q5xU1R",
-);
+import type React from "react";
+
+const stripePromise = loadStripeNow();
 
 export function TopUpCreditsButton() {
 	return (

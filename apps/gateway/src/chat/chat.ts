@@ -1,12 +1,12 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { db } from "@openllm/db";
 import {
+	getProviderEndpoint,
+	getProviderHeaders,
 	type Model,
 	models,
 	type Provider,
 	providers,
-	getProviderHeaders,
-	getProviderEndpoint,
 } from "@openllm/models";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
@@ -43,11 +43,14 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 		case "google-vertex":
 			token = process.env.VERTEX_API_KEY;
 			break;
+		case "google-ai-studio":
+			token = process.env.GOOGLE_AI_STUDIO_API_KEY;
+			break;
 		case "inference.net":
-			token = process.env.INFERENCE_API_KEY;
+			token = process.env.INFERENCE_NET_API_KEY;
 			break;
 		case "kluster.ai":
-			token = process.env.KLUSTER_API_KEY;
+			token = process.env.KLUSTER_AI_API_KEY;
 			break;
 		default:
 			throw new HTTPException(400, {
@@ -214,20 +217,66 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	// Apply routing logic after apiKey is available
-	if (usedProvider === "llmgateway" && usedModel === "auto") {
-		const providerKeys = await db.query.providerKey.findMany({
-			where: {
-				status: {
-					eq: "active",
-				},
-				projectId: {
-					eq: apiKey.projectId,
-				},
-			},
-		});
+	// Get the project to determine mode for routing decisions
+	const project = await getProject(apiKey.projectId);
 
-		const availableProviders = providerKeys.map((key) => key.provider);
+	if (!project) {
+		throw new HTTPException(500, {
+			message: "Could not find project",
+		});
+	}
+
+	// Apply routing logic after apiKey and project are available
+	if (usedProvider === "llmgateway" && usedModel === "auto") {
+		// Get available providers based on project mode
+		let availableProviders: string[] = [];
+
+		if (project.mode === "api-keys") {
+			const providerKeys = await db.query.providerKey.findMany({
+				where: {
+					status: { eq: "active" },
+					projectId: { eq: apiKey.projectId },
+				},
+			});
+			availableProviders = providerKeys.map((key) => key.provider);
+		} else if (project.mode === "credits" || project.mode === "hybrid") {
+			const providerKeys = await db.query.providerKey.findMany({
+				where: {
+					status: { eq: "active" },
+					projectId: { eq: apiKey.projectId },
+				},
+			});
+			const databaseProviders = providerKeys.map((key) => key.provider);
+
+			// Check which providers have environment tokens available
+			const envProviders: string[] = [];
+			const supportedProviders = providers
+				.filter((p) => p.id !== "llmgateway")
+				.map((p) => p.id);
+			for (const provider of supportedProviders) {
+				try {
+					const envVarMap = {
+						openai: "OPENAI_API_KEY",
+						anthropic: "ANTHROPIC_API_KEY",
+						"google-vertex": "VERTEX_API_KEY",
+						"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
+						"inference.net": "INFERENCE_API_KEY",
+						"kluster.ai": "KLUSTER_API_KEY",
+					};
+					if (process.env[envVarMap[provider as keyof typeof envVarMap]]) {
+						envProviders.push(provider);
+					}
+				} catch {}
+			}
+
+			if (project.mode === "credits") {
+				availableProviders = envProviders;
+			} else {
+				availableProviders = [
+					...new Set([...databaseProviders, ...envProviders]),
+				];
+			}
+		}
 
 		for (const modelDef of models) {
 			if (modelDef.model === "auto" || modelDef.model === "custom") {
@@ -280,7 +329,7 @@ chat.openapi(completions, async (c) => {
 
 			if (availableModelProviders.length === 0) {
 				throw new HTTPException(400, {
-					message: `No API key set for provider: ${modelInfo.providers[0]}. Please add a provider key in your settings.`,
+					message: `No API key set for provider: ${modelInfo.providers[0]}. Please add a provider key in your settings or add credits and switch to credits or hybrid mode.`,
 				});
 			}
 
@@ -317,13 +366,6 @@ chat.openapi(completions, async (c) => {
 	let url: string | undefined;
 
 	// Get the provider key for the selected provider based on project mode
-	const project = await getProject(apiKey.projectId);
-
-	if (!project) {
-		throw new HTTPException(500, {
-			message: "Could not find project",
-		});
-	}
 
 	let providerKey;
 
@@ -333,7 +375,7 @@ chat.openapi(completions, async (c) => {
 
 		if (!providerKey) {
 			throw new HTTPException(400, {
-				message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings.`,
+				message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings or add credits and switch to credits or hybrid mode.`,
 			});
 		}
 	} else if (project.mode === "credits") {
@@ -407,6 +449,7 @@ chat.openapi(completions, async (c) => {
 			usedProvider,
 			providerKey.baseUrl || undefined,
 			usedModel,
+			usedProvider === "google-ai-studio" ? providerKey.token : undefined,
 		);
 	} catch (error) {
 		if (usedProvider === "llmgateway" && usedModel !== "custom") {
@@ -517,21 +560,40 @@ chat.openapi(completions, async (c) => {
 		case "anthropic": {
 			requestBody.max_tokens = max_tokens || 1024; // Set a default if not provided
 			requestBody.messages = messages.map((m) => ({
-				role: m.role === "assistant" ? "assistant" : "user",
-				content: m.content,
+				role:
+					m.role === "assistant"
+						? "assistant"
+						: m.role === "system"
+							? "user"
+							: "user",
+				content: m.role === "system" ? `System: ${m.content}` : m.content,
 			}));
 			break;
 		}
-		case "google-vertex": {
+		case "google-vertex":
+		case "google-ai-studio": {
 			delete requestBody.model; // Not used in body
 			delete requestBody.stream; // Handled differently
+			delete requestBody.messages; // Not used in body for Google AI Studio
 
-			const vertexMessages = messages.map((m) => ({
-				role: m.role,
-				parts: [{ text: m.content }],
+			// Extract system messages and combine with user messages
+			const systemMessages = messages.filter((m) => m.role === "system");
+			const nonSystemMessages = messages.filter((m) => m.role !== "system");
+			const systemContext =
+				systemMessages.length > 0
+					? systemMessages.map((m) => m.content).join(" ") + " "
+					: "";
+
+			requestBody.contents = nonSystemMessages.map((m, index) => ({
+				parts: [
+					{
+						text:
+							index === 0 && systemContext
+								? systemContext + m.content
+								: m.content,
+					},
+				],
 			}));
-
-			requestBody.contents = vertexMessages;
 			requestBody.generationConfig = {};
 
 			// Add optional parameters if they are provided
@@ -544,6 +606,7 @@ chat.openapi(completions, async (c) => {
 			if (top_p !== undefined) {
 				requestBody.generationConfig.topP = top_p;
 			}
+
 			break;
 		}
 	}
@@ -765,9 +828,52 @@ chat.openapi(completions, async (c) => {
 									const data = JSON.parse(line.substring(6));
 
 									// Forward the data as a proper SSE event
+									// Transform Anthropic streaming responses to OpenAI format
+									let transformedData = data;
+									if (usedProvider === "anthropic") {
+										if (data.delta?.text) {
+											transformedData = {
+												id: data.id || `chatcmpl-${Date.now()}`,
+												object: "chat.completion.chunk",
+												created: data.created || Math.floor(Date.now() / 1000),
+												model: data.model || usedModel,
+												choices: [
+													{
+														index: 0,
+														delta: {
+															content: data.delta.text,
+														},
+														finish_reason: null,
+													},
+												],
+												usage: data.usage || null,
+											};
+										} else if (data.stop_reason || data.delta?.stop_reason) {
+											const stopReason =
+												data.stop_reason || data.delta?.stop_reason;
+											transformedData = {
+												id: data.id || `chatcmpl-${Date.now()}`,
+												object: "chat.completion.chunk",
+												created: data.created || Math.floor(Date.now() / 1000),
+												model: data.model || usedModel,
+												choices: [
+													{
+														index: 0,
+														delta: {},
+														finish_reason:
+															stopReason === "end_turn"
+																? "stop"
+																: stopReason?.toLowerCase() || "stop",
+													},
+												],
+												usage: data.usage || null,
+											};
+										}
+									}
+
 									await stream.writeSSE({
 										event: "chunk",
-										data: JSON.stringify(data),
+										data: JSON.stringify(transformedData),
 										id: String(eventId++),
 									});
 
@@ -780,8 +886,23 @@ chat.openapi(completions, async (c) => {
 											if (data.stop_reason) {
 												finishReason = data.stop_reason;
 											}
+											if (data.delta?.stop_reason) {
+												finishReason = data.delta.stop_reason;
+											}
+											if (data.usage) {
+												// For streaming, Anthropic might only provide output_tokens
+												if (data.usage.input_tokens !== undefined) {
+													promptTokens = data.usage.input_tokens;
+												}
+												if (data.usage.output_tokens !== undefined) {
+													completionTokens = data.usage.output_tokens;
+												}
+												totalTokens =
+													(promptTokens || 0) + (completionTokens || 0);
+											}
 											break;
 										case "google-vertex":
+										case "google-ai-studio":
 											if (
 												data.candidates &&
 												data.candidates[0]?.content?.parts[0]?.text
@@ -835,7 +956,15 @@ chat.openapi(completions, async (c) => {
 
 				// Log the streaming request
 				const duration = Date.now() - startTime;
-				const costs = calculateCosts(usedModel, promptTokens, completionTokens);
+				const costs = calculateCosts(
+					usedModel,
+					promptTokens,
+					completionTokens,
+					{
+						prompt: messages.map((m) => m.content).join("\n"),
+						completion: fullContent,
+					},
+				);
 				await insertLog({
 					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
@@ -1035,8 +1164,15 @@ chat.openapi(completions, async (c) => {
 		case "anthropic":
 			content = json.content?.[0]?.text || null;
 			finishReason = json.stop_reason || null;
+			promptTokens = json.usage?.input_tokens || null;
+			completionTokens = json.usage?.output_tokens || null;
+			totalTokens =
+				json.usage?.input_tokens && json.usage?.output_tokens
+					? json.usage.input_tokens + json.usage.output_tokens
+					: null;
 			break;
 		case "google-vertex":
+		case "google-ai-studio":
 			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
 			finishReason = json.candidates?.[0]?.finishReason || null;
 			break;
@@ -1095,9 +1231,70 @@ chat.openapi(completions, async (c) => {
 		mode: project.mode,
 	});
 
-	if (cachingEnabled && cacheKey && !stream) {
-		await setCache(cacheKey, json, cacheDuration);
+	// Transform response to OpenAI format for non-OpenAI providers
+	let transformedResponse = json;
+
+	switch (usedProvider) {
+		case "google-vertex":
+		case "google-ai-studio": {
+			transformedResponse = {
+				id: `chatcmpl-${Date.now()}`,
+				object: "chat.completion",
+				created: Math.floor(Date.now() / 1000),
+				model: usedModel,
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: "assistant",
+							content: content,
+						},
+						finish_reason:
+							finishReason === "STOP"
+								? "stop"
+								: finishReason?.toLowerCase() || "stop",
+					},
+				],
+				usage: {
+					prompt_tokens: promptTokens,
+					completion_tokens: completionTokens,
+					total_tokens: totalTokens,
+				},
+			};
+			break;
+		}
+		case "anthropic": {
+			transformedResponse = {
+				id: `chatcmpl-${Date.now()}`,
+				object: "chat.completion",
+				created: Math.floor(Date.now() / 1000),
+				model: usedModel,
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: "assistant",
+							content: content,
+						},
+						finish_reason:
+							finishReason === "end_turn"
+								? "stop"
+								: finishReason?.toLowerCase() || "stop",
+					},
+				],
+				usage: {
+					prompt_tokens: promptTokens,
+					completion_tokens: completionTokens,
+					total_tokens: totalTokens,
+				},
+			};
+			break;
+		}
 	}
 
-	return c.json(json);
+	if (cachingEnabled && cacheKey && !stream) {
+		await setCache(cacheKey, transformedResponse, cacheDuration);
+	}
+
+	return c.json(transformedResponse);
 });

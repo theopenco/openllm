@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
 	AlertCircle,
 	ArrowUpRight,
@@ -73,9 +73,11 @@ export default function Dashboard() {
 					<h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
 					<div className="flex items-center space-x-2">
 						<TopUpCreditsButton />
-						<Button>
-							<Plus className="mr-2 h-4 w-4" />
-							Add Provider
+						<Button asChild>
+							<Link to="/dashboard/provider-keys">
+								<Plus className="mr-2 h-4 w-4" />
+								Add Provider
+							</Link>
 						</Button>
 					</div>
 				</div>
@@ -254,9 +256,11 @@ export default function Dashboard() {
 									<Plus className="mr-2 h-4 w-4" />
 									Add Provider
 								</Button>
-								<Button variant="outline" className="justify-start">
-									<ArrowUpRight className="mr-2 h-4 w-4" />
-									View Documentation
+								<Button variant="outline" className="justify-start" asChild>
+									<a href="https://docs.llmgateway.io/" target="_blank">
+										<ArrowUpRight className="mr-2 h-4 w-4" />
+										View Documentation
+									</a>
 								</Button>
 							</CardContent>
 						</Card>

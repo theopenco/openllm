@@ -1,6 +1,6 @@
 {
-  "id": "601c6360-d6f9-4f89-bf92-7c7d876a93e5",
-  "prevId": "7dbf1946-1d7e-4cf0-854e-78e92000dc65",
+  "id": "e530fcd5-1abd-4305-94cd-dd618b6c3ba3",
+  "prevId": "1b064f36-d135-4458-828a-a7a17657fda8",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -391,6 +391,20 @@
           "primaryKey": false,
           "notNull": false,
           "default": false
+        },
+        "mode": {
+          "name": "mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'api-keys'"
+        },
+        "used_mode": {
+          "name": "used_mode",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'api-keys'"
         }
       },
       "indexes": {},
@@ -443,6 +457,63 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'0'"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.organization_action": {
+      "name": "organization_action",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},

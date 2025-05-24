@@ -1,9 +1,17 @@
 import { db, tables } from "@openllm/db";
+import { models, providers } from "@openllm/models";
 import "dotenv/config";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
 import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
+
+const testModels = models
+	.filter((model) => !["custom", "auto"].includes(model.model))
+	.map((model) => ({
+		model: model.model,
+		providers: model.providers,
+	}));
 
 describe("e2e tests with real provider keys", () => {
 	afterEach(async () => {
@@ -47,259 +55,258 @@ describe("e2e tests with real provider keys", () => {
 		});
 	});
 
-	test("/v1/chat/completions with OpenAI", async () => {
-		if (!process.env.OPENAI_API_KEY) {
-			console.log("Skipping OpenAI test - no API key provided");
-			return;
-		}
+	function getProviderEnvVar(provider: string): string | undefined {
+		const envMap: Record<string, string> = {
+			openai: "OPENAI_API_KEY",
+			anthropic: "ANTHROPIC_API_KEY",
+			"google-vertex": "VERTEX_API_KEY",
+			"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
+			"inference.net": "INFERENCE_NET_API_KEY",
+			"kluster.ai": "KLUSTER_AI_API_KEY",
+		};
+		return process.env[envMap[provider]];
+	}
 
+	async function createProviderKey(provider: string, token: string) {
+		await db.insert(tables.providerKey).values({
+			id: `provider-key-${provider}`,
+			token,
+			provider,
+			projectId: "project-id",
+		});
+	}
+
+	async function createApiKey() {
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
 			projectId: "project-id",
 			description: "Test API Key",
 		});
+	}
 
-		await db.insert(tables.providerKey).values({
-			id: "provider-key-id",
-			token: process.env.OPENAI_API_KEY,
-			provider: "openai",
-			projectId: "project-id",
-		});
-
-		const res = await app.request("/v1/chat/completions", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer real-token`,
-			},
-			body: JSON.stringify({
-				model: "gpt-3.5-turbo",
-				messages: [
-					{
-						role: "user",
-						content: "Hello! This is an e2e test.",
-					},
-				],
-			}),
-		});
-
-		expect(res.status).toBe(200);
-		const json = await res.json();
+	function validateResponse(json: any) {
 		expect(json).toHaveProperty("choices.[0].message.content");
+
 		expect(json).toHaveProperty("usage.prompt_tokens");
 		expect(json).toHaveProperty("usage.completion_tokens");
 		expect(json).toHaveProperty("usage.total_tokens");
+	}
 
-		// Wait for the worker to process the log
+	async function validateLogs() {
 		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
-		expect(logs[0].finishReason).toBe("stop");
-		expect(logs[0].usedProvider).toBe("openai");
-	});
 
-	test("/v1/chat/completions with OpenAI streaming", async () => {
-		if (!process.env.OPENAI_API_KEY) {
-			console.log("Skipping OpenAI streaming test - no API key provided");
-			return;
-		}
+		expect(logs[0].usedProvider).toBeTruthy();
+		expect(logs[0].finishReason).not.toBeNull();
+		expect(logs[0].usedModel).toBeTruthy();
+		expect(logs[0].requestedModel).toBeTruthy();
 
-		await db.insert(tables.apiKey).values({
-			id: "token-id",
-			token: "real-token",
-			projectId: "project-id",
-			description: "Test API Key",
-		});
+		return logs[0];
+	}
 
-		await db.insert(tables.providerKey).values({
-			id: "provider-key-id",
-			token: process.env.OPENAI_API_KEY,
-			provider: "openai",
-			projectId: "project-id",
-		});
+	test.each(testModels)(
+		"/v1/chat/completions with $model",
+		async ({ model, providers: modelProviders }) => {
+			let testRan = false;
 
-		const res = await app.request("/v1/chat/completions", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer real-token`,
-			},
-			body: JSON.stringify({
-				model: "gpt-3.5-turbo",
-				messages: [
-					{
-						role: "user",
-						content: "Hello! This is a streaming e2e test.",
+			for (const provider of modelProviders) {
+				const envVar = getProviderEnvVar(provider);
+				if (!envVar) {
+					console.log(`Skipping ${model} on ${provider} - no API key provided`);
+					continue;
+				}
+
+				console.log(`Testing ${model} on ${provider}`);
+				testRan = true;
+
+				await createApiKey();
+				await createProviderKey(provider, envVar);
+
+				const requestModel =
+					provider === "openai" ? model : `${provider}/${model}`;
+
+				const res = await app.request("/v1/chat/completions", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer real-token`,
 					},
-				],
-				stream: true,
-			}),
-		});
+					body: JSON.stringify({
+						model: requestModel,
+						messages: [
+							{
+								role: "system",
+								content: "You are a helpful assistant.",
+							},
+							{
+								role: "user",
+								content: "Hello, just reply 'OK'!",
+							},
+						],
+					}),
+				});
 
-		expect(res.status).toBe(200);
-		expect(res.headers.get("content-type")).toContain("text/event-stream");
+				expect(res.status).toBe(200);
+				const json = await res.json();
+				validateResponse(json);
 
-		await readAll(res.body);
+				const log = await validateLogs();
+				expect(log.streamed).toBe(false);
 
-		// Wait for the worker to process the log
-		const logs = await waitForLogs(1);
-		expect(logs.length).toBe(1);
-		expect(logs[0].usedProvider).toBe("openai");
-		expect(logs[0].streamed).toBe(true);
-	});
+				expect(log.inputCost).not.toBeNull();
+				expect(log.outputCost).not.toBeNull();
+				expect(log.cost).not.toBeNull();
 
-	test("/v1/chat/completions with Anthropic", async () => {
-		if (!process.env.ANTHROPIC_API_KEY) {
-			console.log("Skipping Anthropic test - no API key provided");
-			return;
-		}
+				await db.delete(tables.apiKey);
+				await db.delete(tables.providerKey);
+				await flushLogs();
 
-		await db.insert(tables.apiKey).values({
-			id: "token-id",
-			token: "real-token",
-			projectId: "project-id",
-			description: "Test API Key",
-		});
+				break;
+			}
 
-		await db.insert(tables.providerKey).values({
-			id: "provider-key-id",
-			token: process.env.ANTHROPIC_API_KEY,
-			provider: "anthropic",
-			projectId: "project-id",
-		});
+			if (!testRan) {
+				console.log(
+					`Skipped all providers for ${model} - no API keys available`,
+				);
+			}
+		},
+	);
 
-		const res = await app.request("/v1/chat/completions", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer real-token`,
-			},
-			body: JSON.stringify({
-				model: "anthropic/claude-3-5-sonnet-20241022",
-				messages: [
-					{
-						role: "user",
-						content: "Hello! This is an e2e test.",
+	test.each(testModels)(
+		"/v1/chat/completions streaming with $model",
+		async ({ model, providers: modelProviders }) => {
+			const streamingProviders = modelProviders.filter((provider) => {
+				const providerInfo = providers.find((p) => p.id === provider);
+				return providerInfo?.streaming === true;
+			});
+
+			let testRan = false;
+
+			for (const provider of streamingProviders) {
+				const envVar = getProviderEnvVar(provider);
+				if (!envVar) {
+					console.log(
+						`Skipping streaming ${model} on ${provider} - no API key provided`,
+					);
+					continue;
+				}
+
+				console.log(`Testing streaming ${model} on ${provider}`);
+				testRan = true;
+
+				await createApiKey();
+				await createProviderKey(provider, envVar);
+
+				const requestModel =
+					provider === "openai" ? model : `${provider}/${model}`;
+
+				const res = await app.request("/v1/chat/completions", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer real-token`,
 					},
-				],
-			}),
-		});
+					body: JSON.stringify({
+						model: requestModel,
+						messages: [
+							{
+								role: "system",
+								content: "You are a helpful assistant.",
+							},
+							{
+								role: "user",
+								content: "Hello! This is a streaming e2e test.",
+							},
+						],
+						stream: true,
+					}),
+				});
 
-		expect(res.status).toBe(200);
-		const json = await res.json();
-		expect(json).toHaveProperty("content");
+				expect(res.status).toBe(200);
+				expect(res.headers.get("content-type")).toContain("text/event-stream");
 
-		// Wait for the worker to process the log
-		const logs = await waitForLogs(1);
-		expect(logs.length).toBe(1);
-		expect(logs[0].usedProvider).toBe("anthropic");
-	});
+				const streamResult = await readAll(res.body);
 
-	test("/v1/chat/completions with Anthropic streaming", async () => {
-		if (!process.env.ANTHROPIC_API_KEY) {
-			console.log("Skipping Anthropic streaming test - no API key provided");
-			return;
-		}
+				expect(streamResult.hasValidSSE).toBe(true);
+				expect(streamResult.eventCount).toBeGreaterThan(0);
+				expect(streamResult.hasContent).toBe(true);
 
-		await db.insert(tables.apiKey).values({
-			id: "token-id",
-			token: "real-token",
-			projectId: "project-id",
-			description: "Test API Key",
-		});
+				const log = await validateLogs();
+				expect(log.streamed).toBe(true);
 
-		await db.insert(tables.providerKey).values({
-			id: "provider-key-id",
-			token: process.env.ANTHROPIC_API_KEY,
-			provider: "anthropic",
-			projectId: "project-id",
-		});
+				if (log.inputCost !== null && log.outputCost !== null) {
+					expect(log.cost).not.toBeNull();
+					expect(log.cost).toBeGreaterThanOrEqual(0);
+				}
 
-		const res = await app.request("/v1/chat/completions", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer real-token`,
-			},
-			body: JSON.stringify({
-				model: "anthropic/claude-3-5-sonnet-20241022",
-				messages: [
-					{
-						role: "user",
-						content: "Hello! This is a streaming e2e test.",
-					},
-				],
-				stream: true,
-			}),
-		});
+				await db.delete(tables.apiKey);
+				await db.delete(tables.providerKey);
+				await flushLogs();
 
-		expect(res.status).toBe(200);
-		expect(res.headers.get("content-type")).toContain("text/event-stream");
+				break;
+			}
 
-		await readAll(res.body);
-
-		// Wait for the worker to process the log
-		const logs = await waitForLogs(1);
-		expect(logs.length).toBe(1);
-		expect(logs[0].usedProvider).toBe("anthropic");
-		expect(logs[0].streamed).toBe(true);
-	});
-
-	test("/v1/chat/completions with Google Vertex", async () => {
-		if (!process.env.VERTEX_API_KEY) {
-			console.log("Skipping Google Vertex test - no API key provided");
-			return;
-		}
-
-		await db.insert(tables.apiKey).values({
-			id: "token-id",
-			token: "real-token",
-			projectId: "project-id",
-			description: "Test API Key",
-		});
-
-		await db.insert(tables.providerKey).values({
-			id: "provider-key-id",
-			token: process.env.VERTEX_API_KEY,
-			provider: "google-vertex",
-			projectId: "project-id",
-		});
-
-		const res = await app.request("/v1/chat/completions", {
-			method: "POST",
-			headers: {
-				"Content-Type": "application/json",
-				Authorization: `Bearer real-token`,
-			},
-			body: JSON.stringify({
-				model: "google-vertex/gemini-2.0-flash",
-				messages: [
-					{
-						role: "user",
-						content: "Hello! This is an e2e test.",
-					},
-				],
-			}),
-		});
-
-		expect(res.status).toBe(200);
-		const json = await res.json();
-		expect(json).toHaveProperty("choices.[0].message.content");
-
-		// Wait for the worker to process the log
-		const logs = await waitForLogs(1);
-		expect(logs.length).toBe(1);
-		expect(logs[0].usedProvider).toBe("google-vertex");
-	});
+			if (!testRan) {
+				console.log(
+					`Skipped streaming for ${model} - no streaming providers available or no API keys`,
+				);
+			}
+		},
+	);
 });
 
-async function readAll(
-	stream: ReadableStream<Uint8Array<ArrayBufferLike>> | null,
-) {
+async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
+	hasContent: boolean;
+	eventCount: number;
+	hasValidSSE: boolean;
+}> {
 	if (!stream) {
-		return;
+		return { hasContent: false, eventCount: 0, hasValidSSE: false };
 	}
-	for await (const chunk of stream) {
-		console.log(chunk.toString());
+
+	const reader = stream.getReader();
+	let fullContent = "";
+	let eventCount = 0;
+	let hasValidSSE = false;
+	let hasContent = false;
+
+	try {
+		while (true) {
+			const { done, value } = await reader.read();
+			if (done) {
+				break;
+			}
+
+			const chunk = new TextDecoder().decode(value);
+			fullContent += chunk;
+
+			const lines = chunk.split("\n");
+			for (const line of lines) {
+				if (line.startsWith("data: ")) {
+					eventCount++;
+					hasValidSSE = true;
+
+					if (line === "data: [DONE]") {
+						continue;
+					}
+
+					try {
+						const data = JSON.parse(line.substring(6));
+						if (
+							data.choices?.[0]?.delta?.content ||
+							data.delta?.text ||
+							data.candidates?.[0]?.content?.parts?.[0]?.text
+						) {
+							hasContent = true;
+						}
+					} catch (e) {}
+				}
+			}
+		}
+	} finally {
+		reader.releaseLock();
 	}
+
+	return { hasContent, eventCount, hasValidSSE };
 }

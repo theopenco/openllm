@@ -23,17 +23,16 @@ You can use LLM Gateway in two ways:
 
 ### Using LLM Gateway API
 
-```http
-POST https://api.llmgateway.io/v1/chat/completions
-Content-Type: application/json
-Authorization: Bearer your-llmgateway-api-key
-
-{
+```bash
+curl -X POST https://api.llmgateway.io/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $LLM_GATEWAY_API_KEY" \
+  -d '{
   "model": "gpt-4o",
   "messages": [
     {"role": "user", "content": "Hello, how are you?"}
   ]
-}
+}'
 ```
 
 ## Development Setup
