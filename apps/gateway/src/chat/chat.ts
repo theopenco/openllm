@@ -217,20 +217,71 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	// Apply routing logic after apiKey is available
-	if (usedProvider === "llmgateway" && usedModel === "auto") {
-		const providerKeys = await db.query.providerKey.findMany({
-			where: {
-				status: {
-					eq: "active",
-				},
-				projectId: {
-					eq: apiKey.projectId,
-				},
-			},
-		});
+	// Get the project to determine mode for routing decisions
+	const project = await getProject(apiKey.projectId);
 
-		const availableProviders = providerKeys.map((key) => key.provider);
+	if (!project) {
+		throw new HTTPException(500, {
+			message: "Could not find project",
+		});
+	}
+
+	// Apply routing logic after apiKey and project are available
+	if (usedProvider === "llmgateway" && usedModel === "auto") {
+		// Get available providers based on project mode
+		let availableProviders: string[] = [];
+
+		if (project.mode === "api-keys") {
+			const providerKeys = await db.query.providerKey.findMany({
+				where: {
+					status: { eq: "active" },
+					projectId: { eq: apiKey.projectId },
+				},
+			});
+			availableProviders = providerKeys.map((key) => key.provider);
+		} else if (project.mode === "credits" || project.mode === "hybrid") {
+			const providerKeys = await db.query.providerKey.findMany({
+				where: {
+					status: { eq: "active" },
+					projectId: { eq: apiKey.projectId },
+				},
+			});
+			const databaseProviders = providerKeys.map((key) => key.provider);
+
+			// Check which providers have environment tokens available
+			const envProviders: string[] = [];
+			const supportedProviders = [
+				"openai",
+				"anthropic",
+				"google-vertex",
+				"google-ai-studio",
+				"inference.net",
+				"kluster.ai",
+			];
+			for (const provider of supportedProviders) {
+				try {
+					const envVarMap = {
+						openai: "OPENAI_API_KEY",
+						anthropic: "ANTHROPIC_API_KEY",
+						"google-vertex": "VERTEX_API_KEY",
+						"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
+						"inference.net": "INFERENCE_API_KEY",
+						"kluster.ai": "KLUSTER_API_KEY",
+					};
+					if (process.env[envVarMap[provider as keyof typeof envVarMap]]) {
+						envProviders.push(provider);
+					}
+				} catch {}
+			}
+
+			if (project.mode === "credits") {
+				availableProviders = envProviders;
+			} else {
+				availableProviders = [
+					...new Set([...databaseProviders, ...envProviders]),
+				];
+			}
+		}
 
 		for (const modelDef of models) {
 			if (modelDef.model === "auto" || modelDef.model === "custom") {
@@ -320,13 +371,6 @@ chat.openapi(completions, async (c) => {
 	let url: string | undefined;
 
 	// Get the provider key for the selected provider based on project mode
-	const project = await getProject(apiKey.projectId);
-
-	if (!project) {
-		throw new HTTPException(500, {
-			message: "Could not find project",
-		});
-	}
 
 	let providerKey;
 
