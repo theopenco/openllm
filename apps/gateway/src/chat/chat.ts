@@ -43,6 +43,9 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 		case "google-vertex":
 			token = process.env.VERTEX_API_KEY;
 			break;
+		case "google-ai-studio":
+			token = process.env.GOOGLE_AI_STUDIO_API_KEY;
+			break;
 		case "inference.net":
 			token = process.env.INFERENCE_API_KEY;
 			break;
@@ -522,7 +525,8 @@ chat.openapi(completions, async (c) => {
 			}));
 			break;
 		}
-		case "google-vertex": {
+		case "google-vertex":
+		case "google-ai-studio": {
 			delete requestBody.model; // Not used in body
 			delete requestBody.stream; // Handled differently
 
@@ -796,6 +800,7 @@ chat.openapi(completions, async (c) => {
 											}
 											break;
 										case "google-vertex":
+										case "google-ai-studio":
 											if (
 												data.candidates &&
 												data.candidates[0]?.content?.parts[0]?.text
@@ -1065,6 +1070,7 @@ chat.openapi(completions, async (c) => {
 					: null;
 			break;
 		case "google-vertex":
+		case "google-ai-studio":
 			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
 			finishReason = json.candidates?.[0]?.finishReason || null;
 			break;

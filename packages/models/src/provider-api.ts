@@ -38,7 +38,8 @@ export function createValidationPayload(provider: ProviderId): any {
 				messages: [minimalMessage],
 			};
 		}
-		case "google-vertex": {
+		case "google-vertex":
+		case "google-ai-studio": {
 			return {
 				contents: [
 					{
@@ -87,6 +88,7 @@ export function getProviderEndpoint(
 				url = "https://api.anthropic.com";
 				break;
 			case "google-vertex":
+			case "google-ai-studio":
 				url = "https://generativelanguage.googleapis.com";
 				break;
 			case "inference.net":
@@ -100,6 +102,7 @@ export function getProviderEndpoint(
 		case "anthropic":
 			return `${url}/v1/messages`;
 		case "google-vertex":
+		case "google-ai-studio":
 			if (model) {
 				return `${url}/v1beta/models/${model}:generateContent`;
 			}
