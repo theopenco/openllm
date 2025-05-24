@@ -450,6 +450,7 @@ chat.openapi(completions, async (c) => {
 			providerKey.baseUrl || undefined,
 			usedModel,
 			usedProvider === "google-ai-studio" ? providerKey.token : undefined,
+			stream,
 		);
 	} catch (error) {
 		if (usedProvider === "llmgateway" && usedModel !== "custom") {
@@ -817,6 +818,10 @@ chat.openapi(completions, async (c) => {
 					const lines = chunk.split("\n");
 					for (const line of lines) {
 						if (line.startsWith("data: ")) {
+							if (usedProvider === "google-ai-studio") {
+								console.log(`Google AI Studio streaming line: ${line}`);
+							}
+
 							if (line === "data: [DONE]") {
 								await stream.writeSSE({
 									event: "done",
@@ -828,7 +833,7 @@ chat.openapi(completions, async (c) => {
 									const data = JSON.parse(line.substring(6));
 
 									// Forward the data as a proper SSE event
-									// Transform Anthropic streaming responses to OpenAI format
+									// Transform non-OpenAI streaming responses to OpenAI format
 									let transformedData = data;
 									if (usedProvider === "anthropic") {
 										if (data.delta?.text) {
@@ -867,6 +872,53 @@ chat.openapi(completions, async (c) => {
 													},
 												],
 												usage: data.usage || null,
+											};
+										}
+									} else if (
+										usedProvider === "google-vertex" ||
+										usedProvider === "google-ai-studio"
+									) {
+										if (
+											data.candidates &&
+											data.candidates[0]?.content?.parts[0]?.text
+										) {
+											transformedData = {
+												id: `chatcmpl-${Date.now()}`,
+												object: "chat.completion.chunk",
+												created: Math.floor(Date.now() / 1000),
+												model: usedModel,
+												choices: [
+													{
+														index: 0,
+														delta: {
+															content: data.candidates[0].content.parts[0].text,
+														},
+														finish_reason: null,
+													},
+												],
+												usage: null,
+											};
+										} else if (
+											data.candidates &&
+											data.candidates[0]?.finishReason
+										) {
+											transformedData = {
+												id: `chatcmpl-${Date.now()}`,
+												object: "chat.completion.chunk",
+												created: Math.floor(Date.now() / 1000),
+												model: usedModel,
+												choices: [
+													{
+														index: 0,
+														delta: {},
+														finish_reason:
+															data.candidates[0].finishReason === "STOP"
+																? "stop"
+																: data.candidates[0].finishReason.toLowerCase() ||
+																	"stop",
+													},
+												],
+												usage: null,
 											};
 										}
 									}
@@ -911,6 +963,8 @@ chat.openapi(completions, async (c) => {
 											}
 											if (data.candidates && data.candidates[0]?.finishReason) {
 												finishReason = data.candidates[0].finishReason;
+											} else if (data.candidates) {
+												finishReason = "stop";
 											}
 											break;
 										case "inference.net":
@@ -954,50 +1008,81 @@ chat.openapi(completions, async (c) => {
 				// Clean up the event listeners
 				c.req.raw.signal.removeEventListener("abort", onAbort);
 
-				// Log the streaming request
-				const duration = Date.now() - startTime;
-				const costs = calculateCosts(
-					usedModel,
-					promptTokens,
-					completionTokens,
-					{
-						prompt: messages.map((m) => m.content).join("\n"),
-						completion: fullContent,
-					},
-				);
-				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
-					apiKeyId: apiKey.id,
-					providerKeyId: providerKey.id,
-					duration,
-					usedModel: usedModel,
-					usedProvider: usedProvider,
-					requestedModel: requestedModel,
-					requestedProvider: requestedProvider,
-					messages: messages,
-					responseSize: fullContent.length,
-					content: fullContent,
-					finishReason: finishReason,
-					promptTokens: promptTokens,
-					completionTokens: completionTokens,
-					totalTokens: totalTokens,
-					temperature: temperature || null,
-					maxTokens: max_tokens || null,
-					topP: top_p || null,
-					frequencyPenalty: frequency_penalty || null,
-					presencePenalty: presence_penalty || null,
-					hasError: false,
-					errorDetails: null,
-					streamed: true,
-					canceled: canceled,
-					inputCost: costs.inputCost,
-					outputCost: costs.outputCost,
-					cost: costs.totalCost,
-					estimatedCost: costs.estimatedCost,
-					cached: false,
-					mode: project.mode,
-				});
+				if (!canceled && fullContent.length > 0) {
+					// Log the streaming request
+					const duration = Date.now() - startTime;
+					const costs = calculateCosts(
+						usedModel,
+						promptTokens,
+						completionTokens,
+						{
+							prompt: messages.map((m) => m.content).join("\n"),
+							completion: fullContent,
+						},
+					);
+
+					// Ensure finishReason is never null for Google AI Studio
+					if (usedProvider === "google-ai-studio" && !finishReason) {
+						finishReason = "stop";
+					}
+
+					console.log(
+						`Inserting streaming log for ${usedProvider}, content length: ${fullContent.length}`,
+					);
+
+					// Check if we already have a log for this request to prevent duplicates
+					const existingLogs = await db.query.log.findMany({
+						where: {
+							apiKeyId: apiKey.id,
+							providerKeyId: providerKey.id,
+							streamed: true,
+							usedProvider: usedProvider,
+							usedModel: usedModel,
+						},
+						orderBy: {
+							createdAt: "desc",
+						},
+						limit: 1,
+					});
+
+					if (existingLogs.length === 0) {
+						await insertLog({
+							organizationId: project.organizationId,
+							projectId: apiKey.projectId,
+							apiKeyId: apiKey.id,
+							providerKeyId: providerKey.id,
+							duration,
+							usedModel: usedModel,
+							usedProvider: usedProvider,
+							requestedModel: requestedModel,
+							requestedProvider: requestedProvider,
+							messages: messages,
+							responseSize: fullContent.length,
+							content: fullContent,
+							finishReason: finishReason,
+							promptTokens: promptTokens,
+							completionTokens: completionTokens,
+							totalTokens: totalTokens,
+							temperature: temperature || null,
+							maxTokens: max_tokens || null,
+							topP: top_p || null,
+							frequencyPenalty: frequency_penalty || null,
+							presencePenalty: presence_penalty || null,
+							hasError: false,
+							errorDetails: null,
+							streamed: true,
+							canceled: canceled,
+							inputCost: costs.inputCost,
+							outputCost: costs.outputCost,
+							cost: costs.totalCost,
+							estimatedCost: costs.estimatedCost,
+							cached: false,
+							mode: project.mode,
+						});
+					} else {
+						console.log(`Skipping duplicate log for streaming request`);
+					}
+				}
 			}
 		});
 	}
@@ -1019,6 +1104,16 @@ chat.openapi(completions, async (c) => {
 	try {
 		const headers = getProviderHeaders(usedProvider, providerKey);
 		headers["Content-Type"] = "application/json";
+
+		if (stream) {
+			console.log(`Streaming request to ${url} for provider ${usedProvider}`);
+			if (usedProvider === "google-ai-studio") {
+				console.log(`Google AI Studio URL: ${url}`);
+				if (!url.includes("alt=sse")) {
+					console.error("Missing alt=sse parameter in Google AI Studio URL");
+				}
+			}
+		}
 
 		res = await fetch(url, {
 			method: "POST",
