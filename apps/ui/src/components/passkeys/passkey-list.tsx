@@ -1,6 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
-import { Loader2, KeySquare, Trash2 } from "lucide-react";
+import { KeySquare, Trash2, Loader2 } from "lucide-react";
 
 import { Button } from "@/lib/components/button";
 import {
@@ -12,54 +12,44 @@ import {
 	TableRow,
 } from "@/lib/components/table";
 import { toast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 import type { Passkey } from "./types";
-
-async function fetchPasskeys(): Promise<Passkey[]> {
-	const response = await fetch("/api/user/me/passkeys");
-	if (!response.ok) {
-		throw new Error("Failed to fetch passkeys");
-	}
-	const data = await response.json();
-	return data.passkeys;
-}
-
-async function deletePasskeyRequest(id: string): Promise<void> {
-	const response = await fetch(`/api/user/me/passkeys/${id}`, {
-		method: "DELETE",
-	});
-	if (!response.ok) {
-		throw new Error("Failed to delete passkey");
-	}
-}
 
 export function PasskeyList() {
 	const queryClient = useQueryClient();
 
 	const {
-		data: passkeys = [],
-		isLoading,
+		data,
+		isPending: isLoading,
 		isError,
-	} = useQuery<Passkey[]>({
-		queryKey: ["passkeys"],
-		queryFn: fetchPasskeys,
-	});
+	} = $api.useSuspenseQuery("get", "/user/me/passkeys");
+
+	const passkeys: Passkey[] = data?.passkeys ?? [];
 
 	const {
 		mutate: deletePasskey,
 		isPending: isDeleting,
 		variables: deletingId,
-	} = useMutation({
-		mutationFn: deletePasskeyRequest,
-		onSuccess: (_, id) => {
+	} = $api.useMutation("delete", "/user/me/passkeys/{id}", {
+		onSuccess: (_, { params }) => {
 			toast({
 				title: "Passkey deleted",
 				description: "Your passkey has been removed.",
 			});
-			queryClient.setQueryData<Passkey[]>(
-				["passkeys"],
-				(old) => old?.filter((p) => p.id !== id) ?? [],
-			);
+
+			const queryKey = $api.queryOptions("get", "/user/me/passkeys").queryKey;
+			queryClient.setQueryData(queryKey, (old: any) => {
+				if (!old?.passkeys) {
+					return old;
+				}
+				return {
+					...old,
+					passkeys: old.passkeys.filter(
+						(p: Passkey) => p.id !== params.path.id,
+					),
+				};
+			});
 		},
 		onError: () => {
 			toast({
@@ -122,10 +112,16 @@ export function PasskeyList() {
 							<Button
 								variant="ghost"
 								size="icon"
-								disabled={isDeleting && deletingId === passkey.id}
-								onClick={() => deletePasskey(passkey.id)}
+								disabled={
+									isDeleting && deletingId?.params?.path.id === passkey.id
+								}
+								onClick={() =>
+									deletePasskey({
+										params: { path: { id: passkey.id } },
+									})
+								}
 							>
-								{isDeleting && deletingId === passkey.id ? (
+								{isDeleting && deletingId?.params?.path.id === passkey.id ? (
 									<Loader2 className="h-4 w-4 animate-spin" />
 								) : (
 									<Trash2 className="h-4 w-4" />

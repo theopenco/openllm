@@ -5,15 +5,10 @@ import {
 	useStripe,
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import { useQueryClient } from "@tanstack/react-query";
 import { CreditCard, Trash2, Plus } from "lucide-react";
-import { useState } from "react";
+import React, { useState } from "react";
 
-import {
-	useCreateSetupIntent,
-	useDeletePaymentMethod,
-	usePaymentMethods,
-	useSetDefaultPaymentMethod,
-} from "./hooks/usePaymentMethods";
 import { Button } from "@/lib/components/button";
 import {
 	Dialog,
@@ -25,8 +20,7 @@ import {
 	DialogTrigger,
 } from "@/lib/components/dialog";
 import { toast } from "@/lib/components/use-toast";
-
-import type React from "react";
+import { $api } from "@/lib/fetch-client";
 
 const stripePromise = loadStripe(
 	process.env.VITE_STRIPE_PUBLIC_KEY ||
@@ -34,31 +28,55 @@ const stripePromise = loadStripe(
 );
 
 export function PaymentMethodsManagement() {
-	const { data, isLoading } = usePaymentMethods();
-	const setDefaultMutation = useSetDefaultPaymentMethod();
-	const deleteMutation = useDeletePaymentMethod();
+	const queryClient = useQueryClient();
+	const { data } = $api.useSuspenseQuery("get", "/payments/payment-methods");
 
-	if (isLoading) {
-		return <div>Loading payment methods...</div>;
-	}
+	const { mutate: setDefaultMutation, isPending: isDefaultMethodPending } =
+		$api.useMutation("post", "/payments/payment-methods/default");
+	const { mutate: deleteMutation, isPending: isDeletePending } =
+		$api.useMutation("delete", "/payments/payment-methods/{id}");
 
 	const paymentMethods = data?.paymentMethods || [];
 
 	const handleSetDefault = async (paymentMethodId: string) => {
-		try {
-			await setDefaultMutation.mutateAsync({ paymentMethodId });
-			toast({
-				title: "Success",
-				description: "Default payment method updated",
-			});
-		} catch (error) {
-			toast({
-				title: "Error",
-				description:
-					error instanceof Error ? error.message : "An error occurred",
-				variant: "destructive",
-			});
-		}
+		setDefaultMutation(
+			{ body: { paymentMethodId } },
+			{
+				onSuccess: () => {
+					const queryKey = $api.queryOptions(
+						"get",
+						"/payments/payment-methods",
+					).queryKey;
+
+					queryClient.setQueryData(queryKey, (oldData: any) => {
+						if (!oldData) {
+							return oldData;
+						}
+
+						return {
+							...oldData,
+							paymentMethods: oldData.paymentMethods.map((method: any) => ({
+								...method,
+								isDefault: method.id === paymentMethodId,
+							})),
+						};
+					});
+
+					toast({
+						title: "Success",
+						description: "Default payment method updated",
+					});
+				},
+				onError: (error: any) => {
+					toast({
+						title: "Error",
+						description:
+							error instanceof Error ? error.message : "An error occurred",
+						variant: "destructive",
+					});
+				},
+			},
+		);
 	};
 
 	const handleDelete = async (paymentMethodId: string) => {
@@ -66,20 +84,49 @@ export function PaymentMethodsManagement() {
 			return;
 		}
 
-		try {
-			await deleteMutation.mutateAsync({ paymentMethodId });
-			toast({
-				title: "Success",
-				description: "Payment method deleted",
-			});
-		} catch (error) {
-			toast({
-				title: "Error",
-				description:
-					error instanceof Error ? error.message : "An error occurred",
-				variant: "destructive",
-			});
-		}
+		deleteMutation(
+			{
+				params: {
+					path: {
+						id: paymentMethodId,
+					},
+				},
+			},
+			{
+				onSuccess: () => {
+					const queryKey = $api.queryOptions(
+						"get",
+						"/payments/payment-methods",
+					).queryKey;
+
+					queryClient.setQueryData(queryKey, (oldData: any) => {
+						if (!oldData) {
+							return oldData;
+						}
+
+						return {
+							...oldData,
+							paymentMethods: oldData.paymentMethods.filter(
+								(method: any) => method.id !== paymentMethodId,
+							),
+						};
+					});
+
+					toast({
+						title: "Success",
+						description: "Payment method deleted",
+					});
+				},
+				onError: (error: any) => {
+					toast({
+						title: "Error",
+						description:
+							error instanceof Error ? error.message : "An error occurred",
+						variant: "destructive",
+					});
+				},
+			},
+		);
 	};
 
 	return (
@@ -117,7 +164,8 @@ export function PaymentMethodsManagement() {
 										variant="outline"
 										size="sm"
 										onClick={() => handleSetDefault(method.id)}
-										disabled={setDefaultMutation.isPending}
+										disabled={isDefaultMethodPending}
+										type="button"
 									>
 										Set Default
 									</Button>
@@ -126,7 +174,8 @@ export function PaymentMethodsManagement() {
 									variant="outline"
 									size="sm"
 									onClick={() => handleDelete(method.id)}
-									disabled={deleteMutation.isPending}
+									disabled={isDeletePending}
+									type="button"
 								>
 									<Trash2 className="h-4 w-4" />
 								</Button>
@@ -164,7 +213,11 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
 	const stripe = useStripe();
 	const elements = useElements();
 	const [loading, setLoading] = useState(false);
-	const setupIntentMutation = useCreateSetupIntent();
+
+	const { mutateAsync: setupIntentMutation } = $api.useMutation(
+		"post",
+		"/payments/create-setup-intent",
+	);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -176,7 +229,7 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
 		setLoading(true);
 
 		try {
-			const { clientSecret } = await setupIntentMutation.mutateAsync();
+			const { clientSecret } = await setupIntentMutation({});
 
 			const result = await stripe.confirmCardSetup(clientSecret, {
 				payment_method: {

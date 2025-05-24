@@ -6,14 +6,8 @@ import {
 } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import { CreditCard, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
-import {
-	useCreateSetupIntent,
-	usePaymentMethods,
-} from "./hooks/usePaymentMethods";
-import { useTopUpCredits } from "./hooks/useTopUpCredits";
-import { useTopUpCreditsWithSavedMethod } from "./hooks/useTopUpCreditsWithSavedMethod";
 import { Button } from "@/lib/components/button";
 import { Checkbox } from "@/lib/components/checkbox";
 import {
@@ -28,8 +22,7 @@ import {
 import { Input } from "@/lib/components/input";
 import { Label } from "@/lib/components/label";
 import { toast } from "@/lib/components/use-toast";
-
-import type React from "react";
+import { $api } from "@/lib/fetch-client";
 
 const stripePromise = loadStripe(
 	process.env.VITE_STRIPE_PUBLIC_KEY ||
@@ -62,7 +55,11 @@ function TopUpCreditsDialog({ children }: TopUpCreditsDialogProps) {
 		string | null
 	>(null);
 
-	const { data: paymentMethodsData } = usePaymentMethods();
+	const { data: paymentMethodsData } = $api.useSuspenseQuery(
+		"get",
+		"/payments/payment-methods",
+	);
+
 	const hasPaymentMethods =
 		paymentMethodsData?.paymentMethods &&
 		paymentMethodsData.paymentMethods.length > 0;
@@ -216,8 +213,15 @@ function PaymentStep({
 }) {
 	const stripe = useStripe();
 	const elements = useElements();
-	const topUpMutation = useTopUpCredits();
-	const setupIntentMutation = useCreateSetupIntent();
+	const { mutateAsync: topUpMutation } = $api.useMutation(
+		"post",
+		"/payments/create-payment-intent",
+	);
+	const { mutateAsync: setupIntentMutation } = $api.useMutation(
+		"post",
+		"/payments/create-setup-intent",
+	);
+
 	const [saveCard, setSaveCard] = useState(true);
 
 	const handleSubmit = async (e: React.FormEvent) => {
@@ -231,8 +235,7 @@ function PaymentStep({
 
 		try {
 			if (saveCard) {
-				const { clientSecret: setupSecret } =
-					await setupIntentMutation.mutateAsync();
+				const { clientSecret: setupSecret } = await setupIntentMutation({});
 
 				const setupResult = await stripe.confirmCardSetup(setupSecret, {
 					payment_method: {
@@ -251,7 +254,11 @@ function PaymentStep({
 				}
 			}
 
-			const { clientSecret } = await topUpMutation.mutateAsync({ amount });
+			const { clientSecret } = await topUpMutation({
+				body: {
+					amount,
+				},
+			});
 
 			const result = await stripe.confirmCardPayment(clientSecret, {
 				payment_method: {
@@ -471,7 +478,10 @@ function ConfirmPaymentStep({
 	loading: boolean;
 	setLoading: (loading: boolean) => void;
 }) {
-	const topUpMutation = useTopUpCreditsWithSavedMethod();
+	const { mutateAsync: topUpMutation } = $api.useMutation(
+		"post",
+		"/payments/top-up-with-saved-method",
+	);
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -479,7 +489,7 @@ function ConfirmPaymentStep({
 		setLoading(true);
 
 		try {
-			await topUpMutation.mutateAsync({ amount, paymentMethodId });
+			await topUpMutation({ body: { amount, paymentMethodId } });
 			onSuccess();
 		} catch (error) {
 			console.error("Payment error:", error);

@@ -1,18 +1,28 @@
+import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 import { useState } from "react";
 
 import { useDefaultProject } from "@/hooks/useDefaultProject";
-import { useUpdateProject } from "@/hooks/useProject";
 import { Button } from "@/lib/components/button";
 import { Label } from "@/lib/components/label";
 import { RadioGroup, RadioGroupItem } from "@/lib/components/radio-group";
 import { Separator } from "@/lib/components/separator";
 import { useToast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 export function ProjectModeSettings() {
 	const { toast } = useToast();
 	const { data: defaultProject, isError } = useDefaultProject();
-	const updateProject = useUpdateProject();
+	const queryClient = useQueryClient();
+
+	const updateProject = $api.useMutation("patch", "/projects/{id}", {
+		onSuccess: (data) => {
+			const queryKey = $api.queryOptions("get", "/orgs/{id}/projects", {
+				params: { path: { id: data.project.organizationId } },
+			}).queryKey;
+			queryClient.invalidateQueries({ queryKey });
+		},
+	});
 
 	const [mode, setMode] = useState<"api-keys" | "credits" | "hybrid">(
 		defaultProject?.mode || "api-keys",
@@ -32,17 +42,15 @@ export function ProjectModeSettings() {
 	const handleSave = async () => {
 		try {
 			await updateProject.mutateAsync({
-				id: defaultProject.id,
-				settings: {
-					mode,
-				},
+				params: { path: { id: defaultProject.id } },
+				body: { mode },
 			});
 
 			toast({
 				title: "Settings saved",
 				description: "Your project mode settings have been updated.",
 			});
-		} catch (error) {
+		} catch {
 			toast({
 				title: "Error",
 				description: "Failed to save project mode settings.",
@@ -70,40 +78,33 @@ export function ProjectModeSettings() {
 					}
 					className="space-y-2"
 				>
-					<div className="flex items-start space-x-2">
-						<RadioGroupItem value="api-keys" id="api-keys" />
-						<div className="space-y-1">
-							<Label htmlFor="api-keys" className="font-medium">
-								API Keys
-							</Label>
-							<p className="text-muted-foreground text-sm">
-								Use your own provider API keys (OpenAI, Anthropic, etc.)
-							</p>
+					{[
+						{
+							id: "api-keys",
+							label: "API Keys",
+							desc: "Use your own provider API keys (OpenAI, Anthropic, etc.)",
+						},
+						{
+							id: "credits",
+							label: "Credits",
+							desc: "Use your organization credits and our internal API keys",
+						},
+						{
+							id: "hybrid",
+							label: "Hybrid",
+							desc: "Use your own API keys when available, fall back to credits when needed",
+						},
+					].map(({ id, label, desc }) => (
+						<div key={id} className="flex items-start space-x-2">
+							<RadioGroupItem value={id} id={id} />
+							<div className="space-y-1">
+								<Label htmlFor={id} className="font-medium">
+									{label}
+								</Label>
+								<p className="text-muted-foreground text-sm">{desc}</p>
+							</div>
 						</div>
-					</div>
-					<div className="flex items-start space-x-2">
-						<RadioGroupItem value="credits" id="credits" />
-						<div className="space-y-1">
-							<Label htmlFor="credits" className="font-medium">
-								Credits
-							</Label>
-							<p className="text-muted-foreground text-sm">
-								Use your organization credits and our internal API keys
-							</p>
-						</div>
-					</div>
-					<div className="flex items-start space-x-2">
-						<RadioGroupItem value="hybrid" id="hybrid" />
-						<div className="space-y-1">
-							<Label htmlFor="hybrid" className="font-medium">
-								Hybrid
-							</Label>
-							<p className="text-muted-foreground text-sm">
-								Use your own API keys when available, fall back to credits when
-								needed
-							</p>
-						</div>
-					</div>
+					))}
 				</RadioGroup>
 			</div>
 

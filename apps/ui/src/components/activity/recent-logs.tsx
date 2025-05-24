@@ -1,7 +1,7 @@
 import { models, providers } from "@openllm/models";
 import { useState } from "react";
 
-import { LogCard } from "./log-card";
+import { LogCard } from "../dashboard/log-card";
 import {
 	type DateRange,
 	DateRangeSelect,
