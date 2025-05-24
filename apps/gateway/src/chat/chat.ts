@@ -250,14 +250,9 @@ chat.openapi(completions, async (c) => {
 
 			// Check which providers have environment tokens available
 			const envProviders: string[] = [];
-			const supportedProviders = [
-				"openai",
-				"anthropic",
-				"google-vertex",
-				"google-ai-studio",
-				"inference.net",
-				"kluster.ai",
-			];
+			const supportedProviders = providers
+				.filter((p) => p.id !== "llmgateway")
+				.map((p) => p.id);
 			for (const provider of supportedProviders) {
 				try {
 					const envVarMap = {
