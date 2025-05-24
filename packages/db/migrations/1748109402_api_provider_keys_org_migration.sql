@@ -11,6 +11,3 @@ ALTER TABLE "provider_key" RENAME COLUMN "project_id" TO "organization_id";
 -- Add foreign key constraint to provider_key.organization_id
 ALTER TABLE "provider_key" ADD CONSTRAINT "provider_key_organization_id_fkey" 
 FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE CASCADE;
-
--- Remove project_id from log table
-ALTER TABLE "log" DROP COLUMN "project_id";

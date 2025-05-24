@@ -509,6 +509,7 @@ chat.openapi(completions, async (c) => {
 			const duration = 0; // No processing time needed
 			await insertLog({
 				organizationId: apiKey.organizationId,
+				projectId: project.id,
 				apiKeyId: apiKey.id,
 				providerKeyId: providerKey.id,
 				duration,
@@ -684,6 +685,7 @@ chat.openapi(completions, async (c) => {
 					// Log the canceled request
 					await insertLog({
 						organizationId: apiKey.organizationId,
+						projectId: project.id,
 						apiKeyId: apiKey.id,
 						providerKeyId: providerKey.id,
 						duration: Date.now() - startTime,
@@ -755,6 +757,7 @@ chat.openapi(completions, async (c) => {
 				// Log the error in the database
 				await insertLog({
 					organizationId: apiKey.organizationId,
+					projectId: project.id,
 					apiKeyId: apiKey.id,
 					providerKeyId: providerKey.id,
 					duration: Date.now() - startTime,
@@ -981,6 +984,7 @@ chat.openapi(completions, async (c) => {
 				);
 				await insertLog({
 					organizationId: apiKey.organizationId,
+					projectId: project.id,
 					apiKeyId: apiKey.id,
 					providerKeyId: providerKey.id,
 					duration,
@@ -1057,6 +1061,7 @@ chat.openapi(completions, async (c) => {
 		// Log the canceled request
 		await insertLog({
 			organizationId: apiKey.organizationId,
+			projectId: project.id,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
 			duration,
@@ -1107,6 +1112,7 @@ chat.openapi(completions, async (c) => {
 		// Log the error in the database
 		await insertLog({
 			organizationId: apiKey.organizationId,
+			projectId: project.id,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
 			duration,
@@ -1210,6 +1216,7 @@ chat.openapi(completions, async (c) => {
 	});
 	await insertLog({
 		organizationId: apiKey.organizationId,
+		projectId: project.id,
 		apiKeyId: apiKey.id,
 		providerKeyId: providerKey.id,
 		duration,

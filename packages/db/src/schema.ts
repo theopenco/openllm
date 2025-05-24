@@ -175,6 +175,7 @@ export const log = pgTable("log", {
 		.defaultNow()
 		.$onUpdate(() => new Date()),
 	organizationId: text().notNull(),
+	projectId: text().notNull(),
 	apiKeyId: text().notNull(),
 	providerKeyId: text().notNull(),
 	duration: integer().notNull(),

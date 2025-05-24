@@ -311,10 +311,8 @@ keysProvider.openapi(deleteKey, async (c) => {
 		},
 	});
 
-	// Get all project IDs the user has access to
-	const projectIds = userOrgs.flatMap((org) =>
-		org.organization!.projects.map((project) => project.id),
-	);
+	// Get all organization IDs the user has access to
+	const organizationIds = userOrgs.map((org) => org.organization!.id);
 
 	// Find the provider key
 	const providerKey = await db.query.providerKey.findFirst({
@@ -322,8 +320,8 @@ keysProvider.openapi(deleteKey, async (c) => {
 			id: {
 				eq: id,
 			},
-			projectId: {
-				in: projectIds,
+			organizationId: {
+				in: organizationIds,
 			},
 		},
 	});
@@ -429,10 +427,8 @@ keysProvider.openapi(updateStatus, async (c) => {
 		},
 	});
 
-	// Get all project IDs the user has access to
-	const projectIds = userOrgs.flatMap((org) =>
-		org.organization!.projects.map((project) => project.id),
-	);
+	// Get all organization IDs the user has access to
+	const organizationIds = userOrgs.map((org) => org.organization!.id);
 
 	// Find the provider key
 	const providerKey = await db.query.providerKey.findFirst({
@@ -440,8 +436,8 @@ keysProvider.openapi(updateStatus, async (c) => {
 			id: {
 				eq: id,
 			},
-			projectId: {
-				in: projectIds,
+			organizationId: {
+				in: organizationIds,
 			},
 		},
 	});
