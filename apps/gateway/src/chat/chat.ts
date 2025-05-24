@@ -1179,10 +1179,29 @@ chat.openapi(completions, async (c) => {
 	}
 
 	// Log the successful request and response
-	const costs = calculateCosts(usedModel, promptTokens, completionTokens, {
-		prompt: messages.map((m) => m.content).join("\n"),
-		completion: content,
-	});
+	let calculatedPromptTokens = promptTokens;
+	let calculatedCompletionTokens = completionTokens;
+
+	if (usedProvider === "anthropic" && (!promptTokens || !completionTokens)) {
+		if (!promptTokens) {
+			calculatedPromptTokens =
+				messages.reduce((acc, m) => acc + (m.content?.length || 0), 0) / 4;
+		}
+
+		if (!completionTokens && content) {
+			calculatedCompletionTokens = content.length / 4;
+		}
+	}
+
+	const costs = calculateCosts(
+		usedModel,
+		calculatedPromptTokens,
+		calculatedCompletionTokens,
+		{
+			prompt: messages.map((m) => m.content).join("\n"),
+			completion: content,
+		},
+	);
 	await insertLog({
 		organizationId: project.organizationId,
 		projectId: apiKey.projectId,

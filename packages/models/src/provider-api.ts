@@ -106,7 +106,14 @@ export function getProviderEndpoint(
 				url = "https://generativelanguage.googleapis.com";
 				break;
 			case "inference.net":
+				url = "https://api.inference.net";
+				break;
 			case "kluster.ai":
+				url = "https://api.kluster.ai";
+				break;
+			case "together.ai":
+				url = "https://api.together.ai";
+				break;
 			default:
 				throw new Error(`Provider ${provider} requires a baseUrl`);
 		}

@@ -63,6 +63,7 @@ describe("e2e tests with real provider keys", () => {
 			"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
 			"inference.net": "INFERENCE_NET_API_KEY",
 			"kluster.ai": "KLUSTER_AI_API_KEY",
+			"together.ai": "TOGETHER_AI_API_KEY",
 		};
 		return process.env[envMap[provider]];
 	}
