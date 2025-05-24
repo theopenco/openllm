@@ -12,9 +12,8 @@ import {
 import { useState } from "react";
 
 import { TopUpCreditsButton } from "@/components/credits/top-up-credits-dialog";
+import { DashboardLoading } from "@/components/dashboard/dashboard-loading";
 import { Overview } from "@/components/dashboard/overview";
-import { useActivity } from "@/hooks/useActivity";
-import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -24,27 +23,37 @@ import {
 	CardTitle,
 } from "@/lib/components/card";
 import { Tabs, TabsList, TabsTrigger } from "@/lib/components/tabs";
+import { $api } from "@/lib/fetch-client";
 
 export const Route = createFileRoute("/dashboard/_layout/")({
 	component: Dashboard,
+	pendingComponent: () => <DashboardLoading />,
+	errorComponent: ({ error }) => <div>{error.message}</div>,
 });
 
 export default function Dashboard() {
 	const navigate = useNavigate();
 	const [days, setDays] = useState<7 | 30>(7);
-	const { data, isLoading } = useActivity(days);
-	const { data: organization, isLoading: isLoadingOrg } =
-		useDefaultOrganization();
+	const { data, isLoading } = $api.useSuspenseQuery("get", "/activity", {
+		params: { query: { days: String(days) } },
+	});
+	const {
+		data: { organizations },
+		isLoading: isLoadingOrg,
+	} = $api.useSuspenseQuery("get", "/orgs");
+
+	const organization = organizations[0];
 
 	// Calculate total stats from activity data
 	const totalRequests =
-		data?.reduce((sum, day) => sum + day.requestCount, 0) || 0;
-	const totalTokens = data?.reduce((sum, day) => sum + day.totalTokens, 0) || 0;
-	const totalCost = data?.reduce((sum, day) => sum + day.cost, 0) || 0;
+		data.activity?.reduce((sum, day) => sum + day.requestCount, 0) || 0;
+	const totalTokens =
+		data.activity?.reduce((sum, day) => sum + day.totalTokens, 0) || 0;
+	const totalCost = data.activity?.reduce((sum, day) => sum + day.cost, 0) || 0;
 	const totalInputCost =
-		data?.reduce((sum, day) => sum + day.inputCost, 0) || 0;
+		data.activity?.reduce((sum, day) => sum + day.inputCost, 0) || 0;
 	const totalOutputCost =
-		data?.reduce((sum, day) => sum + day.outputCost, 0) || 0;
+		data.activity?.reduce((sum, day) => sum + day.outputCost, 0) || 0;
 
 	// Format tokens for display (k for thousands, M for millions)
 	const formatTokens = (tokens: number) => {
@@ -106,12 +115,14 @@ export default function Dashboard() {
 										</div>
 										<p className="text-muted-foreground text-xs">
 											Last {days} days
-											{data && data.length > 0 && (
+											{data && data.activity.length > 0 && (
 												<span className="ml-1">
 													•{" "}
 													{(
-														data.reduce((sum, day) => sum + day.cacheRate, 0) /
-														data.length
+														data.activity.reduce(
+															(sum, day) => sum + day.cacheRate,
+															0,
+														) / data.activity.length
 													).toFixed(1)}
 													% cached
 												</span>
@@ -206,7 +217,11 @@ export default function Dashboard() {
 								<CardDescription>Total Requests</CardDescription>
 							</CardHeader>
 							<CardContent className="pl-2">
-								<Overview data={data} isLoading={isLoading} days={days} />
+								<Overview
+									data={data.activity}
+									isLoading={isLoading}
+									days={days}
+								/>
 							</CardContent>
 						</Card>
 						<Card className="col-span-3">

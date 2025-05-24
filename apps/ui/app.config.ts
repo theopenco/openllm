@@ -20,6 +20,9 @@ export default defineConfig({
 		appDirectory: "./src",
 	},
 	vite: {
+		server: {
+			allowedHosts: ["dev.llmgateway.io"],
+		},
 		plugins: [
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],

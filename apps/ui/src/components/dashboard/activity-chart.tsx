@@ -11,7 +11,6 @@ import {
 	YAxis,
 } from "recharts";
 
-import { useActivity } from "@/hooks/useActivity";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -27,8 +26,9 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/lib/components/select";
+import { $api } from "@/lib/fetch-client";
 
-import type { ActivityModelUsage, DailyActivity } from "@/hooks/useActivity";
+import type { ActivityModelUsage, DailyActivity } from "@/types/activity";
 import type { TooltipProps } from "recharts";
 
 // Helper function to get all unique models from the data
@@ -156,7 +156,9 @@ export function ActivityChart() {
 	const [breakdownField, setBreakdownField] = useState<
 		"requests" | "cost" | "tokens"
 	>("requests");
-	const { data, isLoading, error } = useActivity(days);
+	const { data, isLoading, error } = $api.useSuspenseQuery("get", "/activity", {
+		params: { query: { days: String(days) } },
+	});
 
 	if (isLoading) {
 		return (
@@ -174,7 +176,7 @@ export function ActivityChart() {
 		);
 	}
 
-	if (!data || data.length === 0) {
+	if (!data || data.activity.length === 0) {
 		return (
 			<div className="flex h-[350px] items-center justify-center">
 				<p className="text-muted-foreground">No activity data available</p>
@@ -194,7 +196,7 @@ export function ActivityChart() {
 	}
 
 	// Create a map of existing data by date
-	const dataByDate = new Map(data.map((item) => [item.date, item]));
+	const dataByDate = new Map(data.activity.map((item) => [item.date, item]));
 
 	// Fill in the chart data with all dates, using zero values for missing dates
 	const chartData = dateRange.map((date) => {
@@ -314,8 +316,8 @@ export function ActivityChart() {
 						/>
 						<Legend />
 						{/* Generate a Bar for each unique model in the dataset */}
-						{getUniqueModels(data).length > 0 ? (
-							getUniqueModels(data).map((model, index) => (
+						{getUniqueModels(data.activity).length > 0 ? (
+							getUniqueModels(data.activity).map((model, index) => (
 								<Bar
 									key={model}
 									dataKey={model}
@@ -323,7 +325,7 @@ export function ActivityChart() {
 									stackId="models"
 									fill={getModelColor(model, index)}
 									radius={
-										index === getUniqueModels(data).length - 1
+										index === getUniqueModels(data.activity).length - 1
 											? [4, 4, 0, 0]
 											: [0, 0, 0, 0]
 									}

@@ -2,8 +2,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { RefreshCw } from "lucide-react";
 
+import { ActivityLoading } from "@/components/activity/activity-loading";
+import { RecentLogs } from "@/components/activity/recent-logs";
 import { ActivityChart } from "@/components/dashboard/activity-chart";
-import { RecentLogs } from "@/components/dashboard/recent-logs";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -12,9 +13,12 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/lib/components/card";
+import { $api } from "@/lib/fetch-client";
 
 export const Route = createFileRoute("/dashboard/_layout/activity")({
 	component: ActivityPage,
+	pendingComponent: () => <ActivityLoading />,
+	errorComponent: ({ error }) => <div>{error.message}</div>,
 });
 
 function RefreshButton() {
@@ -24,7 +28,11 @@ function RefreshButton() {
 		<Button
 			variant="ghost"
 			size="icon"
-			onClick={() => queryClient.invalidateQueries({ queryKey: ["logs"] })}
+			onClick={() =>
+				queryClient.invalidateQueries({
+					queryKey: $api.queryOptions("get", "/logs").queryKey,
+				})
+			}
 			title="Refresh logs"
 		>
 			<RefreshCw className="h-4 w-4" />

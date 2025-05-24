@@ -195,7 +195,7 @@ keysApi.openapi(list, async (c) => {
 // Soft-delete an API key
 const deleteKey = createRoute({
 	method: "delete",
-	path: "/api/:id",
+	path: "/api/{id}",
 	request: {
 		params: z.object({
 			id: z.string(),
@@ -297,7 +297,7 @@ keysApi.openapi(deleteKey, async (c) => {
 // Update API key status
 const updateStatus = createRoute({
 	method: "patch",
-	path: "/api/:id",
+	path: "/api/{id}",
 	request: {
 		params: z.object({
 			id: z.string(),
