@@ -86,6 +86,7 @@ export function getProviderEndpoint(
 	baseUrl?: string,
 	model?: string,
 	token?: string,
+	stream?: boolean,
 ): string {
 	let url: string;
 
@@ -124,7 +125,12 @@ export function getProviderEndpoint(
 			const baseEndpoint = model
 				? `${url}/v1beta/models/${model}:generateContent`
 				: `${url}/v1beta/models/gemini-1.0-pro:generateContent`;
-			return token ? `${baseEndpoint}?key=${token}` : baseEndpoint;
+			const endpointWithKey = token
+				? `${baseEndpoint}?key=${token}`
+				: baseEndpoint;
+			return stream
+				? `${endpointWithKey}${token ? "&" : "?"}alt=sse`
+				: endpointWithKey;
 		}
 		case "inference.net":
 		case "kluster.ai":
@@ -155,6 +161,7 @@ export async function validateProviderKey(
 			baseUrl,
 			undefined,
 			provider === "google-ai-studio" ? token : undefined,
+			undefined,
 		);
 		const payload = createValidationPayload(provider);
 		const headers = getProviderHeaders(provider, { token });

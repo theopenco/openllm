@@ -450,6 +450,7 @@ chat.openapi(completions, async (c) => {
 			providerKey.baseUrl || undefined,
 			usedModel,
 			usedProvider === "google-ai-studio" ? providerKey.token : undefined,
+			stream,
 		);
 	} catch (error) {
 		if (usedProvider === "llmgateway" && usedModel !== "custom") {
