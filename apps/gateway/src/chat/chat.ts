@@ -891,6 +891,8 @@ chat.openapi(completions, async (c) => {
 											}
 											if (data.candidates && data.candidates[0]?.finishReason) {
 												finishReason = data.candidates[0].finishReason;
+											} else if (data.candidates) {
+												finishReason = "stop";
 											}
 											break;
 										case "inference.net":
