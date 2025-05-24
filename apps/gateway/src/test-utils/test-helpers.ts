@@ -1,9 +1,11 @@
-import { db } from "@openllm/db";
+import { db, tables } from "@openllm/db";
 
 import { processLogQueue } from "../worker";
 
 export async function flushLogs() {
 	await processLogQueue();
+
+	await db.delete(tables.log);
 }
 
 /**
