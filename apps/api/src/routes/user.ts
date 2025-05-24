@@ -121,7 +121,7 @@ const updatePasswordSchema = z.object({
 
 const deletePasskey = createRoute({
 	method: "delete",
-	path: "/me/passkeys/:id",
+	path: "/me/passkeys/{id}",
 	request: {
 		params: z.object({
 			id: z.string(),

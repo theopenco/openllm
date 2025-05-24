@@ -1,11 +1,7 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { KeyIcon, MoreHorizontal, PlusIcon } from "lucide-react";
 
 import { CreateApiKeyDialog } from "./create-api-key-dialog";
-import {
-	useApiKeys,
-	useDeleteApiKey,
-	useToggleApiKeyStatus,
-} from "./hooks/useApiKeys";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -36,34 +32,98 @@ import {
 	TableRow,
 } from "@/lib/components/table";
 import { toast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 export function ApiKeysList() {
-	const { data } = useApiKeys();
-	const deleteMutation = useDeleteApiKey();
-	const toggleMutation = useToggleApiKeyStatus();
+	const queryClient = useQueryClient();
+	const { data } = $api.useSuspenseQuery("get", "/keys/api");
+	const { mutate: deleteMutation } = $api.useMutation(
+		"delete",
+		"/keys/api/{id}",
+	);
+	const { mutate: toggleKeyStatus } = $api.useMutation(
+		"patch",
+		"/keys/api/{id}",
+	);
 
-	const keys = data?.apiKeys.filter((key) => key.status !== "deleted");
+	const keys = data?.apiKeys;
 
 	const deleteKey = (id: string) => {
-		deleteMutation.mutate(id);
+		deleteMutation(
+			{
+				params: {
+					path: { id },
+				},
+			},
+			{
+				onSuccess: () => {
+					const queryKey = $api.queryOptions("get", "/keys/api").queryKey;
+
+					queryClient.setQueryData(queryKey, (oldData: any) => {
+						if (!oldData) {
+							return oldData;
+						}
+
+						return {
+							...oldData,
+							apiKeys: oldData.apiKeys.map((key: any) =>
+								key.id === id ? { ...key, status: "deleted" } : key,
+							),
+						};
+					});
+
+					toast({ title: "API key deleted successfully." });
+				},
+				onError: () => {
+					toast({ title: "Failed to delete API key.", variant: "destructive" });
+				},
+			},
+		);
 	};
 
-	const toggleStatus = (id: string, currentStatus: string) => {
+	const toggleStatus = (
+		id: string,
+		currentStatus: "active" | "inactive" | "deleted" | null,
+	) => {
 		const newStatus = currentStatus === "active" ? "inactive" : "active";
-		toggleMutation.mutate({ id, status: newStatus });
-		toast({
-			title: "API Key Status Updated",
-			description: "The API key status has been updated.",
-		});
-	};
 
-	// const copyToClipboard = (text: string) => {
-	// 	navigator.clipboard.writeText(text);
-	// 	toast({
-	// 		title: "API Key Copied",
-	// 		description: "The API key has been copied to your clipboard.",
-	// 	});
-	// };
+		toggleKeyStatus(
+			{
+				params: {
+					path: { id },
+				},
+				body: {
+					status: newStatus,
+				},
+			},
+			{
+				onSuccess: () => {
+					const queryKey = $api.queryOptions("get", "/keys/api").queryKey;
+
+					queryClient.setQueryData(queryKey, (oldData: any) => {
+						if (!oldData) {
+							return oldData;
+						}
+
+						return {
+							...oldData,
+							apiKeys: oldData.apiKeys.map((key: any) =>
+								key.id === id ? { ...key, status: newStatus } : key,
+							),
+						};
+					});
+
+					toast({
+						title: "API Key Status Updated",
+						description: "The API key status has been updated.",
+					});
+				},
+				onError: () => {
+					toast({ title: "Failed to update API key.", variant: "destructive" });
+				},
+			},
+		);
+	};
 
 	if (keys!.length === 0) {
 		return (
@@ -117,7 +177,13 @@ export function ApiKeysList() {
 						<TableCell>{key.createdAt}</TableCell>
 						<TableCell>
 							<Badge
-								variant={key.status === "active" ? "default" : "secondary"}
+								variant={
+									key.status === "active"
+										? "default"
+										: key.status === "deleted"
+											? "destructive"
+											: "secondary"
+								}
 							>
 								{key.status}
 							</Badge>

@@ -27,13 +27,6 @@ export async function fetchOrganizations(): Promise<OrganizationsResponse> {
 	return await res.json();
 }
 
-export function useOrganizations() {
-	return useQuery({
-		queryKey: ["organizations"],
-		queryFn: fetchOrganizations,
-	});
-}
-
 export function useDefaultOrganization() {
 	return useQuery({
 		queryKey: ["defaultOrganization"],

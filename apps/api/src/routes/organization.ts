@@ -71,7 +71,7 @@ organization.openapi(getOrganizations, async (c) => {
 
 const getProjects = createRoute({
 	method: "get",
-	path: "/:id/projects",
+	path: "/{id}/projects",
 	request: {
 		params: z.object({
 			id: z.string(),

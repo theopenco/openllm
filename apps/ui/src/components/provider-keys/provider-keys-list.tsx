@@ -1,12 +1,8 @@
 import { providers, type ProviderId } from "@openllm/models";
+import { useQueryClient } from "@tanstack/react-query";
 import { KeyIcon, MoreHorizontal, PlusIcon } from "lucide-react";
 
 import { CreateProviderKeyDialog } from "./create-provider-key-dialog";
-import {
-	useProviderKeys,
-	useDeleteProviderKey,
-	useToggleProviderKeyStatus,
-} from "./hooks/useProviderKeys";
 import AnthropicLogo from "@/assets/models/anthropic.svg?react";
 import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
 import InferenceLogo from "@/assets/models/inference-net.svg?react";
@@ -43,6 +39,7 @@ import {
 	TableRow,
 } from "@/lib/components/table";
 import { toast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 export const providerLogoComponents: Partial<
 	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>>>
@@ -56,23 +53,71 @@ export const providerLogoComponents: Partial<
 };
 
 export function ProviderKeysList() {
-	const { data } = useProviderKeys();
-	const deleteMutation = useDeleteProviderKey();
-	const toggleMutation = useToggleProviderKeyStatus();
+	const queryClient = useQueryClient();
+
+	const { data } = $api.useSuspenseQuery("get", "/keys/provider");
+	const deleteMutation = $api.useMutation("delete", "/keys/provider/{id}");
+	const toggleMutation = $api.useMutation("patch", "/keys/provider/{id}");
+
+	const queryKey = $api.queryOptions("get", "/keys/provider").queryKey;
 
 	const keys = data?.providerKeys.filter((key) => key.status !== "deleted");
 
 	const deleteKey = (id: string) => {
-		deleteMutation.mutate(id);
+		deleteMutation.mutate(
+			{ params: { path: { id } } },
+			{
+				onSuccess: () => {
+					toast({ title: "Deleted", description: "Provider key removed" });
+
+					queryClient.setQueryData(queryKey, (old: any) => ({
+						...old,
+						providerKeys: old.providerKeys.filter((key: any) => key.id !== id),
+					}));
+				},
+				onError: () =>
+					toast({
+						title: "Error",
+						description: "Failed to delete key",
+						variant: "destructive",
+					}),
+			},
+		);
 	};
 
-	const toggleStatus = (id: string, currentStatus: string) => {
+	const toggleStatus = (
+		id: string,
+		currentStatus: "active" | "inactive" | "deleted" | null,
+	) => {
 		const newStatus = currentStatus === "active" ? "inactive" : "active";
-		toggleMutation.mutate({ id, status: newStatus });
-		toast({
-			title: "Provider Key Status Updated",
-			description: "The provider key status has been updated.",
-		});
+
+		toggleMutation.mutate(
+			{
+				params: { path: { id } },
+				body: { status: newStatus },
+			},
+			{
+				onSuccess: () => {
+					toast({
+						title: "Status Updated",
+						description: `Provider key marked as ${newStatus}`,
+					});
+
+					queryClient.setQueryData(queryKey, (old: any) => ({
+						...old,
+						providerKeys: old.providerKeys.map((key: any) =>
+							key.id === id ? { ...key, status: newStatus } : key,
+						),
+					}));
+				},
+				onError: () =>
+					toast({
+						title: "Error",
+						description: "Failed to update status",
+						variant: "destructive",
+					}),
+			},
+		);
 	};
 
 	// Get provider name from provider ID

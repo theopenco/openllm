@@ -7,6 +7,7 @@ import { addPasskey } from "@/components/passkeys/add-passkey";
 import { PasskeyList } from "@/components/passkeys/passkey-list";
 import { CachingSettings } from "@/components/settings/caching-settings";
 import { ProjectModeSettings } from "@/components/settings/project-mode-settings";
+import { SettingsLoading } from "@/components/settings/settings-loading";
 import {
 	useDeleteAccount,
 	useUpdatePassword,
@@ -35,11 +36,14 @@ import { toast } from "@/lib/components/use-toast";
 
 export const Route = createFileRoute("/dashboard/_layout/settings")({
 	component: RouteComponent,
+	pendingComponent: () => <SettingsLoading />,
+	errorComponent: ({ error }) => <div>{error.message}</div>,
 });
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
 	const { data: session } = useSession();
+
 	const user = session?.user;
 
 	const [name, setName] = useState(user?.name || "");

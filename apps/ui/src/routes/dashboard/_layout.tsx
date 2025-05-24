@@ -14,9 +14,8 @@ function RouteComponent() {
 	const navigate = useNavigate();
 	const session = useSession();
 
-	// Redirect to login if not authenticated
 	useEffect(() => {
-		if (!session.data?.user && !session.isPending) {
+		if (!session.isPending && !session.data?.user) {
 			navigate({ to: "/login" });
 		}
 	}, [session.data, session.isPending, navigate]);

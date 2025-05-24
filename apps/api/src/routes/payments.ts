@@ -350,7 +350,7 @@ payments.openapi(setDefaultPaymentMethod, async (c) => {
 
 const deletePaymentMethod = createRoute({
 	method: "delete",
-	path: "/payment-methods/:id",
+	path: "/payment-methods/{id}",
 	request: {
 		params: z.object({
 			id: z.string(),

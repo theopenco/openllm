@@ -565,8 +565,13 @@ chat.openapi(completions, async (c) => {
 		case "anthropic": {
 			requestBody.max_tokens = max_tokens || 1024; // Set a default if not provided
 			requestBody.messages = messages.map((m) => ({
-				role: m.role === "assistant" ? "assistant" : "user",
-				content: m.content,
+				role:
+					m.role === "assistant"
+						? "assistant"
+						: m.role === "system"
+							? "user"
+							: "user",
+				content: m.role === "system" ? `System: ${m.content}` : m.content,
 			}));
 			break;
 		}
@@ -576,8 +581,23 @@ chat.openapi(completions, async (c) => {
 			delete requestBody.stream; // Handled differently
 			delete requestBody.messages; // Not used in body for Google AI Studio
 
-			requestBody.contents = messages.map((m) => ({
-				parts: [{ text: m.content }],
+			// Extract system messages and combine with user messages
+			const systemMessages = messages.filter((m) => m.role === "system");
+			const nonSystemMessages = messages.filter((m) => m.role !== "system");
+			const systemContext =
+				systemMessages.length > 0
+					? systemMessages.map((m) => m.content).join(" ") + " "
+					: "";
+
+			requestBody.contents = nonSystemMessages.map((m, index) => ({
+				parts: [
+					{
+						text:
+							index === 0 && systemContext
+								? systemContext + m.content
+								: m.content,
+					},
+				],
 			}));
 			requestBody.generationConfig = {};
 

@@ -1,7 +1,6 @@
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useState } from "react";
 
-import { useActivity } from "@/hooks/useActivity";
 import { Button } from "@/lib/components/button";
 import { Progress } from "@/lib/components/progress";
 import {
@@ -12,8 +11,9 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/lib/components/table";
+import { $api } from "@/lib/fetch-client";
 
-import type { ActivityModelUsage } from "@/hooks/useActivity";
+import type { ActivityModelUsage } from "@/types/activity";
 
 type SortColumn = "model" | "provider" | "requestCount" | "totalTokens";
 type SortDirection = "asc" | "desc";
@@ -22,7 +22,9 @@ export function ModelUsageTable() {
 	const [days, setDays] = useState<7 | 30>(7);
 	const [sortColumn, setSortColumn] = useState<SortColumn>("totalTokens");
 	const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-	const { data, isLoading, error } = useActivity(days);
+	const { data, isLoading, error } = $api.useSuspenseQuery("get", "/activity", {
+		params: { query: { days: String(days) } },
+	});
 
 	const handleSort = (column: SortColumn) => {
 		if (sortColumn === column) {
@@ -62,7 +64,7 @@ export function ModelUsageTable() {
 		);
 	}
 
-	if (!data || data.length === 0) {
+	if (!data || data.activity.length === 0) {
 		return (
 			<div className="flex h-[350px] items-center justify-center">
 				<p className="text-muted-foreground">No model usage data available</p>
@@ -72,7 +74,7 @@ export function ModelUsageTable() {
 
 	const modelMap = new Map<string, ActivityModelUsage>();
 
-	data.forEach((day) => {
+	data.activity.forEach((day) => {
 		day.modelBreakdown.forEach((model) => {
 			const key = `${model.provider}|${model.model}`;
 			if (modelMap.has(key)) {

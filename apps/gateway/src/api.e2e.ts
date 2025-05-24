@@ -137,6 +137,10 @@ describe("e2e tests with real provider keys", () => {
 						model: requestModel,
 						messages: [
 							{
+								role: "system",
+								content: "You are a helpful assistant.",
+							},
+							{
 								role: "user",
 								content: "Hello, just reply 'OK'!",
 							},
@@ -207,6 +211,10 @@ describe("e2e tests with real provider keys", () => {
 					body: JSON.stringify({
 						model: requestModel,
 						messages: [
+							{
+								role: "system",
+								content: "You are a helpful assistant.",
+							},
 							{
 								role: "user",
 								content: "Hello! This is a streaming e2e test.",
