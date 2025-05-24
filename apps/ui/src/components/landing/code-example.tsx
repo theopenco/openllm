@@ -31,16 +31,15 @@ export default function CodeExample() {
 						</div>
 						<pre className="p-4 overflow-x-auto text-sm">
 							<code className="text-zinc-800 dark:text-zinc-300">
-								{`POST https://api.llmgateway.io/v1/chat/completions
-Content-Type: application/json
-Authorization: Bearer your-llmgateway-api-key
-
-{
+								{`curl -X POST https://api.llmgateway.io/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -H "Authorization: Bearer $LLM_GATEWAY_API_KEY" \\
+  -d '{
   "model": "gpt-4o",
   "messages": [
     {"role": "user", "content": "Hello, how are you?"}
   ]
-}`}
+}'`}
 							</code>
 						</pre>
 					</div>

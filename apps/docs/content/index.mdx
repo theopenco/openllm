@@ -27,17 +27,16 @@ All this data is automatically collected and presented in an intuitive dashboard
 
 Using LLM Gateway is simple. Just swap out your current LLM provider URL with the LLM Gateway API endpoint:
 
-```http
-POST https://api.llmgateway/v1/chat/completions
-Content-Type: application/json
-Authorization: Bearer your-llmgateway-api-key
-
-{
+```bash
+curl -X POST https://api.llmgateway.io/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $LLM_GATEWAY_API_KEY" \
+  -d '{
   "model": "gpt-4o",
   "messages": [
     {"role": "user", "content": "Hello, how are you?"}
   ]
-}
+}'
 ```
 
 LLM Gateway maintains compatibility with the OpenAI API format, making migration seamless.
