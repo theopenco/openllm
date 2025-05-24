@@ -594,6 +594,14 @@ chat.openapi(completions, async (c) => {
 
 			break;
 		}
+		case "inference.net":
+		case "kluster.ai":
+		case "together.ai": {
+			if (usedModel.startsWith(`${usedProvider}/`)) {
+				requestBody.model = usedModel.substring(usedProvider.length + 1);
+			}
+			break;
+		}
 	}
 
 	// Add optional parameters if they are provided
