@@ -52,6 +52,9 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 		case "kluster.ai":
 			token = process.env.KLUSTER_AI_API_KEY;
 			break;
+		case "together.ai":
+			token = process.env.TOGETHER_AI_API_KEY;
+			break;
 		default:
 			throw new HTTPException(400, {
 				message: `No environment variable set for provider: ${usedProvider}`,
@@ -155,7 +158,8 @@ chat.openapi(completions, async (c) => {
 	if (modelInput.includes("/")) {
 		const split = modelInput.split("/");
 		requestedProvider = split[0] as Provider;
-		requestedModel = split[1] as Model;
+		// Handle model names with multiple slashes (e.g. together.ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo)
+		requestedModel = split.slice(1).join("/") as Model;
 	}
 
 	if (requestedProvider && !providers.find((p) => p.id === requestedProvider)) {
@@ -260,8 +264,9 @@ chat.openapi(completions, async (c) => {
 						anthropic: "ANTHROPIC_API_KEY",
 						"google-vertex": "VERTEX_API_KEY",
 						"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
-						"inference.net": "INFERENCE_API_KEY",
-						"kluster.ai": "KLUSTER_API_KEY",
+						"inference.net": "INFERENCE_NET_API_KEY",
+						"kluster.ai": "KLUSTER_AI_API_KEY",
+						"together.ai": "TOGETHER_AI_API_KEY",
 					};
 					if (process.env[envVarMap[provider as keyof typeof envVarMap]]) {
 						envProviders.push(provider);
@@ -609,6 +614,14 @@ chat.openapi(completions, async (c) => {
 
 			break;
 		}
+		case "inference.net":
+		case "kluster.ai":
+		case "together.ai": {
+			if (usedModel.startsWith(`${usedProvider}/`)) {
+				requestBody.model = usedModel.substring(usedProvider.length + 1);
+			}
+			break;
+		}
 	}
 
 	// Add optional parameters if they are provided
@@ -899,6 +912,21 @@ chat.openapi(completions, async (c) => {
 												}
 												totalTokens =
 													(promptTokens || 0) + (completionTokens || 0);
+											} else if (finishReason) {
+												if (!promptTokens) {
+													promptTokens =
+														messages.reduce(
+															(acc, m) => acc + (m.content?.length || 0),
+															0,
+														) / 4;
+												}
+
+												if (!completionTokens) {
+													completionTokens = fullContent.length / 4;
+												}
+
+												totalTokens =
+													(promptTokens || 0) + (completionTokens || 0);
 											}
 											break;
 										case "google-vertex":
@@ -915,6 +943,7 @@ chat.openapi(completions, async (c) => {
 											break;
 										case "inference.net":
 										case "kluster.ai":
+										case "together.ai":
 											if (data.choices && data.choices[0]) {
 												if (data.choices[0].delta?.content) {
 													fullContent += data.choices[0].delta.content;
@@ -922,6 +951,38 @@ chat.openapi(completions, async (c) => {
 												if (data.choices[0].finish_reason) {
 													finishReason = data.choices[0].finish_reason;
 												}
+											}
+
+											// Extract token counts if available
+											if (data.usage) {
+												if (data.usage.prompt_tokens !== undefined) {
+													promptTokens = data.usage.prompt_tokens;
+												}
+												if (data.usage.completion_tokens !== undefined) {
+													completionTokens = data.usage.completion_tokens;
+												}
+												if (data.usage.total_tokens !== undefined) {
+													totalTokens = data.usage.total_tokens;
+												} else {
+													totalTokens =
+														(promptTokens || 0) + (completionTokens || 0);
+												}
+											} else if (finishReason) {
+												// Estimate tokens if not provided
+												if (!promptTokens) {
+													promptTokens =
+														messages.reduce(
+															(acc, m) => acc + (m.content?.length || 0),
+															0,
+														) / 4;
+												}
+
+												if (!completionTokens) {
+													completionTokens = fullContent.length / 4;
+												}
+
+												totalTokens =
+													(promptTokens || 0) + (completionTokens || 0);
 											}
 											break;
 										default: // OpenAI format
@@ -956,10 +1017,30 @@ chat.openapi(completions, async (c) => {
 
 				// Log the streaming request
 				const duration = Date.now() - startTime;
+
+				// Calculate estimated tokens for Anthropic if not provided
+				let calculatedPromptTokens = promptTokens;
+				let calculatedCompletionTokens = completionTokens;
+
+				if (
+					usedProvider === "anthropic" &&
+					(!promptTokens || !completionTokens)
+				) {
+					if (!promptTokens) {
+						calculatedPromptTokens =
+							messages.reduce((acc, m) => acc + (m.content?.length || 0), 0) /
+							4;
+					}
+
+					if (!completionTokens) {
+						calculatedCompletionTokens = fullContent.length / 4;
+					}
+				}
+
 				const costs = calculateCosts(
 					usedModel,
-					promptTokens,
-					completionTokens,
+					calculatedPromptTokens,
+					calculatedCompletionTokens,
 					{
 						prompt: messages.map((m) => m.content).join("\n"),
 						completion: fullContent,
@@ -1178,6 +1259,7 @@ chat.openapi(completions, async (c) => {
 			break;
 		case "inference.net":
 		case "kluster.ai":
+		case "together.ai":
 			content = json.choices?.[0]?.message?.content || null;
 			finishReason = json.choices?.[0]?.finish_reason || null;
 			promptTokens = json.usage?.prompt_tokens || null;
@@ -1193,10 +1275,36 @@ chat.openapi(completions, async (c) => {
 	}
 
 	// Log the successful request and response
-	const costs = calculateCosts(usedModel, promptTokens, completionTokens, {
-		prompt: messages.map((m) => m.content).join("\n"),
-		completion: content,
-	});
+	let calculatedPromptTokens = promptTokens;
+	let calculatedCompletionTokens = completionTokens;
+
+	// Estimate tokens if not provided by the API
+	if (
+		(usedProvider === "anthropic" ||
+			usedProvider === "inference.net" ||
+			usedProvider === "kluster.ai" ||
+			usedProvider === "together.ai") &&
+		(!promptTokens || !completionTokens)
+	) {
+		if (!promptTokens) {
+			calculatedPromptTokens =
+				messages.reduce((acc, m) => acc + (m.content?.length || 0), 0) / 4;
+		}
+
+		if (!completionTokens && content) {
+			calculatedCompletionTokens = content.length / 4;
+		}
+	}
+
+	const costs = calculateCosts(
+		usedModel,
+		calculatedPromptTokens,
+		calculatedCompletionTokens,
+		{
+			prompt: messages.map((m) => m.content).join("\n"),
+			completion: content,
+		},
+	);
 	await insertLog({
 		organizationId: project.organizationId,
 		projectId: apiKey.projectId,
@@ -1288,6 +1396,34 @@ chat.openapi(completions, async (c) => {
 					total_tokens: totalTokens,
 				},
 			};
+			break;
+		}
+		case "inference.net":
+		case "kluster.ai":
+		case "together.ai": {
+			if (!transformedResponse.id) {
+				transformedResponse = {
+					id: `chatcmpl-${Date.now()}`,
+					object: "chat.completion",
+					created: Math.floor(Date.now() / 1000),
+					model: usedModel,
+					choices: [
+						{
+							index: 0,
+							message: {
+								role: "assistant",
+								content: content,
+							},
+							finish_reason: finishReason || "stop",
+						},
+					],
+					usage: {
+						prompt_tokens: promptTokens,
+						completion_tokens: completionTokens,
+						total_tokens: totalTokens,
+					},
+				};
+			}
 			break;
 		}
 	}
