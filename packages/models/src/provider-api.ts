@@ -13,6 +13,8 @@ export function getProviderHeaders(
 				"x-api-key": providerKey.token,
 				"anthropic-version": "2023-06-01",
 			};
+		case "google-ai-studio":
+			return {};
 		case "google-vertex":
 		case "kluster.ai":
 		case "openai":
@@ -72,6 +74,7 @@ export function getProviderEndpoint(
 	provider: ProviderId,
 	baseUrl?: string,
 	model?: string,
+	token?: string,
 ): string {
 	let url: string;
 
@@ -102,11 +105,16 @@ export function getProviderEndpoint(
 		case "anthropic":
 			return `${url}/v1/messages`;
 		case "google-vertex":
-		case "google-ai-studio":
 			if (model) {
 				return `${url}/v1beta/models/${model}:generateContent`;
 			}
 			return `${url}/v1beta/models/gemini-1.0-pro:generateContent`;
+		case "google-ai-studio": {
+			const baseEndpoint = model
+				? `${url}/v1beta/models/${model}:generateContent`
+				: `${url}/v1beta/models/gemini-1.0-pro:generateContent`;
+			return token ? `${baseEndpoint}?key=${token}` : baseEndpoint;
+		}
 		case "inference.net":
 		case "kluster.ai":
 		case "openai":
@@ -131,7 +139,12 @@ export async function validateProviderKey(
 	}
 
 	try {
-		const endpoint = getProviderEndpoint(provider, baseUrl);
+		const endpoint = getProviderEndpoint(
+			provider,
+			baseUrl,
+			undefined,
+			provider === "google-ai-studio" ? token : undefined,
+		);
 		const payload = createValidationPayload(provider);
 		const headers = getProviderHeaders(provider, { token });
 		headers["Content-Type"] = "application/json";
