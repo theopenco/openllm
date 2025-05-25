@@ -69,8 +69,20 @@ export function createValidationPayload(provider: ProviderId): any {
 				},
 			};
 		}
-		case "inference.net":
-		case "kluster.ai":
+		case "inference.net": {
+			return {
+				model: "llama-3.3-70b-instruct",
+				max_tokens: 1,
+				messages: [systemMessage, minimalMessage],
+			};
+		}
+		case "kluster.ai": {
+			return {
+				model: "llama-3.1-70b-instruct",
+				max_tokens: 1,
+				messages: [systemMessage, minimalMessage],
+			};
+		}
 		case "openai":
 		default: {
 			return {
@@ -110,7 +122,11 @@ export function getProviderEndpoint(
 				url = "https://generativelanguage.googleapis.com";
 				break;
 			case "inference.net":
+				url = "https://api.inference.net";
+				break;
 			case "kluster.ai":
+				url = "https://api.kluster.ai";
+				break;
 			default:
 				throw new Error(`Provider ${provider} requires a baseUrl`);
 		}
@@ -131,7 +147,15 @@ export function getProviderEndpoint(
 			return token ? `${baseEndpoint}?key=${token}` : baseEndpoint;
 		}
 		case "inference.net":
+			if (model) {
+				return `${url}/v1/chat/completions`;
+			}
+			return `${url}/v1/chat/completions`;
 		case "kluster.ai":
+			if (model) {
+				return `${url}/v1/chat/completions`;
+			}
+			return `${url}/v1/chat/completions`;
 		case "openai":
 		case "llmgateway":
 		default:

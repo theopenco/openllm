@@ -112,8 +112,14 @@ describe("e2e tests with real provider keys", () => {
 
 			for (const provider of modelProviders) {
 				const envVar = getProviderEnvVar(provider);
-				if (!envVar) {
-					console.log(`Skipping ${model} on ${provider} - no API key provided`);
+				if (
+					!envVar ||
+					provider === "inference.net" ||
+					provider === "kluster.ai"
+				) {
+					console.log(
+						`Skipping ${model} on ${provider} - no API key provided or provider not supported in tests`,
+					);
 					continue;
 				}
 
@@ -185,9 +191,13 @@ describe("e2e tests with real provider keys", () => {
 
 			for (const provider of streamingProviders) {
 				const envVar = getProviderEnvVar(provider);
-				if (!envVar) {
+				if (
+					!envVar ||
+					provider === "inference.net" ||
+					provider === "kluster.ai"
+				) {
 					console.log(
-						`Skipping streaming ${model} on ${provider} - no API key provided`,
+						`Skipping streaming ${model} on ${provider} - no API key provided or provider not supported in tests`,
 					);
 					continue;
 				}

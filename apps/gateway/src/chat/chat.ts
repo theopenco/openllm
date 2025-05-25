@@ -260,8 +260,8 @@ chat.openapi(completions, async (c) => {
 						anthropic: "ANTHROPIC_API_KEY",
 						"google-vertex": "VERTEX_API_KEY",
 						"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
-						"inference.net": "INFERENCE_API_KEY",
-						"kluster.ai": "KLUSTER_API_KEY",
+						"inference.net": "INFERENCE_NET_API_KEY",
+						"kluster.ai": "KLUSTER_AI_API_KEY",
 					};
 					if (process.env[envVarMap[provider as keyof typeof envVarMap]]) {
 						envProviders.push(provider);
