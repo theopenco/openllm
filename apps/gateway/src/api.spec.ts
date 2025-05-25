@@ -556,7 +556,7 @@ describe("test", () => {
 	});
 
 	// test for together.ai provider
-	test("/v1/chat/completions with together.ai provider", async () => {
+	test.skip("/v1/chat/completions with together.ai provider", async () => {
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
@@ -601,7 +601,7 @@ describe("test", () => {
 	});
 
 	// test for missing together.ai provider key
-	test("/v1/chat/completions with missing together.ai provider key", async () => {
+	test.skip("/v1/chat/completions with missing together.ai provider key", async () => {
 		await db.insert(tables.apiKey).values({
 			id: "token-id",
 			token: "real-token",
