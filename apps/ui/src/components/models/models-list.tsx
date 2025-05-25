@@ -16,7 +16,7 @@ export function ModelsList() {
 					<div className="text-sm text-muted-foreground mb-2">Providers:</div>
 					<div className="flex flex-wrap gap-2 mb-2">
 						{model.providers.map((provider) => (
-							<Badge key={provider}>{provider}</Badge>
+							<Badge key={provider.providerId}>{provider.providerId}</Badge>
 						))}
 					</div>
 					<div className="text-sm">
