@@ -554,4 +554,79 @@ describe("test", () => {
 		const errorMessage = await res.text();
 		expect(errorMessage).toContain("No API key set for provider: kluster.ai");
 	});
+
+	// test for together.ai provider
+	test.skip("/v1/chat/completions with together.ai provider", async () => {
+		await db.insert(tables.apiKey).values({
+			id: "token-id",
+			token: "real-token",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		// Create provider key for together.ai with mock server URL as baseUrl
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-id",
+			token: "together-test-key",
+			provider: "together.ai",
+			projectId: "project-id",
+			baseUrl: mockServerUrl,
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "together.ai/mistralai/Mixtral-8x7B-Instruct-v0.1",
+				messages: [
+					{
+						role: "user",
+						content: "Hello with together.ai provider!",
+					},
+				],
+			}),
+		});
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		expect(json).toHaveProperty("choices.[0].message.content");
+
+		// Check that the request was logged
+		const logs = await waitForLogs();
+		expect(logs.length).toBe(1);
+		expect(logs[0].finishReason).toBe("stop");
+		expect(logs[0].usedProvider).toBe("together.ai");
+	});
+
+	// test for missing together.ai provider key
+	test.skip("/v1/chat/completions with missing together.ai provider key", async () => {
+		await db.insert(tables.apiKey).values({
+			id: "token-id",
+			token: "real-token",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "together.ai/mistralai/Mixtral-8x7B-Instruct-v0.1",
+				messages: [
+					{
+						role: "user",
+						content: "Hello without together.ai provider key!",
+					},
+				],
+			}),
+		});
+		expect(res.status).toBe(400);
+		const errorMessage = await res.text();
+		expect(errorMessage).toContain("No API key set for provider: together.ai");
+	});
 });

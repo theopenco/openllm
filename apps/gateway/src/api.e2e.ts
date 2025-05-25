@@ -63,6 +63,7 @@ describe("e2e tests with real provider keys", () => {
 			"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
 			"inference.net": "INFERENCE_NET_API_KEY",
 			"kluster.ai": "KLUSTER_AI_API_KEY",
+			"together.ai": "TOGETHER_AI_API_KEY",
 		};
 		return process.env[envMap[provider]];
 	}
@@ -296,7 +297,11 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 						if (
 							data.choices?.[0]?.delta?.content ||
 							data.delta?.text ||
-							data.candidates?.[0]?.content?.parts?.[0]?.text
+							data.candidates?.[0]?.content?.parts?.[0]?.text ||
+							data.choices?.[0]?.finish_reason ||
+							data.stop_reason ||
+							data.delta?.stop_reason ||
+							data.candidates?.[0]?.finishReason
 						) {
 							hasContent = true;
 						}

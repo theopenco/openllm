@@ -61,8 +61,8 @@ export const providers = [
 		name: "Inference.net",
 		description:
 			"Inference.net is a platform for running large language models in the cloud.",
-		streaming: false,
-		cancellation: false,
+		streaming: true,
+		cancellation: true,
 		color: "#10b981",
 	},
 	{
@@ -70,9 +70,18 @@ export const providers = [
 		name: "Kluster.ai",
 		description:
 			"Kluster.ai is a platform for running large language models in the cloud.",
-		streaming: false,
-		cancellation: false,
+		streaming: true,
+		cancellation: true,
 		color: "#f59e0b",
+	},
+	{
+		id: "together.ai",
+		name: "Together AI",
+		description:
+			"Together AI is a platform for running large language models in the cloud with fast inference.",
+		streaming: true,
+		cancellation: true,
+		color: "#ff6b35",
 	},
 ] as const satisfies ProviderDefinition[];
 
