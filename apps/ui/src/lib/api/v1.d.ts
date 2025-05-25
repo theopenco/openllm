@@ -427,9 +427,9 @@ export interface paths {
 								responseSize: number;
 								content: string | null;
 								finishReason: string | null;
-								promptTokens: number | null;
-								completionTokens: number | null;
-								totalTokens: number | null;
+								promptTokens: string | null;
+								completionTokens: string | null;
+								totalTokens: string | null;
 								messages?: unknown;
 								temperature: number | null;
 								maxTokens: number | null;
