@@ -36,6 +36,7 @@ export function getUnifiedFinishReason(
 			}
 			break;
 		case "google-vertex":
+		case "google-ai-studio":
 			if (finishReason === "STOP") {
 				return UnifiedFinishReason.COMPLETED;
 			}
@@ -74,6 +75,10 @@ export type LogInsertData = Omit<
 export type LogData = InferInsertModel<typeof log>;
 
 export async function insertLog(logData: LogInsertData): Promise<unknown> {
+	if (logData.usedProvider === "google-ai-studio" && !logData.finishReason) {
+		logData.finishReason = "stop";
+	}
+
 	if (logData.unifiedFinishReason === undefined) {
 		logData.unifiedFinishReason = getUnifiedFinishReason(
 			logData.finishReason,
