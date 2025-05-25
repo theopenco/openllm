@@ -82,10 +82,22 @@ export let models = [
 		inputPrice: 0.00001,
 		outputPrice: 0.00003,
 	},
-	// {
-	// 	model: "llama-3.3-70b-instruct",
-	// 	providers: ["inference.net", "kluster.ai"],
-	// 	inputPrice: 0.0000009,
-	// 	outputPrice: 0.0000027,
-	// },
+	{
+		model: "llama-3.3-70b-instruct",
+		providers: ["inference.net"],
+		inputPrice: 0.0000009,
+		outputPrice: 0.0000027,
+	},
+	{
+		model: "llama-3.1-70b-instruct",
+		providers: ["kluster.ai"],
+		inputPrice: 0.0000009,
+		outputPrice: 0.0000027,
+	},
+	{
+		model: "llama-3.1-8b-instruct",
+		providers: ["inference.net", "kluster.ai"],
+		inputPrice: 0.0000009,
+		outputPrice: 0.0000027,
+	},
 ] as const satisfies ModelDefinition[];
