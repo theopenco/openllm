@@ -77,6 +77,9 @@ export type LogData = InferInsertModel<typeof log>;
 export async function insertLog(logData: LogInsertData): Promise<unknown> {
 	if (logData.usedProvider === "google-ai-studio" && !logData.finishReason) {
 		logData.finishReason = "stop";
+		console.log(
+			`Setting default finishReason for Google AI Studio log: ${logData.finishReason}`,
+		);
 	}
 
 	if (logData.unifiedFinishReason === undefined) {
@@ -86,7 +89,13 @@ export async function insertLog(logData: LogInsertData): Promise<unknown> {
 		);
 	}
 	(logData as any).usedMode = determineUsedMode(logData.providerKeyId);
+
+	console.log(
+		`Publishing log to queue for provider: ${logData.usedProvider}, model: ${logData.usedModel}, streamed: ${logData.streamed}, finishReason: ${logData.finishReason}`,
+	);
 	await publishToQueue(LOG_QUEUE, logData);
+	console.log(`Successfully published log to queue`);
+
 	return 1; // Return 1 to match test expectations
 }
 

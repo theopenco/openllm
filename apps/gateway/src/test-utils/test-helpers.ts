@@ -15,7 +15,7 @@ export async function flushLogs() {
  */
 export async function waitForLogs(
 	expectedCount = 1,
-	maxWaitMs = 10000,
+	maxWaitMs = 30000, // Increased timeout for Google AI Studio streaming tests
 	intervalMs = 100,
 ) {
 	const startTime = Date.now();

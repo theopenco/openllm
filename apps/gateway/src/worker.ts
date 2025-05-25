@@ -11,11 +11,19 @@ export async function processLogQueue(): Promise<void> {
 	const message = await consumeFromQueue(LOG_QUEUE);
 
 	if (!message) {
+		console.log("No messages in log queue to process");
 		return;
 	}
 
 	try {
 		const logData = message.map((i) => JSON.parse(i) as LogInsertData);
+		console.log(`Processing ${logData.length} log entries from queue`);
+
+		for (const data of logData) {
+			console.log(
+				`Processing log for provider: ${data.usedProvider}, model: ${data.usedModel}, streamed: ${data.streamed}`,
+			);
+		}
 
 		await db.insert(log).values(
 			logData.map((i) => ({
@@ -23,6 +31,7 @@ export async function processLogQueue(): Promise<void> {
 				...i,
 			})),
 		);
+		console.log(`Successfully inserted ${logData.length} logs into database`);
 
 		for (const data of logData) {
 			if (!data.cost || data.cached) {

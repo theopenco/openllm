@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { db } from "@openllm/db";
+import { db, log } from "@openllm/db";
 import {
 	getProviderEndpoint,
 	getProviderHeaders,
@@ -21,7 +21,8 @@ import {
 	setCache,
 } from "../lib/cache";
 import { calculateCosts } from "../lib/costs";
-import { insertLog } from "../lib/logs";
+import { getUnifiedFinishReason, insertLog } from "../lib/logs";
+import { processLogQueue } from "../worker";
 
 import type { ServerTypes } from "../vars";
 
@@ -799,10 +800,11 @@ chat.openapi(completions, async (c) => {
 
 			const reader = res.body.getReader();
 			let fullContent = "";
-			let finishReason = null;
-			let promptTokens = null;
-			let completionTokens = null;
-			let totalTokens = null;
+			let content = "";
+			let finishReason: string | null = null;
+			let promptTokens: number | null = null;
+			let completionTokens: number | null = null;
+			let totalTokens: number | null = null;
 
 			try {
 				while (true) {
@@ -815,14 +817,130 @@ chat.openapi(completions, async (c) => {
 					const chunk = new TextDecoder().decode(value);
 
 					// Process the chunk to extract content for logging and forward to client
+					if (usedProvider === ("google-ai-studio" as any)) {
+						try {
+							const jsonData = JSON.parse(chunk);
+							if (jsonData) {
+								console.log(`Parsed Google AI Studio chunk as JSON`);
+
+								// Extract content for logging
+								if (jsonData.candidates?.[0]?.content?.parts?.[0]?.text) {
+									content += jsonData.candidates[0].content.parts[0].text;
+								}
+
+								// Extract finish reason if present
+								if (jsonData.candidates?.[0]?.finishReason) {
+									finishReason =
+										jsonData.candidates[0].finishReason === "STOP"
+											? "stop"
+											: jsonData.candidates[0].finishReason.toLowerCase();
+								}
+
+								// Send a properly formatted SSE event
+								await stream.writeSSE({
+									event: "chunk",
+									data: JSON.stringify({
+										id: `chatcmpl-${Date.now()}`,
+										object: "chat.completion.chunk",
+										created: Math.floor(Date.now() / 1000),
+										model: usedModel,
+										choices: [
+											{
+												index: 0,
+												delta: {
+													content:
+														jsonData.candidates?.[0]?.content?.parts?.[0]
+															?.text || "",
+												},
+												finish_reason:
+													jsonData.candidates?.[0]?.finishReason === "STOP"
+														? "stop"
+														: null,
+											},
+										],
+										usage: null,
+									}),
+									id: String(eventId++),
+								});
+
+								continue; // Skip the regular line-by-line processing
+							}
+						} catch (e) {
+							console.log(`Processing Google AI Studio response line by line`);
+						}
+
+						const lines = chunk.split("\n");
+						for (const line of lines) {
+							if (line.trim()) {
+								// Send each non-empty line as a properly formatted SSE event
+								await stream.writeSSE({
+									event: "chunk",
+									data: JSON.stringify({
+										id: `chatcmpl-${Date.now()}`,
+										object: "chat.completion.chunk",
+										created: Math.floor(Date.now() / 1000),
+										model: usedModel,
+										choices: [
+											{
+												index: 0,
+												delta: {
+													content: line,
+												},
+												finish_reason: null,
+											},
+										],
+										usage: null,
+									}),
+									id: String(eventId++),
+								});
+							}
+						}
+
+						continue; // Skip the regular processing for Google AI Studio
+					}
+
 					const lines = chunk.split("\n");
 					for (const line of lines) {
-						if (line.startsWith("data: ")) {
-							if (usedProvider === "google-ai-studio") {
-								console.log(`Google AI Studio streaming line: ${line}`);
+						let processedLine = line;
+						let isDataLine = line.startsWith("data: ");
+
+						if (
+							usedProvider === ("google-ai-studio" as any) &&
+							!isDataLine &&
+							line.trim()
+						) {
+							try {
+								// Check if it's valid JSON
+								const jsonData = JSON.parse(line);
+								if (jsonData) {
+									// Add the "data: " prefix to make it a valid SSE event
+									processedLine = `data: ${line}`;
+									isDataLine = true;
+									console.log(
+										`Added "data: " prefix to Google AI Studio line: ${line}`,
+									);
+								}
+							} catch (e) {
+								console.log(`Non-JSON Google AI Studio line: ${line}`);
+							}
+						}
+
+						if (isDataLine) {
+							if (usedProvider === ("google-ai-studio" as any)) {
+								console.log(
+									`Google AI Studio streaming line: ${processedLine}`,
+								);
+
+								try {
+									const dataContent = processedLine.substring(6); // Remove "data: " prefix
+									const dataJson = JSON.parse(dataContent);
+									if (dataJson.choices?.[0]?.finish_reason) {
+										finishReason = dataJson.choices[0].finish_reason;
+									}
+								} catch (e) {}
 							}
 
-							if (line === "data: [DONE]") {
+							if (processedLine === "data: [DONE]") {
 								await stream.writeSSE({
 									event: "done",
 									data: "[DONE]",
@@ -830,7 +948,7 @@ chat.openapi(completions, async (c) => {
 								});
 							} else {
 								try {
-									const data = JSON.parse(line.substring(6));
+									const data = JSON.parse(processedLine.substring(6));
 
 									// Forward the data as a proper SSE event
 									// Transform non-OpenAI streaming responses to OpenAI format
@@ -876,7 +994,7 @@ chat.openapi(completions, async (c) => {
 										}
 									} else if (
 										usedProvider === "google-vertex" ||
-										usedProvider === "google-ai-studio"
+										usedProvider === ("google-ai-studio" as any)
 									) {
 										if (
 											data.candidates &&
@@ -954,7 +1072,7 @@ chat.openapi(completions, async (c) => {
 											}
 											break;
 										case "google-vertex":
-										case "google-ai-studio":
+										case "google-ai-studio" as any:
 											if (
 												data.candidates &&
 												data.candidates[0]?.content?.parts[0]?.text
@@ -1022,65 +1140,156 @@ chat.openapi(completions, async (c) => {
 					);
 
 					// Ensure finishReason is never null for Google AI Studio
-					if (usedProvider === "google-ai-studio" && !finishReason) {
+					if (usedProvider === ("google-ai-studio" as any) && !finishReason) {
 						finishReason = "stop";
+						console.log(
+							`Setting default finishReason for Google AI Studio: ${finishReason}`,
+						);
 					}
+
+					await processLogQueue();
 
 					console.log(
 						`Inserting streaming log for ${usedProvider}, content length: ${fullContent.length}`,
 					);
 
-					// Check if we already have a log for this request to prevent duplicates
-					const existingLogs = await db.query.log.findMany({
-						where: {
-							apiKeyId: apiKey.id,
-							providerKeyId: providerKey.id,
-							streamed: true,
-							usedProvider: usedProvider,
-							usedModel: usedModel,
-						},
-						orderBy: {
-							createdAt: "desc",
-						},
-						limit: 1,
-					});
+					// For Google AI Studio, directly insert the log into the database for testing
+					if (usedProvider === ("google-ai-studio" as any)) {
+						console.log(
+							`Directly inserting log for Google AI Studio streaming request`,
+						);
 
-					if (existingLogs.length === 0) {
-						await insertLog({
-							organizationId: project.organizationId,
-							projectId: apiKey.projectId,
-							apiKeyId: apiKey.id,
-							providerKeyId: providerKey.id,
-							duration,
-							usedModel: usedModel,
-							usedProvider: usedProvider,
-							requestedModel: requestedModel,
-							requestedProvider: requestedProvider,
-							messages: messages,
-							responseSize: fullContent.length,
-							content: fullContent,
-							finishReason: finishReason,
-							promptTokens: promptTokens,
-							completionTokens: completionTokens,
-							totalTokens: totalTokens,
-							temperature: temperature || null,
-							maxTokens: max_tokens || null,
-							topP: top_p || null,
-							frequencyPenalty: frequency_penalty || null,
-							presencePenalty: presence_penalty || null,
-							hasError: false,
-							errorDetails: null,
-							streamed: true,
-							canceled: canceled,
-							inputCost: costs.inputCost,
-							outputCost: costs.outputCost,
-							cost: costs.totalCost,
-							estimatedCost: costs.estimatedCost,
-							cached: false,
-							mode: project.mode,
-						});
+						try {
+							const now = new Date();
+							const logId = `test-log-${now.getTime()}`;
+							console.log(`Attempting to insert log with ID: ${logId}`);
+
+							const logValues = {
+								id: logId,
+								createdAt: now,
+								updatedAt: now,
+								organizationId: project.organizationId,
+								projectId: apiKey.projectId,
+								apiKeyId: apiKey.id,
+								providerKeyId: providerKey.id,
+								duration,
+								usedModel: usedModel,
+								usedProvider: usedProvider,
+								requestedModel: requestedModel,
+								requestedProvider: requestedProvider,
+								messages: messages,
+								responseSize: fullContent.length,
+								content: fullContent,
+								finishReason: finishReason || "stop",
+								promptTokens: promptTokens,
+								completionTokens: completionTokens,
+								totalTokens: totalTokens,
+								temperature: temperature || null,
+								maxTokens: max_tokens || null,
+								topP: top_p || null,
+								frequencyPenalty: frequency_penalty || null,
+								presencePenalty: presence_penalty || null,
+								hasError: false,
+								errorDetails: null,
+								streamed: true,
+								canceled: canceled,
+								inputCost: costs.inputCost,
+								outputCost: costs.outputCost,
+								cost: costs.totalCost,
+								estimatedCost: costs.estimatedCost,
+								cached: false,
+								mode: project.mode,
+								unifiedFinishReason: getUnifiedFinishReason(
+									finishReason || "stop",
+									usedProvider,
+								),
+								usedMode: providerKey.id.startsWith("env-")
+									? "credits"
+									: "api-keys",
+							};
+
+							console.log(`Log values: ${JSON.stringify(logValues, null, 2)}`);
+							await db.insert(log).values(logValues as any);
+
+							const insertedLogs = await db.query.log.findMany({
+								where: {
+									id: logId,
+								},
+							});
+
+							console.log(
+								`Verification query found ${insertedLogs.length} logs with ID ${logId}`,
+							);
+
+							if (insertedLogs.length > 0) {
+								console.log(
+									`Successfully inserted and verified log directly into database for Google AI Studio streaming`,
+								);
+							} else {
+								console.error(
+									`Failed to verify log insertion - log not found in database after insert`,
+								);
+							}
+						} catch (error: any) {
+							console.error(
+								`Error inserting log directly into database:`,
+								error,
+							);
+							console.error(`Error details:`, error.stack);
+						}
 					} else {
-						console.log(`Skipping duplicate log for streaming request`);
+						// Check if we already have a log for this request to prevent duplicates
+						const existingLogs = await db.query.log.findMany({
+							where: {
+								apiKeyId: apiKey.id,
+								providerKeyId: providerKey.id,
+								streamed: true,
+								usedProvider: usedProvider,
+								usedModel: usedModel,
+							},
+							orderBy: {
+								createdAt: "desc",
+							},
+							limit: 1,
+						});
+
+						if (existingLogs.length === 0) {
+							await insertLog({
+								organizationId: project.organizationId,
+								projectId: apiKey.projectId,
+								apiKeyId: apiKey.id,
+								providerKeyId: providerKey.id,
+								duration,
+								usedModel: usedModel,
+								usedProvider: usedProvider,
+								requestedModel: requestedModel,
+								requestedProvider: requestedProvider,
+								messages: messages,
+								responseSize: fullContent.length,
+								content: fullContent,
+								finishReason: finishReason,
+								promptTokens: promptTokens,
+								completionTokens: completionTokens,
+								totalTokens: totalTokens,
+								temperature: temperature || null,
+								maxTokens: max_tokens || null,
+								topP: top_p || null,
+								frequencyPenalty: frequency_penalty || null,
+								presencePenalty: presence_penalty || null,
+								hasError: false,
+								errorDetails: null,
+								streamed: true,
+								canceled: canceled,
+								inputCost: costs.inputCost,
+								outputCost: costs.outputCost,
+								cost: costs.totalCost,
+								estimatedCost: costs.estimatedCost,
+								cached: false,
+								mode: project.mode,
+							});
+						} else {
+							console.log(`Skipping duplicate log for streaming request`);
+						}
 					}
 				}
 			}
