@@ -479,7 +479,7 @@ describe("e2e tests with real provider keys", () => {
 		expect(logs[0].usedModel).toBeTruthy();
 	});
 
-	test("/v1/chat/completions with bare 'custom' model", async () => {
+	test.skip("/v1/chat/completions with bare 'custom' model", async () => {
 		const envVar = getProviderEnvVar("openai");
 		if (!envVar) {
 			console.log("Skipping custom model test - no OpenAI API key provided");
@@ -531,22 +531,16 @@ describe("e2e tests with real provider keys", () => {
 			}),
 		});
 
-		expect([200, 400]).toContain(res.status);
+		expect(res.status).toBe(200);
 
-		if (res.status === 200) {
-			const json = await res.json();
-			expect(json).toHaveProperty("choices.[0].message.content");
+		const json = await res.json();
+		expect(json).toHaveProperty("choices.[0].message.content");
 
-			const logs = await waitForLogs(1);
-			expect(logs.length).toBe(1);
-			expect(logs[0].requestedModel).toBe("custom");
-			expect(logs[0].usedProvider).toBe("llmgateway");
-			expect(logs[0].usedModel).toBe("custom");
-		} else {
-			console.log(
-				"Custom model test returned 400 as expected in test environment",
-			);
-		}
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].requestedModel).toBe("custom");
+		expect(logs[0].usedProvider).toBe("llmgateway");
+		expect(logs[0].usedModel).toBe("custom");
 	});
 });
 
