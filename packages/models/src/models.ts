@@ -97,24 +97,24 @@ export let models = [
 		inputPrice: 0.000008,
 		outputPrice: 0.000024,
 	},
-	// {
-	// 	model: "llama-3.1-8b-instruct",
-	// 	providers: ["inference.net", "kluster.ai"],
-	// 	inputPrice: 0.0000002,
-	// 	outputPrice: 0.0000006,
-	// },
-	// {
-	// 	model: "llama-3.1-70b-instruct",
-	// 	providers: ["inference.net", "kluster.ai"],
-	// 	inputPrice: 0.0000009,
-	// 	outputPrice: 0.0000027,
-	// },
-	// {
-	// 	model: "llama-3-8b-instruct",
-	// 	providers: ["inference.net", "kluster.ai"],
-	// 	inputPrice: 0.0000002,
-	// 	outputPrice: 0.0000006,
-	// },
+	{
+		model: "llama-3.1-8b-instruct",
+		providers: ["inference.net", "kluster.ai"],
+		inputPrice: 0.0000002,
+		outputPrice: 0.0000006,
+	},
+	{
+		model: "llama-3.1-70b-instruct",
+		providers: ["inference.net", "kluster.ai"],
+		inputPrice: 0.0000009,
+		outputPrice: 0.0000027,
+	},
+	{
+		model: "llama-3-8b-instruct",
+		providers: ["inference.net", "kluster.ai"],
+		inputPrice: 0.0000002,
+		outputPrice: 0.0000006,
+	},
 	/// / Together.ai models
 	// {
 	// 	model: "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
