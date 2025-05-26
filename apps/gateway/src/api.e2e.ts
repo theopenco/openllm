@@ -431,20 +431,6 @@ describe("e2e tests with real provider keys", () => {
 		expect(logs[0].requestedModel).toBe("auto");
 		expect(logs[0].usedProvider).toBeTruthy();
 		expect(logs[0].usedModel).toBeTruthy();
-
-		await db.delete(tables.apiKey).where(eq(tables.apiKey.id, "token-credits"));
-
-		await db
-			.update(tables.project)
-			.set({ mode: "api-keys" })
-			.where(eq(tables.project.id, "project-id"));
-
-		await db
-			.update(tables.organization)
-			.set({ credits: "0" })
-			.where(eq(tables.organization.id, "org-id"));
-
-		await flushLogs();
 	});
 });
 
