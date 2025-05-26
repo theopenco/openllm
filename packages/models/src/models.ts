@@ -19,6 +19,10 @@ export interface ModelDefinition {
 	 * Price per image input in USD
 	 */
 	imageInputPrice?: number;
+	/**
+	 * Whether the model supports JSON output mode
+	 */
+	jsonOutput?: boolean;
 }
 
 export let models = [
@@ -35,12 +39,14 @@ export let models = [
 		providers: ["openai"],
 		inputPrice: 0.0000005,
 		outputPrice: 0.0000015,
+		jsonOutput: true,
 	},
 	{
 		model: "gpt-4",
 		providers: ["openai"],
 		inputPrice: 0.00001,
 		outputPrice: 0.00003,
+		jsonOutput: true,
 	},
 	{
 		model: "gpt-4o",
@@ -48,12 +54,14 @@ export let models = [
 		inputPrice: 0.000005,
 		outputPrice: 0.000015,
 		imageInputPrice: 0.00553,
+		jsonOutput: true,
 	},
 	{
 		model: "gpt-4o-mini",
 		providers: ["openai"],
 		inputPrice: 0.0000006,
 		outputPrice: 0.0000018,
+		jsonOutput: true,
 	},
 	{
 		model: "claude-3-7-sonnet-20250219",
@@ -81,6 +89,7 @@ export let models = [
 		providers: ["openai"],
 		inputPrice: 0.00001,
 		outputPrice: 0.00003,
+		jsonOutput: true,
 	},
 	{
 		model: "claude-2.1",

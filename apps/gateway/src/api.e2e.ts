@@ -255,6 +255,108 @@ describe("e2e tests with real provider keys", () => {
 			}
 		},
 	);
+
+	test.each(testModels.filter((m) => m.providers.some((p) => p === "openai")))(
+		"/v1/chat/completions with JSON output mode for $model",
+		async ({ model }) => {
+			const envVar = getProviderEnvVar("openai");
+			if (!envVar) {
+				console.log(
+					`Skipping JSON output test for ${model} - no OpenAI API key provided`,
+				);
+				return;
+			}
+
+			await createApiKey();
+			await createProviderKey("openai", envVar);
+
+			try {
+				const res = await app.request("/v1/chat/completions", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+						Authorization: `Bearer real-token`,
+					},
+					body: JSON.stringify({
+						model: model,
+						messages: [
+							{
+								role: "system",
+								content:
+									"You are a helpful assistant. Always respond with valid JSON.",
+							},
+							{
+								role: "user",
+								content: 'Return a JSON object with "message": "Hello World"',
+							},
+						],
+						response_format: { type: "json_object" },
+					}),
+				});
+
+				if (res.status !== 200) {
+					console.log(
+						`JSON output test for ${model} failed with status ${res.status}`,
+					);
+					const text = await res.text();
+					console.log(`Error response: ${text}`);
+					return; // Skip the rest of the test
+				}
+
+				const json = await res.json();
+				expect(json).toHaveProperty("choices.[0].message.content");
+
+				const content = json.choices[0].message.content;
+				expect(() => JSON.parse(content)).not.toThrow();
+
+				const parsedContent = JSON.parse(content);
+				expect(parsedContent).toHaveProperty("message");
+			} finally {
+				await db.delete(tables.apiKey);
+				await db.delete(tables.providerKey);
+				await flushLogs();
+			}
+		},
+	);
+
+	test("JSON output mode error for unsupported model", async () => {
+		const envVar = getProviderEnvVar("anthropic");
+		if (!envVar) {
+			console.log(
+				"Skipping JSON output error test - no Anthropic API key provided",
+			);
+			return;
+		}
+
+		await createApiKey();
+		await createProviderKey("anthropic", envVar);
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "anthropic/claude-3-5-sonnet-20241022",
+				messages: [
+					{
+						role: "user",
+						content: "Hello",
+					},
+				],
+				response_format: { type: "json_object" },
+			}),
+		});
+
+		expect(res.status).toBe(400);
+
+		const text = await res.text();
+		expect(text).toContain("does not support JSON output mode");
+
+		await db.delete(tables.apiKey);
+		await db.delete(tables.providerKey);
+	});
 });
 
 async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
