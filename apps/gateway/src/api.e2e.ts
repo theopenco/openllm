@@ -1,4 +1,4 @@
-import { db, tables } from "@openllm/db";
+import { db, tables, eq } from "@openllm/db";
 import { models, providers } from "@openllm/models";
 import "dotenv/config";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
@@ -386,6 +386,65 @@ describe("e2e tests with real provider keys", () => {
 
 		await db.delete(tables.apiKey);
 		await db.delete(tables.providerKey);
+	});
+	test("/v1/chat/completions with llmgateway/auto in credits mode", async () => {
+		await db
+			.update(tables.organization)
+			.set({ credits: "1000" })
+			.where(eq(tables.organization.id, "org-id"));
+
+		await db
+			.update(tables.project)
+			.set({ mode: "credits" })
+			.where(eq(tables.project.id, "project-id"));
+
+		await db.insert(tables.apiKey).values({
+			id: "token-credits",
+			token: "credits-token",
+			projectId: "project-id",
+			description: "Test API Key for Credits",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer credits-token`,
+			},
+			body: JSON.stringify({
+				model: "llmgateway/auto",
+				messages: [
+					{
+						role: "user",
+						content: "Hello with llmgateway/auto in credits mode!",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		expect(json).toHaveProperty("choices.[0].message.content");
+
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].requestedModel).toBe("auto");
+		expect(logs[0].usedProvider).toBeTruthy();
+		expect(logs[0].usedModel).toBeTruthy();
+
+		await db.delete(tables.apiKey).where(eq(tables.apiKey.id, "token-credits"));
+
+		await db
+			.update(tables.project)
+			.set({ mode: "api-keys" })
+			.where(eq(tables.project.id, "project-id"));
+
+		await db
+			.update(tables.organization)
+			.set({ credits: "0" })
+			.where(eq(tables.organization.id, "org-id"));
+
+		await flushLogs();
 	});
 });
 
