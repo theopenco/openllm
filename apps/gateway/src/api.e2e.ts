@@ -256,65 +256,93 @@ describe("e2e tests with real provider keys", () => {
 		},
 	);
 
-	test.each(testModels.filter((m) => m.providers.some((p) => p === "openai")))(
+	test.each(
+		testModels.filter((m) => {
+			const modelDef = models.find((def) => def.model === m.model);
+			return (modelDef as any)?.jsonOutput === true;
+		}),
+	)(
 		"/v1/chat/completions with JSON output mode for $model",
-		async ({ model }) => {
-			const envVar = getProviderEnvVar("openai");
-			if (!envVar) {
-				console.log(
-					`Skipping JSON output test for ${model} - no OpenAI API key provided`,
-				);
-				return;
-			}
+		async ({ model, providers: modelProviders }) => {
+			let testRan = false;
 
-			await createApiKey();
-			await createProviderKey("openai", envVar);
+			const jsonOutputProviders = modelProviders.filter((provider) => {
+				const providerInfo = providers.find((p) => p.id === provider);
+				return (providerInfo as any)?.jsonOutput === true;
+			});
 
-			try {
-				const res = await app.request("/v1/chat/completions", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer real-token`,
-					},
-					body: JSON.stringify({
-						model: model,
-						messages: [
-							{
-								role: "system",
-								content:
-									"You are a helpful assistant. Always respond with valid JSON.",
-							},
-							{
-								role: "user",
-								content: 'Return a JSON object with "message": "Hello World"',
-							},
-						],
-						response_format: { type: "json_object" },
-					}),
-				});
-
-				if (res.status !== 200) {
+			for (const provider of jsonOutputProviders) {
+				const envVar = getProviderEnvVar(provider);
+				if (!envVar) {
 					console.log(
-						`JSON output test for ${model} failed with status ${res.status}`,
+						`Skipping JSON output test for ${model} on ${provider} - no API key provided`,
 					);
-					const text = await res.text();
-					console.log(`Error response: ${text}`);
-					return; // Skip the rest of the test
+					continue;
 				}
 
-				const json = await res.json();
-				expect(json).toHaveProperty("choices.[0].message.content");
+				console.log(`Testing JSON output for ${model} on ${provider}`);
+				testRan = true;
 
-				const content = json.choices[0].message.content;
-				expect(() => JSON.parse(content)).not.toThrow();
+				await createApiKey();
+				await createProviderKey(provider, envVar);
 
-				const parsedContent = JSON.parse(content);
-				expect(parsedContent).toHaveProperty("message");
-			} finally {
-				await db.delete(tables.apiKey);
-				await db.delete(tables.providerKey);
-				await flushLogs();
+				const requestModel =
+					provider === "openai" ? model : `${provider}/${model}`;
+
+				try {
+					const res = await app.request("/v1/chat/completions", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+							Authorization: `Bearer real-token`,
+						},
+						body: JSON.stringify({
+							model: requestModel,
+							messages: [
+								{
+									role: "system",
+									content:
+										"You are a helpful assistant. Always respond with valid JSON.",
+								},
+								{
+									role: "user",
+									content: 'Return a JSON object with "message": "Hello World"',
+								},
+							],
+							response_format: { type: "json_object" },
+						}),
+					});
+
+					if (res.status !== 200) {
+						console.log(
+							`JSON output test for ${model} on ${provider} failed with status ${res.status}`,
+						);
+						const text = await res.text();
+						console.log(`Error response: ${text}`);
+						continue; // Try next provider
+					}
+
+					const json = await res.json();
+					expect(json).toHaveProperty("choices.[0].message.content");
+
+					const content = json.choices[0].message.content;
+					expect(() => JSON.parse(content)).not.toThrow();
+
+					const parsedContent = JSON.parse(content);
+					expect(parsedContent).toHaveProperty("message");
+
+					break;
+				} finally {
+					await db.delete(tables.apiKey);
+					await db.delete(tables.providerKey);
+					await flushLogs();
+				}
+			}
+
+			if (!testRan) {
+				console.log(
+					`Skipped JSON output test for ${model} - no providers with JSON output support available or no API keys`,
+				);
 			}
 		},
 	);
