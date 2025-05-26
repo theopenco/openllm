@@ -1,3 +1,5 @@
+import { models } from "./models";
+
 import type { ProviderId } from "./providers";
 
 /**
@@ -91,6 +93,18 @@ export function getProviderEndpoint(
 	model?: string,
 	token?: string,
 ): string {
+	let modelName = model;
+	if (model && model !== "custom") {
+		const modelInfo = models.find((m) => m.model === model);
+		if (modelInfo) {
+			const providerMapping = modelInfo.providers.find(
+				(p) => p.providerId === provider,
+			);
+			if (providerMapping) {
+				modelName = providerMapping.modelName;
+			}
+		}
+	}
 	let url: string;
 
 	if (baseUrl) {
@@ -127,13 +141,13 @@ export function getProviderEndpoint(
 		case "anthropic":
 			return `${url}/v1/messages`;
 		case "google-vertex":
-			if (model) {
-				return `${url}/v1beta/models/${model}:generateContent`;
+			if (modelName) {
+				return `${url}/v1beta/models/${modelName}:generateContent`;
 			}
 			return `${url}/v1beta/models/gemini-1.0-pro:generateContent`;
 		case "google-ai-studio": {
-			const baseEndpoint = model
-				? `${url}/v1beta/models/${model}:generateContent`
+			const baseEndpoint = modelName
+				? `${url}/v1beta/models/${modelName}:generateContent`
 				: `${url}/v1beta/models/gemini-1.0-pro:generateContent`;
 			return token ? `${baseEndpoint}?key=${token}` : baseEndpoint;
 		}
