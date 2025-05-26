@@ -55,8 +55,6 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 		case "together.ai":
 			token = process.env.TOGETHER_AI_API_KEY;
 			break;
-		case "llmgateway":
-			return undefined;
 		default:
 			throw new HTTPException(400, {
 				message: `No environment variable set for provider: ${usedProvider}`,
