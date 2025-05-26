@@ -1,21 +1,9 @@
 import { db, tables, eq } from "@openllm/db";
 import { models, providers } from "@openllm/models";
 import "dotenv/config";
-import {
-	afterEach,
-	beforeEach,
-	beforeAll,
-	afterAll,
-	describe,
-	expect,
-	test,
-} from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
-import {
-	startMockServer,
-	stopMockServer,
-} from "./test-utils/mock-openai-server";
 import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
 
 const testModels = models
@@ -26,16 +14,6 @@ const testModels = models
 	}));
 
 describe("e2e tests with real provider keys", () => {
-	let mockServerUrl: string;
-
-	beforeAll(() => {
-		mockServerUrl = startMockServer(3002);
-	});
-
-	afterAll(() => {
-		stopMockServer();
-	});
-
 	afterEach(async () => {
 		await Promise.all([
 			db.delete(tables.user),
@@ -502,7 +480,11 @@ describe("e2e tests with real provider keys", () => {
 	});
 
 	test("/v1/chat/completions with bare 'custom' model", async () => {
-		console.log("Starting bare 'custom' model test");
+		const envVar = getProviderEnvVar("openai");
+		if (!envVar) {
+			console.log("Skipping custom model test - no OpenAI API key provided");
+			return;
+		}
 
 		await db
 			.update(tables.organization)
@@ -517,18 +499,8 @@ describe("e2e tests with real provider keys", () => {
 		await db.insert(tables.providerKey).values({
 			id: "provider-key-custom",
 			provider: "llmgateway",
-			token: "mock-token",
-			baseUrl: mockServerUrl, // Use the mock server URL
-			status: "active",
-			projectId: "project-id",
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		});
-
-		await db.insert(tables.providerKey).values({
-			id: "provider-key-openai",
-			provider: "openai",
-			token: process.env.OPENAI_API_KEY || "sk-mock",
+			token: envVar,
+			baseUrl: "https://api.openai.com", // Use real OpenAI endpoint for testing
 			status: "active",
 			projectId: "project-id",
 			createdAt: new Date(),
@@ -559,13 +531,9 @@ describe("e2e tests with real provider keys", () => {
 			}),
 		});
 
-		if (res.status !== 200) {
-			console.log("Custom model test failed with status", res.status);
+		expect([200, 400]).toContain(res.status);
 
-			expect([200, 400]).toContain(res.status);
-
-			return;
-		} else {
+		if (res.status === 200) {
 			const json = await res.json();
 			expect(json).toHaveProperty("choices.[0].message.content");
 
@@ -574,6 +542,10 @@ describe("e2e tests with real provider keys", () => {
 			expect(logs[0].requestedModel).toBe("custom");
 			expect(logs[0].usedProvider).toBe("llmgateway");
 			expect(logs[0].usedModel).toBe("custom");
+		} else {
+			console.log(
+				"Custom model test returned 400 as expected in test environment",
+			);
 		}
 	});
 });
