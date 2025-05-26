@@ -3,9 +3,13 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
 import { passkey } from "better-auth/plugins/passkey";
+import { Resend } from "resend";
 
 const uiUrl = process.env.UI_URL || "http://localhost:3002";
 const originUrls = process.env.ORIGIN_URL || "http://localhost:3002";
+const resendApiKey = process.env.RESEND_API_KEY;
+const resendFromEmail =
+	process.env.RESEND_FROM_EMAIL || "noreply@llmgateway.io";
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	advanced: {
@@ -43,6 +47,31 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	emailAndPassword: {
 		enabled: true,
 		autoSignIn: true,
+	},
+	emailVerification: {
+		sendOnSignUp: true,
+		sendVerificationEmail: async ({ user, url }) => {
+			if (!resendApiKey) {
+				console.error(
+					"RESEND_API_KEY is not set. Email verification will not work.",
+				);
+				return;
+			}
+
+			const resend = new Resend(resendApiKey);
+
+			await resend.emails.send({
+				from: resendFromEmail,
+				to: user.email,
+				subject: "Verify your email address",
+				html: `
+					<h1>Welcome to LLMGateway!</h1>
+					<p>Please click the link below to verify your email address:</p>
+					<a href="${url}">Verify Email</a>
+					<p>If you didn't create an account, you can safely ignore this email.</p>
+				`,
+			});
+		},
 	},
 	secret: process.env.AUTH_SECRET || "your-secret-key",
 	baseURL: uiUrl || "http://localhost:4002",

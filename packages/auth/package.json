@@ -17,6 +17,7 @@
 		"build": "tsc && tsup"
 	},
 	"dependencies": {
-		"better-auth": "1.2.7"
+		"better-auth": "1.2.7",
+		"resend": "4.5.1"
 	}
 }
