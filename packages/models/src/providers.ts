@@ -6,6 +6,8 @@ export interface ProviderDefinition {
 	streaming?: boolean;
 	// Whether the provider supports request cancellation
 	cancellation?: boolean;
+	// Whether the provider supports JSON output mode
+	jsonOutput?: boolean;
 	// Color used for UI representation (hex code)
 	color?: string;
 }
@@ -27,6 +29,7 @@ export const providers = [
 			"OpenAI is an AI research and deployment company. Our mission is to ensure that artificial general intelligence benefits all of humanity.",
 		streaming: true,
 		cancellation: true,
+		jsonOutput: true,
 		color: "#0ea5e9",
 	},
 	{

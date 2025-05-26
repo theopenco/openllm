@@ -100,6 +100,13 @@ const completions = createRoute({
 						top_p: z.number().optional(),
 						frequency_penalty: z.number().optional(),
 						presence_penalty: z.number().optional(),
+						response_format: z
+							.object({
+								type: z.enum(["text", "json_object"]).openapi({
+									example: "json_object",
+								}),
+							})
+							.optional(),
 						stream: z.boolean().optional().default(false),
 					}),
 				},
@@ -150,6 +157,7 @@ chat.openapi(completions, async (c) => {
 		top_p,
 		frequency_penalty,
 		presence_penalty,
+		response_format,
 		stream,
 	} = c.req.valid("json");
 
@@ -180,6 +188,14 @@ chat.openapi(completions, async (c) => {
 		throw new HTTPException(400, {
 			message: `Unsupported model: ${requestedModel}`,
 		});
+	}
+
+	if (response_format?.type === "json_object") {
+		if (!(modelInfo as any).jsonOutput) {
+			throw new HTTPException(400, {
+				message: `Model ${requestedModel} does not support JSON output mode`,
+			});
+		}
 	}
 
 	let usedProvider = requestedProvider;
@@ -489,6 +505,7 @@ chat.openapi(completions, async (c) => {
 			top_p,
 			frequency_penalty,
 			presence_penalty,
+			response_format,
 		});
 
 		const cachedResponse = cacheKey ? await getCache(cacheKey) : null;
@@ -559,6 +576,9 @@ chat.openapi(completions, async (c) => {
 				requestBody.stream_options = {
 					include_usage: true,
 				};
+			}
+			if (response_format) {
+				requestBody.response_format = response_format;
 			}
 			break;
 		}
