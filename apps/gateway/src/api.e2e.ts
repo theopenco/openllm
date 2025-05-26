@@ -100,6 +100,8 @@ describe("e2e tests with real provider keys", () => {
 
 		expect(logs[0].usedProvider).toBeTruthy();
 		expect(logs[0].finishReason).not.toBeNull();
+		expect(logs[0].unifiedFinishReason).not.toBeNull();
+		expect(logs[0].unifiedFinishReason).toBeTruthy();
 		expect(logs[0].usedModel).toBeTruthy();
 		expect(logs[0].requestedModel).toBeTruthy();
 
