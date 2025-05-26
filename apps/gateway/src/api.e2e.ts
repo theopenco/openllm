@@ -1,9 +1,21 @@
 import { db, tables } from "@openllm/db";
 import { models, providers } from "@openllm/models";
 import "dotenv/config";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import {
+	afterEach,
+	afterAll,
+	beforeEach,
+	beforeAll,
+	describe,
+	expect,
+	test,
+} from "vitest";
 
 import { app } from ".";
+import {
+	startMockServer,
+	stopMockServer,
+} from "./test-utils/mock-openai-server";
 import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
 
 const testModels = models
@@ -13,98 +25,108 @@ const testModels = models
 		providers: model.providers,
 	}));
 
+function getProviderEnvVar(provider: string): string | undefined {
+	const envMap: Record<string, string> = {
+		openai: "OPENAI_API_KEY",
+		anthropic: "ANTHROPIC_API_KEY",
+		"google-vertex": "VERTEX_API_KEY",
+		"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
+		"inference.net": "INFERENCE_NET_API_KEY",
+		"kluster.ai": "KLUSTER_AI_API_KEY",
+		"together.ai": "TOGETHER_AI_API_KEY",
+	};
+	return process.env[envMap[provider]];
+}
+
+async function createProviderKey(provider: string, token: string) {
+	await db.insert(tables.providerKey).values({
+		id: `provider-key-${provider}`,
+		token,
+		provider,
+		projectId: "project-id",
+	});
+}
+
+async function createApiKey() {
+	await db.insert(tables.apiKey).values({
+		id: "token-id",
+		token: "real-token",
+		projectId: "project-id",
+		description: "Test API Key",
+	});
+}
+
+function validateResponse(json: any) {
+	expect(json).toHaveProperty("choices.[0].message.content");
+
+	expect(json).toHaveProperty("usage.prompt_tokens");
+	expect(json).toHaveProperty("usage.completion_tokens");
+	expect(json).toHaveProperty("usage.total_tokens");
+}
+
+async function validateLogs() {
+	const logs = await waitForLogs(1);
+	expect(logs.length).toBe(1);
+
+	expect(logs[0].usedProvider).toBeTruthy();
+	expect(logs[0].finishReason).not.toBeNull();
+	expect(logs[0].usedModel).toBeTruthy();
+	expect(logs[0].requestedModel).toBeTruthy();
+
+	return logs[0];
+}
+
+async function setupTestData() {
+	await db.insert(tables.user).values({
+		id: "user-id",
+		name: "user",
+		email: "user",
+	});
+
+	await db.insert(tables.organization).values({
+		id: "org-id",
+		name: "Test Organization",
+		credits: "1000", // Add credits for tests in credits mode (as string for decimal type)
+	});
+
+	await db.insert(tables.userOrganization).values({
+		id: "user-org-id",
+		userId: "user-id",
+		organizationId: "org-id",
+	});
+
+	await db.insert(tables.project).values({
+		id: "project-id",
+		name: "Test Project",
+		organizationId: "org-id",
+		mode: "credits", // Set mode to credits for llmgateway tests
+	});
+}
+
+async function cleanupTestData() {
+	await Promise.all([
+		db.delete(tables.user),
+		db.delete(tables.account),
+		db.delete(tables.session),
+		db.delete(tables.verification),
+		db.delete(tables.organization),
+		db.delete(tables.userOrganization),
+		db.delete(tables.project),
+		db.delete(tables.apiKey),
+		db.delete(tables.providerKey),
+		db.delete(tables.log),
+	]);
+	await flushLogs();
+}
+
 describe("e2e tests with real provider keys", () => {
 	afterEach(async () => {
-		await Promise.all([
-			db.delete(tables.user),
-			db.delete(tables.account),
-			db.delete(tables.session),
-			db.delete(tables.verification),
-			db.delete(tables.organization),
-			db.delete(tables.userOrganization),
-			db.delete(tables.project),
-			db.delete(tables.apiKey),
-			db.delete(tables.providerKey),
-			db.delete(tables.log),
-		]);
-		await flushLogs();
+		await cleanupTestData();
 	});
 
 	beforeEach(async () => {
-		await db.insert(tables.user).values({
-			id: "user-id",
-			name: "user",
-			email: "user",
-		});
-
-		await db.insert(tables.organization).values({
-			id: "org-id",
-			name: "Test Organization",
-		});
-
-		await db.insert(tables.userOrganization).values({
-			id: "user-org-id",
-			userId: "user-id",
-			organizationId: "org-id",
-		});
-
-		await db.insert(tables.project).values({
-			id: "project-id",
-			name: "Test Project",
-			organizationId: "org-id",
-		});
+		await setupTestData();
 	});
-
-	function getProviderEnvVar(provider: string): string | undefined {
-		const envMap: Record<string, string> = {
-			openai: "OPENAI_API_KEY",
-			anthropic: "ANTHROPIC_API_KEY",
-			"google-vertex": "VERTEX_API_KEY",
-			"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
-			"inference.net": "INFERENCE_NET_API_KEY",
-			"kluster.ai": "KLUSTER_AI_API_KEY",
-			"together.ai": "TOGETHER_AI_API_KEY",
-		};
-		return process.env[envMap[provider]];
-	}
-
-	async function createProviderKey(provider: string, token: string) {
-		await db.insert(tables.providerKey).values({
-			id: `provider-key-${provider}`,
-			token,
-			provider,
-			projectId: "project-id",
-		});
-	}
-
-	async function createApiKey() {
-		await db.insert(tables.apiKey).values({
-			id: "token-id",
-			token: "real-token",
-			projectId: "project-id",
-			description: "Test API Key",
-		});
-	}
-
-	function validateResponse(json: any) {
-		expect(json).toHaveProperty("choices.[0].message.content");
-
-		expect(json).toHaveProperty("usage.prompt_tokens");
-		expect(json).toHaveProperty("usage.completion_tokens");
-		expect(json).toHaveProperty("usage.total_tokens");
-	}
-
-	async function validateLogs() {
-		const logs = await waitForLogs(1);
-		expect(logs.length).toBe(1);
-
-		expect(logs[0].usedProvider).toBeTruthy();
-		expect(logs[0].finishReason).not.toBeNull();
-		expect(logs[0].usedModel).toBeTruthy();
-		expect(logs[0].requestedModel).toBeTruthy();
-
-		return logs[0];
-	}
 
 	test.each(testModels)(
 		"/v1/chat/completions with $model",
@@ -315,3 +337,185 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 
 	return { hasContent, eventCount, hasValidSSE };
 }
+
+describe("e2e tests for llmgateway models without provider keys", () => {
+	let mockServerUrl: string;
+
+	beforeAll(() => {
+		mockServerUrl = startMockServer(3002); // Use different port to avoid conflicts
+	});
+
+	afterAll(() => {
+		stopMockServer();
+	});
+
+	afterEach(async () => {
+		await cleanupTestData();
+	});
+
+	beforeEach(async () => {
+		await db.insert(tables.user).values({
+			id: "user-id",
+			name: "user",
+			email: "user",
+		});
+
+		await db.insert(tables.organization).values({
+			id: "org-id",
+			name: "Test Organization",
+			credits: "1000", // Add credits for tests in credits mode (as string for decimal type)
+		});
+
+		await db.insert(tables.userOrganization).values({
+			id: "user-org-id",
+			userId: "user-id",
+			organizationId: "org-id",
+		});
+
+		await db.insert(tables.project).values({
+			id: "project-id",
+			name: "Test Project",
+			organizationId: "org-id",
+			mode: "hybrid", // Set mode to hybrid for llmgateway tests
+		});
+
+		await createApiKey();
+
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-llmgateway",
+			token: "sk-test-key",
+			provider: "llmgateway",
+			projectId: "project-id",
+			baseUrl: mockServerUrl,
+		});
+
+		process.env.OPENAI_API_KEY = "";
+		process.env.ANTHROPIC_API_KEY = "";
+		process.env.VERTEX_API_KEY = "";
+		process.env.GOOGLE_AI_STUDIO_API_KEY = "";
+		process.env.INFERENCE_NET_API_KEY = "";
+		process.env.KLUSTER_AI_API_KEY = "";
+		process.env.TOGETHER_AI_API_KEY = "";
+
+		const originalModels = [...models];
+
+		const gpt4oMiniIndex = models.findIndex((m) => m.model === "gpt-4o-mini");
+		if (gpt4oMiniIndex > 0) {
+			const gpt4oMini = models[gpt4oMiniIndex];
+			models.splice(gpt4oMiniIndex, 1); // Remove from current position
+			models.splice(2, 0, gpt4oMini); // Insert after auto and custom models
+		}
+	});
+
+	test("/v1/chat/completions with llmgateway/custom (no provider key)", async () => {
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "llmgateway/custom",
+				messages: [
+					{
+						role: "user",
+						content: "Hello, test llmgateway/custom without provider key!",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		validateResponse(json);
+
+		const log = await validateLogs();
+		expect(log.requestedModel).toBe("custom");
+		expect(log.requestedProvider).toBe("llmgateway");
+		expect(log.usedModel).toBe("custom");
+		expect(log.usedProvider).toBe("llmgateway");
+	});
+
+	test("/v1/chat/completions with llmgateway/auto (no provider key)", async () => {
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "llmgateway/auto",
+				messages: [
+					{
+						role: "user",
+						content: "Hello, test llmgateway/auto without provider key!",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(400);
+		const text = await res.text();
+		expect(text).toContain(
+			"No API key set in environment for provider: openai",
+		);
+	});
+
+	test("/v1/chat/completions streaming with llmgateway/custom (no provider key)", async () => {
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "llmgateway/custom",
+				messages: [
+					{
+						role: "user",
+						content: "Hello, streaming test for llmgateway/custom!",
+					},
+				],
+				stream: true,
+			}),
+		});
+
+		expect(res.status).toBe(200);
+		expect(res.headers.get("content-type")).toContain("text/event-stream");
+
+		const streamResult = await readAll(res.body);
+		expect(streamResult.hasValidSSE).toBe(true);
+		expect(streamResult.eventCount).toBeGreaterThan(0);
+		expect(streamResult.hasContent).toBe(true);
+
+		const log = await validateLogs();
+		expect(log.streamed).toBe(true);
+		expect(log.usedProvider).toBe("llmgateway");
+	});
+
+	test("/v1/chat/completions streaming with llmgateway/auto (no provider key)", async () => {
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "llmgateway/auto",
+				messages: [
+					{
+						role: "user",
+						content: "Hello, streaming test for llmgateway/auto!",
+					},
+				],
+				stream: true,
+			}),
+		});
+
+		expect(res.status).toBe(400);
+		const text = await res.text();
+		expect(text).toContain(
+			"No API key set in environment for provider: openai",
+		);
+	});
+});
