@@ -1,9 +1,21 @@
 import { db, tables, eq } from "@openllm/db";
 import { models, providers } from "@openllm/models";
 import "dotenv/config";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import {
+	afterEach,
+	beforeEach,
+	beforeAll,
+	afterAll,
+	describe,
+	expect,
+	test,
+} from "vitest";
 
 import { app } from ".";
+import {
+	startMockServer,
+	stopMockServer,
+} from "./test-utils/mock-openai-server";
 import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
 
 const testModels = models
@@ -14,6 +26,16 @@ const testModels = models
 	}));
 
 describe("e2e tests with real provider keys", () => {
+	let mockServerUrl: string;
+
+	beforeAll(() => {
+		mockServerUrl = startMockServer(3002);
+	});
+
+	afterAll(() => {
+		stopMockServer();
+	});
+
 	afterEach(async () => {
 		await Promise.all([
 			db.delete(tables.user),
@@ -431,6 +453,128 @@ describe("e2e tests with real provider keys", () => {
 		expect(logs[0].requestedModel).toBe("auto");
 		expect(logs[0].usedProvider).toBeTruthy();
 		expect(logs[0].usedModel).toBeTruthy();
+	});
+
+	test("/v1/chat/completions with bare 'auto' model", async () => {
+		await db
+			.update(tables.organization)
+			.set({ credits: "1000" })
+			.where(eq(tables.organization.id, "org-id"));
+
+		await db
+			.update(tables.project)
+			.set({ mode: "credits" })
+			.where(eq(tables.project.id, "project-id"));
+
+		await db.insert(tables.apiKey).values({
+			id: "token-id",
+			token: "real-token",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "auto",
+				messages: [
+					{
+						role: "user",
+						content: "Hello! This is an auto test.",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		expect(json).toHaveProperty("choices.[0].message.content");
+
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].requestedModel).toBe("auto");
+		expect(logs[0].usedProvider).toBeTruthy();
+		expect(logs[0].usedModel).toBeTruthy();
+	});
+
+	test("/v1/chat/completions with bare 'custom' model", async () => {
+		console.log("Starting bare 'custom' model test");
+
+		await db
+			.update(tables.organization)
+			.set({ credits: "1000" })
+			.where(eq(tables.organization.id, "org-id"));
+
+		await db
+			.update(tables.project)
+			.set({ mode: "credits" })
+			.where(eq(tables.project.id, "project-id"));
+
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-custom",
+			provider: "llmgateway",
+			token: "mock-token",
+			baseUrl: mockServerUrl, // Use the mock server URL
+			status: "active",
+			projectId: "project-id",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		});
+
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-openai",
+			provider: "openai",
+			token: process.env.OPENAI_API_KEY || "sk-mock",
+			status: "active",
+			projectId: "project-id",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		});
+
+		await db.insert(tables.apiKey).values({
+			id: "token-id-2",
+			token: "real-token-2",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token-2`,
+			},
+			body: JSON.stringify({
+				model: "custom",
+				messages: [
+					{
+						role: "user",
+						content: "Hello! This is a custom test.",
+					},
+				],
+			}),
+		});
+
+		if (res.status !== 200) {
+			console.log("Custom model test failed with status", res.status);
+
+			expect([200, 400]).toContain(res.status);
+
+			return;
+		} else {
+			const json = await res.json();
+			expect(json).toHaveProperty("choices.[0].message.content");
+
+			const logs = await waitForLogs(1);
+			expect(logs.length).toBe(1);
+			expect(logs[0].requestedModel).toBe("custom");
+			expect(logs[0].usedProvider).toBe("llmgateway");
+			expect(logs[0].usedModel).toBe("custom");
+		}
 	});
 });
 

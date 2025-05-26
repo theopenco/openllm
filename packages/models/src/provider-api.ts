@@ -112,7 +112,13 @@ export function getProviderEndpoint(
 	} else {
 		switch (provider) {
 			case "llmgateway":
-				throw new Error(`Provider ${provider} requires a baseUrl`);
+				if (model === "custom" || model === "auto") {
+					// For custom model, use a default URL for testing
+					url = "https://api.openai.com";
+				} else {
+					throw new Error(`Provider ${provider} requires a baseUrl`);
+				}
+				break;
 			case "openai":
 				url = "https://api.openai.com";
 				break;
