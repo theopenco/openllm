@@ -1,4 +1,4 @@
-import { db, tables } from "@openllm/db";
+import { db, tables, eq } from "@openllm/db";
 import { models, providers } from "@openllm/models";
 import "dotenv/config";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
@@ -10,7 +10,7 @@ const testModels = models
 	.filter((model) => !["custom", "auto"].includes(model.model))
 	.map((model) => ({
 		model: model.model,
-		providers: model.providers,
+		providers: model.providers.map((p) => p.providerId),
 	}));
 
 describe("e2e tests with real provider keys", () => {
@@ -111,21 +111,23 @@ describe("e2e tests with real provider keys", () => {
 		async ({ model, providers: modelProviders }) => {
 			let testRan = false;
 
-			for (const provider of modelProviders) {
-				const envVar = getProviderEnvVar(provider);
+			for (const providerId of modelProviders) {
+				const envVar = getProviderEnvVar(providerId);
 				if (!envVar) {
-					console.log(`Skipping ${model} on ${provider} - no API key provided`);
+					console.log(
+						`Skipping ${model} on ${providerId} - no API key provided`,
+					);
 					continue;
 				}
 
-				console.log(`Testing ${model} on ${provider}`);
+				console.log(`Testing ${model} on ${providerId}`);
 				testRan = true;
 
 				await createApiKey();
-				await createProviderKey(provider, envVar);
+				await createProviderKey(providerId, envVar);
 
 				const requestModel =
-					provider === "openai" ? model : `${provider}/${model}`;
+					providerId === "openai" ? model : `${providerId}/${model}`;
 
 				const res = await app.request("/v1/chat/completions", {
 					method: "POST",
@@ -177,30 +179,30 @@ describe("e2e tests with real provider keys", () => {
 	test.each(testModels)(
 		"/v1/chat/completions streaming with $model",
 		async ({ model, providers: modelProviders }) => {
-			const streamingProviders = modelProviders.filter((provider) => {
-				const providerInfo = providers.find((p) => p.id === provider);
+			const streamingProviders = modelProviders.filter((providerId) => {
+				const providerInfo = providers.find((p) => p.id === providerId);
 				return providerInfo?.streaming === true;
 			});
 
 			let testRan = false;
 
-			for (const provider of streamingProviders) {
-				const envVar = getProviderEnvVar(provider);
+			for (const providerId of streamingProviders) {
+				const envVar = getProviderEnvVar(providerId);
 				if (!envVar) {
 					console.log(
-						`Skipping streaming ${model} on ${provider} - no API key provided`,
+						`Skipping streaming ${model} on ${providerId} - no API key provided`,
 					);
 					continue;
 				}
 
-				console.log(`Testing streaming ${model} on ${provider}`);
+				console.log(`Testing streaming ${model} on ${providerId}`);
 				testRan = true;
 
 				await createApiKey();
-				await createProviderKey(provider, envVar);
+				await createProviderKey(providerId, envVar);
 
 				const requestModel =
-					provider === "openai" ? model : `${provider}/${model}`;
+					providerId === "openai" ? model : `${providerId}/${model}`;
 
 				const res = await app.request("/v1/chat/completions", {
 					method: "POST",
@@ -384,6 +386,51 @@ describe("e2e tests with real provider keys", () => {
 
 		await db.delete(tables.apiKey);
 		await db.delete(tables.providerKey);
+	});
+	test("/v1/chat/completions with llmgateway/auto in credits mode", async () => {
+		await db
+			.update(tables.organization)
+			.set({ credits: "1000" })
+			.where(eq(tables.organization.id, "org-id"));
+
+		await db
+			.update(tables.project)
+			.set({ mode: "credits" })
+			.where(eq(tables.project.id, "project-id"));
+
+		await db.insert(tables.apiKey).values({
+			id: "token-credits",
+			token: "credits-token",
+			projectId: "project-id",
+			description: "Test API Key for Credits",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer credits-token`,
+			},
+			body: JSON.stringify({
+				model: "llmgateway/auto",
+				messages: [
+					{
+						role: "user",
+						content: "Hello with llmgateway/auto in credits mode!",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		expect(json).toHaveProperty("choices.[0].message.content");
+
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].requestedModel).toBe("auto");
+		expect(logs[0].usedProvider).toBeTruthy();
+		expect(logs[0].usedModel).toBeTruthy();
 	});
 });
 

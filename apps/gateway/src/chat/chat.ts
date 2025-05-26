@@ -306,12 +306,12 @@ chat.openapi(completions, async (c) => {
 
 			// Check if any of the model's providers are available
 			const availableModelProviders = modelDef.providers.filter((provider) =>
-				availableProviders.includes(provider),
+				availableProviders.includes(provider.providerId),
 			);
 
 			if (availableModelProviders.length > 0) {
 				usedModel = modelDef.model as Model;
-				usedProvider = availableModelProviders[0];
+				usedProvider = availableModelProviders[0].providerId;
 				break;
 			}
 		}
@@ -325,8 +325,9 @@ chat.openapi(completions, async (c) => {
 		usedModel = "custom";
 	} else if (!usedProvider) {
 		if (modelInfo.providers.length === 1) {
-			usedProvider = modelInfo.providers[0];
+			usedProvider = modelInfo.providers[0].providerId;
 		} else {
+			const providerIds = modelInfo.providers.map((p) => p.providerId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: {
@@ -336,7 +337,7 @@ chat.openapi(completions, async (c) => {
 						eq: apiKey.projectId,
 					},
 					provider: {
-						in: modelInfo.providers,
+						in: providerIds,
 					},
 				},
 			});
@@ -345,12 +346,12 @@ chat.openapi(completions, async (c) => {
 
 			// Filter model providers to only those available
 			const availableModelProviders = modelInfo.providers.filter((provider) =>
-				availableProviders.includes(provider),
+				availableProviders.includes(provider.providerId),
 			);
 
 			if (availableModelProviders.length === 0) {
 				throw new HTTPException(400, {
-					message: `No API key set for provider: ${modelInfo.providers[0]}. Please add a provider key in your settings or add credits and switch to credits or hybrid mode.`,
+					message: `No API key set for provider: ${modelInfo.providers[0].providerId}. Please add a provider key in your settings or add credits and switch to credits or hybrid mode.`,
 				});
 			}
 
@@ -363,7 +364,7 @@ chat.openapi(completions, async (c) => {
 				"inputPrice" in modelWithPricing &&
 				"outputPrice" in modelWithPricing
 			) {
-				let cheapestProvider = availableModelProviders[0];
+				let cheapestProvider = availableModelProviders[0].providerId;
 				let lowestPrice = Number.MAX_VALUE;
 
 				for (const provider of availableModelProviders) {
@@ -373,13 +374,13 @@ chat.openapi(completions, async (c) => {
 
 					if (totalPrice < lowestPrice) {
 						lowestPrice = totalPrice;
-						cheapestProvider = provider;
+						cheapestProvider = provider.providerId;
 					}
 				}
 
 				usedProvider = cheapestProvider;
 			} else {
-				usedProvider = availableModelProviders[0];
+				usedProvider = availableModelProviders[0].providerId;
 			}
 		}
 	}
@@ -466,6 +467,12 @@ chat.openapi(completions, async (c) => {
 	}
 
 	try {
+		if (!usedProvider) {
+			throw new HTTPException(400, {
+				message: "No provider available for the requested model",
+			});
+		}
+
 		url = getProviderEndpoint(
 			usedProvider,
 			providerKey.baseUrl || undefined,
