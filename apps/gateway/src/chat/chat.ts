@@ -163,7 +163,12 @@ chat.openapi(completions, async (c) => {
 
 	let requestedModel: Model = modelInput as Model;
 	let requestedProvider: Provider | undefined;
-	if (modelInput.includes("/")) {
+
+	// Handle special bare model names
+	if (modelInput === "auto" || modelInput === "custom") {
+		requestedProvider = "llmgateway";
+		requestedModel = modelInput as Model;
+	} else if (modelInput.includes("/")) {
 		const split = modelInput.split("/");
 		requestedProvider = split[0] as Provider;
 		// Handle model names with multiple slashes (e.g. together.ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo)
@@ -247,7 +252,10 @@ chat.openapi(completions, async (c) => {
 	}
 
 	// Apply routing logic after apiKey and project are available
-	if (usedProvider === "llmgateway" && usedModel === "auto") {
+	if (
+		(usedProvider === "llmgateway" && usedModel === "auto") ||
+		usedModel === "auto"
+	) {
 		// Get available providers based on project mode
 		let availableProviders: string[] = [];
 
@@ -316,11 +324,14 @@ chat.openapi(completions, async (c) => {
 			}
 		}
 
-		if (usedProvider === "llmgateway") {
+		if (usedProvider === "llmgateway" || !usedProvider) {
 			usedModel = "gpt-4o-mini";
 			usedProvider = "openai";
 		}
-	} else if (usedProvider === "llmgateway" && usedModel === "custom") {
+	} else if (
+		(usedProvider === "llmgateway" && usedModel === "custom") ||
+		usedModel === "custom"
+	) {
 		usedProvider = "llmgateway";
 		usedModel = "custom";
 	} else if (!usedProvider) {
@@ -473,12 +484,22 @@ chat.openapi(completions, async (c) => {
 			});
 		}
 
-		url = getProviderEndpoint(
-			usedProvider,
-			providerKey.baseUrl || undefined,
-			usedModel,
-			usedProvider === "google-ai-studio" ? providerKey.token : undefined,
-		);
+		if (usedModel === "custom" && usedProvider === "llmgateway") {
+			if (!providerKey.baseUrl) {
+				url = "https://api.openai.com/v1/chat/completions";
+			} else {
+				url = providerKey.baseUrl.endsWith("/v1/chat/completions")
+					? providerKey.baseUrl
+					: `${providerKey.baseUrl}${providerKey.baseUrl.endsWith("/") ? "" : "/"}v1/chat/completions`;
+			}
+		} else {
+			url = getProviderEndpoint(
+				usedProvider,
+				providerKey.baseUrl || undefined,
+				usedModel,
+				usedProvider === "google-ai-studio" ? providerKey.token : undefined,
+			);
+		}
 	} catch (error) {
 		if (usedProvider === "llmgateway" && usedModel !== "custom") {
 			throw new HTTPException(400, {
