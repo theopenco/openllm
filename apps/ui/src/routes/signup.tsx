@@ -69,7 +69,7 @@ function RouteComponent() {
 							"Please check your email to verify your account before signing in.",
 					});
 					// Redirect to login page instead of dashboard since verification is required
-					navigate({ to: "/login" });
+					window.location.href = "/login";
 				},
 				onError: (ctx) => {
 					toast({
