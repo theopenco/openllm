@@ -59,12 +59,12 @@ function RouteComponent() {
 				name: values.name,
 				email: values.email,
 				password: values.password,
-				callbackURL: "/dashboard",
+				callbackURL: "/onboarding",
 			},
 			{
 				onSuccess: () => {
 					toast({ title: "Account created", description: "Welcome!" });
-					window.location.href = "/dashboard";
+					window.location.href = "/onboarding";
 				},
 				onError: (ctx) => {
 					toast({
