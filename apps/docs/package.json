@@ -17,7 +17,7 @@
 	"dependencies": {
 		"fumadocs-core": "15.3.1",
 		"fumadocs-mdx": "11.6.3",
-		"fumadocs-openapi": "8.1.9",
+		"fumadocs-openapi": "9.0.2",
 		"fumadocs-ui": "15.3.1",
 		"gateway": "workspace:*",
 		"next": "15.3.2",
