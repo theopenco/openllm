@@ -61,20 +61,26 @@ modelsApi.openapi(listModels, async (c) => {
 			// Determine input modalities (if model supports images)
 			const inputModalities: ("text" | "image")[] = ["text"];
 
-			// Check if model has imageInputPrice property and it's defined
-			if ("imageInputPrice" in model && model.imageInputPrice !== undefined) {
+			// Check if any provider has imageInputPrice property and it's defined
+			if (
+				model.providers.some((p) => (p as any).imageInputPrice !== undefined)
+			) {
 				inputModalities.push("image");
 			}
 
-			// Format pricing information - safely check if properties exist
+			const firstProviderWithPricing = model.providers.find(
+				(p) =>
+					(p as any).inputPrice !== undefined ||
+					(p as any).outputPrice !== undefined ||
+					(p as any).imageInputPrice !== undefined,
+			);
+
 			const inputPrice =
-				"inputPrice" in model ? model.inputPrice?.toString() || "0" : "0";
+				(firstProviderWithPricing as any)?.inputPrice?.toString() || "0";
 			const outputPrice =
-				"outputPrice" in model ? model.outputPrice?.toString() || "0" : "0";
+				(firstProviderWithPricing as any)?.outputPrice?.toString() || "0";
 			const imagePrice =
-				"imageInputPrice" in model
-					? model.imageInputPrice?.toString() || "0"
-					: "0";
+				(firstProviderWithPricing as any)?.imageInputPrice?.toString() || "0";
 
 			return {
 				id: model.model,
