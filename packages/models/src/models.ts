@@ -51,7 +51,7 @@ export let models = [
 		providers: [{ providerId: "openai", modelName: "gpt-4" }],
 		inputPrice: 0.00001,
 		outputPrice: 0.00003,
-		jsonOutput: true,
+		jsonOutput: false,
 	},
 	{
 		model: "gpt-4o",
