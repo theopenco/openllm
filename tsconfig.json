@@ -6,7 +6,6 @@
 		"module": "esnext",
 		"verbatimModuleSyntax": true,
 		"target": "es2022",
-		"declaration": true,
 		"removeComments": true,
 		"skipLibCheck": true,
 		"strict": true,

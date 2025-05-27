@@ -10,6 +10,7 @@ const router = createRouter();
 hydrateRoot(
 	document,
 	<StrictMode>
+		{/* @ts-ignore */}
 		<StartClient router={router} />
 	</StrictMode>,
 );
