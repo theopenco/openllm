@@ -12,7 +12,7 @@ const testModels = models
 		// Create the basic model entry
 		const baseModel = {
 			model: model.model,
-			providers: model.providers.map((p) => p.providerId),
+			providers: model.providers,
 		};
 
 		// Create entries for provider-specific model names that differ from the generic name
@@ -20,14 +20,19 @@ const testModels = models
 			.filter((p) => p.modelName && p.modelName !== model.model)
 			.map((p) => ({
 				model: p.modelName,
-				providers: [p.providerId],
+				providers: [p],
 				originalModel: model.model, // Keep track of the original model for reference
 			}));
 
 		return [baseModel, ...providerSpecificModels];
 	});
 
-const streamingModels = testModels; // TODO
+const streamingModels = testModels.filter((m) =>
+	m.providers.every((p) => {
+		const provider = providers.find((pr) => pr.id === p.providerId);
+		return provider?.streaming;
+	}),
+);
 
 describe("e2e tests with real provider keys", () => {
 	beforeEach(async () => {
@@ -103,6 +108,8 @@ describe("e2e tests with real provider keys", () => {
 	async function validateLogs() {
 		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
+
+		console.log("logs", logs);
 
 		expect(logs[0].usedProvider).toBeTruthy();
 		expect(logs[0].finishReason).not.toBeNull();
