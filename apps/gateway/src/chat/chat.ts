@@ -1302,6 +1302,9 @@ chat.openapi(completions, async (c) => {
 	}
 
 	const json = await res.json();
+	if (process.env.NODE_ENV !== "production") {
+		console.log("response", json);
+	}
 	const responseText = JSON.stringify(json);
 
 	// Extract content and token usage based on provider
