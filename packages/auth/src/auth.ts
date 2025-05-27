@@ -4,8 +4,8 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
 import { passkey } from "better-auth/plugins/passkey";
 
-const uiUrl = process.env.UI_URL || "https://dev.llmgateway.io";
-const originUrls = process.env.ORIGIN_URL || "https://dev.llmgateway.io";
+const uiUrl = process.env.UI_URL || "http://localhost:3002";
+const originUrls = process.env.ORIGIN_URL || "http://localhost:3002";
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	advanced: {
