@@ -8,6 +8,7 @@ import {
 import { createRouter } from "./router";
 
 export default createStartHandler({
+	// @ts-ignore
 	createRouter,
 	getRouterManifest,
 })(defaultStreamHandler);

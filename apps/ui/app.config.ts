@@ -4,6 +4,7 @@ import copy from "rollup-plugin-copy";
 import svgr from "vite-plugin-svgr";
 import tsConfigPaths from "vite-tsconfig-paths";
 
+// noinspection JSUnusedGlobalSymbols
 export default defineConfig({
 	server: {
 		devProxy: {

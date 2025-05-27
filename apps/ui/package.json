@@ -13,7 +13,7 @@
 		".vercel"
 	],
 	"scripts": {
-		"build": "SERVER_PRESET=static vinxi build",
+		"build": "tsc && SERVER_PRESET=static vinxi build",
 		"dev": "vinxi dev --port 3002",
 		"generate": "openapi-typescript ../api/openapi.json -o ./src/lib/api/v1.d.ts",
 		"start": "vinxi serve --dir .output/public/"

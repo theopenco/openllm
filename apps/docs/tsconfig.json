@@ -1,21 +1,12 @@
 {
 	"extends": "../../tsconfig.json",
 	"compilerOptions": {
-		"baseUrl": ".",
 		"target": "ESNext",
 		"lib": ["dom", "dom.iterable", "esnext"],
-		"allowJs": true,
-		"skipLibCheck": true,
-		"strict": true,
-		"forceConsistentCasingInFileNames": true,
 		"noEmit": true,
-		"esModuleInterop": true,
 		"module": "esnext",
 		"moduleResolution": "bundler",
-		"resolveJsonModule": true,
-		"isolatedModules": true,
 		"jsx": "preserve",
-		"incremental": true,
 		"paths": {
 			"@/*": ["./*"],
 			"@openllm/*": ["../../packages/*/src"]
@@ -25,7 +16,10 @@
 				"name": "next"
 			}
 		],
-		"preserveSymlinks": true
+		"preserveSymlinks": true,
+		"allowJs": true,
+		"incremental": true,
+		"resolveJsonModule": true
 	},
 	"include": [
 		"**/*.ts",
