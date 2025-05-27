@@ -333,7 +333,7 @@ describe("test", () => {
 		expect(res.status).toBe(400);
 		const errorMessage = await res.text();
 		expect(errorMessage).toMatchInlineSnapshot(
-			`"No API key set for provider: openai. Please add a provider key in your settings or add credits and switch to credits or hybrid mode."`,
+			`"{"error":true,"status":400,"message":"No API key set for provider: openai. Please add a provider key in your settings or add credits and switch to credits or hybrid mode."}"`,
 		);
 	});
 
