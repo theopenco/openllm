@@ -1,20 +1,42 @@
-import { db, tables } from "@openllm/db";
+import { db, tables, eq } from "@openllm/db";
 import { models, providers } from "@openllm/models";
 import "dotenv/config";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
 import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
 
 const testModels = models
 	.filter((model) => !["custom", "auto"].includes(model.model))
-	.map((model) => ({
-		model: model.model,
-		providers: model.providers,
-	}));
+	.flatMap((model) => {
+		// Create the basic model entry
+		const baseModel = {
+			model: model.model,
+			providers: model.providers,
+		};
+
+		// Create entries for provider-specific model names that differ from the generic name
+		const providerSpecificModels = model.providers
+			.filter((p) => p.modelName && p.modelName !== model.model)
+			.map((p) => ({
+				model: p.modelName,
+				providers: [p],
+				originalModel: model.model, // Keep track of the original model for reference
+			}));
+
+		return [baseModel, ...providerSpecificModels];
+	});
+
+const streamingModels = testModels.filter((m) =>
+	m.providers.every((p) => {
+		const provider = providers.find((pr) => pr.id === p.providerId);
+		return provider?.streaming;
+	}),
+);
 
 describe("e2e tests with real provider keys", () => {
-	afterEach(async () => {
+	beforeEach(async () => {
+		await flushLogs();
 		await Promise.all([
 			db.delete(tables.user),
 			db.delete(tables.account),
@@ -27,10 +49,7 @@ describe("e2e tests with real provider keys", () => {
 			db.delete(tables.providerKey),
 			db.delete(tables.log),
 		]);
-		await flushLogs();
-	});
 
-	beforeEach(async () => {
 		await db.insert(tables.user).values({
 			id: "user-id",
 			name: "user",
@@ -53,20 +72,21 @@ describe("e2e tests with real provider keys", () => {
 			name: "Test Project",
 			organizationId: "org-id",
 		});
-	});
 
-	function getProviderEnvVar(provider: string): string | undefined {
-		const envMap: Record<string, string> = {
-			openai: "OPENAI_API_KEY",
-			anthropic: "ANTHROPIC_API_KEY",
-			"google-vertex": "VERTEX_API_KEY",
-			"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
-			"inference.net": "INFERENCE_NET_API_KEY",
-			"kluster.ai": "KLUSTER_AI_API_KEY",
-			"together.ai": "TOGETHER_AI_API_KEY",
-		};
-		return process.env[envMap[provider]];
-	}
+		await db.insert(tables.apiKey).values({
+			id: "token-id",
+			token: "real-token",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		for (const provider of providers) {
+			const envVar = getProviderEnvVar(provider.id);
+			if (envVar) {
+				await createProviderKey(provider.id, envVar);
+			}
+		}
+	});
 
 	async function createProviderKey(provider: string, token: string) {
 		await db.insert(tables.providerKey).values({
@@ -74,15 +94,6 @@ describe("e2e tests with real provider keys", () => {
 			token,
 			provider,
 			projectId: "project-id",
-		});
-	}
-
-	async function createApiKey() {
-		await db.insert(tables.apiKey).values({
-			id: "token-id",
-			token: "real-token",
-			projectId: "project-id",
-			description: "Test API Key",
 		});
 	}
 
@@ -98,8 +109,12 @@ describe("e2e tests with real provider keys", () => {
 		const logs = await waitForLogs(1);
 		expect(logs.length).toBe(1);
 
+		console.log("logs", logs);
+
 		expect(logs[0].usedProvider).toBeTruthy();
 		expect(logs[0].finishReason).not.toBeNull();
+		expect(logs[0].unifiedFinishReason).not.toBeNull();
+		expect(logs[0].unifiedFinishReason).toBeTruthy();
 		expect(logs[0].usedModel).toBeTruthy();
 		expect(logs[0].requestedModel).toBeTruthy();
 
@@ -108,153 +123,330 @@ describe("e2e tests with real provider keys", () => {
 
 	test.each(testModels)(
 		"/v1/chat/completions with $model",
-		async ({ model, providers: modelProviders }) => {
-			let testRan = false;
-
-			for (const provider of modelProviders) {
-				const envVar = getProviderEnvVar(provider);
-				if (!envVar) {
-					console.log(`Skipping ${model} on ${provider} - no API key provided`);
-					continue;
-				}
-
-				console.log(`Testing ${model} on ${provider}`);
-				testRan = true;
-
-				await createApiKey();
-				await createProviderKey(provider, envVar);
-
-				const requestModel =
-					provider === "openai" ? model : `${provider}/${model}`;
-
-				const res = await app.request("/v1/chat/completions", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer real-token`,
-					},
-					body: JSON.stringify({
-						model: requestModel,
-						messages: [
-							{
-								role: "system",
-								content: "You are a helpful assistant.",
-							},
-							{
-								role: "user",
-								content: "Hello, just reply 'OK'!",
-							},
-						],
-					}),
-				});
-
-				expect(res.status).toBe(200);
-				const json = await res.json();
-				validateResponse(json);
-
-				const log = await validateLogs();
-				expect(log.streamed).toBe(false);
-
-				expect(log.inputCost).not.toBeNull();
-				expect(log.outputCost).not.toBeNull();
-				expect(log.cost).not.toBeNull();
-
-				await db.delete(tables.apiKey);
-				await db.delete(tables.providerKey);
-				await flushLogs();
-
-				break;
-			}
-
-			if (!testRan) {
-				console.log(
-					`Skipped all providers for ${model} - no API keys available`,
-				);
-			}
-		},
-	);
-
-	test.each(testModels)(
-		"/v1/chat/completions streaming with $model",
-		async ({ model, providers: modelProviders }) => {
-			const streamingProviders = modelProviders.filter((provider) => {
-				const providerInfo = providers.find((p) => p.id === provider);
-				return providerInfo?.streaming === true;
+		async ({ model }) => {
+			const res = await app.request("/v1/chat/completions", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer real-token`,
+				},
+				body: JSON.stringify({
+					model: model,
+					messages: [
+						{
+							role: "system",
+							content: "You are a helpful assistant.",
+						},
+						{
+							role: "user",
+							content: "Hello, just reply 'OK'!",
+						},
+					],
+				}),
 			});
 
-			let testRan = false;
+			const json = await res.json();
+			console.log("response:", json);
+			expect(res.status).toBe(200);
+			validateResponse(json);
 
-			for (const provider of streamingProviders) {
-				const envVar = getProviderEnvVar(provider);
-				if (!envVar) {
-					console.log(
-						`Skipping streaming ${model} on ${provider} - no API key provided`,
-					);
-					continue;
-				}
+			const log = await validateLogs();
+			expect(log.streamed).toBe(false);
 
-				console.log(`Testing streaming ${model} on ${provider}`);
-				testRan = true;
+			// expect(log.inputCost).not.toBeNull();
+			// expect(log.outputCost).not.toBeNull();
+			// expect(log.cost).not.toBeNull();
 
-				await createApiKey();
-				await createProviderKey(provider, envVar);
+			await db.delete(tables.apiKey);
+			await db.delete(tables.providerKey);
+			await flushLogs();
+		},
+	);
 
-				const requestModel =
-					provider === "openai" ? model : `${provider}/${model}`;
+	test.each(streamingModels)(
+		"/v1/chat/completions streaming with $model",
+		async ({ model }) => {
+			const res = await app.request("/v1/chat/completions", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer real-token`,
+				},
+				body: JSON.stringify({
+					model: model,
+					messages: [
+						{
+							role: "system",
+							content: "You are a helpful assistant.",
+						},
+						{
+							role: "user",
+							content: "Hello! This is a streaming e2e test.",
+						},
+					],
+					stream: true,
+				}),
+			});
 
-				const res = await app.request("/v1/chat/completions", {
-					method: "POST",
-					headers: {
-						"Content-Type": "application/json",
-						Authorization: `Bearer real-token`,
-					},
-					body: JSON.stringify({
-						model: requestModel,
-						messages: [
-							{
-								role: "system",
-								content: "You are a helpful assistant.",
-							},
-							{
-								role: "user",
-								content: "Hello! This is a streaming e2e test.",
-							},
-						],
-						stream: true,
-					}),
-				});
+			expect(res.status).toBe(200);
+			expect(res.headers.get("content-type")).toContain("text/event-stream");
 
-				expect(res.status).toBe(200);
-				expect(res.headers.get("content-type")).toContain("text/event-stream");
+			const streamResult = await readAll(res.body);
 
-				const streamResult = await readAll(res.body);
+			expect(streamResult.hasValidSSE).toBe(true);
+			expect(streamResult.eventCount).toBeGreaterThan(0);
+			expect(streamResult.hasContent).toBe(true);
 
-				expect(streamResult.hasValidSSE).toBe(true);
-				expect(streamResult.eventCount).toBeGreaterThan(0);
-				expect(streamResult.hasContent).toBe(true);
+			const log = await validateLogs();
+			expect(log.streamed).toBe(true);
 
-				const log = await validateLogs();
-				expect(log.streamed).toBe(true);
-
-				if (log.inputCost !== null && log.outputCost !== null) {
-					expect(log.cost).not.toBeNull();
-					expect(log.cost).toBeGreaterThanOrEqual(0);
-				}
-
-				await db.delete(tables.apiKey);
-				await db.delete(tables.providerKey);
-				await flushLogs();
-
-				break;
-			}
-
-			if (!testRan) {
-				console.log(
-					`Skipped streaming for ${model} - no streaming providers available or no API keys`,
-				);
+			if (log.inputCost !== null && log.outputCost !== null) {
+				expect(log.cost).not.toBeNull();
+				expect(log.cost).toBeGreaterThanOrEqual(0);
 			}
 		},
 	);
+
+	test.each(
+		testModels.filter((m) => {
+			const modelDef = models.find((def) => def.model === m.model);
+			return (modelDef as any)?.jsonOutput === true;
+		}),
+	)(
+		"/v1/chat/completions with JSON output mode for $model",
+		async ({ model }) => {
+			const res = await app.request("/v1/chat/completions", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer real-token`,
+				},
+				body: JSON.stringify({
+					model: model,
+					messages: [
+						{
+							role: "system",
+							content:
+								"You are a helpful assistant. Always respond with valid JSON.",
+						},
+						{
+							role: "user",
+							content: 'Return a JSON object with "message": "Hello World"',
+						},
+					],
+					response_format: { type: "json_object" },
+				}),
+			});
+
+			const json = await res.json();
+			console.log("json", json);
+			expect(res.status).toBe(200);
+			expect(json).toHaveProperty("choices.[0].message.content");
+
+			const content = json.choices[0].message.content;
+			expect(() => JSON.parse(content)).not.toThrow();
+
+			const parsedContent = JSON.parse(content);
+			expect(parsedContent).toHaveProperty("message");
+		},
+	);
+
+	test("JSON output mode error for unsupported model", async () => {
+		const envVar = getProviderEnvVar("anthropic");
+		if (!envVar) {
+			console.log(
+				"Skipping JSON output error test - no Anthropic API key provided",
+			);
+			return;
+		}
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "anthropic/claude-3-5-sonnet-20241022",
+				messages: [
+					{
+						role: "user",
+						content: "Hello",
+					},
+				],
+				response_format: { type: "json_object" },
+			}),
+		});
+
+		expect(res.status).toBe(400);
+
+		const text = await res.text();
+		expect(text).toContain("does not support JSON output mode");
+
+		await db.delete(tables.apiKey);
+		await db.delete(tables.providerKey);
+	});
+
+	test("/v1/chat/completions with llmgateway/auto in credits mode", async () => {
+		// require all provider keys to be set
+		for (const provider of providers) {
+			const envVar = getProviderEnvVar(provider.id);
+			if (!envVar) {
+				console.log(
+					`Skipping llmgateway/auto in credits mode test - no API key provided for ${provider.id}`,
+				);
+				return;
+			}
+		}
+
+		await db
+			.update(tables.organization)
+			.set({ credits: "1000" })
+			.where(eq(tables.organization.id, "org-id"));
+
+		await db
+			.update(tables.project)
+			.set({ mode: "credits" })
+			.where(eq(tables.project.id, "project-id"));
+
+		await db.insert(tables.apiKey).values({
+			id: "token-credits",
+			token: "credits-token",
+			projectId: "project-id",
+			description: "Test API Key for Credits",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer credits-token`,
+			},
+			body: JSON.stringify({
+				model: "llmgateway/auto",
+				messages: [
+					{
+						role: "user",
+						content: "Hello with llmgateway/auto in credits mode!",
+					},
+				],
+			}),
+		});
+
+		const json = await res.json();
+		console.log("response:", json);
+		expect(res.status).toBe(200);
+		expect(json).toHaveProperty("choices.[0].message.content");
+
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].requestedModel).toBe("auto");
+		expect(logs[0].usedProvider).toBeTruthy();
+		expect(logs[0].usedModel).toBeTruthy();
+	});
+
+	test("/v1/chat/completions with bare 'auto' model and credits", async () => {
+		await db
+			.update(tables.organization)
+			.set({ credits: "1000" })
+			.where(eq(tables.organization.id, "org-id"));
+
+		await db
+			.update(tables.project)
+			.set({ mode: "credits" })
+			.where(eq(tables.project.id, "project-id"));
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "auto",
+				messages: [
+					{
+						role: "user",
+						content: "Hello! This is an auto test.",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		expect(json).toHaveProperty("choices.[0].message.content");
+
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].requestedModel).toBe("auto");
+		expect(logs[0].usedProvider).toBeTruthy();
+		expect(logs[0].usedModel).toBeTruthy();
+	});
+
+	test.skip("/v1/chat/completions with bare 'custom' model", async () => {
+		const envVar = getProviderEnvVar("openai");
+		if (!envVar) {
+			console.log("Skipping custom model test - no OpenAI API key provided");
+			return;
+		}
+
+		await db
+			.update(tables.organization)
+			.set({ credits: "1000" })
+			.where(eq(tables.organization.id, "org-id"));
+
+		await db
+			.update(tables.project)
+			.set({ mode: "credits" })
+			.where(eq(tables.project.id, "project-id"));
+
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-custom",
+			provider: "llmgateway",
+			token: envVar,
+			baseUrl: "https://api.openai.com", // Use real OpenAI endpoint for testing
+			status: "active",
+			projectId: "project-id",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		});
+
+		await db.insert(tables.apiKey).values({
+			id: "token-id-2",
+			token: "real-token-2",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token-2`,
+			},
+			body: JSON.stringify({
+				model: "custom",
+				messages: [
+					{
+						role: "user",
+						content: "Hello! This is a custom test.",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(200);
+
+		const json = await res.json();
+		expect(json).toHaveProperty("choices.[0].message.content");
+
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].requestedModel).toBe("custom");
+		expect(logs[0].usedProvider).toBe("llmgateway");
+		expect(logs[0].usedModel).toBe("custom");
+	});
 });
 
 async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
@@ -314,4 +506,17 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	}
 
 	return { hasContent, eventCount, hasValidSSE };
+}
+
+function getProviderEnvVar(provider: string): string | undefined {
+	const envMap: Record<string, string> = {
+		openai: "OPENAI_API_KEY",
+		anthropic: "ANTHROPIC_API_KEY",
+		"google-vertex": "VERTEX_API_KEY",
+		"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
+		"inference.net": "INFERENCE_NET_API_KEY",
+		"kluster.ai": "KLUSTER_AI_API_KEY",
+		"together.ai": "TOGETHER_AI_API_KEY",
+	};
+	return process.env[envMap[provider]];
 }

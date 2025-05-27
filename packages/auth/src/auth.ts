@@ -5,8 +5,8 @@ import { createAuthMiddleware } from "better-auth/api";
 import { passkey } from "better-auth/plugins/passkey";
 import { Resend } from "resend";
 
-const uiUrl = process.env.UI_URL || "http://localhost:3002";
-const originUrls = process.env.ORIGIN_URL || "http://localhost:3002";
+const uiUrl = process.env.UI_URL || "https://dev.llmgateway.io";
+const originUrls = process.env.ORIGIN_URL || "https://dev.llmgateway.io";
 const resendApiKey = process.env.RESEND_API_KEY;
 const resendFromEmail =
 	process.env.RESEND_FROM_EMAIL || "noreply@llmgateway.io";

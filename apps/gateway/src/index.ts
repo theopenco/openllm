@@ -27,6 +27,37 @@ app.use("*", async (c, next) => {
 	return await next();
 });
 
+app.onError((error, c) => {
+	if (error instanceof HTTPException) {
+		const status = error.status;
+
+		if (status >= 500) {
+			console.log("HTTPException", error);
+		}
+
+		return c.json(
+			{
+				error: true,
+				status,
+				message: error.message || "An error occurred",
+				...(error.res ? { details: error.res } : {}),
+			},
+			status,
+		);
+	}
+
+	// For any other errors (non-HTTPException), return 500 Internal Server Error
+	console.error("Unhandled error:", error);
+	return c.json(
+		{
+			error: true,
+			status: 500,
+			message: "Internal Server Error",
+		},
+		500,
+	);
+});
+
 const root = createRoute({
 	method: "get",
 	path: "/",

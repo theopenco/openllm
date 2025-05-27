@@ -100,6 +100,13 @@ const completions = createRoute({
 						top_p: z.number().optional(),
 						frequency_penalty: z.number().optional(),
 						presence_penalty: z.number().optional(),
+						response_format: z
+							.object({
+								type: z.enum(["text", "json_object"]).openapi({
+									example: "json_object",
+								}),
+							})
+							.optional(),
 						stream: z.boolean().optional().default(false),
 					}),
 				},
@@ -150,16 +157,40 @@ chat.openapi(completions, async (c) => {
 		top_p,
 		frequency_penalty,
 		presence_penalty,
+		response_format,
 		stream,
 	} = c.req.valid("json");
 
 	let requestedModel: Model = modelInput as Model;
 	let requestedProvider: Provider | undefined;
-	if (modelInput.includes("/")) {
+
+	// check if there is an exact model match
+	if (modelInput === "auto" || modelInput === "custom") {
+		requestedProvider = "llmgateway";
+		requestedModel = modelInput as Model;
+	} else if (models.find((m) => m.model === modelInput)) {
+		console.log("only specific model is requested", modelInput);
+		requestedModel = modelInput as Model;
+	} else if (
+		models.find((m) => m.providers.find((p) => p.modelName === modelInput))
+	) {
+		console.log("specific provider model name is requested", modelInput);
+		const model = models.find((m) =>
+			m.providers.find((p) => p.modelName === modelInput),
+		);
+		requestedProvider = model!.providers.find(
+			(p) => p.modelName === modelInput,
+		)?.providerId;
+	} else if (modelInput.includes("/")) {
+		console.log("specific provider combination is requested", modelInput);
 		const split = modelInput.split("/");
 		requestedProvider = split[0] as Provider;
 		// Handle model names with multiple slashes (e.g. together.ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo)
 		requestedModel = split.slice(1).join("/") as Model;
+	} else {
+		throw new HTTPException(400, {
+			message: `Requested model ${modelInput} not supported`,
+		});
 	}
 
 	if (requestedProvider && !providers.find((p) => p.id === requestedProvider)) {
@@ -168,18 +199,22 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	if (!models.find((m) => m.model === requestedModel)) {
-		throw new HTTPException(400, {
-			message: `Requested model ${requestedModel} not supported`,
-		});
-	}
-
-	const modelInfo = models.find((m) => m.model === requestedModel);
+	const modelInfo =
+		models.find((m) => m.model === requestedModel) ||
+		models.find((m) => m.providers.find((p) => p.modelName === requestedModel));
 
 	if (!modelInfo) {
 		throw new HTTPException(400, {
 			message: `Unsupported model: ${requestedModel}`,
 		});
+	}
+
+	if (response_format?.type === "json_object") {
+		if (!(modelInfo as any).jsonOutput) {
+			throw new HTTPException(400, {
+				message: `Model ${requestedModel} does not support JSON output mode`,
+			});
+		}
 	}
 
 	let usedProvider = requestedProvider;
@@ -231,7 +266,10 @@ chat.openapi(completions, async (c) => {
 	}
 
 	// Apply routing logic after apiKey and project are available
-	if (usedProvider === "llmgateway" && usedModel === "auto") {
+	if (
+		(usedProvider === "llmgateway" && usedModel === "auto") ||
+		usedModel === "auto"
+	) {
 		// Get available providers based on project mode
 		let availableProviders: string[] = [];
 
@@ -290,27 +328,38 @@ chat.openapi(completions, async (c) => {
 
 			// Check if any of the model's providers are available
 			const availableModelProviders = modelDef.providers.filter((provider) =>
-				availableProviders.includes(provider),
+				availableProviders.includes(provider.providerId),
 			);
 
 			if (availableModelProviders.length > 0) {
-				usedModel = modelDef.model as Model;
-				usedProvider = availableModelProviders[0];
+				usedProvider = availableModelProviders[0].providerId;
+				usedModel = availableModelProviders[0].modelName;
 				break;
 			}
 		}
 
-		if (usedProvider === "llmgateway") {
+		if (usedProvider === "llmgateway" || !usedProvider) {
 			usedModel = "gpt-4o-mini";
 			usedProvider = "openai";
 		}
-	} else if (usedProvider === "llmgateway" && usedModel === "custom") {
+	} else if (
+		(usedProvider === "llmgateway" && usedModel === "custom") ||
+		usedModel === "custom"
+	) {
 		usedProvider = "llmgateway";
 		usedModel = "custom";
 	} else if (!usedProvider) {
+		console.log("choosing provider...");
 		if (modelInfo.providers.length === 1) {
-			usedProvider = modelInfo.providers[0];
+			usedProvider = modelInfo.providers[0].providerId;
+			usedModel = modelInfo.providers[0].modelName;
+			console.log(
+				"used provider as there is only one provider",
+				usedProvider,
+				usedModel,
+			);
 		} else {
+			const providerIds = modelInfo.providers.map((p) => p.providerId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: {
@@ -320,7 +369,7 @@ chat.openapi(completions, async (c) => {
 						eq: apiKey.projectId,
 					},
 					provider: {
-						in: modelInfo.providers,
+						in: providerIds,
 					},
 				},
 			});
@@ -329,12 +378,12 @@ chat.openapi(completions, async (c) => {
 
 			// Filter model providers to only those available
 			const availableModelProviders = modelInfo.providers.filter((provider) =>
-				availableProviders.includes(provider),
+				availableProviders.includes(provider.providerId),
 			);
 
 			if (availableModelProviders.length === 0) {
 				throw new HTTPException(400, {
-					message: `No API key set for provider: ${modelInfo.providers[0]}. Please add a provider key in your settings or add credits and switch to credits or hybrid mode.`,
+					message: `No API key set for provider: ${modelInfo.providers[0].providerId}. Please add a provider key in your settings or add credits and switch to credits or hybrid mode.`,
 				});
 			}
 
@@ -347,7 +396,8 @@ chat.openapi(completions, async (c) => {
 				"inputPrice" in modelWithPricing &&
 				"outputPrice" in modelWithPricing
 			) {
-				let cheapestProvider = availableModelProviders[0];
+				let cheapestProvider = availableModelProviders[0].providerId;
+				let cheapestModel = availableModelProviders[0].modelName;
 				let lowestPrice = Number.MAX_VALUE;
 
 				for (const provider of availableModelProviders) {
@@ -357,15 +407,34 @@ chat.openapi(completions, async (c) => {
 
 					if (totalPrice < lowestPrice) {
 						lowestPrice = totalPrice;
-						cheapestProvider = provider;
+						cheapestProvider = provider.providerId;
+						cheapestModel = provider.modelName;
 					}
 				}
 
 				usedProvider = cheapestProvider;
+				usedModel = cheapestModel;
+				console.log(
+					"used provider and model based on pricing",
+					usedProvider,
+					usedModel,
+				);
 			} else {
-				usedProvider = availableModelProviders[0];
+				usedProvider = availableModelProviders[0].providerId;
+				usedModel = availableModelProviders[0].modelName;
+				console.log(
+					"used provider and model based on availability",
+					usedProvider,
+					usedModel,
+				);
 			}
 		}
+	}
+
+	if (!usedProvider) {
+		throw new HTTPException(500, {
+			message: "An error occurred while routing the request",
+		});
 	}
 
 	let url: string | undefined;
@@ -450,6 +519,12 @@ chat.openapi(completions, async (c) => {
 	}
 
 	try {
+		if (!usedProvider) {
+			throw new HTTPException(400, {
+				message: "No provider available for the requested model",
+			});
+		}
+
 		url = getProviderEndpoint(
 			usedProvider,
 			providerKey.baseUrl || undefined,
@@ -489,6 +564,7 @@ chat.openapi(completions, async (c) => {
 			top_p,
 			frequency_penalty,
 			presence_penalty,
+			response_format,
 		});
 
 		const cachedResponse = cacheKey ? await getCache(cacheKey) : null;
@@ -559,6 +635,9 @@ chat.openapi(completions, async (c) => {
 				requestBody.stream_options = {
 					include_usage: true,
 				};
+			}
+			if (response_format) {
+				requestBody.response_format = response_format;
 			}
 			break;
 		}
@@ -1100,7 +1179,7 @@ chat.openapi(completions, async (c) => {
 	try {
 		const headers = getProviderHeaders(usedProvider, providerKey);
 		headers["Content-Type"] = "application/json";
-
+		console.log("requestBody", requestBody);
 		res = await fetch(url, {
 			method: "POST",
 			headers,
@@ -1232,6 +1311,9 @@ chat.openapi(completions, async (c) => {
 	}
 
 	const json = await res.json();
+	if (process.env.NODE_ENV !== "production") {
+		console.log("response", json);
+	}
 	const responseText = JSON.stringify(json);
 
 	// Extract content and token usage based on provider
