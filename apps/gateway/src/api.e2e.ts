@@ -150,9 +150,9 @@ describe("e2e tests with real provider keys", () => {
 					}),
 				});
 
-				expect(res.status).toBe(200);
 				const json = await res.json();
 				console.log("response:", json);
+				expect(res.status).toBe(200);
 				validateResponse(json);
 
 				const log = await validateLogs();
