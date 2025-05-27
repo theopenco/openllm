@@ -47,6 +47,7 @@ async function seed() {
 	await upsert(tables.organization, {
 		id: "test-org-id",
 		name: "Test Organization",
+		credits: 5,
 	});
 
 	// Insert user organization relationship
@@ -61,6 +62,7 @@ async function seed() {
 		id: "test-project-id",
 		name: "Test Project",
 		organizationId: "test-org-id",
+		mode: "hybrid",
 	});
 
 	// Insert API key
