@@ -20,18 +20,35 @@ export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
 }>()({
 	head: () => ({
-		links: [{ rel: "stylesheet", href: appCss }],
+		links: [
+			{ rel: "stylesheet", href: appCss },
+			{
+				rel: "icon",
+				href: "/static/favicon/favicon.ico",
+				type: "image/x-icon",
+			},
+		],
 		meta: [
+			{ charSet: "utf-8" },
+			{ name: "viewport", content: "width=device-width, initial-scale=1" },
+			{ name: "title", content: "LLM Gateway" },
+			{ property: "og:title", content: "LLM Gateway" },
 			{
-				charSet: "utf-8",
+				property: "og:description",
+				content:
+					"Route, manage, and analyze your LLM requests across multiple providers with a unified API interface.",
 			},
+			{ property: "og:image", content: "/static/opengraph.png" },
+			{ property: "og:type", content: "website" },
+			{ property: "og:url", content: "https://llmgateway.io" },
+			{ name: "twitter:card", content: "summary_large_image" },
+			{ name: "twitter:title", content: "LLM Gateway" },
 			{
-				name: "viewport",
-				content: "width=device-width, initial-scale=1",
+				name: "twitter:description",
+				content:
+					"Route, manage, and analyze your LLM requests across multiple providers with a unified API interface.",
 			},
-			{
-				title: "LLM Gateway",
-			},
+			{ name: "twitter:image", content: "/static/opengraph.png" },
 		],
 	}),
 	component: RootComponent,
