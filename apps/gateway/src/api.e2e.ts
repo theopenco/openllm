@@ -11,12 +11,11 @@ const testModels = models
 	.flatMap((model) => {
 		const testCases = [];
 
-		if (model.providers.length === 1) {
-			testCases.push({
-				model: model.model,
-				providers: model.providers,
-			});
-		}
+		// test all models
+		testCases.push({
+			model: model.model,
+			providers: model.providers,
+		});
 
 		// Create entries for provider-specific requests using provider/model format
 		for (const provider of model.providers) {
@@ -25,14 +24,6 @@ const testModels = models
 				providers: [provider],
 				originalModel: model.model, // Keep track of the original model for reference
 			});
-
-			if (provider.modelName !== model.model) {
-				testCases.push({
-					model: `${provider.providerId}/${provider.modelName}`,
-					providers: [provider],
-					originalModel: model.model,
-				});
-			}
 		}
 
 		return testCases;
