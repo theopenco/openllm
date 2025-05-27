@@ -25,6 +25,14 @@ const testModels = models
 				providers: [provider],
 				originalModel: model.model, // Keep track of the original model for reference
 			});
+
+			if (provider.modelName !== model.model) {
+				testCases.push({
+					model: `${provider.providerId}/${provider.modelName}`,
+					providers: [provider],
+					originalModel: model.model,
+				});
+			}
 		}
 
 		return testCases;
