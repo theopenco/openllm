@@ -1,7 +1,7 @@
 import { db, tables, eq } from "@openllm/db";
 import { models, providers } from "@openllm/models";
 import "dotenv/config";
-import { afterEach, beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
 import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
@@ -27,13 +27,11 @@ const testModels = models
 		return [baseModel, ...providerSpecificModels];
 	});
 
-const streamingModels = testModels.filter((m) => {
-	const modelDef = models.find((def) => def.model === m.model);
-	return (modelDef as any)?.streaming === true;
-});
+const streamingModels = testModels; // TODO
 
 describe("e2e tests with real provider keys", () => {
-	afterEach(async () => {
+	beforeEach(async () => {
+		await flushLogs();
 		await Promise.all([
 			db.delete(tables.user),
 			db.delete(tables.account),
@@ -46,10 +44,7 @@ describe("e2e tests with real provider keys", () => {
 			db.delete(tables.providerKey),
 			db.delete(tables.log),
 		]);
-		await flushLogs();
-	});
 
-	beforeEach(async () => {
 		await db.insert(tables.user).values({
 			id: "user-id",
 			name: "user",
@@ -210,77 +205,40 @@ describe("e2e tests with real provider keys", () => {
 		}),
 	)(
 		"/v1/chat/completions with JSON output mode for $model",
-		async ({ model, providers: modelProviders }) => {
-			let testRan = false;
-
-			const jsonOutputProviders = modelProviders.filter((provider) => {
-				const providerInfo = providers.find((p) => p.id === provider);
-				return (providerInfo as any)?.jsonOutput === true;
+		async ({ model }) => {
+			const res = await app.request("/v1/chat/completions", {
+				method: "POST",
+				headers: {
+					"Content-Type": "application/json",
+					Authorization: `Bearer real-token`,
+				},
+				body: JSON.stringify({
+					model: model,
+					messages: [
+						{
+							role: "system",
+							content:
+								"You are a helpful assistant. Always respond with valid JSON.",
+						},
+						{
+							role: "user",
+							content: 'Return a JSON object with "message": "Hello World"',
+						},
+					],
+					response_format: { type: "json_object" },
+				}),
 			});
 
-			for (const provider of jsonOutputProviders) {
-				const envVar = getProviderEnvVar(provider);
-				if (!envVar) {
-					console.log(
-						`Skipping JSON output test for ${model} on ${provider} - no API key provided`,
-					);
-					continue;
-				}
+			const json = await res.json();
+			console.log("json", json);
+			expect(res.status).toBe(200);
+			expect(json).toHaveProperty("choices.[0].message.content");
 
-				console.log(`Testing JSON output for ${model} on ${provider}`);
-				testRan = true;
+			const content = json.choices[0].message.content;
+			expect(() => JSON.parse(content)).not.toThrow();
 
-				const requestModel =
-					provider === "openai" ? model : `${provider}/${model}`;
-
-				try {
-					const res = await app.request("/v1/chat/completions", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json",
-							Authorization: `Bearer real-token`,
-						},
-						body: JSON.stringify({
-							model: requestModel,
-							messages: [
-								{
-									role: "system",
-									content:
-										"You are a helpful assistant. Always respond with valid JSON.",
-								},
-								{
-									role: "user",
-									content: 'Return a JSON object with "message": "Hello World"',
-								},
-							],
-							response_format: { type: "json_object" },
-						}),
-					});
-
-					const json = await res.json();
-					console.log("json", json);
-					expect(res.status).toBe(200);
-					expect(json).toHaveProperty("choices.[0].message.content");
-
-					const content = json.choices[0].message.content;
-					expect(() => JSON.parse(content)).not.toThrow();
-
-					const parsedContent = JSON.parse(content);
-					expect(parsedContent).toHaveProperty("message");
-
-					break;
-				} finally {
-					await db.delete(tables.apiKey);
-					await db.delete(tables.providerKey);
-					await flushLogs();
-				}
-			}
-
-			if (!testRan) {
-				console.log(
-					`Skipped JSON output test for ${model} - no providers with JSON output support available or no API keys`,
-				);
-			}
+			const parsedContent = JSON.parse(content);
+			expect(parsedContent).toHaveProperty("message");
 		},
 	);
 
@@ -321,6 +279,17 @@ describe("e2e tests with real provider keys", () => {
 	});
 
 	test("/v1/chat/completions with llmgateway/auto in credits mode", async () => {
+		// require all provider keys to be set
+		for (const provider of providers) {
+			const envVar = getProviderEnvVar(provider.id);
+			if (!envVar) {
+				console.log(
+					`Skipping llmgateway/auto in credits mode test - no API key provided for ${provider.id}`,
+				);
+				return;
+			}
+		}
+
 		await db
 			.update(tables.organization)
 			.set({ credits: "1000" })
