@@ -82,7 +82,7 @@ export const providers = [
 		name: "Together AI",
 		description:
 			"Together AI is a platform for running large language models in the cloud with fast inference.",
-		streaming: true,
+		streaming: false,
 		cancellation: true,
 		color: "#ff6b35",
 	},
