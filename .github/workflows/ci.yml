@@ -30,5 +30,6 @@ jobs:
   e2e:
     uses: ./.github/workflows/run.yml
     secrets: inherit
+    if: ${{ secrets.OPENAI_API_KEY != '' && secrets.ANTHROPIC_API_KEY != '' && secrets.KLUSTER_AI_API_KEY != '' && secrets.INFERENCE_NET_API_KEY != '' && secrets.TOGETHER_AI_API_KEY != '' && secrets.GOOGLE_AI_STUDIO_API_KEY != '' }}
     with:
       cmd: pnpm run setup && pnpm test:e2e
