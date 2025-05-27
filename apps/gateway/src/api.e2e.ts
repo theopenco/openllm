@@ -4,7 +4,11 @@ import "dotenv/config";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
-import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
+import {
+	flushLogs,
+	waitForLogs,
+	getProviderEnvVar,
+} from "./test-utils/test-helpers";
 
 const testModels = models
 	.filter((model) => !["custom", "auto"].includes(model.model))
@@ -567,17 +571,4 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	}
 
 	return { hasContent, eventCount, hasValidSSE };
-}
-
-function getProviderEnvVar(provider: string): string | undefined {
-	const envMap: Record<string, string> = {
-		openai: "OPENAI_API_KEY",
-		anthropic: "ANTHROPIC_API_KEY",
-		"google-vertex": "VERTEX_API_KEY",
-		"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
-		"inference.net": "INFERENCE_NET_API_KEY",
-		"kluster.ai": "KLUSTER_AI_API_KEY",
-		"together.ai": "TOGETHER_AI_API_KEY",
-	};
-	return process.env[envMap[provider]];
 }
