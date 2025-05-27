@@ -2,7 +2,7 @@ import type { providers } from "./providers";
 
 export type Provider = (typeof providers)[number]["id"];
 
-export type Model = (typeof models)[number]["model"];
+export type Model = (typeof models)[number]["providers"][number]["modelName"];
 
 export interface ProviderModelMapping {
 	providerId: (typeof providers)[number]["id"];
@@ -108,71 +108,31 @@ export let models = [
 	{
 		model: "llama-3.1-8b-instruct",
 		providers: [
-			{ providerId: "inference.net", modelName: "llama-3.1-8b-instruct" },
-			{ providerId: "kluster.ai", modelName: "llama-3.1-8b-instruct" },
+			{
+				providerId: "inference.net",
+				modelName: "meta-llama/llama-3.1-8b-instruct/fp-8",
+			},
+			{
+				providerId: "kluster.ai",
+				modelName: "klusterai/Meta-Llama-3.1-8B-Instruct-Turbo",
+			},
+			{
+				providerId: "together.ai",
+				modelName: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
+			},
 		],
-		inputPrice: 0.0000002,
-		outputPrice: 0.0000006,
+		inputPrice: 0.07 / 1e6,
+		outputPrice: 0.33 / 1e6,
 	},
 	{
 		model: "llama-3.1-70b-instruct",
 		providers: [
-			{ providerId: "inference.net", modelName: "llama-3.1-70b-instruct" },
-			{ providerId: "kluster.ai", modelName: "llama-3.1-70b-instruct" },
+			{
+				providerId: "inference.net",
+				modelName: "meta-llama/llama-3.1-70b-instruct/fp-16",
+			},
 		],
-		inputPrice: 0.0000009,
-		outputPrice: 0.0000027,
+		inputPrice: 0.07 / 1e6,
+		outputPrice: 0.33 / 1e6,
 	},
-	{
-		model: "llama-3-8b-instruct",
-		providers: [
-			{ providerId: "inference.net", modelName: "llama-3-8b-instruct" },
-			{ providerId: "kluster.ai", modelName: "llama-3-8b-instruct" },
-		],
-		inputPrice: 0.0000002,
-		outputPrice: 0.0000006,
-	},
-	/// / Together.ai models
-	// {
-	// 	model: "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo",
-	// 	providers: [{ providerId: "together.ai", modelName: "meta-llama/Llama-3.2-11B-Vision-Instruct-Turbo" }],
-	// 	inputPrice: 0.00000018,
-	// 	outputPrice: 0.00000018,
-	// },
-	// {
-	// 	model: "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo",
-	// 	providers: [{ providerId: "together.ai", modelName: "meta-llama/Llama-3.2-90B-Vision-Instruct-Turbo" }],
-	// 	inputPrice: 0.0000012,
-	// 	outputPrice: 0.0000012,
-	// },
-	// {
-	// 	model: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-	// 	providers: [{ providerId: "together.ai", modelName: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo" }],
-	// 	inputPrice: 0.00000088,
-	// 	outputPrice: 0.00000088,
-	// },
-	// {
-	// 	model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-	// 	providers: [{ providerId: "together.ai", modelName: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo" }],
-	// 	inputPrice: 0.00000018,
-	// 	outputPrice: 0.00000018,
-	// },
-	// {
-	// 	model: "mistralai/Mixtral-8x7B-Instruct-v0.1",
-	// 	providers: [{ providerId: "together.ai", modelName: "mistralai/Mixtral-8x7B-Instruct-v0.1" }],
-	// 	inputPrice: 0.0000006,
-	// 	outputPrice: 0.0000006,
-	// },
-	// {
-	// 	model: "mistralai/Mixtral-8x22B-Instruct-v0.1",
-	// 	providers: [{ providerId: "together.ai", modelName: "mistralai/Mixtral-8x22B-Instruct-v0.1" }],
-	// 	inputPrice: 0.0000012,
-	// 	outputPrice: 0.0000012,
-	// },
-	// {
-	// 	model: "Qwen/Qwen2.5-72B-Instruct-Turbo",
-	// 	providers: [{ providerId: "together.ai", modelName: "Qwen/Qwen2.5-72B-Instruct-Turbo" }],
-	// 	inputPrice: 0.0000012,
-	// 	outputPrice: 0.0000012,
-	// },
 ] as const satisfies ModelDefinition[];

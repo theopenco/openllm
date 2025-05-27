@@ -163,11 +163,31 @@ chat.openapi(completions, async (c) => {
 
 	let requestedModel: Model = modelInput as Model;
 	let requestedProvider: Provider | undefined;
-	if (modelInput.includes("/")) {
+
+	// check if there is an exact model match
+	if (models.find((m) => m.model === modelInput)) {
+		console.log("only specific model is requested", modelInput);
+		requestedModel = modelInput as Model;
+	} else if (
+		models.find((m) => m.providers.find((p) => p.modelName === modelInput))
+	) {
+		console.log("specific provider model name is requested", modelInput);
+		const model = models.find((m) =>
+			m.providers.find((p) => p.modelName === modelInput),
+		);
+		requestedProvider = model!.providers.find(
+			(p) => p.modelName === modelInput,
+		)?.providerId;
+	} else if (modelInput.includes("/")) {
+		console.log("specific provider combination is requested", modelInput);
 		const split = modelInput.split("/");
 		requestedProvider = split[0] as Provider;
 		// Handle model names with multiple slashes (e.g. together.ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo)
 		requestedModel = split.slice(1).join("/") as Model;
+	} else {
+		throw new HTTPException(400, {
+			message: `Requested model ${modelInput} not supported`,
+		});
 	}
 
 	if (requestedProvider && !providers.find((p) => p.id === requestedProvider)) {
@@ -176,13 +196,9 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
-	if (!models.find((m) => m.model === requestedModel)) {
-		throw new HTTPException(400, {
-			message: `Requested model ${requestedModel} not supported`,
-		});
-	}
-
-	const modelInfo = models.find((m) => m.model === requestedModel);
+	const modelInfo =
+		models.find((m) => m.model === requestedModel) ||
+		models.find((m) => m.providers.find((p) => p.modelName === requestedModel));
 
 	if (!modelInfo) {
 		throw new HTTPException(400, {
@@ -310,8 +326,8 @@ chat.openapi(completions, async (c) => {
 			);
 
 			if (availableModelProviders.length > 0) {
-				usedModel = modelDef.model as Model;
 				usedProvider = availableModelProviders[0].providerId;
+				usedModel = availableModelProviders[0].modelName;
 				break;
 			}
 		}
@@ -324,8 +340,15 @@ chat.openapi(completions, async (c) => {
 		usedProvider = "llmgateway";
 		usedModel = "custom";
 	} else if (!usedProvider) {
+		console.log("choosing provider...");
 		if (modelInfo.providers.length === 1) {
 			usedProvider = modelInfo.providers[0].providerId;
+			usedModel = modelInfo.providers[0].modelName;
+			console.log(
+				"used provider as there is only one provider",
+				usedProvider,
+				usedModel,
+			);
 		} else {
 			const providerIds = modelInfo.providers.map((p) => p.providerId);
 			const providerKeys = await db.query.providerKey.findMany({
@@ -365,6 +388,7 @@ chat.openapi(completions, async (c) => {
 				"outputPrice" in modelWithPricing
 			) {
 				let cheapestProvider = availableModelProviders[0].providerId;
+				let cheapestModel = availableModelProviders[0].modelName;
 				let lowestPrice = Number.MAX_VALUE;
 
 				for (const provider of availableModelProviders) {
@@ -375,14 +399,33 @@ chat.openapi(completions, async (c) => {
 					if (totalPrice < lowestPrice) {
 						lowestPrice = totalPrice;
 						cheapestProvider = provider.providerId;
+						cheapestModel = provider.modelName;
 					}
 				}
 
 				usedProvider = cheapestProvider;
+				usedModel = cheapestModel;
+				console.log(
+					"used provider and model based on pricing",
+					usedProvider,
+					usedModel,
+				);
 			} else {
 				usedProvider = availableModelProviders[0].providerId;
+				usedModel = availableModelProviders[0].modelName;
+				console.log(
+					"used provider and model based on availability",
+					usedProvider,
+					usedModel,
+				);
 			}
 		}
+	}
+
+	if (!usedProvider) {
+		throw new HTTPException(500, {
+			message: "An error occurred while routing the request",
+		});
 	}
 
 	let url: string | undefined;
@@ -1127,7 +1170,7 @@ chat.openapi(completions, async (c) => {
 	try {
 		const headers = getProviderHeaders(usedProvider, providerKey);
 		headers["Content-Type"] = "application/json";
-
+		console.log("requestBody", requestBody);
 		res = await fetch(url, {
 			method: "POST",
 			headers,
