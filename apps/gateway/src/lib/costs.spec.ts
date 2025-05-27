@@ -48,13 +48,8 @@ describe("calculateCosts", () => {
 	});
 
 	it("should return null costs when model info is not found", () => {
-		// @ts-expect-error - Testing with invalid model
-		const result = calculateCosts(
-			"non-existent-model",
-			"non-existent-provider",
-			100,
-			50,
-		);
+		// Using a valid model with an invalid provider to test the not-found path
+		const result = calculateCosts("gpt-4", "non-existent-provider", 100, 50);
 
 		expect(result.inputCost).toBeNull();
 		expect(result.outputCost).toBeNull();
