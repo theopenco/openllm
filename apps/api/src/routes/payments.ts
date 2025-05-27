@@ -4,6 +4,8 @@ import { HTTPException } from "hono/http-exception";
 import Stripe from "stripe";
 import { z } from "zod";
 
+import { ensureStripeCustomer } from "../stripe";
+
 import type { ServerTypes } from "../vars";
 
 export const stripe = new Stripe(
@@ -72,10 +74,13 @@ payments.openapi(createPaymentIntent, async (c) => {
 	const organizationId = userOrganization.organization.id;
 
 	try {
+		const stripeCustomerId = await ensureStripeCustomer(organizationId);
+
 		const paymentIntent = await stripe.paymentIntents.create({
 			amount: amount * 100, // Convert to cents
 			currency: "usd",
 			description: `Credit purchase for ${amount} USD`,
+			customer: stripeCustomerId,
 			metadata: {
 				organizationId,
 			},

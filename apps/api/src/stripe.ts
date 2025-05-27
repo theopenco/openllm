@@ -7,6 +7,40 @@ import { stripe } from "./routes/payments";
 
 import type { ServerTypes } from "./vars";
 
+export async function ensureStripeCustomer(
+	organizationId: string,
+): Promise<string> {
+	const organization = await db.query.organization.findFirst({
+		where: {
+			id: organizationId,
+		},
+	});
+
+	if (!organization) {
+		throw new Error(`Organization not found: ${organizationId}`);
+	}
+
+	let stripeCustomerId = organization.stripeCustomerId;
+	if (!stripeCustomerId) {
+		const customer = await stripe.customers.create({
+			metadata: {
+				organizationId,
+			},
+		});
+		stripeCustomerId = customer.id;
+
+		await db
+			.update(tables.organization)
+			.set({
+				stripeCustomerId,
+				updatedAt: new Date(),
+			})
+			.where(eq(tables.organization.id, organizationId));
+	}
+
+	return stripeCustomerId;
+}
+
 export const stripeRoutes = new OpenAPIHono<ServerTypes>();
 
 const webhookHandler = createRoute({
@@ -122,33 +156,12 @@ async function handleSetupIntentSucceeded(setupIntent: any) {
 		return;
 	}
 
-	const organization = await db.query.organization.findFirst({
-		where: {
-			id: organizationId,
-		},
-	});
-
-	if (!organization) {
-		console.error(`Organization not found: ${organizationId}`);
+	let stripeCustomerId;
+	try {
+		stripeCustomerId = await ensureStripeCustomer(organizationId);
+	} catch (error) {
+		console.error(`Error ensuring Stripe customer: ${error}`);
 		return;
-	}
-
-	let stripeCustomerId = organization.stripeCustomerId;
-	if (!stripeCustomerId) {
-		const customer = await stripe.customers.create({
-			metadata: {
-				organizationId,
-			},
-		});
-		stripeCustomerId = customer.id;
-
-		await db
-			.update(tables.organization)
-			.set({
-				stripeCustomerId,
-				updatedAt: new Date(),
-			})
-			.where(eq(tables.organization.id, organizationId));
 	}
 
 	await stripe.paymentMethods.attach(payment_method, {
