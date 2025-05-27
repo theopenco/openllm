@@ -168,6 +168,55 @@ chat.openapi(completions, async (c) => {
 	if (modelInput === "auto" || modelInput === "custom") {
 		requestedProvider = "llmgateway";
 		requestedModel = modelInput as Model;
+	} else if (modelInput.includes("/")) {
+		console.log("specific provider combination is requested", modelInput);
+		const split = modelInput.split("/");
+		const providerCandidate = split[0];
+
+		// Check if the provider exists
+		if (!providers.find((p) => p.id === providerCandidate)) {
+			throw new HTTPException(400, {
+				message: `Requested provider ${providerCandidate} not supported`,
+			});
+		}
+
+		requestedProvider = providerCandidate as Provider;
+		// Handle model names with multiple slashes (e.g. together.ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo)
+		const modelName = split.slice(1).join("/");
+
+		// First try to find by base model name
+		let modelDef = models.find((m) => m.model === modelName);
+
+		if (!modelDef) {
+			modelDef = models.find((m) =>
+				m.providers.some(
+					(p) =>
+						p.modelName === modelName && p.providerId === requestedProvider,
+				),
+			);
+		}
+
+		if (!modelDef) {
+			throw new HTTPException(400, {
+				message: `Requested model ${modelName} not supported`,
+			});
+		}
+
+		if (!modelDef.providers.some((p) => p.providerId === requestedProvider)) {
+			throw new HTTPException(400, {
+				message: `Provider ${requestedProvider} does not support model ${modelName}`,
+			});
+		}
+
+		// Use the provider-specific model name if available
+		const providerMapping = modelDef.providers.find(
+			(p) => p.providerId === requestedProvider,
+		);
+		if (providerMapping) {
+			requestedModel = providerMapping.modelName as Model;
+		} else {
+			requestedModel = modelName as Model;
+		}
 	} else if (models.find((m) => m.model === modelInput)) {
 		console.log("only specific model is requested", modelInput);
 		requestedModel = modelInput as Model;
@@ -178,15 +227,11 @@ chat.openapi(completions, async (c) => {
 		const model = models.find((m) =>
 			m.providers.find((p) => p.modelName === modelInput),
 		);
-		requestedProvider = model!.providers.find(
-			(p) => p.modelName === modelInput,
-		)?.providerId;
-	} else if (modelInput.includes("/")) {
-		console.log("specific provider combination is requested", modelInput);
-		const split = modelInput.split("/");
-		requestedProvider = split[0] as Provider;
-		// Handle model names with multiple slashes (e.g. together.ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo)
-		requestedModel = split.slice(1).join("/") as Model;
+		const provider = model?.providers.find((p) => p.modelName === modelInput);
+
+		throw new HTTPException(400, {
+			message: `Model ${modelInput} must be requested with a provider prefix. Use the format: ${provider?.providerId}/${model?.model}`,
+		});
 	} else {
 		throw new HTTPException(400, {
 			message: `Requested model ${modelInput} not supported`,
