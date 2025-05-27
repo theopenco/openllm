@@ -29,7 +29,7 @@
 		"@tailwindcss/postcss": "^4.1.5",
 		"@types/mdx": "^2.0.13",
 		"@types/node": "22.15.12",
-		"@types/react": "^19.1.3",
+		"@types/react": "^19.1.6",
 		"@types/react-dom": "^19.1.5",
 		"eslint": "^8",
 		"eslint-config-next": "15.3.2",
