@@ -113,6 +113,8 @@ describe("e2e tests with real provider keys", () => {
 
 		expect(logs[0].usedProvider).toBeTruthy();
 		expect(logs[0].finishReason).not.toBeNull();
+		expect(logs[0].unifiedFinishReason).not.toBeNull();
+		expect(logs[0].unifiedFinishReason).toBeTruthy();
 		expect(logs[0].usedModel).toBeTruthy();
 		expect(logs[0].requestedModel).toBeTruthy();
 
@@ -341,6 +343,109 @@ describe("e2e tests with real provider keys", () => {
 		expect(logs[0].requestedModel).toBe("auto");
 		expect(logs[0].usedProvider).toBeTruthy();
 		expect(logs[0].usedModel).toBeTruthy();
+	});
+
+	test("/v1/chat/completions with bare 'auto' model and credits", async () => {
+		await db
+			.update(tables.organization)
+			.set({ credits: "1000" })
+			.where(eq(tables.organization.id, "org-id"));
+
+		await db
+			.update(tables.project)
+			.set({ mode: "credits" })
+			.where(eq(tables.project.id, "project-id"));
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: "auto",
+				messages: [
+					{
+						role: "user",
+						content: "Hello! This is an auto test.",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		expect(json).toHaveProperty("choices.[0].message.content");
+
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].requestedModel).toBe("auto");
+		expect(logs[0].usedProvider).toBeTruthy();
+		expect(logs[0].usedModel).toBeTruthy();
+	});
+
+	test.skip("/v1/chat/completions with bare 'custom' model", async () => {
+		const envVar = getProviderEnvVar("openai");
+		if (!envVar) {
+			console.log("Skipping custom model test - no OpenAI API key provided");
+			return;
+		}
+
+		await db
+			.update(tables.organization)
+			.set({ credits: "1000" })
+			.where(eq(tables.organization.id, "org-id"));
+
+		await db
+			.update(tables.project)
+			.set({ mode: "credits" })
+			.where(eq(tables.project.id, "project-id"));
+
+		await db.insert(tables.providerKey).values({
+			id: "provider-key-custom",
+			provider: "llmgateway",
+			token: envVar,
+			baseUrl: "https://api.openai.com", // Use real OpenAI endpoint for testing
+			status: "active",
+			projectId: "project-id",
+			createdAt: new Date(),
+			updatedAt: new Date(),
+		});
+
+		await db.insert(tables.apiKey).values({
+			id: "token-id-2",
+			token: "real-token-2",
+			projectId: "project-id",
+			description: "Test API Key",
+		});
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token-2`,
+			},
+			body: JSON.stringify({
+				model: "custom",
+				messages: [
+					{
+						role: "user",
+						content: "Hello! This is a custom test.",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(200);
+
+		const json = await res.json();
+		expect(json).toHaveProperty("choices.[0].message.content");
+
+		const logs = await waitForLogs(1);
+		expect(logs.length).toBe(1);
+		expect(logs[0].requestedModel).toBe("custom");
+		expect(logs[0].usedProvider).toBe("llmgateway");
+		expect(logs[0].usedModel).toBe("custom");
 	});
 });
 

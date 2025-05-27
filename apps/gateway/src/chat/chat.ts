@@ -165,7 +165,10 @@ chat.openapi(completions, async (c) => {
 	let requestedProvider: Provider | undefined;
 
 	// check if there is an exact model match
-	if (models.find((m) => m.model === modelInput)) {
+	if (modelInput === "auto" || modelInput === "custom") {
+		requestedProvider = "llmgateway";
+		requestedModel = modelInput as Model;
+	} else if (models.find((m) => m.model === modelInput)) {
 		console.log("only specific model is requested", modelInput);
 		requestedModel = modelInput as Model;
 	} else if (
@@ -263,7 +266,10 @@ chat.openapi(completions, async (c) => {
 	}
 
 	// Apply routing logic after apiKey and project are available
-	if (usedProvider === "llmgateway" && usedModel === "auto") {
+	if (
+		(usedProvider === "llmgateway" && usedModel === "auto") ||
+		usedModel === "auto"
+	) {
 		// Get available providers based on project mode
 		let availableProviders: string[] = [];
 
@@ -332,11 +338,14 @@ chat.openapi(completions, async (c) => {
 			}
 		}
 
-		if (usedProvider === "llmgateway") {
+		if (usedProvider === "llmgateway" || !usedProvider) {
 			usedModel = "gpt-4o-mini";
 			usedProvider = "openai";
 		}
-	} else if (usedProvider === "llmgateway" && usedModel === "custom") {
+	} else if (
+		(usedProvider === "llmgateway" && usedModel === "custom") ||
+		usedModel === "custom"
+	) {
 		usedProvider = "llmgateway";
 		usedModel = "custom";
 	} else if (!usedProvider) {
