@@ -22,6 +22,20 @@ describe("Models API", () => {
 		expect(firstModel.architecture).toHaveProperty("input_modalities");
 		expect(firstModel.architecture).toHaveProperty("output_modalities");
 		expect(firstModel).toHaveProperty("top_provider");
+
+		expect(firstModel).toHaveProperty("providers");
+		expect(Array.isArray(firstModel.providers)).toBe(true);
+		expect(firstModel.providers.length).toBeGreaterThan(0);
+
+		// Check the structure of the first provider
+		const firstProvider = firstModel.providers[0];
+		expect(firstProvider).toHaveProperty("providerId");
+		expect(firstProvider).toHaveProperty("modelName");
+		if (firstProvider.pricing) {
+			expect(firstProvider.pricing).toHaveProperty("prompt");
+			expect(firstProvider.pricing).toHaveProperty("completion");
+		}
+
 		expect(firstModel).toHaveProperty("pricing");
 		expect(firstModel.pricing).toHaveProperty("prompt");
 		expect(firstModel.pricing).toHaveProperty("completion");

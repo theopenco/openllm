@@ -20,15 +20,22 @@ export function ModelsList() {
 						))}
 					</div>
 					<div className="text-sm">
-						{model.inputPrice !== undefined && (
-							<div>Input: ${model.inputPrice.toFixed(8)} / token</div>
-						)}
-						{model.outputPrice !== undefined && (
-							<div>Output: ${model.outputPrice.toFixed(8)} / token</div>
-						)}
-						{model.imageInputPrice !== undefined && (
-							<div>Image: ${model.imageInputPrice.toFixed(5)} / input</div>
-						)}
+						{model.providers.map((provider) => (
+							<div key={provider.providerId} className="mt-2">
+								<div className="font-medium">{provider.providerId}:</div>
+								{provider.inputPrice !== undefined && (
+									<div>Input: ${provider.inputPrice.toFixed(8)} / token</div>
+								)}
+								{provider.outputPrice !== undefined && (
+									<div>Output: ${provider.outputPrice.toFixed(8)} / token</div>
+								)}
+								{provider.imageInputPrice !== undefined && (
+									<div>
+										Image: ${provider.imageInputPrice.toFixed(5)} / input
+									</div>
+								)}
+							</div>
+						))}
 					</div>
 				</Card>
 			))}

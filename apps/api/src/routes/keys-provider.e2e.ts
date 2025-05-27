@@ -4,6 +4,7 @@ import "dotenv/config";
 import { afterEach, beforeEach, describe, expect, test } from "vitest";
 
 import { app } from "..";
+import { getProviderEnvVar } from "../../../gateway/src/test-utils/test-helpers";
 import { createTestUser, deleteAll } from "../testing";
 
 describe("e2e tests for provider keys", () => {
@@ -33,18 +34,6 @@ describe("e2e tests for provider keys", () => {
 			organizationId: "test-org-id",
 		});
 	});
-
-	function getProviderEnvVar(provider: string): string | undefined {
-		const envMap: Record<string, string> = {
-			openai: "OPENAI_API_KEY",
-			anthropic: "ANTHROPIC_API_KEY",
-			"google-vertex": "VERTEX_API_KEY",
-			"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
-			"inference.net": "INFERENCE_NET_API_KEY",
-			"kluster.ai": "KLUSTER_AI_API_KEY",
-		};
-		return process.env[envMap[provider]];
-	}
 
 	const testProviders = providers
 		.filter((provider) => provider.id !== "llmgateway")

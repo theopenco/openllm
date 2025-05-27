@@ -4,27 +4,33 @@ import "dotenv/config";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
-import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
+import {
+	flushLogs,
+	waitForLogs,
+	getProviderEnvVar,
+} from "./test-utils/test-helpers";
 
 const testModels = models
 	.filter((model) => !["custom", "auto"].includes(model.model))
 	.flatMap((model) => {
-		// Create the basic model entry
-		const baseModel = {
+		const testCases = [];
+
+		// test all models
+		testCases.push({
 			model: model.model,
 			providers: model.providers,
-		};
+		});
 
-		// Create entries for provider-specific model names that differ from the generic name
-		const providerSpecificModels = model.providers
-			.filter((p) => p.modelName && p.modelName !== model.model)
-			.map((p) => ({
-				model: p.modelName,
-				providers: [p],
+		// Create entries for provider-specific requests using provider/model format
+		for (const provider of model.providers) {
+			testCases.push({
+				model: `${provider.providerId}/${model.model}`,
+				providers: [provider],
 				originalModel: model.model, // Keep track of the original model for reference
-			}));
+			});
+		}
 
-		return [baseModel, ...providerSpecificModels];
+		return testCases;
 	});
 
 const streamingModels = testModels.filter((m) =>
@@ -447,6 +453,65 @@ describe("e2e tests with real provider keys", () => {
 		expect(logs[0].usedProvider).toBe("llmgateway");
 		expect(logs[0].usedModel).toBe("custom");
 	});
+
+	test("Success when requesting multi-provider model without prefix", async () => {
+		const multiProviderModel = models.find((m) => m.providers.length > 1);
+		if (!multiProviderModel) {
+			console.log(
+				"Skipping multi-provider test - no multi-provider models found",
+			);
+			return;
+		}
+
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: multiProviderModel.model,
+				messages: [
+					{
+						role: "user",
+						content: "Hello",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		validateResponse(json);
+
+		const log = await validateLogs();
+		expect(log.streamed).toBe(false);
+	});
+});
+
+test("Error when requesting provider-specific model name without prefix", async () => {
+	// Create a fake model name that would be a provider-specific model name
+	const res = await app.request("/v1/chat/completions", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer real-token`,
+		},
+		body: JSON.stringify({
+			model: "claude-3-sonnet-20240229",
+			messages: [
+				{
+					role: "user",
+					content: "Hello",
+				},
+			],
+		}),
+	});
+
+	expect(res.status).toBe(400);
+	const json = await res.json();
+	console.log("Provider-specific model error:", JSON.stringify(json, null, 2));
+	expect(json.message).toContain("not supported");
 });
 
 async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
@@ -506,17 +571,4 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	}
 
 	return { hasContent, eventCount, hasValidSSE };
-}
-
-function getProviderEnvVar(provider: string): string | undefined {
-	const envMap: Record<string, string> = {
-		openai: "OPENAI_API_KEY",
-		anthropic: "ANTHROPIC_API_KEY",
-		"google-vertex": "VERTEX_API_KEY",
-		"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
-		"inference.net": "INFERENCE_NET_API_KEY",
-		"kluster.ai": "KLUSTER_AI_API_KEY",
-		"together.ai": "TOGETHER_AI_API_KEY",
-	};
-	return process.env[envMap[provider]];
 }

@@ -46,3 +46,16 @@ export async function waitForLogs(
 
 	throw new Error(message);
 }
+
+export function getProviderEnvVar(provider: string): string | undefined {
+	const envMap: Record<string, string> = {
+		openai: "OPENAI_API_KEY",
+		anthropic: "ANTHROPIC_API_KEY",
+		"google-vertex": "VERTEX_API_KEY",
+		"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
+		"inference.net": "INFERENCE_NET_API_KEY",
+		"kluster.ai": "KLUSTER_AI_API_KEY",
+		"together.ai": "TOGETHER_AI_API_KEY",
+	};
+	return process.env[envMap[provider]];
+}
