@@ -184,7 +184,18 @@ chat.openapi(completions, async (c) => {
 		// Handle model names with multiple slashes (e.g. together.ai/meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo)
 		const modelName = split.slice(1).join("/");
 
-		const modelDef = models.find((m) => m.model === modelName);
+		// First try to find by base model name
+		let modelDef = models.find((m) => m.model === modelName);
+
+		if (!modelDef) {
+			modelDef = models.find((m) =>
+				m.providers.some(
+					(p) =>
+						p.modelName === modelName && p.providerId === requestedProvider,
+				),
+			);
+		}
+
 		if (!modelDef) {
 			throw new HTTPException(400, {
 				message: `Requested model ${modelName} not supported`,
