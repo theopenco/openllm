@@ -20,7 +20,7 @@
 		"@openllm/auth": "workspace:*",
 		"@openllm/db": "workspace:*",
 		"bcrypt-ts": "7.0.0",
-		"better-auth": "1.2.7",
+		"better-auth": "1.2.8",
 		"drizzle-zod": "0.7.1",
 		"hono": "^4.7.6",
 		"hono-openapi": "^0.4.6",
