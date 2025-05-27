@@ -155,7 +155,8 @@ function AmountStep({
 			<DialogHeader>
 				<DialogTitle>Top Up Credits</DialogTitle>
 				<DialogDescription>
-					Add credits to your organization account.
+					Add credits to your organization account. Confirm details on the next
+					step.
 				</DialogDescription>
 			</DialogHeader>
 			<div className="space-y-4 py-4">
@@ -400,7 +401,8 @@ function SelectPaymentStep({
 			<DialogHeader>
 				<DialogTitle>Select Payment Method</DialogTitle>
 				<DialogDescription>
-					Choose a payment method to add ${amount} credits.
+					Choose a payment method to add ${amount} credits. Confirm details on
+					the next step.
 				</DialogDescription>
 			</DialogHeader>
 			<div className="space-y-4 py-4">
