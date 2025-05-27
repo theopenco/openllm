@@ -88,19 +88,6 @@ describe("e2e tests with real provider keys", () => {
 		}
 	});
 
-	function getProviderEnvVar(provider: string): string | undefined {
-		const envMap: Record<string, string> = {
-			openai: "OPENAI_API_KEY",
-			anthropic: "ANTHROPIC_API_KEY",
-			"google-vertex": "VERTEX_API_KEY",
-			"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
-			"inference.net": "INFERENCE_NET_API_KEY",
-			"kluster.ai": "KLUSTER_AI_API_KEY",
-			"together.ai": "TOGETHER_AI_API_KEY",
-		};
-		return process.env[envMap[provider]];
-	}
-
 	async function createProviderKey(provider: string, token: string) {
 		await db.insert(tables.providerKey).values({
 			id: `provider-key-${provider}`,
@@ -270,16 +257,9 @@ describe("e2e tests with real provider keys", () => {
 						}),
 					});
 
-					if (res.status !== 200) {
-						console.log(
-							`JSON output test for ${model} on ${provider} failed with status ${res.status}`,
-						);
-						const text = await res.text();
-						console.log(`Error response: ${text}`);
-						continue; // Try next provider
-					}
-
 					const json = await res.json();
+					console.log("json", json);
+					expect(res.status).toBe(200);
 					expect(json).toHaveProperty("choices.[0].message.content");
 
 					const content = json.choices[0].message.content;
@@ -339,6 +319,7 @@ describe("e2e tests with real provider keys", () => {
 		await db.delete(tables.apiKey);
 		await db.delete(tables.providerKey);
 	});
+
 	test("/v1/chat/completions with llmgateway/auto in credits mode", async () => {
 		await db
 			.update(tables.organization)
@@ -374,8 +355,9 @@ describe("e2e tests with real provider keys", () => {
 			}),
 		});
 
-		expect(res.status).toBe(200);
 		const json = await res.json();
+		console.log("response:", json);
+		expect(res.status).toBe(200);
 		expect(json).toHaveProperty("choices.[0].message.content");
 
 		const logs = await waitForLogs(1);
@@ -443,4 +425,17 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	}
 
 	return { hasContent, eventCount, hasValidSSE };
+}
+
+function getProviderEnvVar(provider: string): string | undefined {
+	const envMap: Record<string, string> = {
+		openai: "OPENAI_API_KEY",
+		anthropic: "ANTHROPIC_API_KEY",
+		"google-vertex": "VERTEX_API_KEY",
+		"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
+		"inference.net": "INFERENCE_NET_API_KEY",
+		"kluster.ai": "KLUSTER_AI_API_KEY",
+		"together.ai": "TOGETHER_AI_API_KEY",
+	};
+	return process.env[envMap[provider]];
 }
