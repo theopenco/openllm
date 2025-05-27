@@ -124,6 +124,22 @@
                   "presence_penalty": {
                     "type": "number"
                   },
+                  "response_format": {
+                    "type": "object",
+                    "properties": {
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "text",
+                          "json_object"
+                        ],
+                        "example": "json_object"
+                      }
+                    },
+                    "required": [
+                      "type"
+                    ]
+                  },
                   "stream": {
                     "type": "boolean",
                     "default": false
@@ -277,6 +293,42 @@
                               "is_moderated"
                             ]
                           },
+                          "providers": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "providerId": {
+                                  "type": "string"
+                                },
+                                "modelName": {
+                                  "type": "string"
+                                },
+                                "pricing": {
+                                  "type": "object",
+                                  "properties": {
+                                    "prompt": {
+                                      "type": "string"
+                                    },
+                                    "completion": {
+                                      "type": "string"
+                                    },
+                                    "image": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "required": [
+                                    "prompt",
+                                    "completion"
+                                  ]
+                                }
+                              },
+                              "required": [
+                                "providerId",
+                                "modelName"
+                              ]
+                            }
+                          },
                           "pricing": {
                             "type": "object",
                             "properties": {
@@ -335,6 +387,7 @@
                           "created",
                           "architecture",
                           "top_provider",
+                          "providers",
                           "pricing"
                         ]
                       }

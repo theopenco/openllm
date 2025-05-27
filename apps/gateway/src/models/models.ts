@@ -19,6 +19,19 @@ const modelSchema = z.object({
 	top_provider: z.object({
 		is_moderated: z.boolean(),
 	}),
+	providers: z.array(
+		z.object({
+			providerId: z.string(),
+			modelName: z.string(),
+			pricing: z
+				.object({
+					prompt: z.string(),
+					completion: z.string(),
+					image: z.string().optional(),
+				})
+				.optional(),
+		}),
+	),
 	pricing: z.object({
 		prompt: z.string(),
 		completion: z.string(),
@@ -61,26 +74,32 @@ modelsApi.openapi(listModels, async (c) => {
 			// Determine input modalities (if model supports images)
 			const inputModalities: ("text" | "image")[] = ["text"];
 
-			// Check if model has imageInputPrice property and it's defined
-			if ("imageInputPrice" in model && model.imageInputPrice !== undefined) {
+			// Check if any provider has imageInputPrice property and it's defined
+			if (
+				model.providers.some((p) => (p as any).imageInputPrice !== undefined)
+			) {
 				inputModalities.push("image");
 			}
 
-			// Format pricing information - safely check if properties exist
+			const firstProviderWithPricing = model.providers.find(
+				(p) =>
+					(p as any).inputPrice !== undefined ||
+					(p as any).outputPrice !== undefined ||
+					(p as any).imageInputPrice !== undefined,
+			);
+
 			const inputPrice =
-				"inputPrice" in model ? model.inputPrice?.toString() || "0" : "0";
+				(firstProviderWithPricing as any)?.inputPrice?.toString() || "0";
 			const outputPrice =
-				"outputPrice" in model ? model.outputPrice?.toString() || "0" : "0";
+				(firstProviderWithPricing as any)?.outputPrice?.toString() || "0";
 			const imagePrice =
-				"imageInputPrice" in model
-					? model.imageInputPrice?.toString() || "0"
-					: "0";
+				(firstProviderWithPricing as any)?.imageInputPrice?.toString() || "0";
 
 			return {
 				id: model.model,
 				name: model.model,
 				created: Math.floor(Date.now() / 1000), // Current timestamp in seconds
-				description: `${model.model} provided by ${model.providers.join(", ")}`,
+				description: `${model.model} provided by ${model.providers.map((p) => p.providerId).join(", ")}`,
 				architecture: {
 					input_modalities: inputModalities,
 					output_modalities: ["text"] as ["text"],
@@ -89,6 +108,20 @@ modelsApi.openapi(listModels, async (c) => {
 				top_provider: {
 					is_moderated: true,
 				},
+				providers: model.providers.map((provider) => ({
+					providerId: provider.providerId,
+					modelName: provider.modelName,
+					pricing:
+						(provider as any).inputPrice !== undefined ||
+						(provider as any).outputPrice !== undefined ||
+						(provider as any).imageInputPrice !== undefined
+							? {
+									prompt: (provider as any).inputPrice?.toString() || "0",
+									completion: (provider as any).outputPrice?.toString() || "0",
+									image: (provider as any).imageInputPrice?.toString() || "0",
+								}
+							: undefined,
+				})),
 				pricing: {
 					prompt: inputPrice,
 					completion: outputPrice,
