@@ -218,13 +218,6 @@ chat.openapi(completions, async (c) => {
 			requestedModel = modelName as Model;
 		}
 	} else if (models.find((m) => m.model === modelInput)) {
-		console.log("checking if bare model name is allowed", modelInput);
-		const modelDef = models.find((m) => m.model === modelInput)!;
-		if (modelDef.providers.length > 1) {
-			throw new HTTPException(400, {
-				message: `Model ${modelInput} is available from multiple providers. Please specify a provider using the format: provider/${modelInput}. Available providers: ${modelDef.providers.map((p) => p.providerId).join(", ")}`,
-			});
-		}
 		console.log("only specific model is requested", modelInput);
 		requestedModel = modelInput as Model;
 	} else if (

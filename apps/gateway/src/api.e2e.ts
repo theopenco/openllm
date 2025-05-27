@@ -449,37 +449,40 @@ describe("e2e tests with real provider keys", () => {
 		expect(logs[0].usedProvider).toBe("llmgateway");
 		expect(logs[0].usedModel).toBe("custom");
 	});
-});
 
-test("Error when requesting multi-provider model without prefix", async () => {
-	const multiProviderModel = models.find((m) => m.providers.length > 1);
-	if (!multiProviderModel) {
-		console.log(
-			"Skipping multi-provider test - no multi-provider models found",
-		);
-		return;
-	}
+	test("Success when requesting multi-provider model without prefix", async () => {
+		const multiProviderModel = models.find((m) => m.providers.length > 1);
+		if (!multiProviderModel) {
+			console.log(
+				"Skipping multi-provider test - no multi-provider models found",
+			);
+			return;
+		}
 
-	const res = await app.request("/v1/chat/completions", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-			Authorization: `Bearer real-token`,
-		},
-		body: JSON.stringify({
-			model: multiProviderModel.model,
-			messages: [
-				{
-					role: "user",
-					content: "Hello",
-				},
-			],
-		}),
+		const res = await app.request("/v1/chat/completions", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+				Authorization: `Bearer real-token`,
+			},
+			body: JSON.stringify({
+				model: multiProviderModel.model,
+				messages: [
+					{
+						role: "user",
+						content: "Hello",
+					},
+				],
+			}),
+		});
+
+		expect(res.status).toBe(200);
+		const json = await res.json();
+		validateResponse(json);
+
+		const log = await validateLogs();
+		expect(log.streamed).toBe(false);
 	});
-
-	expect(res.status).toBe(400);
-	const json = await res.json();
-	expect(json.message).toContain("is available from multiple providers");
 });
 
 test("Error when requesting provider-specific model name without prefix", async () => {
