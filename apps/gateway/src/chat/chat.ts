@@ -387,23 +387,20 @@ chat.openapi(completions, async (c) => {
 				});
 			}
 
-			const modelWithPricing = models.find(
-				(m) => m.model === usedModel && "inputPrice" in m && "outputPrice" in m,
-			);
+			const modelWithPricing = models.find((m) => m.model === usedModel);
 
-			if (
-				modelWithPricing &&
-				"inputPrice" in modelWithPricing &&
-				"outputPrice" in modelWithPricing
-			) {
+			if (modelWithPricing) {
 				let cheapestProvider = availableModelProviders[0].providerId;
 				let cheapestModel = availableModelProviders[0].modelName;
 				let lowestPrice = Number.MAX_VALUE;
 
 				for (const provider of availableModelProviders) {
+					const providerInfo = modelWithPricing.providers.find(
+						(p) => p.providerId === provider.providerId,
+					);
 					const totalPrice =
-						(modelWithPricing.inputPrice || 0) +
-						(modelWithPricing.outputPrice || 0);
+						((providerInfo as any)?.inputPrice || 0) +
+						((providerInfo as any)?.outputPrice || 0);
 
 					if (totalPrice < lowestPrice) {
 						lowestPrice = totalPrice;
@@ -1118,6 +1115,7 @@ chat.openapi(completions, async (c) => {
 
 				const costs = calculateCosts(
 					usedModel,
+					usedProvider,
 					calculatedPromptTokens,
 					calculatedCompletionTokens,
 					{
@@ -1380,6 +1378,7 @@ chat.openapi(completions, async (c) => {
 
 	const costs = calculateCosts(
 		usedModel,
+		usedProvider,
 		calculatedPromptTokens,
 		calculatedCompletionTokens,
 		{
