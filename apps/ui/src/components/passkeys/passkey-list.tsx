@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { KeySquare, Trash2, Loader2 } from "lucide-react";
 
@@ -17,12 +16,11 @@ import { $api } from "@/lib/fetch-client";
 import type { Passkey } from "./types";
 
 export function PasskeyList() {
-	const queryClient = useQueryClient();
-
 	const {
 		data,
 		isPending: isLoading,
 		isError,
+		refetch,
 	} = $api.useSuspenseQuery("get", "/user/me/passkeys");
 
 	const passkeys: Passkey[] = data?.passkeys ?? [];
@@ -32,24 +30,13 @@ export function PasskeyList() {
 		isPending: isDeleting,
 		variables: deletingId,
 	} = $api.useMutation("delete", "/user/me/passkeys/{id}", {
-		onSuccess: (_, { params }) => {
+		onSuccess: () => {
 			toast({
 				title: "Passkey deleted",
 				description: "Your passkey has been removed.",
 			});
 
-			const queryKey = $api.queryOptions("get", "/user/me/passkeys").queryKey;
-			queryClient.setQueryData(queryKey, (old: any) => {
-				if (!old?.passkeys) {
-					return old;
-				}
-				return {
-					...old,
-					passkeys: old.passkeys.filter(
-						(p: Passkey) => p.id !== params.path.id,
-					),
-				};
-			});
+			void refetch();
 		},
 		onError: () => {
 			toast({
