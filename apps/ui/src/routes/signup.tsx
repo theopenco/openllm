@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -32,7 +32,6 @@ export const Route = createFileRoute("/signup")({
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
 
 	useUser({ redirect: "authenticated" });
