@@ -8,6 +8,7 @@ import { PasskeyList } from "@/components/passkeys/passkey-list";
 import { CachingSettings } from "@/components/settings/caching-settings";
 import { ProjectModeSettings } from "@/components/settings/project-mode-settings";
 import { SettingsLoading } from "@/components/settings/settings-loading";
+import { useUser } from "@/hooks/use-user";
 import {
 	useDeleteAccount,
 	useUpdatePassword,
@@ -32,7 +33,6 @@ import {
 	TabsTrigger,
 } from "@/lib/components/tabs";
 import { toast } from "@/lib/components/use-toast";
-import { $api } from "@/lib/fetch-client";
 
 export const Route = createFileRoute("/dashboard/_layout/settings")({
 	component: RouteComponent,
@@ -42,11 +42,7 @@ export const Route = createFileRoute("/dashboard/_layout/settings")({
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
-	const { data, isError } = $api.useQuery("get", "/user/me", {
-		retry: false,
-	});
-
-	const user = isError ? null : data?.user;
+	const { user } = useUser();
 
 	const [name, setName] = useState(user?.name || "");
 	const [email, setEmail] = useState(user?.email || "");

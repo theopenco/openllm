@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { ModeToggle } from "@/components/mode-toggle";
+import { useUser } from "@/hooks/use-user";
 import { signOut } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/lib/components/avatar";
 import {
@@ -24,16 +25,12 @@ import {
 	SidebarMenuItem,
 	SidebarRail,
 } from "@/lib/components/sidebar";
-import { $api } from "@/lib/fetch-client";
 import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
 
 export function DashboardSidebar() {
 	const { location } = useRouterState();
-	const { data, isError } = $api.useQuery("get", "/user/me", {
-		retry: false,
-	});
-	const user = isError ? null : data?.user;
+	const { user } = useUser();
 	const navigate = useNavigate();
 
 	const isActive = (path: string) => {
