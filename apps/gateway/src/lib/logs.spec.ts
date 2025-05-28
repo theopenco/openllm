@@ -47,6 +47,9 @@ describe("getUnifiedFinishReason", () => {
 		expect(getUnifiedFinishReason("gateway_error", "any-provider")).toBe(
 			UnifiedFinishReason.ERROR,
 		);
+		expect(getUnifiedFinishReason("upstream_error", "any-provider")).toBe(
+			UnifiedFinishReason.ERROR,
+		);
 		expect(getUnifiedFinishReason(null, "any-provider")).toBe(
 			UnifiedFinishReason.UNKNOWN,
 		);

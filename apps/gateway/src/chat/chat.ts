@@ -26,6 +26,15 @@ import { insertLog } from "../lib/logs";
 import type { ServerTypes } from "../vars";
 
 /**
+ * Determines the appropriate finish reason based on HTTP status code
+ * 5xx status codes indicate upstream provider errors
+ * 4xx status codes indicate client/gateway errors
+ */
+function getFinishReasonForError(statusCode: number): string {
+	return statusCode >= 500 ? "upstream_error" : "gateway_error";
+}
+
+/**
  * Get provider token from environment variables
  * @param usedProvider The provider to get the token for
  * @returns The token for the provider or undefined if not found
@@ -858,9 +867,9 @@ chat.openapi(completions, async (c) => {
 					data: JSON.stringify({
 						error: {
 							message: `Error from provider: ${res.status} ${res.statusText}`,
-							type: "gateway_error",
+							type: getFinishReasonForError(res.status),
 							param: null,
-							code: "gateway_error",
+							code: getFinishReasonForError(res.status),
 						},
 					}),
 					id: String(eventId++),
@@ -885,7 +894,7 @@ chat.openapi(completions, async (c) => {
 					messages: messages,
 					responseSize: errorResponseText.length,
 					content: null,
-					finishReason: "gateway_error",
+					finishReason: getFinishReasonForError(res.status),
 					promptTokens: null,
 					completionTokens: null,
 					totalTokens: null,
@@ -1309,7 +1318,7 @@ chat.openapi(completions, async (c) => {
 			messages: messages,
 			responseSize: errorResponseText.length,
 			content: null,
-			finishReason: "gateway_error",
+			finishReason: getFinishReasonForError(res.status),
 			promptTokens: null,
 			completionTokens: null,
 			totalTokens: null,
@@ -1336,9 +1345,9 @@ chat.openapi(completions, async (c) => {
 			{
 				error: {
 					message: `Error from provider: ${res.status} ${res.statusText}`,
-					type: "gateway_error",
+					type: getFinishReasonForError(res.status),
 					param: null,
-					code: "gateway_error",
+					code: getFinishReasonForError(res.status),
 					requestedProvider,
 					usedProvider,
 					requestedModel,

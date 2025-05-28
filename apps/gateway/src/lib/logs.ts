@@ -19,7 +19,7 @@ export function getUnifiedFinishReason(
 	if (finishReason === "canceled") {
 		return UnifiedFinishReason.CANCELED;
 	}
-	if (finishReason === "gateway_error") {
+	if (finishReason === "gateway_error" || finishReason === "upstream_error") {
 		return UnifiedFinishReason.ERROR;
 	}
 
