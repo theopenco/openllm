@@ -1,5 +1,4 @@
 import { Elements } from "@stripe/react-stripe-js";
-import { loadStripe } from "@stripe/stripe-js";
 import { useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 import { useState } from "react";
@@ -10,10 +9,9 @@ import { ProviderKeyStep } from "./provider-key-step";
 import { WelcomeStep } from "./welcome-step";
 import { Card, CardContent } from "@/lib/components/card";
 import { Stepper } from "@/lib/components/stepper";
+import { loadStripeNow } from "@/lib/stripe";
 
-const stripePromise = loadStripe(
-	process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "",
-);
+const stripePromise = loadStripeNow();
 
 const STEPS = [
 	{
