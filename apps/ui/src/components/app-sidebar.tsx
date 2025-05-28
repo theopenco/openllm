@@ -39,9 +39,11 @@ const items = [
 export function AppSidebar() {
 	const navigate = useNavigate();
 
-	const { data, isLoading } = $api.useSuspenseQuery("get", "/user/me");
+	const { data, isLoading, isError } = $api.useQuery("get", "/user/me", {
+		retry: false,
+	});
 
-	if (!data?.user && !isLoading) {
+	if ((!data?.user && !isLoading) || isError) {
 		return <Navigate to="/login" />;
 	}
 

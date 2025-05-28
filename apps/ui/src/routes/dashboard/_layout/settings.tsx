@@ -42,9 +42,11 @@ export const Route = createFileRoute("/dashboard/_layout/settings")({
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
-	const { data } = $api.useSuspenseQuery("get", "/user/me");
+	const { data, isError } = $api.useQuery("get", "/user/me", {
+		retry: false,
+	});
 
-	const user = data?.user;
+	const user = isError ? null : data?.user;
 
 	const [name, setName] = useState(user?.name || "");
 	const [email, setEmail] = useState(user?.email || "");

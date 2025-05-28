@@ -12,13 +12,15 @@ export const Route = createFileRoute("/dashboard/_layout")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const { data, isLoading } = $api.useSuspenseQuery("get", "/user/me");
+	const { data, isLoading, isError } = $api.useQuery("get", "/user/me", {
+		retry: false,
+	});
 
 	useEffect(() => {
-		if (!isLoading && !data?.user) {
+		if ((!isLoading && !data?.user) || isError) {
 			navigate({ to: "/login" });
 		}
-	}, [data?.user, isLoading, navigate]);
+	}, [data?.user, isLoading, isError, navigate]);
 
 	return (
 		<SidebarProvider>

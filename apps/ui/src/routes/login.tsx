@@ -34,14 +34,16 @@ export const Route = createFileRoute("/login")({
 function RouteComponent() {
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
-	const { data } = $api.useSuspenseQuery("get", "/user/me");
+	const { data, isError } = $api.useQuery("get", "/user/me", {
+		retry: false,
+	});
 
 	// Redirect to dashboard if already logged in
 	useEffect(() => {
-		if (data?.user) {
+		if (data?.user && !isError) {
 			navigate({ to: "/dashboard" });
 		}
-	}, [data?.user, navigate]);
+	}, [data?.user, isError, navigate]);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),

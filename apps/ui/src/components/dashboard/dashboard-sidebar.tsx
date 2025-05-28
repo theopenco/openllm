@@ -30,8 +30,10 @@ import { cn } from "@/lib/utils";
 
 export function DashboardSidebar() {
 	const { location } = useRouterState();
-	const { data } = $api.useSuspenseQuery("get", "/user/me");
-	const user = data?.user;
+	const { data, isError } = $api.useQuery("get", "/user/me", {
+		retry: false,
+	});
+	const user = isError ? null : data?.user;
 	const navigate = useNavigate();
 
 	const isActive = (path: string) => {
