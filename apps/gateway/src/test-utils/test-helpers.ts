@@ -19,6 +19,7 @@ export async function waitForLogs(
 	expectedCount = 1,
 	maxWaitMs = 10000,
 	intervalMs = 100,
+	requestId?: string,
 ) {
 	const startTime = Date.now();
 	console.log(`Waiting for ${expectedCount} logs (timeout: ${maxWaitMs}ms)...`);
@@ -26,7 +27,9 @@ export async function waitForLogs(
 	while (Date.now() - startTime < maxWaitMs) {
 		await processLogQueue();
 
-		const logs = await db.query.log.findMany({});
+		const logs = requestId
+			? await db.query.log.findMany({ where: { requestId: { eq: requestId } } })
+			: await db.query.log.findMany({});
 
 		if (logs.length >= expectedCount) {
 			console.log(

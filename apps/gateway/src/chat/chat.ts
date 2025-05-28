@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { db } from "@openllm/db";
+import { db, shortid } from "@openllm/db";
 import {
 	getProviderEndpoint,
 	getProviderHeaders,
@@ -169,6 +169,9 @@ chat.openapi(completions, async (c) => {
 		response_format,
 		stream,
 	} = c.req.valid("json");
+
+	// Extract or generate request ID for log tracking
+	const requestId = c.req.header("x-request-id") || shortid();
 
 	let requestedModel: Model = modelInput as Model;
 	let requestedProvider: Provider | undefined;
@@ -627,6 +630,7 @@ chat.openapi(completions, async (c) => {
 				projectId: apiKey.projectId,
 				apiKeyId: apiKey.id,
 				providerKeyId: providerKey.id,
+				requestId,
 				duration,
 				usedModel: usedModel,
 				usedProvider: usedProvider,
@@ -814,6 +818,7 @@ chat.openapi(completions, async (c) => {
 						projectId: apiKey.projectId,
 						apiKeyId: apiKey.id,
 						providerKeyId: providerKey.id,
+						requestId,
 						duration: Date.now() - startTime,
 						usedModel: usedModel,
 						usedProvider: usedProvider,
@@ -886,6 +891,7 @@ chat.openapi(completions, async (c) => {
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
 					providerKeyId: providerKey.id,
+					requestId,
 					duration: Date.now() - startTime,
 					usedModel: usedModel,
 					usedProvider: usedProvider,
@@ -1182,6 +1188,7 @@ chat.openapi(completions, async (c) => {
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
 					providerKeyId: providerKey.id,
+					requestId,
 					duration,
 					usedModel: usedModel,
 					usedProvider: usedProvider,
@@ -1259,6 +1266,7 @@ chat.openapi(completions, async (c) => {
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
+			requestId,
 			duration,
 			usedModel: usedModel,
 			usedProvider: usedProvider,
@@ -1310,6 +1318,7 @@ chat.openapi(completions, async (c) => {
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
+			requestId,
 			duration,
 			usedModel: usedModel,
 			usedProvider: usedProvider,

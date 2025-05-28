@@ -175,6 +175,7 @@ export const log = pgTable("log", {
 	projectId: text().notNull(),
 	apiKeyId: text().notNull(),
 	providerKeyId: text().notNull(),
+	requestId: text(),
 	duration: integer().notNull(),
 	requestedModel: text().notNull(),
 	requestedProvider: text(),

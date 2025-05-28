@@ -1,4 +1,4 @@
-import { db, tables, eq } from "@openllm/db";
+import { db, tables, eq, shortid } from "@openllm/db";
 import { models, providers } from "@openllm/models";
 import "dotenv/config";
 import { beforeEach, describe, expect, test } from "vitest";
@@ -111,8 +111,19 @@ describe("e2e tests with real provider keys", () => {
 		expect(json).toHaveProperty("usage.total_tokens");
 	}
 
-	async function validateLogs(modelName = "") {
-		const logs = await waitForLogs(1);
+	async function validateLogs(
+		modelName = "",
+		expectedCount = 1,
+		maxWaitMs = 10000,
+		intervalMs = 100,
+		requestId?: string,
+	) {
+		const logs = await waitForLogs(
+			expectedCount,
+			maxWaitMs,
+			intervalMs,
+			requestId,
+		);
 		expect(logs.length).toBeGreaterThan(0);
 
 		console.log("logs", logs);
@@ -135,11 +146,13 @@ describe("e2e tests with real provider keys", () => {
 	test.each(testModels)(
 		"/v1/chat/completions with $model",
 		async ({ model }) => {
+			const requestId = shortid();
 			const res = await app.request("/v1/chat/completions", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer real-token`,
+					"x-request-id": requestId,
 				},
 				body: JSON.stringify({
 					model: model,
@@ -167,7 +180,7 @@ describe("e2e tests with real provider keys", () => {
 				validateResponse(json);
 			}
 
-			const log = await validateLogs(model);
+			const log = await validateLogs(model, 1, 10000, 100, requestId);
 			expect(log.streamed).toBe(false);
 
 			// expect(log.inputCost).not.toBeNull();
@@ -183,11 +196,13 @@ describe("e2e tests with real provider keys", () => {
 	test.each(streamingModels)(
 		"/v1/chat/completions streaming with $model",
 		async ({ model }) => {
+			const requestId = shortid();
 			const res = await app.request("/v1/chat/completions", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer real-token`,
+					"x-request-id": requestId,
 				},
 				body: JSON.stringify({
 					model: model,
@@ -223,7 +238,7 @@ describe("e2e tests with real provider keys", () => {
 				}
 			}
 
-			const log = await validateLogs(model);
+			const log = await validateLogs(model, 1, 10000, 100, requestId);
 			expect(log.streamed).toBe(true);
 
 			if (log.inputCost !== null && log.outputCost !== null) {
@@ -241,11 +256,13 @@ describe("e2e tests with real provider keys", () => {
 	)(
 		"/v1/chat/completions with JSON output mode for $model",
 		async ({ model }) => {
+			const requestId = shortid();
 			const res = await app.request("/v1/chat/completions", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
 					Authorization: `Bearer real-token`,
+					"x-request-id": requestId,
 				},
 				body: JSON.stringify({
 					model: model,
@@ -286,11 +303,13 @@ describe("e2e tests with real provider keys", () => {
 			return;
 		}
 
+		const requestId = shortid();
 		const res = await app.request("/v1/chat/completions", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
+				"x-request-id": requestId,
 			},
 			body: JSON.stringify({
 				model: "anthropic/claude-3-5-sonnet-20241022",
@@ -483,11 +502,13 @@ describe("e2e tests with real provider keys", () => {
 			return;
 		}
 
+		const requestId = shortid();
 		const res = await app.request("/v1/chat/completions", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
+				"x-request-id": requestId,
 			},
 			body: JSON.stringify({
 				model: multiProviderModel.model,
@@ -504,18 +525,26 @@ describe("e2e tests with real provider keys", () => {
 		const json = await res.json();
 		validateResponse(json);
 
-		const log = await validateLogs(multiProviderModel.model);
+		const log = await validateLogs(
+			multiProviderModel.model,
+			1,
+			10000,
+			100,
+			requestId,
+		);
 		expect(log.streamed).toBe(false);
 	});
 });
 
 test("Error when requesting provider-specific model name without prefix", async () => {
 	// Create a fake model name that would be a provider-specific model name
+	const requestId = shortid();
 	const res = await app.request("/v1/chat/completions", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
 			Authorization: `Bearer real-token`,
+			"x-request-id": requestId,
 		},
 		body: JSON.stringify({
 			model: "claude-3-sonnet-20240229",
