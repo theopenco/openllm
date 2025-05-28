@@ -1,4 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { useEffect } from "react";
+
+import { $api } from "@/lib/fetch-client";
 
 const API_BASE = "/api/user";
 
@@ -10,6 +14,43 @@ export interface UserUpdateData {
 export interface PasswordUpdateData {
 	currentPassword: string;
 	newPassword: string;
+}
+
+export interface UseUserOptions {
+	redirectTo?: string;
+	redirectWhen?: "authenticated" | "unauthenticated";
+}
+
+export function useUser(options?: UseUserOptions) {
+	const navigate = useNavigate();
+	const { data, isLoading } = $api.useSuspenseQuery("get", "/user/me");
+
+	useEffect(() => {
+		if (!options?.redirectTo || !options?.redirectWhen) {
+			return;
+		}
+
+		const { redirectTo, redirectWhen } = options;
+		const hasUser = !!data?.user;
+
+		if (redirectWhen === "authenticated" && hasUser) {
+			navigate({ to: redirectTo });
+		} else if (redirectWhen === "unauthenticated" && !isLoading && !hasUser) {
+			navigate({ to: redirectTo });
+		}
+	}, [
+		data?.user,
+		isLoading,
+		navigate,
+		options?.redirectTo,
+		options?.redirectWhen,
+	]);
+
+	return {
+		user: data?.user || null,
+		isLoading,
+		data,
+	};
 }
 
 export function useUpdateUser() {
