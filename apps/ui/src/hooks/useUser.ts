@@ -23,10 +23,15 @@ export interface UseUserOptions {
 
 export function useUser(options?: UseUserOptions) {
 	const navigate = useNavigate();
-	const { data, isLoading } = $api.useSuspenseQuery("get", "/user/me");
+
+	const { data, isLoading, error } = $api.useQuery("get", "/user/me", {
+		retry: 1,
+		staleTime: 5 * 60 * 1000,
+		refetchOnWindowFocus: true,
+	});
 
 	useEffect(() => {
-		if (!options?.redirectTo || !options?.redirectWhen) {
+		if (isLoading || !options?.redirectTo || !options?.redirectWhen) {
 			return;
 		}
 
@@ -35,20 +40,23 @@ export function useUser(options?: UseUserOptions) {
 
 		if (redirectWhen === "authenticated" && hasUser) {
 			navigate({ to: redirectTo });
-		} else if (redirectWhen === "unauthenticated" && !isLoading && !hasUser) {
+		} else if (redirectWhen === "unauthenticated" && !hasUser) {
 			navigate({ to: redirectTo });
 		}
 	}, [
 		data?.user,
 		isLoading,
+		error,
 		navigate,
 		options?.redirectTo,
 		options?.redirectWhen,
+		options,
 	]);
 
 	return {
 		user: data?.user || null,
 		isLoading,
+		error,
 		data,
 	};
 }

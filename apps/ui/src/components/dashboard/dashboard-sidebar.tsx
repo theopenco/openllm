@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	BarChart3,
@@ -29,6 +30,7 @@ import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
 
 export function DashboardSidebar() {
+	const queryClient = useQueryClient();
 	const { location } = useRouterState();
 	const { user } = useUser();
 	const navigate = useNavigate();
@@ -124,8 +126,14 @@ export function DashboardSidebar() {
 									className="cursor-pointer"
 									size={14}
 									onClick={async () => {
-										await signOut();
-										void navigate({ to: "/login" });
+										await signOut({
+											fetchOptions: {
+												onSuccess: () => {
+													queryClient.clear();
+													navigate({ to: "/login" });
+												},
+											},
+										});
 									}}
 								/>
 							</div>

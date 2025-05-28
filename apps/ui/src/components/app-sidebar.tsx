@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronUp, Settings, User2 } from "lucide-react";
 
@@ -37,6 +38,7 @@ const items = [
 ];
 
 export function AppSidebar() {
+	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 
 	const { user, isLoading } = useUser({
@@ -48,6 +50,7 @@ export function AppSidebar() {
 		await signOut({
 			fetchOptions: {
 				onSuccess: () => {
+					queryClient.clear();
 					navigate({ to: "/login" });
 				},
 			},
