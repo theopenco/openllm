@@ -50,6 +50,13 @@
       "when": 1748178443965,
       "tag": "1748178443_wet_moonstone",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1748467594287,
+      "tag": "1748467594_gray_jubilee",
+      "breakpoints": true
     }
   ]
 }
