@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useUser } from "@/hooks/use-user";
 import { signIn } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
