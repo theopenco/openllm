@@ -76,13 +76,13 @@ describe("logs route", () => {
 				id: "test-provider-key-id",
 				token: "test-provider-token",
 				provider: "openai",
-				projectId: "test-project-id",
+				organizationId: "test-org-id",
 			},
 			{
 				id: "test-provider-key-id-2",
 				token: "test-provider-token-2",
 				provider: "anthropic",
-				projectId: "test-project-id-2",
+				organizationId: "test-org-id-2",
 			},
 		]);
 

@@ -526,7 +526,7 @@ chat.openapi(completions, async (c) => {
 		};
 	} else if (project.mode === "hybrid") {
 		// First try to get the provider key from the database
-		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
+		providerKey = await getProviderKey(project.organizationId, usedProvider);
 
 		if (!providerKey) {
 			// Check if the organization has enough credits
