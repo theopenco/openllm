@@ -46,7 +46,7 @@ export function ApiKeysList() {
 		"/keys/api/{id}",
 	);
 
-	const keys = data?.apiKeys;
+	const keys = data?.apiKeys.filter((key) => key.status !== "deleted");
 
 	const deleteKey = (id: string) => {
 		deleteMutation(
