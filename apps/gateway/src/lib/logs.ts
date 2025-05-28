@@ -19,8 +19,11 @@ export function getUnifiedFinishReason(
 	if (finishReason === "canceled") {
 		return UnifiedFinishReason.CANCELED;
 	}
-	if (finishReason === "gateway_error" || finishReason === "upstream_error") {
-		return UnifiedFinishReason.ERROR;
+	if (finishReason === "gateway_error") {
+		return UnifiedFinishReason.GATEWAY_ERROR;
+	}
+	if (finishReason === "upstream_error") {
+		return UnifiedFinishReason.UPSTREAM_ERROR;
 	}
 
 	switch (provider) {
