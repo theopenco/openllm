@@ -83,6 +83,7 @@ FROM static-base AS ui
 
 # Copy UI static files directly to the root
 COPY --from=builder /app/apps/ui/.output/public/ /usr/share/nginx/html/
+COPY --from=builder /app/apps/ui/.output/static/ /usr/share/nginx/html/static
 
 # Docs static image
 FROM static-base AS docs
