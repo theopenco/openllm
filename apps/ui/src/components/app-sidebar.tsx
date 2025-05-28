@@ -1,7 +1,7 @@
 import { Navigate, useNavigate } from "@tanstack/react-router";
 import { ChevronUp, Settings, User2 } from "lucide-react";
 
-import { signOut, useSession } from "@/lib/auth-client";
+import { signOut } from "@/lib/auth-client";
 import { Badge } from "@/lib/components/badge";
 import {
 	DropdownMenu,
@@ -20,6 +20,7 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/lib/components/sidebar";
+import { $api } from "@/lib/fetch-client";
 
 // Menu items.
 const items = [
@@ -38,9 +39,9 @@ const items = [
 export function AppSidebar() {
 	const navigate = useNavigate();
 
-	const { data: session, isPending: isLoading } = useSession();
+	const { data, isLoading } = $api.useSuspenseQuery("get", "/user/me");
 
-	if (!session && !isLoading) {
+	if (!data?.user && !isLoading) {
 		return <Navigate to="/login" />;
 	}
 
@@ -84,7 +85,7 @@ export function AppSidebar() {
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<SidebarMenuButton>
-									<User2 /> {isLoading ? "..." : session?.user?.name || "User"}
+									<User2 /> {isLoading ? "..." : data?.user?.name || "User"}
 									<ChevronUp className="ml-auto" />
 								</SidebarMenuButton>
 							</DropdownMenuTrigger>

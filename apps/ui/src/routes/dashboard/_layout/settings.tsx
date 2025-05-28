@@ -13,7 +13,6 @@ import {
 	useUpdatePassword,
 	useUpdateUser,
 } from "@/hooks/useUser";
-import { useSession } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -33,6 +32,7 @@ import {
 	TabsTrigger,
 } from "@/lib/components/tabs";
 import { toast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 export const Route = createFileRoute("/dashboard/_layout/settings")({
 	component: RouteComponent,
@@ -42,9 +42,9 @@ export const Route = createFileRoute("/dashboard/_layout/settings")({
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
-	const { data: session } = useSession();
+	const { data } = $api.useSuspenseQuery("get", "/user/me");
 
-	const user = session?.user;
+	const user = data?.user;
 
 	const [name, setName] = useState(user?.name || "");
 	const [email, setEmail] = useState(user?.email || "");
