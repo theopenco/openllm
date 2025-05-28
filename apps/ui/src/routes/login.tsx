@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { signIn, useSession } from "@/lib/auth-client";
+import { signIn } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Form,
@@ -33,14 +33,7 @@ export const Route = createFileRoute("/login")({
 function RouteComponent() {
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
-	const session = useSession();
-
-	// Redirect to dashboard if already logged in
-	useEffect(() => {
-		if (session.data?.user) {
-			navigate({ to: "/dashboard" });
-		}
-	}, [session.data, navigate]);
+	useUser({ redirect: "authenticated" });
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),

@@ -11,7 +11,8 @@ import {
 } from "lucide-react";
 
 import { ModeToggle } from "@/components/mode-toggle";
-import { signOut, useSession } from "@/lib/auth-client";
+import { useUser } from "@/hooks/use-user";
+import { signOut } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/lib/components/avatar";
 import {
 	Sidebar,
@@ -29,8 +30,7 @@ import { cn } from "@/lib/utils";
 
 export function DashboardSidebar() {
 	const { location } = useRouterState();
-	const session = useSession();
-	const user = session.data?.user;
+	const { user } = useUser();
 	const navigate = useNavigate();
 
 	const isActive = (path: string) => {

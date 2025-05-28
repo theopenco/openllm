@@ -13,7 +13,6 @@ import {
 	useUpdatePassword,
 	useUpdateUser,
 } from "@/hooks/useUser";
-import { useSession } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -42,9 +41,7 @@ export const Route = createFileRoute("/dashboard/_layout/settings")({
 
 function RouteComponent() {
 	const queryClient = useQueryClient();
-	const { data: session } = useSession();
-
-	const user = session?.user;
+	const { user } = useUser();
 
 	const [name, setName] = useState(user?.name || "");
 	const [email, setEmail] = useState(user?.email || "");
