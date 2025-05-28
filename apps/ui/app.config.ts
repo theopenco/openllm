@@ -32,7 +32,7 @@ export default defineConfig({
 			tailwindcss(),
 			svgr(),
 			copy({
-				targets: [{ src: "static/*", dest: "dist" }],
+				targets: [{ src: "static/*", dest: ".output/static" }],
 				hook: "writeBundle",
 			}),
 		],
