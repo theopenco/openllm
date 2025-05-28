@@ -38,7 +38,7 @@ export const Route = createRootRouteWithContext<{
 				content:
 					"Route, manage, and analyze your LLM requests across multiple providers with a unified API interface.",
 			},
-			{ property: "og:image", content: "/static/opengraph.png" },
+			{ property: "og:image", content: "/static/opengraph.png?v=1" },
 			{ property: "og:type", content: "website" },
 			{ property: "og:url", content: "https://llmgateway.io" },
 			{ name: "twitter:card", content: "summary_large_image" },
@@ -48,7 +48,7 @@ export const Route = createRootRouteWithContext<{
 				content:
 					"Route, manage, and analyze your LLM requests across multiple providers with a unified API interface.",
 			},
-			{ name: "twitter:image", content: "/static/opengraph.png" },
+			{ name: "twitter:image", content: "/static/opengraph.png?v=1" },
 		],
 	}),
 	component: RootComponent,
