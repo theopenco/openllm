@@ -14,6 +14,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/lib/components/radio-group";
 import { Step } from "@/lib/components/stepper";
 import { toast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 const CREDIT_OPTIONS = [
 	{ value: "10", label: "$10", description: "Good for testing" },
@@ -29,14 +30,15 @@ export function CreditsStep() {
 	const stripe = useStripe();
 	const elements = useElements();
 
-	const topUpCredits = {
-		mutateAsync: async (_data: any) => {
-			await new Promise((resolve) => {
-				setTimeout(resolve, 1000);
-			});
-			return { success: true };
-		},
-	};
+	const { mutateAsync: createPaymentIntent } = $api.useMutation(
+		"post",
+		"/payments/create-payment-intent",
+	);
+
+	const { mutateAsync: createSetupIntent } = $api.useMutation(
+		"post",
+		"/payments/create-setup-intent",
+	);
 
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
@@ -54,21 +56,21 @@ export function CreditsStep() {
 				throw new Error("Card element not found");
 			}
 
-			const { error, paymentMethod } = await stripe.createPaymentMethod({
-				type: "card",
-				card: cardElement,
-			});
-
-			if (error) {
-				throw new Error(error.message);
-			}
-
-			await topUpCredits.mutateAsync({
+			const { clientSecret } = await createPaymentIntent({
 				body: {
 					amount: Number(selectedAmount),
-					paymentMethodId: paymentMethod.id,
 				},
 			});
+
+			const result = await stripe.confirmCardPayment(clientSecret, {
+				payment_method: {
+					card: cardElement,
+				},
+			});
+
+			if (result.error) {
+				throw new Error(result.error.message);
+			}
 
 			setIsSuccess(true);
 			toast({
