@@ -1,10 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useUser } from "@/hooks/useUser";
 import { signUp } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
@@ -17,7 +18,6 @@ import {
 } from "@/lib/components/form";
 import { Input } from "@/lib/components/input";
 import { toast } from "@/lib/components/use-toast";
-import { $api } from "@/lib/fetch-client";
 
 const formSchema = z.object({
 	name: z.string().min(2, { message: "Name is required" }),
@@ -32,16 +32,8 @@ export const Route = createFileRoute("/signup")({
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
-	const { data } = $api.useSuspenseQuery("get", "/user/me");
-
-	// Redirect to dashboard if already logged in
-	useEffect(() => {
-		if (data?.user) {
-			navigate({ to: "/dashboard" });
-		}
-	}, [data?.user, navigate]);
+	useUser({ redirectTo: "/dashboard", redirectWhen: "authenticated" });
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),

@@ -1,24 +1,16 @@
-import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
 
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { MobileHeader } from "@/components/dashboard/mobile-header";
+import { useUser } from "@/hooks/useUser";
 import { SidebarProvider } from "@/lib/components/sidebar";
-import { $api } from "@/lib/fetch-client";
 
 export const Route = createFileRoute("/dashboard/_layout")({
 	component: RouteComponent,
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
-	const { data, isLoading } = $api.useSuspenseQuery("get", "/user/me");
-
-	useEffect(() => {
-		if (!isLoading && !data?.user) {
-			navigate({ to: "/login" });
-		}
-	}, [data?.user, isLoading, navigate]);
+	useUser({ redirectTo: "/login", redirectWhen: "unauthenticated" });
 
 	return (
 		<SidebarProvider>
