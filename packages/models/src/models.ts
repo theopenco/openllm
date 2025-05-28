@@ -45,8 +45,8 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-3.5-turbo",
-				inputPrice: 0.0000005,
-				outputPrice: 0.0000015,
+				inputPrice: 0.5 / 1e6, // $0.50 per 1M tokens
+				outputPrice: 1.5 / 1e6, // $1.50 per 1M tokens
 			},
 		],
 		jsonOutput: true,
@@ -57,8 +57,8 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-4",
-				inputPrice: 0.00001,
-				outputPrice: 0.00003,
+				inputPrice: 30.0 / 1e6, // $30.00 per 1M tokens
+				outputPrice: 60.0 / 1e6, // $60.00 per 1M tokens
 			},
 		],
 		jsonOutput: false,
@@ -69,8 +69,8 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-4o",
-				inputPrice: 0.000005,
-				outputPrice: 0.000015,
+				inputPrice: 2.5 / 1e6, // $2.50 per 1M tokens
+				outputPrice: 10.0 / 1e6, // $10.00 per 1M tokens
 				imageInputPrice: 0.00553,
 			},
 		],
@@ -82,8 +82,44 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-4o-mini",
-				inputPrice: 0.0000006,
-				outputPrice: 0.0000018,
+				inputPrice: 0.15 / 1e6, // $0.15 per 1M tokens
+				outputPrice: 0.6 / 1e6, // $0.60 per 1M tokens
+			},
+		],
+		jsonOutput: true,
+	},
+	{
+		model: "gpt-4.1",
+		providers: [
+			{
+				providerId: "openai",
+				modelName: "gpt-4.1",
+				inputPrice: 2.0 / 1e6, // $2.00 per 1M tokens
+				outputPrice: 8.0 / 1e6, // $8.00 per 1M tokens
+			},
+		],
+		jsonOutput: true,
+	},
+	{
+		model: "gpt-4.1-mini",
+		providers: [
+			{
+				providerId: "openai",
+				modelName: "gpt-4.1-mini",
+				inputPrice: 0.4 / 1e6, // $0.40 per 1M tokens
+				outputPrice: 1.6 / 1e6, // $1.60 per 1M tokens
+			},
+		],
+		jsonOutput: true,
+	},
+	{
+		model: "gpt-4.1-nano",
+		providers: [
+			{
+				providerId: "openai",
+				modelName: "gpt-4.1-nano",
+				inputPrice: 0.1 / 1e6, // $0.10 per 1M tokens
+				outputPrice: 0.4 / 1e6, // $0.40 per 1M tokens
 			},
 		],
 		jsonOutput: true,
