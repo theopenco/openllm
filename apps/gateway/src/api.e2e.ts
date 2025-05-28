@@ -361,11 +361,13 @@ describe("e2e tests with real provider keys", () => {
 			description: "Test API Key for Credits",
 		});
 
+		const requestId = shortid();
 		const res = await app.request("/v1/chat/completions", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer credits-token`,
+				"x-request-id": requestId,
 			},
 			body: JSON.stringify({
 				model: "llmgateway/auto",
@@ -383,7 +385,7 @@ describe("e2e tests with real provider keys", () => {
 		expect(res.status).toBe(200);
 		expect(json).toHaveProperty("choices.[0].message.content");
 
-		const logs = await waitForLogs(1);
+		const logs = await waitForLogs(1, 10000, 100, requestId);
 		expect(logs.length).toBe(1);
 		expect(logs[0].requestedModel).toBe("auto");
 		expect(logs[0].usedProvider).toBeTruthy();
@@ -401,11 +403,13 @@ describe("e2e tests with real provider keys", () => {
 			.set({ mode: "credits" })
 			.where(eq(tables.project.id, "project-id"));
 
+		const requestId = shortid();
 		const res = await app.request("/v1/chat/completions", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token`,
+				"x-request-id": requestId,
 			},
 			body: JSON.stringify({
 				model: "auto",
@@ -422,7 +426,7 @@ describe("e2e tests with real provider keys", () => {
 		const json = await res.json();
 		expect(json).toHaveProperty("choices.[0].message.content");
 
-		const logs = await waitForLogs(1);
+		const logs = await waitForLogs(1, 10000, 100, requestId);
 		expect(logs.length).toBe(1);
 		expect(logs[0].requestedModel).toBe("auto");
 		expect(logs[0].usedProvider).toBeTruthy();
@@ -464,11 +468,13 @@ describe("e2e tests with real provider keys", () => {
 			description: "Test API Key",
 		});
 
+		const requestId = shortid();
 		const res = await app.request("/v1/chat/completions", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
 				Authorization: `Bearer real-token-2`,
+				"x-request-id": requestId,
 			},
 			body: JSON.stringify({
 				model: "custom",
@@ -486,7 +492,7 @@ describe("e2e tests with real provider keys", () => {
 		const json = await res.json();
 		expect(json).toHaveProperty("choices.[0].message.content");
 
-		const logs = await waitForLogs(1);
+		const logs = await waitForLogs(1, 10000, 100, requestId);
 		expect(logs.length).toBe(1);
 		expect(logs[0].requestedModel).toBe("custom");
 		expect(logs[0].usedProvider).toBe("llmgateway");

@@ -17,6 +17,12 @@ export async function processLogQueue(): Promise<void> {
 	try {
 		const logData = message.map((i) => JSON.parse(i) as LogInsertData);
 
+		logData.forEach((data) => {
+			console.log(
+				`Processing log with requestId: ${data.requestId || "undefined"}`,
+			);
+		});
+
 		await db.insert(log).values(
 			logData.map((i) => ({
 				createdAt: new Date(),

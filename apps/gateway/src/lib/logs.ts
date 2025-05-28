@@ -84,6 +84,13 @@ export async function insertLog(logData: LogInsertData): Promise<unknown> {
 		);
 	}
 	(logData as any).usedMode = determineUsedMode(logData.providerKeyId);
+
+	if (logData.requestId) {
+		console.log(`Inserting log with requestId: ${logData.requestId}`);
+	} else {
+		console.log("Inserting log without requestId");
+	}
+
 	await publishToQueue(LOG_QUEUE, logData);
 	return 1; // Return 1 to match test expectations
 }

@@ -1454,6 +1454,7 @@ chat.openapi(completions, async (c) => {
 		projectId: apiKey.projectId,
 		apiKeyId: apiKey.id,
 		providerKeyId: providerKey.id,
+		requestId,
 		duration,
 		usedModel: usedModel,
 		usedProvider: usedProvider,
