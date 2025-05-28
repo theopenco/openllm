@@ -15,7 +15,6 @@ import {
 	generateCacheKey,
 	getCache,
 	getOrganization,
-	getProject,
 	getProviderKey,
 	isCachingEnabled,
 	setCache,
@@ -311,13 +310,31 @@ chat.openapi(completions, async (c) => {
 	}
 
 	// Get the project to determine mode for routing decisions
-	const project = await getProject(apiKey.projectId);
+	const organization = await getOrganization(apiKey.organizationId);
 
-	if (!project) {
+	if (!organization) {
 		throw new HTTPException(500, {
-			message: "Could not find project",
+			message: "Could not find organization",
 		});
 	}
+
+	// Get the first project of the organization
+	const projects = await db.query.project.findMany({
+		where: {
+			organizationId: {
+				eq: apiKey.organizationId,
+			},
+		},
+		limit: 1,
+	});
+
+	if (!projects.length) {
+		throw new HTTPException(500, {
+			message: "Could not find any projects for this organization",
+		});
+	}
+
+	const project = projects[0];
 
 	// Apply routing logic after apiKey and project are available
 	if (
@@ -331,7 +348,7 @@ chat.openapi(completions, async (c) => {
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: { eq: "active" },
-					projectId: { eq: apiKey.projectId },
+					organizationId: { eq: apiKey.organizationId },
 				},
 			});
 			availableProviders = providerKeys.map((key) => key.provider);
@@ -339,7 +356,7 @@ chat.openapi(completions, async (c) => {
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: { eq: "active" },
-					projectId: { eq: apiKey.projectId },
+					organizationId: { eq: apiKey.organizationId },
 				},
 			});
 			const databaseProviders = providerKeys.map((key) => key.provider);
@@ -419,8 +436,8 @@ chat.openapi(completions, async (c) => {
 					status: {
 						eq: "active",
 					},
-					projectId: {
-						eq: apiKey.projectId,
+					organizationId: {
+						eq: apiKey.organizationId,
 					},
 					provider: {
 						in: providerIds,
@@ -496,7 +513,7 @@ chat.openapi(completions, async (c) => {
 
 	if (project.mode === "api-keys") {
 		// Get the provider key from the database using cached helper function
-		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
+		providerKey = await getProviderKey(apiKey.organizationId, usedProvider);
 
 		if (!providerKey) {
 			throw new HTTPException(400, {
@@ -526,13 +543,13 @@ chat.openapi(completions, async (c) => {
 			token,
 			provider: usedProvider,
 			status: "active",
-			projectId: apiKey.projectId,
+			organizationId: apiKey.organizationId,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		};
 	} else if (project.mode === "hybrid") {
 		// First try to get the provider key from the database
-		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
+		providerKey = await getProviderKey(apiKey.organizationId, usedProvider);
 
 		if (!providerKey) {
 			// Check if the organization has enough credits
@@ -558,7 +575,7 @@ chat.openapi(completions, async (c) => {
 				token,
 				provider: usedProvider,
 				status: "active",
-				projectId: apiKey.projectId,
+				organizationId: apiKey.organizationId,
 				createdAt: new Date(),
 				updatedAt: new Date(),
 			};
@@ -623,8 +640,8 @@ chat.openapi(completions, async (c) => {
 			// Log the cached request
 			const duration = 0; // No processing time needed
 			await insertLog({
-				organizationId: project.organizationId,
-				projectId: apiKey.projectId,
+				organizationId: apiKey.organizationId,
+				projectId: project.id,
 				apiKeyId: apiKey.id,
 				providerKeyId: providerKey.id,
 				duration,
@@ -810,8 +827,8 @@ chat.openapi(completions, async (c) => {
 				if (error instanceof Error && error.name === "AbortError") {
 					// Log the canceled request
 					await insertLog({
-						organizationId: project.organizationId,
-						projectId: apiKey.projectId,
+						organizationId: apiKey.organizationId,
+						projectId: project.id,
 						apiKeyId: apiKey.id,
 						providerKeyId: providerKey.id,
 						duration: Date.now() - startTime,
@@ -882,8 +899,8 @@ chat.openapi(completions, async (c) => {
 
 				// Log the error in the database
 				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
+					organizationId: apiKey.organizationId,
+					projectId: project.id,
 					apiKeyId: apiKey.id,
 					providerKeyId: providerKey.id,
 					duration: Date.now() - startTime,
@@ -1178,8 +1195,8 @@ chat.openapi(completions, async (c) => {
 					},
 				);
 				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
+					organizationId: apiKey.organizationId,
+					projectId: project.id,
 					apiKeyId: apiKey.id,
 					providerKeyId: providerKey.id,
 					duration,
@@ -1255,8 +1272,8 @@ chat.openapi(completions, async (c) => {
 	if (canceled) {
 		// Log the canceled request
 		await insertLog({
-			organizationId: project.organizationId,
-			projectId: apiKey.projectId,
+			organizationId: apiKey.organizationId,
+			projectId: project.id,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
 			duration,
@@ -1306,8 +1323,8 @@ chat.openapi(completions, async (c) => {
 
 		// Log the error in the database
 		await insertLog({
-			organizationId: project.organizationId,
-			projectId: apiKey.projectId,
+			organizationId: apiKey.organizationId,
+			projectId: project.id,
 			apiKeyId: apiKey.id,
 			providerKeyId: providerKey.id,
 			duration,
@@ -1441,8 +1458,8 @@ chat.openapi(completions, async (c) => {
 		},
 	);
 	await insertLog({
-		organizationId: project.organizationId,
-		projectId: apiKey.projectId,
+		organizationId: apiKey.organizationId,
+		projectId: project.id,
 		apiKeyId: apiKey.id,
 		providerKeyId: providerKey.id,
 		duration,

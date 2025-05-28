@@ -141,7 +141,9 @@ export const apiKey = pgTable("api_key", {
 	status: text({
 		enum: ["active", "inactive", "deleted"],
 	}).default("active"),
-	projectId: text().notNull(),
+	organizationId: text()
+		.notNull()
+		.references(() => organization.id, { onDelete: "cascade" }),
 });
 
 export const providerKey = pgTable(
@@ -159,7 +161,9 @@ export const providerKey = pgTable(
 		status: text({
 			enum: ["active", "inactive", "deleted"],
 		}).default("active"),
-		projectId: text().notNull(),
+		organizationId: text()
+			.notNull()
+			.references(() => organization.id, { onDelete: "cascade" }),
 	},
 	(table) => [],
 );

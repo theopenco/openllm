@@ -134,11 +134,11 @@ export async function getOrganization(organizationId: string): Promise<any> {
 }
 
 export async function getProviderKey(
-	projectId: string,
+	organizationId: string,
 	provider: string,
 ): Promise<any> {
 	try {
-		const providerKeyCacheKey = `provider_key:${projectId}:${provider}`;
+		const providerKeyCacheKey = `provider_key:${organizationId}:${provider}`;
 		const cachedProviderKey = await getCache(providerKeyCacheKey);
 
 		if (cachedProviderKey) {
@@ -150,8 +150,8 @@ export async function getProviderKey(
 				status: {
 					eq: "active",
 				},
-				projectId: {
-					eq: projectId,
+				organizationId: {
+					eq: organizationId,
 				},
 				provider: {
 					eq: provider,
