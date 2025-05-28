@@ -3,8 +3,8 @@ import { useEffect } from "react";
 
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { MobileHeader } from "@/components/dashboard/mobile-header";
-import { useSession } from "@/lib/auth-client";
 import { SidebarProvider } from "@/lib/components/sidebar";
+import { $api } from "@/lib/fetch-client";
 
 export const Route = createFileRoute("/dashboard/_layout")({
 	component: RouteComponent,
@@ -12,13 +12,13 @@ export const Route = createFileRoute("/dashboard/_layout")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
-	const session = useSession();
+	const { data, isLoading } = $api.useSuspenseQuery("get", "/user/me");
 
 	useEffect(() => {
-		if (!session.isPending && !session.data?.user) {
+		if (!isLoading && !data?.user) {
 			navigate({ to: "/login" });
 		}
-	}, [session.data, session.isPending, navigate]);
+	}, [data?.user, isLoading, navigate]);
 
 	return (
 		<SidebarProvider>

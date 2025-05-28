@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { signUp, useSession } from "@/lib/auth-client";
+import { signUp } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Form,
@@ -17,6 +17,7 @@ import {
 } from "@/lib/components/form";
 import { Input } from "@/lib/components/input";
 import { toast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 const formSchema = z.object({
 	name: z.string().min(2, { message: "Name is required" }),
@@ -33,14 +34,14 @@ export const Route = createFileRoute("/signup")({
 function RouteComponent() {
 	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
-	const session = useSession();
+	const { data } = $api.useSuspenseQuery("get", "/user/me");
 
 	// Redirect to dashboard if already logged in
 	useEffect(() => {
-		if (session.data?.user) {
+		if (data?.user) {
 			navigate({ to: "/dashboard" });
 		}
-	}, [session.data, navigate]);
+	}, [data?.user, navigate]);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
