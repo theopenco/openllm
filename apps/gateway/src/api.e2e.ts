@@ -592,7 +592,6 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 			}
 
 			const chunk = new TextDecoder().decode(value);
-			fullContent += chunk;
 
 			const lines = chunk.split("\n");
 			for (const line of lines) {
@@ -617,7 +616,7 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 						) {
 							hasContent = true;
 						}
-					} catch (e) {}
+					} catch (_) {}
 				}
 			}
 		}
