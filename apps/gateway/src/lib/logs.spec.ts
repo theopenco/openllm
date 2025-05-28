@@ -45,7 +45,10 @@ describe("getUnifiedFinishReason", () => {
 			UnifiedFinishReason.CANCELED,
 		);
 		expect(getUnifiedFinishReason("gateway_error", "any-provider")).toBe(
-			UnifiedFinishReason.ERROR,
+			UnifiedFinishReason.GATEWAY_ERROR,
+		);
+		expect(getUnifiedFinishReason("upstream_error", "any-provider")).toBe(
+			UnifiedFinishReason.UPSTREAM_ERROR,
 		);
 		expect(getUnifiedFinishReason(null, "any-provider")).toBe(
 			UnifiedFinishReason.UNKNOWN,
