@@ -32,18 +32,18 @@ describe("test", () => {
 	});
 
 	afterEach(async () => {
-		await Promise.all([
-			db.delete(tables.user),
-			db.delete(tables.account),
-			db.delete(tables.session),
-			db.delete(tables.verification),
-			db.delete(tables.organization),
-			db.delete(tables.userOrganization),
-			db.delete(tables.project),
-			db.delete(tables.apiKey),
-			db.delete(tables.providerKey),
-			db.delete(tables.log),
-		]);
+		await db.delete(tables.log);
+		await db.delete(tables.apiKey);
+		await db.delete(tables.providerKey);
+		await db.delete(tables.userOrganization);
+		await db.delete(tables.project);
+
+		await db.delete(tables.organization);
+		await db.delete(tables.user);
+		await db.delete(tables.account);
+		await db.delete(tables.session);
+		await db.delete(tables.verification);
+
 		await flushLogs();
 	});
 
