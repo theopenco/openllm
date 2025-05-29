@@ -9,7 +9,7 @@ export default defineConfig({
 		environment: "node",
 		testTimeout: 60000, // Longer timeout for e2e tests
 		hookTimeout: 30000, // Timeout for hooks
-		setupFiles: ["vitest/setup/stripe-mock.ts"],
+		setupFiles: [],
 		reporters: ["default"],
 		coverage: {
 			reporter: ["text", "json", "html"],
