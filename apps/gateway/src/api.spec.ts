@@ -13,7 +13,7 @@ import {
 	startMockServer,
 	stopMockServer,
 } from "./test-utils/mock-openai-server";
-import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
+import { clearCache, waitForLogs } from "./test-utils/test-helpers";
 
 describe("test", () => {
 	let mockServerUrl: string;
@@ -31,7 +31,7 @@ describe("test", () => {
 	});
 
 	beforeEach(async () => {
-		await flushLogs();
+		await clearCache();
 
 		await Promise.all([
 			db.delete(tables.log),

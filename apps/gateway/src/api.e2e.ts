@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, test } from "vitest";
 
 import { app } from ".";
 import {
-	flushLogs,
+	clearCache,
 	waitForLogs,
 	getProviderEnvVar,
 } from "./test-utils/test-helpers";
@@ -42,7 +42,8 @@ const streamingModels = testModels.filter((m) =>
 
 describe("e2e tests with real provider keys", () => {
 	beforeEach(async () => {
-		await flushLogs();
+		await clearCache();
+
 		await Promise.all([
 			db.delete(tables.log),
 			db.delete(tables.apiKey),
@@ -179,10 +180,6 @@ describe("e2e tests with real provider keys", () => {
 			// expect(log.inputCost).not.toBeNull();
 			// expect(log.outputCost).not.toBeNull();
 			// expect(log.cost).not.toBeNull();
-
-			await flushLogs(); // Process logs BEFORE deleting data
-			await db.delete(tables.apiKey);
-			await db.delete(tables.providerKey);
 		},
 	);
 
@@ -305,7 +302,7 @@ describe("e2e tests with real provider keys", () => {
 		const text = await res.text();
 		expect(text).toContain("does not support JSON output mode");
 
-		await flushLogs(); // Process logs BEFORE deleting data
+		await clearCache(); // Process logs BEFORE deleting data
 		await db.delete(tables.apiKey);
 		await db.delete(tables.providerKey);
 	});

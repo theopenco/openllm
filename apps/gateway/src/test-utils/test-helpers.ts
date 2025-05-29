@@ -1,14 +1,10 @@
-import { db, tables } from "@openllm/db";
+import { db } from "@openllm/db";
 
+import redisClient from "../lib/redis";
 import { processLogQueue } from "../worker";
 
-export async function flushLogs() {
-	await new Promise((resolve) => {
-		setTimeout(resolve, 2000);
-	});
-	await processLogQueue();
-
-	await db.delete(tables.log);
+export async function clearCache() {
+	await redisClient.flushdb();
 }
 
 /**
