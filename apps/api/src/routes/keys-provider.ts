@@ -31,6 +31,7 @@ const createProviderKeySchema = z.object({
 		}),
 	token: z.string().min(1, "API key is required"),
 	baseUrl: z.string().url().optional(),
+	organizationId: z.string().min(1, "Organization ID is required"),
 });
 
 // Schema for updating a provider key status
@@ -78,13 +79,21 @@ keysProvider.openapi(create, async (c) => {
 		});
 	}
 
-	const { provider, token: userToken, baseUrl } = await c.req.json();
+	const {
+		provider,
+		token: userToken,
+		baseUrl,
+		organizationId,
+	} = await c.req.json();
 
-	// Get the user's projects
+	// Verify the user has access to this organization
 	const userOrgs = await db.query.userOrganization.findMany({
 		where: {
 			userId: {
 				eq: user.id,
+			},
+			organizationId: {
+				eq: organizationId,
 			},
 		},
 		with: {
@@ -97,16 +106,13 @@ keysProvider.openapi(create, async (c) => {
 	});
 
 	if (!userOrgs.length || !userOrgs[0].organization?.projects.length) {
-		throw new HTTPException(400, {
-			message: "No projects found for user",
+		throw new HTTPException(403, {
+			message:
+				"You don't have access to this organization or it has no projects",
 		});
 	}
 
-	// Use the first project for simplicity
-	const projectId = userOrgs[0].organization.projects[0].id;
-
 	// Check if a provider key already exists for this provider and organization
-	const organizationId = userOrgs[0].organization.id;
 	const existingKey = await db.query.providerKey.findFirst({
 		where: {
 			status: {

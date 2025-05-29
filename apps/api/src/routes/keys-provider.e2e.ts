@@ -60,6 +60,7 @@ describe("e2e tests for provider keys", () => {
 				body: JSON.stringify({
 					provider: providerId,
 					token: envVar,
+					organizationId: "test-org-id",
 				}),
 			});
 
@@ -103,6 +104,7 @@ describe("e2e tests for provider keys", () => {
 				provider: "openai",
 				token: process.env.OPENAI_API_KEY,
 				baseUrl: customBaseUrl,
+				organizationId: "test-org-id",
 			}),
 		});
 
@@ -144,6 +146,7 @@ describe("e2e tests for provider keys", () => {
 				provider: "openai",
 				token: process.env.OPENAI_API_KEY,
 				baseUrl: customBaseUrl,
+				organizationId: "test-org-id",
 			}),
 		});
 
