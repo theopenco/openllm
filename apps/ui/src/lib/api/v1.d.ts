@@ -788,6 +788,7 @@ export interface paths {
 						token: string;
 						/** Format: uri */
 						baseUrl?: string;
+						organizationId: string;
 					};
 				};
 			};
