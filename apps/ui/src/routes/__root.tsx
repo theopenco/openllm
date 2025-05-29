@@ -8,13 +8,22 @@ import {
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { ThemeProvider } from "next-themes";
+import { PostHogProvider } from "posthog-js/react";
 
 import appCss from "@/globals.css?url";
 import { Toaster } from "@/lib/components/toaster";
+import { POSTHOG_HOST, POSTHOG_KEY } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 import type { QueryClient } from "@tanstack/react-query";
+import type { PostHogConfig } from "posthog-js";
 import type { ReactNode } from "react";
+
+const options: Partial<PostHogConfig> | undefined = {
+	api_host: POSTHOG_HOST,
+	capture_pageview: "history_change",
+	autocapture: true,
+};
 
 export const Route = createRootRouteWithContext<{
 	queryClient: QueryClient;
@@ -81,7 +90,9 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 					enableSystem
 					storageKey="theme"
 				>
-					{children}
+					<PostHogProvider apiKey={POSTHOG_KEY} options={options}>
+						{children}
+					</PostHogProvider>
 				</ThemeProvider>
 				<Toaster />
 				{process.env.NODE_ENV === "development" && (

@@ -2,6 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Loader2, KeySquare } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/login")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
+	const posthog = usePostHog();
 	const [isLoading, setIsLoading] = useState(false);
 	useUser({ redirectTo: "/dashboard", redirectWhen: "authenticated" });
 
@@ -59,6 +61,7 @@ function RouteComponent() {
 			},
 			{
 				onSuccess: () => {
+					posthog.identify(values.email);
 					toast({ title: "Login successful" });
 					navigate({ to: "/dashboard" });
 				},
