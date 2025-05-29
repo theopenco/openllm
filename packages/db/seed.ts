@@ -86,21 +86,21 @@ async function seed() {
 		id: "anthropic-key-id",
 		token: "test-anthropic-token",
 		provider: "anthropic",
-		projectId: "test-project-id",
+		organizationId: "test-org-id",
 	});
 
 	await upsert(tables.providerKey, {
 		id: "inference-key-id",
 		token: "test-inference-token",
 		provider: "inference.net",
-		projectId: "test-project-id",
+		organizationId: "test-org-id",
 	});
 
 	await upsert(tables.providerKey, {
 		id: "google-key-id",
 		token: "test-google-token",
 		provider: "google-vertex",
-		projectId: "test-project-id",
+		organizationId: "test-org-id",
 	});
 
 	// Insert logs
