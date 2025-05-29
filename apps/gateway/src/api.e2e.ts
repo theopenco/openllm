@@ -95,16 +95,23 @@ describe("e2e tests with real provider keys", () => {
 		for (const provider of providers) {
 			const envVar = getProviderEnvVar(provider.id);
 			if (envVar) {
-				await createProviderKey(provider.id, envVar);
+				await createProviderKey(provider.id, envVar, "api-keys");
+				await createProviderKey(provider.id, envVar, "credits");
 			}
 		}
 	});
 
-	async function createProviderKey(provider: string, token: string) {
+	async function createProviderKey(
+		provider: string,
+		token: string,
+		keyType: "api-keys" | "credits" = "api-keys",
+	) {
+		const keyId =
+			keyType === "credits" ? `env-${provider}` : `provider-key-${provider}`;
 		await db.insert(tables.providerKey).values({
-			id: `provider-key-${provider}`,
+			id: keyId,
 			token,
-			provider,
+			provider: provider.replace("env-", ""), // Remove env- prefix for the provider field
 			projectId: "project-id",
 		});
 	}
