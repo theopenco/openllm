@@ -23,7 +23,6 @@ const options: Partial<PostHogConfig> | undefined = {
 	api_host: POSTHOG_HOST,
 	capture_pageview: "history_change",
 	autocapture: true,
-	debug: true,
 };
 
 export const Route = createRootRouteWithContext<{
