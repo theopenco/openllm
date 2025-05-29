@@ -6,20 +6,30 @@ import { auth } from "./auth";
 describe("auth hooks", () => {
 	beforeEach(async () => {
 		// Clean up any existing data
-		await db.delete(tables.project);
-		await db.delete(tables.userOrganization);
-		await db.delete(tables.organization);
-		await db.delete(tables.account);
-		await db.delete(tables.user);
+		await Promise.all([
+			db.delete(tables.userOrganization),
+			db.delete(tables.project),
+		]);
+
+		await Promise.all([
+			db.delete(tables.organization),
+			db.delete(tables.user),
+			db.delete(tables.account),
+		]);
 	});
 
 	afterEach(async () => {
 		// Clean up after tests
-		await db.delete(tables.project);
-		await db.delete(tables.userOrganization);
-		await db.delete(tables.organization);
-		await db.delete(tables.account);
-		await db.delete(tables.user);
+		await Promise.all([
+			db.delete(tables.userOrganization),
+			db.delete(tables.project),
+		]);
+
+		await Promise.all([
+			db.delete(tables.organization),
+			db.delete(tables.user),
+			db.delete(tables.account),
+		]);
 	});
 
 	test("should create default organization and project on signup", async () => {

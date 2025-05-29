@@ -44,16 +44,22 @@ describe("e2e tests with real provider keys", () => {
 	beforeEach(async () => {
 		await flushLogs();
 		await Promise.all([
+			db.delete(tables.log),
+			db.delete(tables.apiKey),
+			db.delete(tables.providerKey),
+		]);
+
+		await Promise.all([
+			db.delete(tables.userOrganization),
+			db.delete(tables.project),
+		]);
+
+		await Promise.all([
+			db.delete(tables.organization),
 			db.delete(tables.user),
 			db.delete(tables.account),
 			db.delete(tables.session),
 			db.delete(tables.verification),
-			db.delete(tables.organization),
-			db.delete(tables.userOrganization),
-			db.delete(tables.project),
-			db.delete(tables.apiKey),
-			db.delete(tables.providerKey),
-			db.delete(tables.log),
 		]);
 
 		await db.insert(tables.user).values({
@@ -89,16 +95,23 @@ describe("e2e tests with real provider keys", () => {
 		for (const provider of providers) {
 			const envVar = getProviderEnvVar(provider.id);
 			if (envVar) {
-				await createProviderKey(provider.id, envVar);
+				await createProviderKey(provider.id, envVar, "api-keys");
+				await createProviderKey(provider.id, envVar, "credits");
 			}
 		}
 	});
 
-	async function createProviderKey(provider: string, token: string) {
+	async function createProviderKey(
+		provider: string,
+		token: string,
+		keyType: "api-keys" | "credits" = "api-keys",
+	) {
+		const keyId =
+			keyType === "credits" ? `env-${provider}` : `provider-key-${provider}`;
 		await db.insert(tables.providerKey).values({
-			id: `provider-key-${provider}`,
+			id: keyId,
 			token,
-			provider,
+			provider: provider.replace("env-", ""), // Remove env- prefix for the provider field
 			organizationId: "org-id",
 		});
 	}
@@ -167,9 +180,9 @@ describe("e2e tests with real provider keys", () => {
 			// expect(log.outputCost).not.toBeNull();
 			// expect(log.cost).not.toBeNull();
 
+			await flushLogs(); // Process logs BEFORE deleting data
 			await db.delete(tables.apiKey);
 			await db.delete(tables.providerKey);
-			await flushLogs();
 		},
 	);
 
@@ -292,6 +305,7 @@ describe("e2e tests with real provider keys", () => {
 		const text = await res.text();
 		expect(text).toContain("does not support JSON output mode");
 
+		await flushLogs(); // Process logs BEFORE deleting data
 		await db.delete(tables.apiKey);
 		await db.delete(tables.providerKey);
 	});
