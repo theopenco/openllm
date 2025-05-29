@@ -5,6 +5,7 @@ import {
 	getProviderHeaders,
 	type Model,
 	models,
+	prepareRequestBody,
 	type Provider,
 	providers,
 } from "@openllm/models";
@@ -116,121 +117,6 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 	}
 
 	return token;
-}
-
-/**
- * Prepares the request body for different providers
- */
-function prepareRequestBody(
-	usedProvider: Provider,
-	usedModel: string,
-	messages: any[],
-	stream: boolean,
-	temperature: number | undefined,
-	max_tokens: number | undefined,
-	top_p: number | undefined,
-	frequency_penalty: number | undefined,
-	presence_penalty: number | undefined,
-	response_format: any,
-) {
-	const requestBody: any = {
-		model: usedModel,
-		messages,
-		stream: stream,
-	};
-
-	switch (usedProvider) {
-		case "openai": {
-			if (stream) {
-				requestBody.stream_options = {
-					include_usage: true,
-				};
-			}
-			if (response_format) {
-				requestBody.response_format = response_format;
-			}
-			break;
-		}
-		case "anthropic": {
-			requestBody.max_tokens = max_tokens || 1024; // Set a default if not provided
-			requestBody.messages = messages.map((m) => ({
-				role:
-					m.role === "assistant"
-						? "assistant"
-						: m.role === "system"
-							? "user"
-							: "user",
-				content: m.role === "system" ? `System: ${m.content}` : m.content,
-			}));
-			break;
-		}
-		case "google-vertex":
-		case "google-ai-studio": {
-			delete requestBody.model; // Not used in body
-			delete requestBody.stream; // Handled differently
-			delete requestBody.messages; // Not used in body for Google AI Studio
-
-			// Extract system messages and combine with user messages
-			const systemMessages = messages.filter((m) => m.role === "system");
-			const nonSystemMessages = messages.filter((m) => m.role !== "system");
-			const systemContext =
-				systemMessages.length > 0
-					? systemMessages.map((m) => m.content).join(" ") + " "
-					: "";
-
-			requestBody.contents = nonSystemMessages.map((m, index) => ({
-				parts: [
-					{
-						text:
-							index === 0 && systemContext
-								? systemContext + m.content
-								: m.content,
-					},
-				],
-			}));
-			requestBody.generationConfig = {};
-
-			// Add optional parameters if they are provided
-			if (temperature !== undefined) {
-				requestBody.generationConfig.temperature = temperature;
-			}
-			if (max_tokens !== undefined) {
-				requestBody.generationConfig.maxOutputTokens = max_tokens;
-			}
-			if (top_p !== undefined) {
-				requestBody.generationConfig.topP = top_p;
-			}
-
-			break;
-		}
-		case "inference.net":
-		case "kluster.ai":
-		case "together.ai": {
-			if (usedModel.startsWith(`${usedProvider}/`)) {
-				requestBody.model = usedModel.substring(usedProvider.length + 1);
-			}
-			break;
-		}
-	}
-
-	// Add optional parameters if they are provided
-	if (temperature !== undefined) {
-		requestBody.temperature = temperature;
-	}
-	if (max_tokens !== undefined) {
-		requestBody.max_tokens = max_tokens;
-	}
-	if (top_p !== undefined) {
-		requestBody.top_p = top_p;
-	}
-	if (frequency_penalty !== undefined) {
-		requestBody.frequency_penalty = frequency_penalty;
-	}
-	if (presence_penalty !== undefined) {
-		requestBody.presence_penalty = presence_penalty;
-	}
-
-	return requestBody;
 }
 
 /**
