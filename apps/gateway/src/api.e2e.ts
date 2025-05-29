@@ -40,7 +40,7 @@ const streamingModels = testModels.filter((m) =>
 	}),
 );
 
-describe.skip("e2e tests with real provider keys", () => {
+describe("e2e tests with real provider keys", () => {
 	beforeEach(async () => {
 		await flushLogs();
 		await Promise.all([
