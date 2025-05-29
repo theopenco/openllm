@@ -240,11 +240,11 @@ export function getProviderEndpoint(
 			if (modelName) {
 				return `${url}/v1beta/models/${modelName}:generateContent`;
 			}
-			return `${url}/v1beta/models/gemini-1.0-pro:generateContent`;
+			return `${url}/v1beta/models/gemini-2.0-flash:generateContent`;
 		case "google-ai-studio": {
 			const baseEndpoint = modelName
 				? `${url}/v1beta/models/${modelName}:generateContent`
-				: `${url}/v1beta/models/gemini-1.0-pro:generateContent`;
+				: `${url}/v1beta/models/gemini-2.0-flash:generateContent`;
 			return token ? `${baseEndpoint}?key=${token}` : baseEndpoint;
 		}
 		case "inference.net":
@@ -298,6 +298,15 @@ export async function validateProviderKey(
 			case "google-vertex":
 			case "google-ai-studio":
 				validationModel = "gemini-2.0-flash";
+				break;
+			case "inference.net":
+				validationModel = "meta-llama/llama-3.1-8b-instruct/fp-8";
+				break;
+			case "kluster.ai":
+				validationModel = "klusterai/Meta-Llama-3.1-8B-Instruct-Turbo";
+				break;
+			case "together.ai":
+				validationModel = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo";
 				break;
 			default:
 				throw new Error(`Provider ${provider} not supported for validation`);

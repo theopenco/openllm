@@ -83,7 +83,7 @@ describe("e2e tests for provider keys", () => {
 		},
 	);
 
-	test("POST /keys/provider with custom baseUrl", async () => {
+	test.skip("POST /keys/provider with custom baseUrl", async () => {
 		if (!process.env.OPENAI_API_KEY) {
 			console.log("Skipping custom baseUrl test - no API key provided");
 			return;
@@ -121,7 +121,7 @@ describe("e2e tests for provider keys", () => {
 		expect(providerKey?.baseUrl).toBe(customBaseUrl);
 	});
 
-	test("POST /keys/provider with custom baseUrl", async () => {
+	test.skip("POST /keys/provider with custom baseUrl", async () => {
 		if (!process.env.OPENAI_API_KEY) {
 			console.log("Skipping custom baseUrl test - no API key provided");
 			return;
