@@ -1,6 +1,7 @@
 import { db, tables } from "@openllm/db";
 
 import { app } from ".";
+import { flushLogs } from "../../gateway/src/test-utils/test-helpers";
 
 import type { OpenAPIHono } from "@hono/zod-openapi";
 
@@ -10,6 +11,8 @@ const credentials = {
 };
 
 export async function deleteAll() {
+	await flushLogs();
+
 	await Promise.all([
 		db.delete(tables.log),
 		db.delete(tables.apiKey),
