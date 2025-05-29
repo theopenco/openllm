@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { db } from "@openllm/db";
+import { db, shortid } from "@openllm/db";
 import {
 	getProviderEndpoint,
 	getProviderHeaders,
@@ -169,6 +169,11 @@ chat.openapi(completions, async (c) => {
 		response_format,
 		stream,
 	} = c.req.valid("json");
+
+	// Extract or generate request ID
+	const requestId = c.req.header("x-request-id") || shortid(40);
+
+	c.header("x-request-id", requestId);
 
 	let requestedModel: Model = modelInput as Model;
 	let requestedProvider: Provider | undefined;
@@ -623,6 +628,7 @@ chat.openapi(completions, async (c) => {
 			// Log the cached request
 			const duration = 0; // No processing time needed
 			await insertLog({
+				requestId,
 				organizationId: project.organizationId,
 				projectId: apiKey.projectId,
 				apiKeyId: apiKey.id,
@@ -810,6 +816,7 @@ chat.openapi(completions, async (c) => {
 				if (error instanceof Error && error.name === "AbortError") {
 					// Log the canceled request
 					await insertLog({
+						requestId,
 						organizationId: project.organizationId,
 						projectId: apiKey.projectId,
 						apiKeyId: apiKey.id,
@@ -882,6 +889,7 @@ chat.openapi(completions, async (c) => {
 
 				// Log the error in the database
 				await insertLog({
+					requestId,
 					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
@@ -1178,6 +1186,7 @@ chat.openapi(completions, async (c) => {
 					},
 				);
 				await insertLog({
+					requestId,
 					organizationId: project.organizationId,
 					projectId: apiKey.projectId,
 					apiKeyId: apiKey.id,
@@ -1255,6 +1264,7 @@ chat.openapi(completions, async (c) => {
 	if (canceled) {
 		// Log the canceled request
 		await insertLog({
+			requestId,
 			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
@@ -1306,6 +1316,7 @@ chat.openapi(completions, async (c) => {
 
 		// Log the error in the database
 		await insertLog({
+			requestId,
 			organizationId: project.organizationId,
 			projectId: apiKey.projectId,
 			apiKeyId: apiKey.id,
@@ -1441,6 +1452,7 @@ chat.openapi(completions, async (c) => {
 		},
 	);
 	await insertLog({
+		requestId,
 		organizationId: project.organizationId,
 		projectId: apiKey.projectId,
 		apiKeyId: apiKey.id,
