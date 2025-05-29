@@ -3,6 +3,9 @@ import { db, tables } from "@openllm/db";
 import { processLogQueue } from "../worker";
 
 export async function flushLogs() {
+	await new Promise((resolve) => {
+		setTimeout(resolve, 2000);
+	});
 	await processLogQueue();
 
 	await db.delete(tables.log);
