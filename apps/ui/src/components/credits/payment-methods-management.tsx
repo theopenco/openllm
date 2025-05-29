@@ -47,19 +47,7 @@ export function PaymentMethodsManagement() {
 						"/payments/payment-methods",
 					).queryKey;
 
-					queryClient.setQueryData(queryKey, (oldData: any) => {
-						if (!oldData) {
-							return oldData;
-						}
-
-						return {
-							...oldData,
-							paymentMethods: oldData.paymentMethods.map((method: any) => ({
-								...method,
-								isDefault: method.id === paymentMethodId,
-							})),
-						};
-					});
+					queryClient.invalidateQueries({ queryKey });
 
 					toast({
 						title: "Success",
@@ -98,18 +86,7 @@ export function PaymentMethodsManagement() {
 						"/payments/payment-methods",
 					).queryKey;
 
-					queryClient.setQueryData(queryKey, (oldData: any) => {
-						if (!oldData) {
-							return oldData;
-						}
-
-						return {
-							...oldData,
-							paymentMethods: oldData.paymentMethods.filter(
-								(method: any) => method.id !== paymentMethodId,
-							),
-						};
-					});
+					queryClient.invalidateQueries({ queryKey });
 
 					toast({
 						title: "Success",

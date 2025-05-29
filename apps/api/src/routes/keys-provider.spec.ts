@@ -39,7 +39,7 @@ describe("provider keys route", () => {
 			id: "test-provider-key-id",
 			token: "test-provider-token",
 			provider: "openai",
-			projectId: "test-project-id",
+			organizationId: "test-org-id",
 		});
 	});
 

@@ -96,7 +96,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "llmgateway",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -203,7 +203,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -239,7 +239,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
-			projectId: "project-id",
+			organizationId: "org-id",
 		});
 
 		// This test will use the default provider (first in the list) for llama-3.3-70b-instruct
@@ -280,7 +280,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -351,7 +351,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "llmgateway",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -380,7 +380,7 @@ describe("test", () => {
 		const errorResponse = await res.json();
 		expect(errorResponse).toHaveProperty("error");
 		expect(errorResponse.error).toHaveProperty("message");
-		expect(errorResponse.error).toHaveProperty("type", "gateway_error");
+		expect(errorResponse.error).toHaveProperty("type", "upstream_error");
 
 		// Wait for the worker to process the log and check that the error was logged in the database
 		const logs = await waitForLogs(1);
@@ -388,7 +388,7 @@ describe("test", () => {
 
 		// Verify the log has the correct error fields
 		const errorLog = logs[0];
-		expect(errorLog.finishReason).toBe("gateway_error");
+		expect(errorLog.finishReason).toBe("upstream_error");
 	});
 
 	// test for inference.net provider
@@ -405,7 +405,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "inference-test-key",
 			provider: "inference.net",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -450,7 +450,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "kluster-test-key",
 			provider: "kluster.ai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -495,7 +495,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "inference-test-key",
 			provider: "inference.net",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -569,7 +569,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "together-test-key",
 			provider: "together.ai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
