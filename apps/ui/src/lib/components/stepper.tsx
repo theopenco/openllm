@@ -100,7 +100,7 @@ export function Stepper({
 						onClick={() => onStepChange(activeStep + 1)}
 						disabled={activeStep === steps.length - 1}
 					>
-						{activeStep === steps.length - 2 ? "Finish" : "Next"}
+						{activeStep === steps.length - 1 ? "Finish" : "Next"}
 					</Button>
 				</div>
 			</div>
