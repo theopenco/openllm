@@ -169,7 +169,7 @@ export const providerKey = pgTable(
 		}).default("active"),
 		organizationId: text()
 			.notNull()
-			.references(() => project.id, { onDelete: "cascade" }),
+			.references(() => organization.id, { onDelete: "cascade" }),
 	},
 	(table) => [],
 );
@@ -191,9 +191,8 @@ export const log = pgTable("log", {
 	apiKeyId: text()
 		.notNull()
 		.references(() => apiKey.id, { onDelete: "cascade" }),
-	providerKeyId: text()
-		.notNull()
-		.references(() => providerKey.id, { onDelete: "cascade" }),
+	// TODO adapt
+	providerKeyId: text().notNull(),
 	duration: integer().notNull(),
 	requestedModel: text().notNull(),
 	requestedProvider: text(),
