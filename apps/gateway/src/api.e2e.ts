@@ -187,9 +187,9 @@ describe("e2e tests with real provider keys", () => {
 			// expect(log.outputCost).not.toBeNull();
 			// expect(log.cost).not.toBeNull();
 
+			await flushLogs(); // Process logs BEFORE deleting data
 			await db.delete(tables.apiKey);
 			await db.delete(tables.providerKey);
-			await flushLogs();
 		},
 	);
 
@@ -322,6 +322,7 @@ describe("e2e tests with real provider keys", () => {
 		const text = await res.text();
 		expect(text).toContain("does not support JSON output mode");
 
+		await flushLogs(); // Process logs BEFORE deleting data
 		await db.delete(tables.apiKey);
 		await db.delete(tables.providerKey);
 	});

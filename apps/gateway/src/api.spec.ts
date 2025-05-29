@@ -32,6 +32,8 @@ describe("test", () => {
 	});
 
 	afterEach(async () => {
+		await flushLogs(); // Process logs BEFORE deleting data
+
 		await Promise.all([
 			db.delete(tables.log),
 			db.delete(tables.apiKey),
@@ -50,8 +52,6 @@ describe("test", () => {
 			db.delete(tables.session),
 			db.delete(tables.verification),
 		]);
-
-		await flushLogs();
 	});
 
 	beforeEach(async () => {
