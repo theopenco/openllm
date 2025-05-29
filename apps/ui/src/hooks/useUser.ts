@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
+import { usePostHog } from "posthog-js/react";
 import { useEffect } from "react";
 
 import { $api } from "@/lib/fetch-client";
@@ -22,12 +23,15 @@ export interface UseUserOptions {
 }
 
 export function useUser(options?: UseUserOptions) {
+	const posthog = usePostHog();
 	const navigate = useNavigate();
 
 	const { data, isLoading, error } = $api.useQuery("get", "/user/me", {
 		retry: 0,
 		gcTime: 0,
 	});
+
+	posthog.identify(data?.user.email);
 
 	useEffect(() => {
 		if (!options?.redirectTo || !options?.redirectWhen) {
@@ -54,6 +58,7 @@ export function useUser(options?: UseUserOptions) {
 		navigate,
 		options?.redirectTo,
 		options?.redirectWhen,
+		options,
 	]);
 
 	return {

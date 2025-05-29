@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -32,6 +33,7 @@ export const Route = createFileRoute("/signup")({
 });
 
 function RouteComponent() {
+	const posthog = usePostHog();
 	const [isLoading, setIsLoading] = useState(false);
 	useUser({ redirectTo: "/dashboard", redirectWhen: "authenticated" });
 
@@ -56,6 +58,7 @@ function RouteComponent() {
 			},
 			{
 				onSuccess: () => {
+					posthog.identify(values.email);
 					toast({ title: "Account created", description: "Welcome!" });
 					window.location.href = "/onboarding";
 				},
