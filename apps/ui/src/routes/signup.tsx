@@ -56,8 +56,13 @@ function RouteComponent() {
 			},
 			{
 				onSuccess: () => {
-					toast({ title: "Account created", description: "Welcome!" });
-					window.location.href = "/onboarding";
+					toast({
+						title: "Account created",
+						description:
+							"Please check your email to verify your account before signing in.",
+					});
+					// Redirect to login page instead of dashboard since verification is required
+					window.location.href = "/login";
 				},
 				onError: (ctx) => {
 					toast({
