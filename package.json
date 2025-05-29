@@ -23,7 +23,7 @@
 		"sync": "pnpm push-dev; pnpm push-test",
 		"test": "pnpm test:unit",
 		"test:e2e": "cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5389/test}\" vitest run -c vitest/vitest.e2e.config.mts --no-file-parallelism",
-		"test:unit": "cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5389/test}\" vitest run --no-file-parallelism"
+		"test:unit": "NODE_ENV=development cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5389/test}\" vitest run --no-file-parallelism"
 	},
 	"commitlint": {
 		"extends": "@steebchen/commitlint-config"
