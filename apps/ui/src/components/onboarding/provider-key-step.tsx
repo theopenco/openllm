@@ -32,6 +32,7 @@ import {
 import { Step } from "../../lib/components/stepper";
 import { toast } from "../../lib/components/use-toast";
 import { $api } from "../../lib/fetch-client";
+import { useDefaultOrganization } from "@/hooks/useOrganization";
 
 const formSchema = z.object({
 	provider: z.string().min(1, "Provider is required"),
@@ -50,6 +51,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function ProviderKeyStep() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [isSuccess, setIsSuccess] = useState(false);
+	const { data: organization } = useDefaultOrganization();
 
 	const { data: _providerKeysData } = $api.useSuspenseQuery(
 		"get",
@@ -80,6 +82,7 @@ export function ProviderKeyStep() {
 		try {
 			await createProviderKey.mutateAsync({
 				body: {
+					organizationId: organization!.id,
 					provider: values.provider,
 					token: values.key,
 					baseUrl: values.baseUrl || undefined,
