@@ -93,11 +93,13 @@ export function ProviderKeyStep() {
 				title: "Provider key added",
 				description: "Your provider key has been added successfully.",
 			});
-		} catch (_error) {
+		} catch (error: any) {
 			toast({
 				title: "Error",
-				description: "Failed to add provider key. Please try again.",
+				description:
+					error?.message || "Failed to add provider key. Please try again.",
 				variant: "destructive",
+				className: "text-white",
 			});
 		} finally {
 			setIsLoading(false);
