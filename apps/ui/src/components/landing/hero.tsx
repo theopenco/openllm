@@ -1,6 +1,5 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { useTheme } from "next-themes";
 import React from "react";
 
 import { AnimatedGroup } from "./animated-group";
@@ -30,9 +29,6 @@ const transitionVariants = {
 };
 
 export function Hero() {
-	const { theme } = useTheme();
-	const imageSrc = theme === "light" ? heroImageLight : heroImageDark;
-
 	return (
 		<>
 			<Navbar />
@@ -75,9 +71,16 @@ export function Hero() {
 							className="absolute inset-0 -z-20"
 						>
 							<img
-								src={imageSrc}
+								src={heroImageDark}
 								alt="background"
 								className="absolute inset-x-0 top-56 -z-20 hidden lg:top-32 dark:block"
+								width="3276"
+								height="4095"
+							/>
+							<img
+								src={heroImageLight}
+								alt="background"
+								className="absolute inset-x-0 top-56 -z-20 block lg:top-32 dark:hidden"
 								width="3276"
 								height="4095"
 							/>
@@ -184,14 +187,14 @@ export function Hero() {
 								<div className="inset-shadow-2xs ring-background dark:inset-shadow-white/20 bg-background relative mx-auto max-w-6xl overflow-hidden rounded-2xl border p-4 shadow-lg shadow-zinc-950/15 ring-1">
 									<img
 										className="bg-background aspect-15/8 relative hidden rounded-2xl dark:block"
-										src={imageSrc}
+										src={heroImageDark}
 										alt="app screen"
 										width="2696"
 										height="1386"
 									/>
 									<img
 										className="z-2 border-border/25 aspect-15/8 relative rounded-2xl border dark:hidden"
-										src={imageSrc}
+										src={heroImageLight}
 										alt="app screen"
 										width="2696"
 										height="1386"
