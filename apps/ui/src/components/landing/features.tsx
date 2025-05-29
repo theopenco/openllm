@@ -1,3 +1,7 @@
+import { GlowingEffect } from "./glowing-effect";
+
+import type { ReactNode } from "react";
+
 const features = [
 	{
 		icon: (
@@ -220,26 +224,55 @@ export default function Features() {
 				<h2 className="text-3xl font-bold tracking-tight mb-12 text-center text-zinc-900 dark:text-white">
 					Features
 				</h2>
-
-				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-					{features.map((feature, index) => (
-						<div
-							key={index}
-							className="p-6 border border-zinc-300 dark:border-zinc-800 rounded-lg hover:border-zinc-400 dark:hover:border-zinc-700 transition-colors bg-white dark:bg-zinc-900"
-						>
-							<div className="p-2 bg-zinc-100 dark:bg-zinc-800 inline-block rounded-lg mb-4 text-zinc-800 dark:text-white">
-								{feature.icon}
-							</div>
-							<h3 className="text-xl font-semibold mb-2 text-zinc-900 dark:text-white">
-								{feature.title}
-							</h3>
-							<p className="text-zinc-600 dark:text-zinc-400">
-								{feature.description}
-							</p>
-						</div>
+				<ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+					{features.map((feature, i) => (
+						<GridItem
+							key={i}
+							icon={feature.icon}
+							title={feature.title}
+							description={feature.description}
+						/>
 					))}
-				</div>
+				</ul>
 			</div>
 		</section>
 	);
 }
+
+interface GridItemProps {
+	icon: ReactNode;
+	title: string;
+	description: ReactNode;
+}
+
+const GridItem = ({ icon, title, description }: GridItemProps) => {
+	return (
+		<li className="min-h-[14rem] list-none">
+			<div className="relative h-full rounded-[1.25rem] border-[0.75px] border-border p-2 md:rounded-[1.5rem] md:p-3">
+				<GlowingEffect
+					spread={40}
+					glow={true}
+					disabled={false}
+					proximity={64}
+					inactiveZone={0.01}
+					borderWidth={3}
+				/>
+				<div className="relative flex h-full flex-col justify-between gap-6 overflow-hidden rounded-xl border-[0.75px] bg-background p-6 shadow-sm dark:shadow-[0px_0px_27px_0px_rgba(45,45,45,0.3)] md:p-6">
+					<div className="relative flex flex-1 flex-col justify-between gap-3">
+						<div className="w-fit rounded-lg border-[0.75px] border-border bg-muted p-2">
+							{icon}
+						</div>
+						<div className="space-y-3">
+							<h3 className="pt-0.5 text-xl leading-[1.375rem] font-semibold font-sans tracking-[-0.04em] md:text-2xl md:leading-[1.875rem] text-balance text-foreground">
+								{title}
+							</h3>
+							<h2 className="[&_b]:md:font-semibold [&_strong]:md:font-semibold font-sans text-sm leading-[1.125rem] md:text-base md:leading-[1.375rem] text-muted-foreground">
+								{description}
+							</h2>
+						</div>
+					</div>
+				</div>
+			</div>
+		</li>
+	);
+};

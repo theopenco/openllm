@@ -167,7 +167,7 @@ export const providerKey = pgTable(
 		status: text({
 			enum: ["active", "inactive", "deleted"],
 		}).default("active"),
-		projectId: text()
+		organizationId: text()
 			.notNull()
 			.references(() => project.id, { onDelete: "cascade" }),
 	},
@@ -176,9 +176,7 @@ export const providerKey = pgTable(
 
 export const log = pgTable("log", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
-	requestId: text()
-		.notNull()
-		.$defaultFn(() => shortid(40)),
+	requestId: text().notNull(),
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp()
 		.notNull()

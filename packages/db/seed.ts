@@ -78,7 +78,7 @@ async function seed() {
 		id: "test-provider-key-id",
 		token: "test-provider-token",
 		provider: "openai",
-		projectId: "test-project-id",
+		organizationId: "test-org-id",
 	});
 
 	// Insert additional provider keys referenced by logs

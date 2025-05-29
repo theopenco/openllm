@@ -103,7 +103,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "llmgateway",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -210,7 +210,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -246,7 +246,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
-			projectId: "project-id",
+			organizationId: "org-id",
 		});
 
 		// This test will use the default provider (first in the list) for llama-3.3-70b-instruct
@@ -287,7 +287,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -358,7 +358,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "llmgateway",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -412,7 +412,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "inference-test-key",
 			provider: "inference.net",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -457,7 +457,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "kluster-test-key",
 			provider: "kluster.ai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -502,7 +502,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "inference-test-key",
 			provider: "inference.net",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -576,7 +576,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "together-test-key",
 			provider: "together.ai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 

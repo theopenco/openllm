@@ -18,7 +18,7 @@ const providerKeySchema = z.object({
 	provider: z.string(),
 	baseUrl: z.string().nullable(),
 	status: z.enum(["active", "inactive", "deleted"]).nullable(),
-	projectId: z.string(),
+	organizationId: z.string(),
 });
 
 // Schema for creating a new provider key
@@ -105,7 +105,8 @@ keysProvider.openapi(create, async (c) => {
 	// Use the first project for simplicity
 	const projectId = userOrgs[0].organization.projects[0].id;
 
-	// Check if a provider key already exists for this provider and project
+	// Check if a provider key already exists for this provider and organization
+	const organizationId = userOrgs[0].organization.id;
 	const existingKey = await db.query.providerKey.findFirst({
 		where: {
 			status: {
@@ -114,8 +115,8 @@ keysProvider.openapi(create, async (c) => {
 			provider: {
 				eq: provider,
 			},
-			projectId: {
-				eq: projectId,
+			organizationId: {
+				eq: organizationId,
 			},
 		},
 	});
@@ -126,24 +127,27 @@ keysProvider.openapi(create, async (c) => {
 		});
 	}
 
+	let validationResult;
 	try {
-		const isTestEnv = process.env.NODE_ENV === "test";
-		const validationResult = await validateProviderKey(
+		const isTestEnv =
+			process.env.NODE_ENV === "test" && process.env.E2E_TEST !== "true";
+		validationResult = await validateProviderKey(
 			provider,
 			userToken,
 			baseUrl,
 			isTestEnv,
 		);
-
-		if (!validationResult.valid) {
-			throw new HTTPException(400, {
-				message: `Invalid API key: ${validationResult.error || "Unknown error"}`,
-			});
-		}
 	} catch (error) {
-		throw new HTTPException(400, {
+		throw new HTTPException(500, {
 			message:
 				error instanceof Error ? error.message : "Failed to validate API key",
+			cause: error,
+		});
+	}
+
+	if (!validationResult.valid) {
+		throw new HTTPException(400, {
+			message: `Invalid API key: ${validationResult.error || "Unknown error"}`,
 		});
 	}
 
@@ -153,7 +157,7 @@ keysProvider.openapi(create, async (c) => {
 		.insert(tables.providerKey)
 		.values({
 			token: userToken,
-			projectId,
+			organizationId,
 			provider,
 			baseUrl,
 		})
@@ -226,11 +230,14 @@ keysProvider.openapi(list, async (c) => {
 		org.organization!.projects.map((project) => project.id),
 	);
 
-	// Get all provider keys for these projects
+	// Get all organization IDs the user has access to
+	const organizationIds = userOrgs.map((org) => org.organization!.id);
+
+	// Get all provider keys for these organizations
 	const providerKeys = await db.query.providerKey.findMany({
 		where: {
-			projectId: {
-				in: projectIds,
+			organizationId: {
+				in: organizationIds,
 			},
 		},
 	});
@@ -318,14 +325,17 @@ keysProvider.openapi(deleteKey, async (c) => {
 		org.organization!.projects.map((project) => project.id),
 	);
 
+	// Get all organization IDs the user has access to
+	const organizationIds = userOrgs.map((org) => org.organization!.id);
+
 	// Find the provider key
 	const providerKey = await db.query.providerKey.findFirst({
 		where: {
 			id: {
 				eq: id,
 			},
-			projectId: {
-				in: projectIds,
+			organizationId: {
+				in: organizationIds,
 			},
 		},
 	});
@@ -436,14 +446,17 @@ keysProvider.openapi(updateStatus, async (c) => {
 		org.organization!.projects.map((project) => project.id),
 	);
 
+	// Get all organization IDs the user has access to
+	const organizationIds = userOrgs.map((org) => org.organization!.id);
+
 	// Find the provider key
 	const providerKey = await db.query.providerKey.findFirst({
 		where: {
 			id: {
 				eq: id,
 			},
-			projectId: {
-				in: projectIds,
+			organizationId: {
+				in: organizationIds,
 			},
 		},
 	});

@@ -112,7 +112,7 @@ describe("e2e tests with real provider keys", () => {
 			id: keyId,
 			token,
 			provider: provider.replace("env-", ""), // Remove env- prefix for the provider field
-			projectId: "project-id",
+			organizationId: "org-id",
 		});
 	}
 
@@ -124,7 +124,7 @@ describe("e2e tests with real provider keys", () => {
 		expect(json).toHaveProperty("usage.total_tokens");
 	}
 
-	async function validateLogs(modelName = "") {
+	async function validateLogs() {
 		const logs = await waitForLogs(1);
 		expect(logs.length).toBeGreaterThan(0);
 
@@ -133,11 +133,9 @@ describe("e2e tests with real provider keys", () => {
 		const log = logs[0];
 		expect(log.usedProvider).toBeTruthy();
 
-		if (!modelName.includes("claude-3-7-sonnet")) {
-			expect(log.finishReason).not.toBeNull();
-			expect(log.unifiedFinishReason).not.toBeNull();
-			expect(log.unifiedFinishReason).toBeTruthy();
-		}
+		expect(log.finishReason).not.toBeNull();
+		expect(log.unifiedFinishReason).not.toBeNull();
+		expect(log.unifiedFinishReason).toBeTruthy();
 
 		expect(log.usedModel).toBeTruthy();
 		expect(log.requestedModel).toBeTruthy();
@@ -172,15 +170,10 @@ describe("e2e tests with real provider keys", () => {
 			const json = await res.json();
 			console.log("response:", json);
 
-			if (model.includes("claude-3-7-sonnet") && res.status === 500) {
-				expect(json.error).toBeDefined();
-				expect(json.error.type).toBe("upstream_error");
-			} else {
-				expect(res.status).toBe(200);
-				validateResponse(json);
-			}
+			expect(res.status).toBe(200);
+			validateResponse(json);
 
-			const log = await validateLogs(model);
+			const log = await validateLogs();
 			expect(log.streamed).toBe(false);
 
 			// expect(log.inputCost).not.toBeNull();
@@ -218,31 +211,21 @@ describe("e2e tests with real provider keys", () => {
 				}),
 			});
 
-			if (model.includes("claude-3-7-sonnet") && res.status === 500) {
-				const errorJson = await res.json();
-				expect(errorJson.error).toBeDefined();
-				expect(errorJson.error.type).toBe("upstream_error");
-			} else {
-				expect(res.status).toBe(200);
-				expect(res.headers.get("content-type")).toContain("text/event-stream");
+			expect(res.status).toBe(200);
+			expect(res.headers.get("content-type")).toContain("text/event-stream");
 
-				const streamResult = await readAll(res.body);
+			const streamResult = await readAll(res.body);
 
-				expect(streamResult.hasValidSSE).toBe(true);
-				expect(streamResult.eventCount).toBeGreaterThan(0);
+			expect(streamResult.hasValidSSE).toBe(true);
+			expect(streamResult.eventCount).toBeGreaterThan(0);
 
-				if (!model.includes("claude-3-7-sonnet")) {
-					expect(streamResult.hasContent).toBe(true);
-				}
-			}
+			expect(streamResult.hasContent).toBe(true);
 
-			const log = await validateLogs(model);
+			const log = await validateLogs();
 			expect(log.streamed).toBe(true);
 
-			if (log.inputCost !== null && log.outputCost !== null) {
-				expect(log.cost).not.toBeNull();
-				expect(log.cost).toBeGreaterThanOrEqual(0);
-			}
+			// expect(log.cost).not.toBeNull();
+			// expect(log.cost).toBeGreaterThanOrEqual(0);
 		},
 	);
 
@@ -447,7 +430,7 @@ describe("e2e tests with real provider keys", () => {
 			token: envVar,
 			baseUrl: "https://api.openai.com", // Use real OpenAI endpoint for testing
 			status: "active",
-			projectId: "project-id",
+			organizationId: "org-id",
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		});
@@ -518,7 +501,7 @@ describe("e2e tests with real provider keys", () => {
 		const json = await res.json();
 		validateResponse(json);
 
-		const log = await validateLogs(multiProviderModel.model);
+		const log = await validateLogs();
 		expect(log.streamed).toBe(false);
 	});
 });
