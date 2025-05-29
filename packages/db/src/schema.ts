@@ -166,7 +166,9 @@ export const providerKey = pgTable(
 
 export const log = pgTable("log", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
-	requestId: text().$defaultFn(() => shortid(40)),
+	requestId: text()
+		.notNull()
+		.$defaultFn(() => shortid(40)),
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp()
 		.notNull()
