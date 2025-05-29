@@ -120,10 +120,7 @@ export function CreateProviderKeyDialog({
 						title: "Provider Key Created",
 						description: "The provider key has been validated and saved.",
 					});
-					queryClient.setQueryData(queryKey, (old: any) => ({
-						...old,
-						providerKeys: [...(old?.providerKeys ?? []), newKey],
-					}));
+					queryClient.invalidateQueries({ queryKey });
 					setOpen(false);
 				},
 				onError: (error: any) => {

@@ -70,10 +70,7 @@ export function ProviderKeysList() {
 				onSuccess: () => {
 					toast({ title: "Deleted", description: "Provider key removed" });
 
-					queryClient.setQueryData(queryKey, (old: any) => ({
-						...old,
-						providerKeys: old.providerKeys.filter((key: any) => key.id !== id),
-					}));
+					queryClient.invalidateQueries({ queryKey });
 				},
 				onError: () =>
 					toast({
@@ -103,12 +100,7 @@ export function ProviderKeysList() {
 						description: `Provider key marked as ${newStatus}`,
 					});
 
-					queryClient.setQueryData(queryKey, (old: any) => ({
-						...old,
-						providerKeys: old.providerKeys.map((key: any) =>
-							key.id === id ? { ...key, status: newStatus } : key,
-						),
-					}));
+					queryClient.invalidateQueries({ queryKey });
 				},
 				onError: () =>
 					toast({
