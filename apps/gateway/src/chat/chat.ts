@@ -416,7 +416,6 @@ chat.openapi(completions, async (c) => {
 		requestedProvider = "llmgateway";
 		requestedModel = modelInput as Model;
 	} else if (modelInput.includes("/")) {
-		console.log("specific provider combination is requested", modelInput);
 		const split = modelInput.split("/");
 		const providerCandidate = split[0];
 
@@ -465,12 +464,10 @@ chat.openapi(completions, async (c) => {
 			requestedModel = modelName as Model;
 		}
 	} else if (models.find((m) => m.model === modelInput)) {
-		console.log("only specific model is requested", modelInput);
 		requestedModel = modelInput as Model;
 	} else if (
 		models.find((m) => m.providers.find((p) => p.modelName === modelInput))
 	) {
-		console.log("specific provider model name is requested", modelInput);
 		const model = models.find((m) =>
 			m.providers.find((p) => p.modelName === modelInput),
 		);
@@ -566,18 +563,20 @@ chat.openapi(completions, async (c) => {
 		let availableProviders: string[] = [];
 
 		if (project.mode === "api-keys") {
+			const organization = await getOrganization(project.organizationId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: { eq: "active" },
-					projectId: { eq: apiKey.projectId },
+					organizationId: { eq: project.organizationId },
 				},
 			});
 			availableProviders = providerKeys.map((key) => key.provider);
 		} else if (project.mode === "credits" || project.mode === "hybrid") {
+			const organization = await getOrganization(project.organizationId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: { eq: "active" },
-					projectId: { eq: apiKey.projectId },
+					organizationId: { eq: project.organizationId },
 				},
 			});
 			const databaseProviders = providerKeys.map((key) => key.provider);
@@ -641,15 +640,9 @@ chat.openapi(completions, async (c) => {
 		usedProvider = "llmgateway";
 		usedModel = "custom";
 	} else if (!usedProvider) {
-		console.log("choosing provider...");
 		if (modelInfo.providers.length === 1) {
 			usedProvider = modelInfo.providers[0].providerId;
 			usedModel = modelInfo.providers[0].modelName;
-			console.log(
-				"used provider as there is only one provider",
-				usedProvider,
-				usedModel,
-			);
 		} else {
 			const providerIds = modelInfo.providers.map((p) => p.providerId);
 			const providerKeys = await db.query.providerKey.findMany({
@@ -657,8 +650,8 @@ chat.openapi(completions, async (c) => {
 					status: {
 						eq: "active",
 					},
-					projectId: {
-						eq: apiKey.projectId,
+					organizationId: {
+						eq: project.organizationId,
 					},
 					provider: {
 						in: providerIds,
@@ -703,19 +696,9 @@ chat.openapi(completions, async (c) => {
 
 				usedProvider = cheapestProvider;
 				usedModel = cheapestModel;
-				console.log(
-					"used provider and model based on pricing",
-					usedProvider,
-					usedModel,
-				);
 			} else {
 				usedProvider = availableModelProviders[0].providerId;
 				usedModel = availableModelProviders[0].modelName;
-				console.log(
-					"used provider and model based on availability",
-					usedProvider,
-					usedModel,
-				);
 			}
 		}
 	}
@@ -734,7 +717,7 @@ chat.openapi(completions, async (c) => {
 
 	if (project.mode === "api-keys") {
 		// Get the provider key from the database using cached helper function
-		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
+		providerKey = await getProviderKey(project.organizationId, usedProvider);
 
 		if (!providerKey) {
 			throw new HTTPException(400, {
@@ -770,7 +753,7 @@ chat.openapi(completions, async (c) => {
 		};
 	} else if (project.mode === "hybrid") {
 		// First try to get the provider key from the database
-		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
+		providerKey = await getProviderKey(project.organizationId, usedProvider);
 
 		if (!providerKey) {
 			// Check if the organization has enough credits
@@ -1398,7 +1381,6 @@ chat.openapi(completions, async (c) => {
 	try {
 		const headers = getProviderHeaders(usedProvider, providerKey);
 		headers["Content-Type"] = "application/json";
-		console.log("requestBody", requestBody);
 		res = await fetch(url, {
 			method: "POST",
 			headers,

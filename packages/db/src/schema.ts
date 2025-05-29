@@ -159,7 +159,7 @@ export const providerKey = pgTable(
 		status: text({
 			enum: ["active", "inactive", "deleted"],
 		}).default("active"),
-		projectId: text().notNull(),
+		organizationId: text().notNull(),
 	},
 	(table) => [],
 );
