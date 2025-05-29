@@ -1,6 +1,5 @@
 import { db, tables } from "@openllm/db";
 import {
-	afterEach,
 	afterAll,
 	beforeEach,
 	beforeAll,
@@ -31,8 +30,8 @@ describe("test", () => {
 		stopMockServer();
 	});
 
-	afterEach(async () => {
-		await flushLogs(); // Process logs BEFORE deleting data
+	beforeEach(async () => {
+		await flushLogs();
 
 		await Promise.all([
 			db.delete(tables.log),
