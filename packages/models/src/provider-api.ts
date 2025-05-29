@@ -29,59 +29,149 @@ export function getProviderHeaders(
 }
 
 /**
- * Create a minimal valid request payload for a provider to test the API key
+ * Prepares the request body for different providers
  */
-export function createValidationPayload(provider: ProviderId): any {
-	const systemMessage = {
-		role: "system",
-		content: "You are a helpful assistant.",
+export function prepareRequestBody(
+	usedProvider: ProviderId,
+	usedModel: string,
+	messages: any[],
+	stream: boolean,
+	temperature: number | undefined,
+	max_tokens: number | undefined,
+	top_p: number | undefined,
+	frequency_penalty: number | undefined,
+	presence_penalty: number | undefined,
+	response_format: any,
+) {
+	const requestBody: any = {
+		model: usedModel,
+		messages,
+		stream: stream,
 	};
-	const minimalMessage = { role: "user", content: "Hello" };
 
-	switch (provider) {
+	switch (usedProvider) {
+		case "openai": {
+			if (stream) {
+				requestBody.stream_options = {
+					include_usage: true,
+				};
+			}
+			if (response_format) {
+				requestBody.response_format = response_format;
+			}
+
+			// Add optional parameters if they are provided
+			if (temperature !== undefined) {
+				requestBody.temperature = temperature;
+			}
+			if (max_tokens !== undefined) {
+				requestBody.max_tokens = max_tokens;
+			}
+			if (top_p !== undefined) {
+				requestBody.top_p = top_p;
+			}
+			if (frequency_penalty !== undefined) {
+				requestBody.frequency_penalty = frequency_penalty;
+			}
+			if (presence_penalty !== undefined) {
+				requestBody.presence_penalty = presence_penalty;
+			}
+			break;
+		}
 		case "anthropic": {
-			return {
-				model: "claude-3-haiku-20240307",
-				max_tokens: 1,
-				messages: [systemMessage, minimalMessage],
-			};
+			requestBody.max_tokens = max_tokens || 1024; // Set a default if not provided
+			requestBody.messages = messages.map((m) => ({
+				role:
+					m.role === "assistant"
+						? "assistant"
+						: m.role === "system"
+							? "user"
+							: "user",
+				content: m.role === "system" ? `System: ${m.content}` : m.content,
+			}));
+
+			// Add optional parameters if they are provided
+			if (temperature !== undefined) {
+				requestBody.temperature = temperature;
+			}
+			if (top_p !== undefined) {
+				requestBody.top_p = top_p;
+			}
+			if (frequency_penalty !== undefined) {
+				requestBody.frequency_penalty = frequency_penalty;
+			}
+			if (presence_penalty !== undefined) {
+				requestBody.presence_penalty = presence_penalty;
+			}
+			break;
 		}
-		case "google-vertex": {
-			return {
-				contents: [
-					{
-						role: "user",
-						parts: [{ text: "You are a helpful assistant. Hello" }],
-					},
-				],
-				generationConfig: {
-					maxOutputTokens: 1,
-				},
-			};
-		}
+		case "google-vertex":
 		case "google-ai-studio": {
-			return {
-				contents: [
+			delete requestBody.model; // Not used in body
+			delete requestBody.stream; // Handled differently
+			delete requestBody.messages; // Not used in body for Google AI Studio
+
+			// Extract system messages and combine with user messages
+			const systemMessages = messages.filter((m) => m.role === "system");
+			const nonSystemMessages = messages.filter((m) => m.role !== "system");
+			const systemContext =
+				systemMessages.length > 0
+					? systemMessages.map((m) => m.content).join(" ") + " "
+					: "";
+
+			requestBody.contents = nonSystemMessages.map((m, index) => ({
+				parts: [
 					{
-						parts: [{ text: "You are a helpful assistant. Hello" }],
+						text:
+							index === 0 && systemContext
+								? systemContext + m.content
+								: m.content,
 					},
 				],
-				generationConfig: {
-					maxOutputTokens: 1,
-				},
-			};
+			}));
+			requestBody.generationConfig = {};
+
+			// Add optional parameters if they are provided
+			if (temperature !== undefined) {
+				requestBody.generationConfig.temperature = temperature;
+			}
+			if (max_tokens !== undefined) {
+				requestBody.generationConfig.maxOutputTokens = max_tokens;
+			}
+			if (top_p !== undefined) {
+				requestBody.generationConfig.topP = top_p;
+			}
+
+			break;
 		}
 		case "inference.net":
 		case "kluster.ai":
-		case "openai":
-		default: {
-			return {
-				model: "gpt-3.5-turbo",
-				max_tokens: 1,
-				messages: [systemMessage, minimalMessage],
-			};
+		case "together.ai": {
+			if (usedModel.startsWith(`${usedProvider}/`)) {
+				requestBody.model = usedModel.substring(usedProvider.length + 1);
+			}
+
+			// Add optional parameters if they are provided
+			if (temperature !== undefined) {
+				requestBody.temperature = temperature;
+			}
+			if (max_tokens !== undefined) {
+				requestBody.max_tokens = max_tokens;
+			}
+			if (top_p !== undefined) {
+				requestBody.top_p = top_p;
+			}
+			if (frequency_penalty !== undefined) {
+				requestBody.frequency_penalty = frequency_penalty;
+			}
+			if (presence_penalty !== undefined) {
+				requestBody.presence_penalty = presence_penalty;
+			}
+			break;
 		}
 	}
+
+	return requestBody;
 }
 
 /**
@@ -150,11 +240,11 @@ export function getProviderEndpoint(
 			if (modelName) {
 				return `${url}/v1beta/models/${modelName}:generateContent`;
 			}
-			return `${url}/v1beta/models/gemini-1.0-pro:generateContent`;
+			return `${url}/v1beta/models/gemini-2.0-flash:generateContent`;
 		case "google-ai-studio": {
 			const baseEndpoint = modelName
 				? `${url}/v1beta/models/${modelName}:generateContent`
-				: `${url}/v1beta/models/gemini-1.0-pro:generateContent`;
+				: `${url}/v1beta/models/gemini-2.0-flash:generateContent`;
 			return token ? `${baseEndpoint}?key=${token}` : baseEndpoint;
 		}
 		case "inference.net":
@@ -187,7 +277,54 @@ export async function validateProviderKey(
 			undefined,
 			provider === "google-ai-studio" ? token : undefined,
 		);
-		const payload = createValidationPayload(provider);
+
+		// Use prepareRequestBody to create the validation payload
+		const systemMessage = {
+			role: "system",
+			content: "You are a helpful assistant.",
+		};
+		const minimalMessage = { role: "user", content: "Hello" };
+		const messages = [systemMessage, minimalMessage];
+
+		// Determine the model to use for validation
+		let validationModel: string;
+		switch (provider) {
+			case "openai":
+				validationModel = "gpt-4o-mini";
+				break;
+			case "anthropic":
+				validationModel = "claude-3-haiku-20240307";
+				break;
+			case "google-vertex":
+			case "google-ai-studio":
+				validationModel = "gemini-2.0-flash";
+				break;
+			case "inference.net":
+				validationModel = "meta-llama/llama-3.1-8b-instruct/fp-8";
+				break;
+			case "kluster.ai":
+				validationModel = "klusterai/Meta-Llama-3.1-8B-Instruct-Turbo";
+				break;
+			case "together.ai":
+				validationModel = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo";
+				break;
+			default:
+				throw new Error(`Provider ${provider} not supported for validation`);
+		}
+
+		const payload = prepareRequestBody(
+			provider,
+			validationModel,
+			messages,
+			false, // stream
+			undefined, // temperature
+			1, // max_tokens - minimal for validation
+			undefined, // top_p
+			undefined, // frequency_penalty
+			undefined, // presence_penalty
+			undefined, // response_format
+		);
+
 		const headers = getProviderHeaders(provider, { token });
 		headers["Content-Type"] = "application/json";
 
@@ -198,6 +335,16 @@ export async function validateProviderKey(
 		});
 
 		if (!response.ok) {
+			if (response.status >= 500) {
+				throw new Error(
+					`Server error: ${response.status} ${response.statusText}`,
+				);
+			}
+
+			if (response.status === 401) {
+				return { valid: false, error: "invalid api key" };
+			}
+
 			const errorText = await response.text();
 			let errorMessage = `Error from provider: ${response.status} ${response.statusText}`;
 

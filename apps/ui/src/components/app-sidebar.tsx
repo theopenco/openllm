@@ -1,6 +1,8 @@
-import { Navigate, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { ChevronUp, Settings, User2 } from "lucide-react";
 
+import { useUser } from "@/hooks/useUser";
 import { signOut } from "@/lib/auth-client";
 import { Badge } from "@/lib/components/badge";
 import {
@@ -20,7 +22,6 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/lib/components/sidebar";
-import { $api } from "@/lib/fetch-client";
 
 // Menu items.
 const items = [
@@ -37,18 +38,19 @@ const items = [
 ];
 
 export function AppSidebar() {
+	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 
-	const { data, isLoading } = $api.useSuspenseQuery("get", "/user/me");
-
-	if (!data?.user && !isLoading) {
-		return <Navigate to="/login" />;
-	}
+	const { user, isLoading } = useUser({
+		redirectTo: "/login",
+		redirectWhen: "unauthenticated",
+	});
 
 	const logout = async () => {
 		await signOut({
 			fetchOptions: {
 				onSuccess: () => {
+					queryClient.clear();
 					navigate({ to: "/login" });
 				},
 			},
@@ -85,7 +87,7 @@ export function AppSidebar() {
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<SidebarMenuButton>
-									<User2 /> {isLoading ? "..." : data?.user?.name || "User"}
+									<User2 /> {isLoading ? "..." : user?.name || "User"}
 									<ChevronUp className="ml-auto" />
 								</SidebarMenuButton>
 							</DropdownMenuTrigger>

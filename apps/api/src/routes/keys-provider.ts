@@ -127,24 +127,27 @@ keysProvider.openapi(create, async (c) => {
 		});
 	}
 
+	let validationResult;
 	try {
-		const isTestEnv = process.env.NODE_ENV === "test";
-		const validationResult = await validateProviderKey(
+		const isTestEnv =
+			process.env.NODE_ENV === "test" && process.env.E2E_TEST !== "true";
+		validationResult = await validateProviderKey(
 			provider,
 			userToken,
 			baseUrl,
 			isTestEnv,
 		);
-
-		if (!validationResult.valid) {
-			throw new HTTPException(400, {
-				message: `Invalid API key: ${validationResult.error || "Unknown error"}`,
-			});
-		}
 	} catch (error) {
-		throw new HTTPException(400, {
+		throw new HTTPException(500, {
 			message:
 				error instanceof Error ? error.message : "Failed to validate API key",
+			cause: error,
+		});
+	}
+
+	if (!validationResult.valid) {
+		throw new HTTPException(400, {
+			message: `Invalid API key: ${validationResult.error || "Unknown error"}`,
 		});
 	}
 

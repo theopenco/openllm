@@ -20,7 +20,10 @@ export function getUnifiedFinishReason(
 		return UnifiedFinishReason.CANCELED;
 	}
 	if (finishReason === "gateway_error") {
-		return UnifiedFinishReason.ERROR;
+		return UnifiedFinishReason.GATEWAY_ERROR;
+	}
+	if (finishReason === "upstream_error") {
+		return UnifiedFinishReason.UPSTREAM_ERROR;
 	}
 
 	switch (provider) {

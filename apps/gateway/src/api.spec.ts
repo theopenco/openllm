@@ -380,7 +380,7 @@ describe("test", () => {
 		const errorResponse = await res.json();
 		expect(errorResponse).toHaveProperty("error");
 		expect(errorResponse.error).toHaveProperty("message");
-		expect(errorResponse.error).toHaveProperty("type", "gateway_error");
+		expect(errorResponse.error).toHaveProperty("type", "upstream_error");
 
 		// Wait for the worker to process the log and check that the error was logged in the database
 		const logs = await waitForLogs(1);
@@ -388,7 +388,7 @@ describe("test", () => {
 
 		// Verify the log has the correct error fields
 		const errorLog = logs[0];
-		expect(errorLog.finishReason).toBe("gateway_error");
+		expect(errorLog.finishReason).toBe("upstream_error");
 	});
 
 	// test for inference.net provider

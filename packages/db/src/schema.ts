@@ -14,7 +14,8 @@ export const UnifiedFinishReason = {
 	COMPLETED: "completed",
 	LENGTH_LIMIT: "length_limit",
 	CONTENT_FILTER: "content_filter",
-	ERROR: "error",
+	GATEWAY_ERROR: "gateway_error",
+	UPSTREAM_ERROR: "upstream_error",
 	CANCELED: "canceled",
 	UNKNOWN: "unknown",
 } as const;
@@ -165,6 +166,9 @@ export const providerKey = pgTable(
 
 export const log = pgTable("log", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
+	requestId: text()
+		.notNull()
+		.$defaultFn(() => shortid(40)),
 	createdAt: timestamp().notNull().defaultNow(),
 	updatedAt: timestamp()
 		.notNull()
