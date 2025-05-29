@@ -59,18 +59,7 @@ export function ApiKeysList() {
 				onSuccess: () => {
 					const queryKey = $api.queryOptions("get", "/keys/api").queryKey;
 
-					queryClient.setQueryData(queryKey, (oldData: any) => {
-						if (!oldData) {
-							return oldData;
-						}
-
-						return {
-							...oldData,
-							apiKeys: oldData.apiKeys.map((key: any) =>
-								key.id === id ? { ...key, status: "deleted" } : key,
-							),
-						};
-					});
+					queryClient.invalidateQueries({ queryKey });
 
 					toast({ title: "API key deleted successfully." });
 				},
@@ -100,18 +89,7 @@ export function ApiKeysList() {
 				onSuccess: () => {
 					const queryKey = $api.queryOptions("get", "/keys/api").queryKey;
 
-					queryClient.setQueryData(queryKey, (oldData: any) => {
-						if (!oldData) {
-							return oldData;
-						}
-
-						return {
-							...oldData,
-							apiKeys: oldData.apiKeys.map((key: any) =>
-								key.id === id ? { ...key, status: newStatus } : key,
-							),
-						};
-					});
+					queryClient.invalidateQueries({ queryKey });
 
 					toast({
 						title: "API Key Status Updated",
