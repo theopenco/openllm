@@ -56,16 +56,7 @@ export function CreateApiKeyDialog({
 
 					const queryKey = $api.queryOptions("get", "/keys/api").queryKey;
 
-					queryClient.setQueryData(queryKey, (oldData: any) => {
-						if (!oldData) {
-							return { apiKeys: [newCachedKey] };
-						}
-
-						return {
-							...oldData,
-							apiKeys: [newCachedKey, ...oldData.apiKeys],
-						};
-					});
+					queryClient.invalidateQueries({ queryKey });
 
 					setApiKey(data.apiKey.token);
 					setStep("created");

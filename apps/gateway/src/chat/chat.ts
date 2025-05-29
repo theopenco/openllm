@@ -416,7 +416,6 @@ chat.openapi(completions, async (c) => {
 		requestedProvider = "llmgateway";
 		requestedModel = modelInput as Model;
 	} else if (modelInput.includes("/")) {
-		console.log("specific provider combination is requested", modelInput);
 		const split = modelInput.split("/");
 		const providerCandidate = split[0];
 
@@ -465,12 +464,10 @@ chat.openapi(completions, async (c) => {
 			requestedModel = modelName as Model;
 		}
 	} else if (models.find((m) => m.model === modelInput)) {
-		console.log("only specific model is requested", modelInput);
 		requestedModel = modelInput as Model;
 	} else if (
 		models.find((m) => m.providers.find((p) => p.modelName === modelInput))
 	) {
-		console.log("specific provider model name is requested", modelInput);
 		const model = models.find((m) =>
 			m.providers.find((p) => p.modelName === modelInput),
 		);
@@ -643,18 +640,11 @@ chat.openapi(completions, async (c) => {
 		usedProvider = "llmgateway";
 		usedModel = "custom";
 	} else if (!usedProvider) {
-		console.log("choosing provider...");
 		if (modelInfo.providers.length === 1) {
 			usedProvider = modelInfo.providers[0].providerId;
 			usedModel = modelInfo.providers[0].modelName;
-			console.log(
-				"used provider as there is only one provider",
-				usedProvider,
-				usedModel,
-			);
 		} else {
 			const providerIds = modelInfo.providers.map((p) => p.providerId);
-			const organization = await getOrganization(project.organizationId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: {
@@ -706,19 +696,9 @@ chat.openapi(completions, async (c) => {
 
 				usedProvider = cheapestProvider;
 				usedModel = cheapestModel;
-				console.log(
-					"used provider and model based on pricing",
-					usedProvider,
-					usedModel,
-				);
 			} else {
 				usedProvider = availableModelProviders[0].providerId;
 				usedModel = availableModelProviders[0].modelName;
-				console.log(
-					"used provider and model based on availability",
-					usedProvider,
-					usedModel,
-				);
 			}
 		}
 	}
@@ -1401,7 +1381,6 @@ chat.openapi(completions, async (c) => {
 	try {
 		const headers = getProviderHeaders(usedProvider, providerKey);
 		headers["Content-Type"] = "application/json";
-		console.log("requestBody", requestBody);
 		res = await fetch(url, {
 			method: "POST",
 			headers,
