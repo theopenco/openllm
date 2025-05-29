@@ -49,6 +49,7 @@ RUN rm -rf /app/temp
 WORKDIR /app/dist/api
 EXPOSE 80
 ENV PORT=80
+ENV NODE_ENV=production
 CMD ["pnpm", "start"]
 
 FROM runtime AS gateway
@@ -61,6 +62,7 @@ RUN rm -rf /app/temp
 WORKDIR /app/dist/gateway
 EXPOSE 80
 ENV PORT=80
+ENV NODE_ENV=production
 CMD ["pnpm", "start"]
 
 # Base static image with Nginx
