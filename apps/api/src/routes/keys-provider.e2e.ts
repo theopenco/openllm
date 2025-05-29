@@ -75,6 +75,9 @@ describe("e2e tests for provider keys", () => {
 					provider: {
 						eq: providerId,
 					},
+					organizationId: {
+						eq: "test-org-id",
+					},
 				},
 			});
 			expect(providerKey).not.toBeNull();
@@ -114,6 +117,9 @@ describe("e2e tests for provider keys", () => {
 				provider: {
 					eq: "openai",
 				},
+				organizationId: {
+					eq: "test-org-id",
+				},
 			},
 		});
 		expect(providerKey).not.toBeNull();
@@ -151,6 +157,9 @@ describe("e2e tests for provider keys", () => {
 			where: {
 				provider: {
 					eq: "openai",
+				},
+				organizationId: {
+					eq: "test-org-id",
 				},
 			},
 		});

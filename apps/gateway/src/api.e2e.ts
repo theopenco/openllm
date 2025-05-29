@@ -99,7 +99,7 @@ describe("e2e tests with real provider keys", () => {
 			id: `provider-key-${provider}`,
 			token,
 			provider,
-			projectId: "project-id",
+			organizationId: "org-id",
 		});
 	}
 
@@ -416,7 +416,7 @@ describe("e2e tests with real provider keys", () => {
 			token: envVar,
 			baseUrl: "https://api.openai.com", // Use real OpenAI endpoint for testing
 			status: "active",
-			projectId: "project-id",
+			organizationId: "org-id",
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		});

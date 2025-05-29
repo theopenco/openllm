@@ -37,7 +37,7 @@ describe("activity endpoint", () => {
 			id: "test-provider-key-id",
 			token: "test-provider-token",
 			provider: "openai",
-			projectId: "test-project-id",
+			organizationId: "test-org-id",
 		});
 
 		// Insert some log entries with different dates

@@ -566,18 +566,20 @@ chat.openapi(completions, async (c) => {
 		let availableProviders: string[] = [];
 
 		if (project.mode === "api-keys") {
+			const organization = await getOrganization(project.organizationId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: { eq: "active" },
-					projectId: { eq: apiKey.projectId },
+					organizationId: { eq: project.organizationId },
 				},
 			});
 			availableProviders = providerKeys.map((key) => key.provider);
 		} else if (project.mode === "credits" || project.mode === "hybrid") {
+			const organization = await getOrganization(project.organizationId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: { eq: "active" },
-					projectId: { eq: apiKey.projectId },
+					organizationId: { eq: project.organizationId },
 				},
 			});
 			const databaseProviders = providerKeys.map((key) => key.provider);
@@ -652,13 +654,14 @@ chat.openapi(completions, async (c) => {
 			);
 		} else {
 			const providerIds = modelInfo.providers.map((p) => p.providerId);
+			const organization = await getOrganization(project.organizationId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: {
 						eq: "active",
 					},
-					projectId: {
-						eq: apiKey.projectId,
+					organizationId: {
+						eq: project.organizationId,
 					},
 					provider: {
 						in: providerIds,
@@ -734,7 +737,7 @@ chat.openapi(completions, async (c) => {
 
 	if (project.mode === "api-keys") {
 		// Get the provider key from the database using cached helper function
-		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
+		providerKey = await getProviderKey(project.organizationId, usedProvider);
 
 		if (!providerKey) {
 			throw new HTTPException(400, {
@@ -770,7 +773,7 @@ chat.openapi(completions, async (c) => {
 		};
 	} else if (project.mode === "hybrid") {
 		// First try to get the provider key from the database
-		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
+		providerKey = await getProviderKey(project.organizationId, usedProvider);
 
 		if (!providerKey) {
 			// Check if the organization has enough credits
