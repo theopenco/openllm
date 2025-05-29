@@ -59,6 +59,23 @@ export function prepareRequestBody(
 			if (response_format) {
 				requestBody.response_format = response_format;
 			}
+
+			// Add optional parameters if they are provided
+			if (temperature !== undefined) {
+				requestBody.temperature = temperature;
+			}
+			if (max_tokens !== undefined) {
+				requestBody.max_tokens = max_tokens;
+			}
+			if (top_p !== undefined) {
+				requestBody.top_p = top_p;
+			}
+			if (frequency_penalty !== undefined) {
+				requestBody.frequency_penalty = frequency_penalty;
+			}
+			if (presence_penalty !== undefined) {
+				requestBody.presence_penalty = presence_penalty;
+			}
 			break;
 		}
 		case "anthropic": {
@@ -72,6 +89,20 @@ export function prepareRequestBody(
 							: "user",
 				content: m.role === "system" ? `System: ${m.content}` : m.content,
 			}));
+
+			// Add optional parameters if they are provided
+			if (temperature !== undefined) {
+				requestBody.temperature = temperature;
+			}
+			if (top_p !== undefined) {
+				requestBody.top_p = top_p;
+			}
+			if (frequency_penalty !== undefined) {
+				requestBody.frequency_penalty = frequency_penalty;
+			}
+			if (presence_penalty !== undefined) {
+				requestBody.presence_penalty = presence_penalty;
+			}
 			break;
 		}
 		case "google-vertex":
@@ -119,25 +150,25 @@ export function prepareRequestBody(
 			if (usedModel.startsWith(`${usedProvider}/`)) {
 				requestBody.model = usedModel.substring(usedProvider.length + 1);
 			}
+
+			// Add optional parameters if they are provided
+			if (temperature !== undefined) {
+				requestBody.temperature = temperature;
+			}
+			if (max_tokens !== undefined) {
+				requestBody.max_tokens = max_tokens;
+			}
+			if (top_p !== undefined) {
+				requestBody.top_p = top_p;
+			}
+			if (frequency_penalty !== undefined) {
+				requestBody.frequency_penalty = frequency_penalty;
+			}
+			if (presence_penalty !== undefined) {
+				requestBody.presence_penalty = presence_penalty;
+			}
 			break;
 		}
-	}
-
-	// Add optional parameters if they are provided
-	if (temperature !== undefined) {
-		requestBody.temperature = temperature;
-	}
-	if (max_tokens !== undefined) {
-		requestBody.max_tokens = max_tokens;
-	}
-	if (top_p !== undefined) {
-		requestBody.top_p = top_p;
-	}
-	if (frequency_penalty !== undefined) {
-		requestBody.frequency_penalty = frequency_penalty;
-	}
-	if (presence_penalty !== undefined) {
-		requestBody.presence_penalty = presence_penalty;
 	}
 
 	return requestBody;

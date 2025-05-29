@@ -63,9 +63,9 @@ describe("e2e tests for provider keys", () => {
 				}),
 			});
 
-			expect(res.status).toBe(200);
 			const json = await res.json();
 			console.log("json", json);
+			expect(res.status).toBe(200);
 			expect(json).toHaveProperty("providerKey");
 			expect(json.providerKey.provider).toBe(providerId);
 			expect(json.providerKey.token).toBe(envVar);
