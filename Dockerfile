@@ -49,6 +49,7 @@ RUN rm -rf /app/temp
 WORKDIR /app/dist/api
 EXPOSE 80
 ENV PORT=80
+ENV NODE_ENV=production
 CMD ["pnpm", "start"]
 
 FROM runtime AS gateway
@@ -61,6 +62,7 @@ RUN rm -rf /app/temp
 WORKDIR /app/dist/gateway
 EXPOSE 80
 ENV PORT=80
+ENV NODE_ENV=production
 CMD ["pnpm", "start"]
 
 # Base static image with Nginx
@@ -83,6 +85,7 @@ FROM static-base AS ui
 
 # Copy UI static files directly to the root
 COPY --from=builder /app/apps/ui/.output/public/ /usr/share/nginx/html/
+COPY --from=builder /app/apps/ui/.output/static/ /usr/share/nginx/html/static
 
 # Docs static image
 FROM static-base AS docs

@@ -22,6 +22,7 @@
 		"bcrypt-ts": "7.0.0",
 		"better-auth": "1.2.7",
 		"drizzle-zod": "0.7.1",
+		"gateway": "workspace:*",
 		"hono": "^4.7.6",
 		"hono-openapi": "^0.4.6",
 		"stripe": "18.1.1",

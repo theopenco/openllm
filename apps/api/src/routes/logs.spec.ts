@@ -76,13 +76,13 @@ describe("logs route", () => {
 				id: "test-provider-key-id",
 				token: "test-provider-token",
 				provider: "openai",
-				projectId: "test-project-id",
+				organizationId: "test-org-id",
 			},
 			{
 				id: "test-provider-key-id-2",
 				token: "test-provider-token-2",
 				provider: "anthropic",
-				projectId: "test-project-id-2",
+				organizationId: "test-org-id-2",
 			},
 		]);
 
@@ -90,6 +90,7 @@ describe("logs route", () => {
 		await db.insert(tables.log).values([
 			{
 				id: "test-log-id-1",
+				requestId: "test-log-id-1",
 				organizationId: "test-org-id",
 				projectId: "test-project-id",
 				apiKeyId: "test-api-key-id",
@@ -111,6 +112,7 @@ describe("logs route", () => {
 			},
 			{
 				id: "test-log-id-2",
+				requestId: "test-log-id-2",
 				organizationId: "test-org-id",
 				projectId: "test-project-id-2",
 				apiKeyId: "test-api-key-id-2",
@@ -192,6 +194,7 @@ describe("logs route", () => {
 
 				additionalLogs.push({
 					id: `test-log-id-${i}`,
+					requestId: `test-log-id-${i}`,
 					createdAt,
 					updatedAt: createdAt,
 					organizationId: "test-org-id",

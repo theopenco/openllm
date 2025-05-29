@@ -1,10 +1,11 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { db } from "@openllm/db";
+import { db, shortid } from "@openllm/db";
 import {
 	getProviderEndpoint,
 	getProviderHeaders,
 	type Model,
 	models,
+	prepareRequestBody,
 	type Provider,
 	providers,
 } from "@openllm/models";
@@ -24,6 +25,54 @@ import { calculateCosts } from "../lib/costs";
 import { insertLog } from "../lib/logs";
 
 import type { ServerTypes } from "../vars";
+
+/**
+ * Determines the appropriate finish reason based on HTTP status code
+ * 5xx status codes indicate upstream provider errors
+ * 4xx status codes indicate client/gateway errors
+ */
+function getFinishReasonForError(statusCode: number): string {
+	return statusCode >= 500 ? "upstream_error" : "gateway_error";
+}
+
+/**
+ * Creates a partial log entry with common fields to reduce duplication
+ */
+function createLogEntry(
+	requestId: string,
+	project: any,
+	apiKey: any,
+	providerKey: any,
+	usedModel: string,
+	usedProvider: string,
+	requestedModel: string,
+	requestedProvider: string | undefined,
+	messages: any[],
+	temperature: number | undefined,
+	max_tokens: number | undefined,
+	top_p: number | undefined,
+	frequency_penalty: number | undefined,
+	presence_penalty: number | undefined,
+) {
+	return {
+		requestId,
+		organizationId: project.organizationId,
+		projectId: apiKey.projectId,
+		apiKeyId: apiKey.id,
+		providerKeyId: providerKey.id,
+		usedModel,
+		usedProvider,
+		requestedModel,
+		requestedProvider,
+		messages,
+		temperature: temperature || null,
+		maxTokens: max_tokens || null,
+		topP: top_p || null,
+		frequencyPenalty: frequency_penalty || null,
+		presencePenalty: presence_penalty || null,
+		mode: project.mode,
+	};
+}
 
 /**
  * Get provider token from environment variables
@@ -68,6 +117,199 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 	}
 
 	return token;
+}
+
+/**
+ * Parses response content and metadata from different providers
+ */
+function parseProviderResponse(usedProvider: Provider, json: any) {
+	let content = null;
+	let finishReason = null;
+	let promptTokens = null;
+	let completionTokens = null;
+	let totalTokens = null;
+
+	switch (usedProvider) {
+		case "anthropic":
+			content = json.content?.[0]?.text || null;
+			finishReason = json.stop_reason || null;
+			promptTokens = json.usage?.input_tokens || null;
+			completionTokens = json.usage?.output_tokens || null;
+			totalTokens =
+				json.usage?.input_tokens && json.usage?.output_tokens
+					? json.usage.input_tokens + json.usage.output_tokens
+					: null;
+			break;
+		case "google-vertex":
+		case "google-ai-studio":
+			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
+			finishReason = json.candidates?.[0]?.finishReason || null;
+			break;
+		case "inference.net":
+		case "kluster.ai":
+		case "together.ai":
+			content = json.choices?.[0]?.message?.content || null;
+			finishReason = json.choices?.[0]?.finish_reason || null;
+			promptTokens = json.usage?.prompt_tokens || null;
+			completionTokens = json.usage?.completion_tokens || null;
+			totalTokens = json.usage?.total_tokens || null;
+			break;
+		default: // OpenAI format
+			content = json.choices?.[0]?.message?.content || null;
+			finishReason = json.choices?.[0]?.finish_reason || null;
+			promptTokens = json.usage?.prompt_tokens || null;
+			completionTokens = json.usage?.completion_tokens || null;
+			totalTokens = json.usage?.total_tokens || null;
+	}
+
+	return {
+		content,
+		finishReason,
+		promptTokens,
+		completionTokens,
+		totalTokens,
+	};
+}
+
+/**
+ * Estimates token counts when not provided by the API
+ */
+function estimateTokens(
+	usedProvider: Provider,
+	messages: any[],
+	content: string | null,
+	promptTokens: number | null,
+	completionTokens: number | null,
+) {
+	let calculatedPromptTokens = promptTokens;
+	let calculatedCompletionTokens = completionTokens;
+
+	// Estimate tokens if not provided by the API
+	if (
+		(usedProvider === "anthropic" ||
+			usedProvider === "inference.net" ||
+			usedProvider === "kluster.ai" ||
+			usedProvider === "together.ai") &&
+		(!promptTokens || !completionTokens)
+	) {
+		if (!promptTokens) {
+			calculatedPromptTokens =
+				messages.reduce((acc, m) => acc + (m.content?.length || 0), 0) / 4;
+		}
+
+		if (!completionTokens && content) {
+			calculatedCompletionTokens = content.length / 4;
+		}
+	}
+
+	return {
+		calculatedPromptTokens,
+		calculatedCompletionTokens,
+	};
+}
+
+/**
+ * Transforms response to OpenAI format for non-OpenAI providers
+ */
+function transformToOpenAIFormat(
+	usedProvider: Provider,
+	usedModel: string,
+	json: any,
+	content: string | null,
+	finishReason: string | null,
+	promptTokens: number | null,
+	completionTokens: number | null,
+	totalTokens: number | null,
+) {
+	let transformedResponse = json;
+
+	switch (usedProvider) {
+		case "google-vertex":
+		case "google-ai-studio": {
+			transformedResponse = {
+				id: `chatcmpl-${Date.now()}`,
+				object: "chat.completion",
+				created: Math.floor(Date.now() / 1000),
+				model: usedModel,
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: "assistant",
+							content: content,
+						},
+						finish_reason:
+							finishReason === "STOP"
+								? "stop"
+								: finishReason?.toLowerCase() || "stop",
+					},
+				],
+				usage: {
+					prompt_tokens: promptTokens,
+					completion_tokens: completionTokens,
+					total_tokens: totalTokens,
+				},
+			};
+			break;
+		}
+		case "anthropic": {
+			transformedResponse = {
+				id: `chatcmpl-${Date.now()}`,
+				object: "chat.completion",
+				created: Math.floor(Date.now() / 1000),
+				model: usedModel,
+				choices: [
+					{
+						index: 0,
+						message: {
+							role: "assistant",
+							content: content,
+						},
+						finish_reason:
+							finishReason === "end_turn"
+								? "stop"
+								: finishReason?.toLowerCase() || "stop",
+					},
+				],
+				usage: {
+					prompt_tokens: promptTokens,
+					completion_tokens: completionTokens,
+					total_tokens: totalTokens,
+				},
+			};
+			break;
+		}
+		case "inference.net":
+		case "kluster.ai":
+		case "together.ai": {
+			if (!transformedResponse.id) {
+				transformedResponse = {
+					id: `chatcmpl-${Date.now()}`,
+					object: "chat.completion",
+					created: Math.floor(Date.now() / 1000),
+					model: usedModel,
+					choices: [
+						{
+							index: 0,
+							message: {
+								role: "assistant",
+								content: content,
+							},
+							finish_reason: finishReason || "stop",
+						},
+					],
+					usage: {
+						prompt_tokens: promptTokens,
+						completion_tokens: completionTokens,
+						total_tokens: totalTokens,
+					},
+				};
+			}
+			break;
+		}
+	}
+
+	return transformedResponse;
 }
 
 export const chat = new OpenAPIHono<ServerTypes>();
@@ -161,6 +403,11 @@ chat.openapi(completions, async (c) => {
 		stream,
 	} = c.req.valid("json");
 
+	// Extract or generate request ID
+	const requestId = c.req.header("x-request-id") || shortid(40);
+
+	c.header("x-request-id", requestId);
+
 	let requestedModel: Model = modelInput as Model;
 	let requestedProvider: Provider | undefined;
 
@@ -169,7 +416,6 @@ chat.openapi(completions, async (c) => {
 		requestedProvider = "llmgateway";
 		requestedModel = modelInput as Model;
 	} else if (modelInput.includes("/")) {
-		console.log("specific provider combination is requested", modelInput);
 		const split = modelInput.split("/");
 		const providerCandidate = split[0];
 
@@ -218,12 +464,10 @@ chat.openapi(completions, async (c) => {
 			requestedModel = modelName as Model;
 		}
 	} else if (models.find((m) => m.model === modelInput)) {
-		console.log("only specific model is requested", modelInput);
 		requestedModel = modelInput as Model;
 	} else if (
 		models.find((m) => m.providers.find((p) => p.modelName === modelInput))
 	) {
-		console.log("specific provider model name is requested", modelInput);
 		const model = models.find((m) =>
 			m.providers.find((p) => p.modelName === modelInput),
 		);
@@ -319,18 +563,20 @@ chat.openapi(completions, async (c) => {
 		let availableProviders: string[] = [];
 
 		if (project.mode === "api-keys") {
+			const organization = await getOrganization(project.organizationId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: { eq: "active" },
-					projectId: { eq: apiKey.projectId },
+					organizationId: { eq: project.organizationId },
 				},
 			});
 			availableProviders = providerKeys.map((key) => key.provider);
 		} else if (project.mode === "credits" || project.mode === "hybrid") {
+			const organization = await getOrganization(project.organizationId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: { eq: "active" },
-					projectId: { eq: apiKey.projectId },
+					organizationId: { eq: project.organizationId },
 				},
 			});
 			const databaseProviders = providerKeys.map((key) => key.provider);
@@ -394,15 +640,9 @@ chat.openapi(completions, async (c) => {
 		usedProvider = "llmgateway";
 		usedModel = "custom";
 	} else if (!usedProvider) {
-		console.log("choosing provider...");
 		if (modelInfo.providers.length === 1) {
 			usedProvider = modelInfo.providers[0].providerId;
 			usedModel = modelInfo.providers[0].modelName;
-			console.log(
-				"used provider as there is only one provider",
-				usedProvider,
-				usedModel,
-			);
 		} else {
 			const providerIds = modelInfo.providers.map((p) => p.providerId);
 			const providerKeys = await db.query.providerKey.findMany({
@@ -410,8 +650,8 @@ chat.openapi(completions, async (c) => {
 					status: {
 						eq: "active",
 					},
-					projectId: {
-						eq: apiKey.projectId,
+					organizationId: {
+						eq: project.organizationId,
 					},
 					provider: {
 						in: providerIds,
@@ -456,19 +696,9 @@ chat.openapi(completions, async (c) => {
 
 				usedProvider = cheapestProvider;
 				usedModel = cheapestModel;
-				console.log(
-					"used provider and model based on pricing",
-					usedProvider,
-					usedModel,
-				);
 			} else {
 				usedProvider = availableModelProviders[0].providerId;
 				usedModel = availableModelProviders[0].modelName;
-				console.log(
-					"used provider and model based on availability",
-					usedProvider,
-					usedModel,
-				);
 			}
 		}
 	}
@@ -487,7 +717,7 @@ chat.openapi(completions, async (c) => {
 
 	if (project.mode === "api-keys") {
 		// Get the provider key from the database using cached helper function
-		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
+		providerKey = await getProviderKey(project.organizationId, usedProvider);
 
 		if (!providerKey) {
 			throw new HTTPException(400, {
@@ -523,7 +753,7 @@ chat.openapi(completions, async (c) => {
 		};
 	} else if (project.mode === "hybrid") {
 		// First try to get the provider key from the database
-		providerKey = await getProviderKey(apiKey.projectId, usedProvider);
+		providerKey = await getProviderKey(project.organizationId, usedProvider);
 
 		if (!providerKey) {
 			// Check if the organization has enough credits
@@ -613,28 +843,32 @@ chat.openapi(completions, async (c) => {
 		if (cachedResponse) {
 			// Log the cached request
 			const duration = 0; // No processing time needed
+			const baseLogEntry = createLogEntry(
+				requestId,
+				project,
+				apiKey,
+				providerKey,
+				usedModel,
+				usedProvider,
+				requestedModel,
+				requestedProvider,
+				messages,
+				temperature,
+				max_tokens,
+				top_p,
+				frequency_penalty,
+				presence_penalty,
+			);
+
 			await insertLog({
-				organizationId: project.organizationId,
-				projectId: apiKey.projectId,
-				apiKeyId: apiKey.id,
-				providerKeyId: providerKey.id,
+				...baseLogEntry,
 				duration,
-				usedModel: usedModel,
-				usedProvider: usedProvider,
-				requestedModel: requestedModel,
-				requestedProvider: requestedProvider,
-				messages: messages,
 				responseSize: JSON.stringify(cachedResponse).length,
 				content: cachedResponse.choices?.[0]?.message?.content || null,
 				finishReason: cachedResponse.choices?.[0]?.finish_reason || null,
 				promptTokens: cachedResponse.usage?.prompt_tokens || null,
 				completionTokens: cachedResponse.usage?.completion_tokens || null,
 				totalTokens: cachedResponse.usage?.total_tokens || null,
-				temperature: temperature || null,
-				maxTokens: max_tokens || null,
-				topP: top_p || null,
-				frequencyPenalty: frequency_penalty || null,
-				presencePenalty: presence_penalty || null,
 				hasError: false,
 				streamed: false,
 				canceled: false,
@@ -644,7 +878,6 @@ chat.openapi(completions, async (c) => {
 				cost: 0,
 				estimatedCost: false,
 				cached: true,
-				mode: project.mode,
 			});
 
 			return c.json(cachedResponse);
@@ -665,102 +898,18 @@ chat.openapi(completions, async (c) => {
 	const requestCanBeCanceled =
 		providers.find((p) => p.id === usedProvider)?.cancellation === true;
 
-	const requestBody: any = {
-		model: usedModel,
+	const requestBody = prepareRequestBody(
+		usedProvider,
+		usedModel,
 		messages,
-		stream: stream,
-	};
-
-	switch (usedProvider) {
-		case "openai": {
-			if (stream) {
-				requestBody.stream_options = {
-					include_usage: true,
-				};
-			}
-			if (response_format) {
-				requestBody.response_format = response_format;
-			}
-			break;
-		}
-		case "anthropic": {
-			requestBody.max_tokens = max_tokens || 1024; // Set a default if not provided
-			requestBody.messages = messages.map((m) => ({
-				role:
-					m.role === "assistant"
-						? "assistant"
-						: m.role === "system"
-							? "user"
-							: "user",
-				content: m.role === "system" ? `System: ${m.content}` : m.content,
-			}));
-			break;
-		}
-		case "google-vertex":
-		case "google-ai-studio": {
-			delete requestBody.model; // Not used in body
-			delete requestBody.stream; // Handled differently
-			delete requestBody.messages; // Not used in body for Google AI Studio
-
-			// Extract system messages and combine with user messages
-			const systemMessages = messages.filter((m) => m.role === "system");
-			const nonSystemMessages = messages.filter((m) => m.role !== "system");
-			const systemContext =
-				systemMessages.length > 0
-					? systemMessages.map((m) => m.content).join(" ") + " "
-					: "";
-
-			requestBody.contents = nonSystemMessages.map((m, index) => ({
-				parts: [
-					{
-						text:
-							index === 0 && systemContext
-								? systemContext + m.content
-								: m.content,
-					},
-				],
-			}));
-			requestBody.generationConfig = {};
-
-			// Add optional parameters if they are provided
-			if (temperature !== undefined) {
-				requestBody.generationConfig.temperature = temperature;
-			}
-			if (max_tokens !== undefined) {
-				requestBody.generationConfig.maxOutputTokens = max_tokens;
-			}
-			if (top_p !== undefined) {
-				requestBody.generationConfig.topP = top_p;
-			}
-
-			break;
-		}
-		case "inference.net":
-		case "kluster.ai":
-		case "together.ai": {
-			if (usedModel.startsWith(`${usedProvider}/`)) {
-				requestBody.model = usedModel.substring(usedProvider.length + 1);
-			}
-			break;
-		}
-	}
-
-	// Add optional parameters if they are provided
-	if (temperature !== undefined) {
-		requestBody.temperature = temperature;
-	}
-	if (max_tokens !== undefined) {
-		requestBody.max_tokens = max_tokens;
-	}
-	if (top_p !== undefined) {
-		requestBody.top_p = top_p;
-	}
-	if (frequency_penalty !== undefined) {
-		requestBody.frequency_penalty = frequency_penalty;
-	}
-	if (presence_penalty !== undefined) {
-		requestBody.presence_penalty = presence_penalty;
-	}
+		stream,
+		temperature,
+		max_tokens,
+		top_p,
+		frequency_penalty,
+		presence_penalty,
+		response_format,
+	);
 
 	const startTime = Date.now();
 
@@ -800,34 +949,37 @@ chat.openapi(completions, async (c) => {
 
 				if (error instanceof Error && error.name === "AbortError") {
 					// Log the canceled request
+					const baseLogEntry = createLogEntry(
+						requestId,
+						project,
+						apiKey,
+						providerKey,
+						usedModel,
+						usedProvider,
+						requestedModel,
+						requestedProvider,
+						messages,
+						temperature,
+						max_tokens,
+						top_p,
+						frequency_penalty,
+						presence_penalty,
+					);
+
 					await insertLog({
-						organizationId: project.organizationId,
-						projectId: apiKey.projectId,
-						apiKeyId: apiKey.id,
-						providerKeyId: providerKey.id,
+						...baseLogEntry,
 						duration: Date.now() - startTime,
-						usedModel: usedModel,
-						usedProvider: usedProvider,
-						requestedModel: requestedModel,
-						requestedProvider: requestedProvider,
-						messages: messages,
 						responseSize: 0,
 						content: null,
 						finishReason: "canceled",
 						promptTokens: null,
 						completionTokens: null,
 						totalTokens: null,
-						temperature: temperature || null,
-						maxTokens: max_tokens || null,
-						topP: top_p || null,
-						frequencyPenalty: frequency_penalty || null,
-						presencePenalty: presence_penalty || null,
 						hasError: false,
 						streamed: true,
 						canceled: true,
 						errorDetails: null,
 						cached: false,
-						mode: project.mode,
 					});
 
 					// Send a cancellation event to the client
@@ -858,9 +1010,9 @@ chat.openapi(completions, async (c) => {
 					data: JSON.stringify({
 						error: {
 							message: `Error from provider: ${res.status} ${res.statusText}`,
-							type: "gateway_error",
+							type: getFinishReasonForError(res.status),
 							param: null,
-							code: "gateway_error",
+							code: getFinishReasonForError(res.status),
 						},
 					}),
 					id: String(eventId++),
@@ -872,28 +1024,32 @@ chat.openapi(completions, async (c) => {
 				});
 
 				// Log the error in the database
+				const baseLogEntry = createLogEntry(
+					requestId,
+					project,
+					apiKey,
+					providerKey,
+					usedModel,
+					usedProvider,
+					requestedModel,
+					requestedProvider,
+					messages,
+					temperature,
+					max_tokens,
+					top_p,
+					frequency_penalty,
+					presence_penalty,
+				);
+
 				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
-					apiKeyId: apiKey.id,
-					providerKeyId: providerKey.id,
+					...baseLogEntry,
 					duration: Date.now() - startTime,
-					usedModel: usedModel,
-					usedProvider: usedProvider,
-					requestedModel: requestedModel,
-					requestedProvider: requestedProvider,
-					messages: messages,
 					responseSize: errorResponseText.length,
 					content: null,
-					finishReason: "gateway_error",
+					finishReason: getFinishReasonForError(res.status),
 					promptTokens: null,
 					completionTokens: null,
 					totalTokens: null,
-					temperature: temperature || null,
-					maxTokens: max_tokens || null,
-					topP: top_p || null,
-					frequencyPenalty: frequency_penalty || null,
-					presencePenalty: presence_penalty || null,
 					hasError: true,
 					streamed: true,
 					canceled: false,
@@ -903,7 +1059,6 @@ chat.openapi(completions, async (c) => {
 						responseText: errorResponseText,
 					},
 					cached: false,
-					mode: project.mode,
 				});
 
 				return;
@@ -1168,28 +1323,33 @@ chat.openapi(completions, async (c) => {
 						completion: fullContent,
 					},
 				);
+
+				const baseLogEntry = createLogEntry(
+					requestId,
+					project,
+					apiKey,
+					providerKey,
+					usedModel,
+					usedProvider,
+					requestedModel,
+					requestedProvider,
+					messages,
+					temperature,
+					max_tokens,
+					top_p,
+					frequency_penalty,
+					presence_penalty,
+				);
+
 				await insertLog({
-					organizationId: project.organizationId,
-					projectId: apiKey.projectId,
-					apiKeyId: apiKey.id,
-					providerKeyId: providerKey.id,
+					...baseLogEntry,
 					duration,
-					usedModel: usedModel,
-					usedProvider: usedProvider,
-					requestedModel: requestedModel,
-					requestedProvider: requestedProvider,
-					messages: messages,
 					responseSize: fullContent.length,
 					content: fullContent,
 					finishReason: finishReason,
 					promptTokens: promptTokens,
 					completionTokens: completionTokens,
 					totalTokens: totalTokens,
-					temperature: temperature || null,
-					maxTokens: max_tokens || null,
-					topP: top_p || null,
-					frequencyPenalty: frequency_penalty || null,
-					presencePenalty: presence_penalty || null,
 					hasError: false,
 					errorDetails: null,
 					streamed: true,
@@ -1199,7 +1359,6 @@ chat.openapi(completions, async (c) => {
 					cost: costs.totalCost,
 					estimatedCost: costs.estimatedCost,
 					cached: false,
-					mode: project.mode,
 				});
 			}
 		});
@@ -1222,7 +1381,6 @@ chat.openapi(completions, async (c) => {
 	try {
 		const headers = getProviderHeaders(usedProvider, providerKey);
 		headers["Content-Type"] = "application/json";
-		console.log("requestBody", requestBody);
 		res = await fetch(url, {
 			method: "POST",
 			headers,
@@ -1245,35 +1403,38 @@ chat.openapi(completions, async (c) => {
 	// If the request was canceled, log it and return a response
 	if (canceled) {
 		// Log the canceled request
+		const baseLogEntry = createLogEntry(
+			requestId,
+			project,
+			apiKey,
+			providerKey,
+			usedModel,
+			usedProvider,
+			requestedModel,
+			requestedProvider,
+			messages,
+			temperature,
+			max_tokens,
+			top_p,
+			frequency_penalty,
+			presence_penalty,
+		);
+
 		await insertLog({
-			organizationId: project.organizationId,
-			projectId: apiKey.projectId,
-			apiKeyId: apiKey.id,
-			providerKeyId: providerKey.id,
+			...baseLogEntry,
 			duration,
-			usedModel: usedModel,
-			usedProvider: usedProvider,
-			requestedModel: requestedModel,
-			requestedProvider: requestedProvider,
-			messages: messages,
 			responseSize: 0,
 			content: null,
 			finishReason: "canceled",
 			promptTokens: null,
 			completionTokens: null,
 			totalTokens: null,
-			temperature: temperature || null,
-			maxTokens: max_tokens || null,
-			topP: top_p || null,
-			frequencyPenalty: frequency_penalty || null,
-			presencePenalty: presence_penalty || null,
 			hasError: false,
 			streamed: false,
 			canceled: true,
 			errorDetails: null,
 			estimatedCost: false,
 			cached: false,
-			mode: project.mode,
 		});
 
 		return c.json(
@@ -1296,28 +1457,32 @@ chat.openapi(completions, async (c) => {
 		const errorResponseText = await res.text();
 
 		// Log the error in the database
+		const baseLogEntry = createLogEntry(
+			requestId,
+			project,
+			apiKey,
+			providerKey,
+			usedModel,
+			usedProvider,
+			requestedModel,
+			requestedProvider,
+			messages,
+			temperature,
+			max_tokens,
+			top_p,
+			frequency_penalty,
+			presence_penalty,
+		);
+
 		await insertLog({
-			organizationId: project.organizationId,
-			projectId: apiKey.projectId,
-			apiKeyId: apiKey.id,
-			providerKeyId: providerKey.id,
+			...baseLogEntry,
 			duration,
-			usedModel: usedModel,
-			usedProvider: usedProvider,
-			requestedModel: requestedModel,
-			requestedProvider: requestedProvider,
-			messages: messages,
 			responseSize: errorResponseText.length,
 			content: null,
-			finishReason: "gateway_error",
+			finishReason: getFinishReasonForError(res.status),
 			promptTokens: null,
 			completionTokens: null,
 			totalTokens: null,
-			temperature: temperature || null,
-			maxTokens: max_tokens || null,
-			topP: top_p || null,
-			frequencyPenalty: frequency_penalty || null,
-			presencePenalty: presence_penalty || null,
 			hasError: true,
 			streamed: false,
 			canceled: false,
@@ -1328,7 +1493,6 @@ chat.openapi(completions, async (c) => {
 			},
 			estimatedCost: false,
 			cached: false,
-			mode: project.mode,
 		});
 
 		// Return a 500 error response
@@ -1336,9 +1500,9 @@ chat.openapi(completions, async (c) => {
 			{
 				error: {
 					message: `Error from provider: ${res.status} ${res.statusText}`,
-					type: "gateway_error",
+					type: getFinishReasonForError(res.status),
 					param: null,
-					code: "gateway_error",
+					code: getFinishReasonForError(res.status),
 					requestedProvider,
 					usedProvider,
 					requestedModel,
@@ -1360,66 +1524,17 @@ chat.openapi(completions, async (c) => {
 	const responseText = JSON.stringify(json);
 
 	// Extract content and token usage based on provider
-	let content = null;
-	let finishReason = null;
-	let promptTokens = null;
-	let completionTokens = null;
-	let totalTokens = null;
-
-	switch (usedProvider) {
-		case "anthropic":
-			content = json.content?.[0]?.text || null;
-			finishReason = json.stop_reason || null;
-			promptTokens = json.usage?.input_tokens || null;
-			completionTokens = json.usage?.output_tokens || null;
-			totalTokens =
-				json.usage?.input_tokens && json.usage?.output_tokens
-					? json.usage.input_tokens + json.usage.output_tokens
-					: null;
-			break;
-		case "google-vertex":
-		case "google-ai-studio":
-			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
-			finishReason = json.candidates?.[0]?.finishReason || null;
-			break;
-		case "inference.net":
-		case "kluster.ai":
-		case "together.ai":
-			content = json.choices?.[0]?.message?.content || null;
-			finishReason = json.choices?.[0]?.finish_reason || null;
-			promptTokens = json.usage?.prompt_tokens || null;
-			completionTokens = json.usage?.completion_tokens || null;
-			totalTokens = json.usage?.total_tokens || null;
-			break;
-		default: // OpenAI format
-			content = json.choices?.[0]?.message?.content || null;
-			finishReason = json.choices?.[0]?.finish_reason || null;
-			promptTokens = json.usage?.prompt_tokens || null;
-			completionTokens = json.usage?.completion_tokens || null;
-			totalTokens = json.usage?.total_tokens || null;
-	}
-
-	// Log the successful request and response
-	let calculatedPromptTokens = promptTokens;
-	let calculatedCompletionTokens = completionTokens;
+	const { content, finishReason, promptTokens, completionTokens, totalTokens } =
+		parseProviderResponse(usedProvider, json);
 
 	// Estimate tokens if not provided by the API
-	if (
-		(usedProvider === "anthropic" ||
-			usedProvider === "inference.net" ||
-			usedProvider === "kluster.ai" ||
-			usedProvider === "together.ai") &&
-		(!promptTokens || !completionTokens)
-	) {
-		if (!promptTokens) {
-			calculatedPromptTokens =
-				messages.reduce((acc, m) => acc + (m.content?.length || 0), 0) / 4;
-		}
-
-		if (!completionTokens && content) {
-			calculatedCompletionTokens = content.length / 4;
-		}
-	}
+	const { calculatedPromptTokens, calculatedCompletionTokens } = estimateTokens(
+		usedProvider,
+		messages,
+		content,
+		promptTokens,
+		completionTokens,
+	);
 
 	const costs = calculateCosts(
 		usedModel,
@@ -1431,28 +1546,33 @@ chat.openapi(completions, async (c) => {
 			completion: content,
 		},
 	);
+
+	const baseLogEntry = createLogEntry(
+		requestId,
+		project,
+		apiKey,
+		providerKey,
+		usedModel,
+		usedProvider,
+		requestedModel,
+		requestedProvider,
+		messages,
+		temperature,
+		max_tokens,
+		top_p,
+		frequency_penalty,
+		presence_penalty,
+	);
+
 	await insertLog({
-		organizationId: project.organizationId,
-		projectId: apiKey.projectId,
-		apiKeyId: apiKey.id,
-		providerKeyId: providerKey.id,
+		...baseLogEntry,
 		duration,
-		usedModel: usedModel,
-		usedProvider: usedProvider,
-		requestedModel: requestedModel,
-		requestedProvider: requestedProvider,
-		messages: messages,
 		responseSize: responseText.length,
 		content: content,
 		finishReason: finishReason,
 		promptTokens: promptTokens,
 		completionTokens: completionTokens,
 		totalTokens: totalTokens,
-		temperature: temperature || null,
-		maxTokens: max_tokens || null,
-		topP: top_p || null,
-		frequencyPenalty: frequency_penalty || null,
-		presencePenalty: presence_penalty || null,
 		hasError: false,
 		streamed: false,
 		canceled: false,
@@ -1462,97 +1582,19 @@ chat.openapi(completions, async (c) => {
 		cost: costs.totalCost,
 		estimatedCost: costs.estimatedCost,
 		cached: false,
-		mode: project.mode,
 	});
 
 	// Transform response to OpenAI format for non-OpenAI providers
-	let transformedResponse = json;
-
-	switch (usedProvider) {
-		case "google-vertex":
-		case "google-ai-studio": {
-			transformedResponse = {
-				id: `chatcmpl-${Date.now()}`,
-				object: "chat.completion",
-				created: Math.floor(Date.now() / 1000),
-				model: usedModel,
-				choices: [
-					{
-						index: 0,
-						message: {
-							role: "assistant",
-							content: content,
-						},
-						finish_reason:
-							finishReason === "STOP"
-								? "stop"
-								: finishReason?.toLowerCase() || "stop",
-					},
-				],
-				usage: {
-					prompt_tokens: promptTokens,
-					completion_tokens: completionTokens,
-					total_tokens: totalTokens,
-				},
-			};
-			break;
-		}
-		case "anthropic": {
-			transformedResponse = {
-				id: `chatcmpl-${Date.now()}`,
-				object: "chat.completion",
-				created: Math.floor(Date.now() / 1000),
-				model: usedModel,
-				choices: [
-					{
-						index: 0,
-						message: {
-							role: "assistant",
-							content: content,
-						},
-						finish_reason:
-							finishReason === "end_turn"
-								? "stop"
-								: finishReason?.toLowerCase() || "stop",
-					},
-				],
-				usage: {
-					prompt_tokens: promptTokens,
-					completion_tokens: completionTokens,
-					total_tokens: totalTokens,
-				},
-			};
-			break;
-		}
-		case "inference.net":
-		case "kluster.ai":
-		case "together.ai": {
-			if (!transformedResponse.id) {
-				transformedResponse = {
-					id: `chatcmpl-${Date.now()}`,
-					object: "chat.completion",
-					created: Math.floor(Date.now() / 1000),
-					model: usedModel,
-					choices: [
-						{
-							index: 0,
-							message: {
-								role: "assistant",
-								content: content,
-							},
-							finish_reason: finishReason || "stop",
-						},
-					],
-					usage: {
-						prompt_tokens: promptTokens,
-						completion_tokens: completionTokens,
-						total_tokens: totalTokens,
-					},
-				};
-			}
-			break;
-		}
-	}
+	const transformedResponse = transformToOpenAIFormat(
+		usedProvider,
+		usedModel,
+		json,
+		content,
+		finishReason,
+		promptTokens,
+		completionTokens,
+		totalTokens,
+	);
 
 	if (cachingEnabled && cacheKey && !stream) {
 		await setCache(cacheKey, transformedResponse, cacheDuration);

@@ -1,7 +1,9 @@
-import { Navigate, useNavigate } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { ChevronUp, Settings, User2 } from "lucide-react";
 
-import { signOut, useSession } from "@/lib/auth-client";
+import { useUser } from "@/hooks/useUser";
+import { signOut } from "@/lib/auth-client";
 import { Badge } from "@/lib/components/badge";
 import {
 	DropdownMenu,
@@ -36,18 +38,19 @@ const items = [
 ];
 
 export function AppSidebar() {
+	const queryClient = useQueryClient();
 	const navigate = useNavigate();
 
-	const { data: session, isPending: isLoading } = useSession();
-
-	if (!session && !isLoading) {
-		return <Navigate to="/login" />;
-	}
+	const { user, isLoading } = useUser({
+		redirectTo: "/login",
+		redirectWhen: "unauthenticated",
+	});
 
 	const logout = async () => {
 		await signOut({
 			fetchOptions: {
 				onSuccess: () => {
+					queryClient.clear();
 					navigate({ to: "/login" });
 				},
 			},
@@ -84,7 +87,7 @@ export function AppSidebar() {
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
 								<SidebarMenuButton>
-									<User2 /> {isLoading ? "..." : session?.user?.name || "User"}
+									<User2 /> {isLoading ? "..." : user?.name || "User"}
 									<ChevronUp className="ml-auto" />
 								</SidebarMenuButton>
 							</DropdownMenuTrigger>

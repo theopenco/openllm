@@ -8,6 +8,7 @@ import InferenceLogo from "@/assets/models/inference-net.svg?react";
 import KlusterLogo from "@/assets/models/kluster-ai.svg?react";
 import OpenAiLogo from "@/assets/models/openai.svg?react";
 import OpenLLMLogo from "@/assets/models/openllm.svg?react";
+import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/lib/components/button";
 import {
 	Dialog,
@@ -55,6 +56,8 @@ export function CreateProviderKeyDialog({
 	const queryKey = $api.queryOptions("get", "/keys/provider").queryKey;
 	const queryClient = useQueryClient();
 
+	const { data: organization } = useDefaultOrganization();
+
 	const { data: providerKeysData, isPending: isLoading } =
 		$api.useSuspenseQuery("get", "/keys/provider");
 
@@ -100,12 +103,28 @@ export function CreateProviderKeyDialog({
 			return;
 		}
 
-		const payload: { provider: string; token: string; baseUrl?: string } = {
+		const payload: {
+			provider: string;
+			token: string;
+			baseUrl?: string;
+			organizationId: string;
+		} = {
 			provider: selectedProvider,
 			token,
+			organizationId: organization?.id || "",
 		};
 		if (baseUrl) {
 			payload.baseUrl = baseUrl;
+		}
+
+		if (!payload.organizationId) {
+			toast({
+				title: "Error",
+				description: "No organization found. Please try refreshing the page.",
+				variant: "destructive",
+				className: "text-white",
+			});
+			return;
 		}
 
 		setIsValidating(true);
@@ -120,10 +139,7 @@ export function CreateProviderKeyDialog({
 						title: "Provider Key Created",
 						description: "The provider key has been validated and saved.",
 					});
-					queryClient.setQueryData(queryKey, (old: any) => ({
-						...old,
-						providerKeys: [...(old?.providerKeys ?? []), newKey],
-					}));
+					queryClient.invalidateQueries({ queryKey });
 					setOpen(false);
 				},
 				onError: (error: any) => {

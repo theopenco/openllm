@@ -39,7 +39,7 @@ describe("provider keys route", () => {
 			id: "test-provider-key-id",
 			token: "test-provider-token",
 			provider: "openai",
-			projectId: "test-project-id",
+			organizationId: "test-org-id",
 		});
 	});
 
@@ -104,6 +104,7 @@ describe("provider keys route", () => {
 			body: JSON.stringify({
 				provider: "inference.net",
 				token: "inference-test-token",
+				organizationId: "test-org-id",
 			}),
 		});
 		expect(res.status).toBe(200);
@@ -133,6 +134,7 @@ describe("provider keys route", () => {
 			},
 			body: JSON.stringify({
 				provider: "invalid-provider",
+				organizationId: "test-org-id",
 			}),
 		});
 		expect(res.status).toBe(400);
@@ -147,6 +149,7 @@ describe("provider keys route", () => {
 			},
 			body: JSON.stringify({
 				provider: "openai",
+				organizationId: "test-org-id",
 			}),
 		});
 		expect(res.status).toBe(400);

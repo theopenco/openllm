@@ -170,7 +170,6 @@ export function LogCard({ log }: { log: Log }) {
 									Unified Finish Reason
 								</div>
 								<div>{log.unifiedFinishReason}</div>
-								<div>{null}</div>
 								<div className="text-muted-foreground">Streamed</div>
 								<div className="flex items-center gap-1">
 									{log.streamed ? (

@@ -1,11 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { signUp, useSession } from "@/lib/auth-client";
+import { useUser } from "@/hooks/useUser";
+import { signUp } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Form,
@@ -31,16 +32,8 @@ export const Route = createFileRoute("/signup")({
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
-	const session = useSession();
-
-	// Redirect to dashboard if already logged in
-	useEffect(() => {
-		if (session.data?.user) {
-			navigate({ to: "/dashboard" });
-		}
-	}, [session.data, navigate]);
+	useUser({ redirectTo: "/dashboard", redirectWhen: "authenticated" });
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -59,7 +52,7 @@ function RouteComponent() {
 				name: values.name,
 				email: values.email,
 				password: values.password,
-				callbackURL: "/dashboard",
+				callbackURL: "/onboarding",
 			},
 			{
 				onSuccess: () => {
