@@ -765,7 +765,7 @@ export interface paths {
 								baseUrl: string | null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
-								projectId: string;
+								organizationId: string;
 								maskedToken: string;
 							}[];
 						};
@@ -807,7 +807,7 @@ export interface paths {
 								baseUrl: string | null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
-								projectId: string;
+								organizationId: string;
 								token: string;
 							};
 						};
@@ -913,7 +913,7 @@ export interface paths {
 								baseUrl: string | null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
-								projectId: string;
+								organizationId: string;
 								maskedToken: string;
 							};
 						};
