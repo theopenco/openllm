@@ -1,5 +1,6 @@
 import { providers, type ProviderId } from "@openllm/models";
 import { useQueryClient } from "@tanstack/react-query";
+import { usePostHog } from "posthog-js/react";
 import React, { useState } from "react";
 
 import anthropicLogo from "@/assets/models/anthropic.svg?react";
@@ -47,6 +48,7 @@ export function CreateProviderKeyDialog({
 }: {
 	children: React.ReactNode;
 }) {
+	const posthog = usePostHog();
 	const [open, setOpen] = useState(false);
 	const [selectedProvider, setSelectedProvider] = useState("");
 	const [baseUrl, setBaseUrl] = useState("");
@@ -135,6 +137,10 @@ export function CreateProviderKeyDialog({
 			{
 				onSuccess: (newKey) => {
 					setIsValidating(false);
+					posthog.capture("provider_key_added", {
+						provider: selectedProvider,
+						hasBaseUrl: !!baseUrl,
+					});
 					toast({
 						title: "Provider Key Created",
 						description: "The provider key has been validated and saved.",
