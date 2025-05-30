@@ -23,7 +23,7 @@ import {
 	TooltipTrigger,
 } from "@/lib/components/tooltip";
 
-import type { Log } from "@/lib/types";
+import type { Log } from "@openllm/db";
 
 export function LogCard({ log }: { log: Log }) {
 	const [isExpanded, setIsExpanded] = useState(false);
@@ -78,8 +78,7 @@ export function LogCard({ log }: { log: Log }) {
 							variant={log.hasError ? "destructive" : "default"}
 							className="ml-2"
 						>
-							{/* {log.unifiedFinishReason || log.finishReason} */}
-							{log.finishReason}
+							{log.unifiedFinishReason}
 						</Badge>
 					</div>
 					<div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1 text-sm text-muted-foreground">
@@ -302,7 +301,7 @@ export function LogCard({ log }: { log: Log }) {
 							</TooltipProvider>
 						</div>
 					</div>
-					{log.hasError && log.errorDetails && (
+					{log.hasError && !!log.errorDetails && (
 						<div className="space-y-2">
 							<h4 className="text-sm font-medium text-red-600">
 								Error Details

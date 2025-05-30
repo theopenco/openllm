@@ -11,6 +11,7 @@ export const logs = new OpenAPIHono<ServerTypes>();
 // Using z.object directly instead of createSelectSchema due to compatibility issues
 const logSchema = z.object({
 	id: z.string(),
+	requestId: z.string(),
 	createdAt: z.date(),
 	updatedAt: z.date(),
 	organizationId: z.string(),
@@ -23,6 +24,7 @@ const logSchema = z.object({
 	usedProvider: z.string(),
 	responseSize: z.number(),
 	content: z.string().nullable(),
+	unifiedFinishReason: z.string().nullable(),
 	finishReason: z.string().nullable(),
 	promptTokens: z.string().nullable(),
 	completionTokens: z.string().nullable(),
@@ -34,6 +36,7 @@ const logSchema = z.object({
 	frequencyPenalty: z.number().nullable(),
 	presencePenalty: z.number().nullable(),
 	hasError: z.boolean().nullable(),
+	// errorDetails: errorDetails.nullabe(),
 	errorDetails: z.any().nullable(),
 	cost: z.number().nullable(),
 	inputCost: z.number().nullable(),

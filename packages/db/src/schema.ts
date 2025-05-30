@@ -210,7 +210,11 @@ export const log = pgTable("log", {
 	frequencyPenalty: real(),
 	presencePenalty: real(),
 	hasError: boolean().default(false),
-	errorDetails: json(),
+	errorDetails: json().$type<{
+		statusCode: number;
+		statusText: string;
+		responseText: string;
+	}>(),
 	cost: real(),
 	inputCost: real(),
 	outputCost: real(),

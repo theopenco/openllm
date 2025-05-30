@@ -413,6 +413,7 @@ export interface paths {
 							/** @description Array of log entries */
 							logs: {
 								id: string;
+								requestId: string;
 								createdAt: string;
 								updatedAt: string;
 								organizationId: string;
@@ -425,6 +426,7 @@ export interface paths {
 								usedProvider: string;
 								responseSize: number;
 								content: string | null;
+								unifiedFinishReason: string | null;
 								finishReason: string | null;
 								promptTokens: string | null;
 								completionTokens: string | null;

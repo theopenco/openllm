@@ -1,5 +1,12 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { db, shortid, type InferSelectModel, type tables } from "@openllm/db";
+import {
+	db,
+	shortid,
+	type InferSelectModel,
+	type Project,
+	type tables,
+	type ApiKey,
+} from "@openllm/db";
 import {
 	getProviderEndpoint,
 	getProviderHeaders,
@@ -34,9 +41,6 @@ import type { ServerTypes } from "../vars";
 function getFinishReasonForError(statusCode: number): string {
 	return statusCode >= 500 ? "upstream_error" : "gateway_error";
 }
-
-type ApiKey = InferSelectModel<typeof tables.apiKey>;
-type Project = InferSelectModel<typeof tables.project>;
 
 /**
  * Creates a partial log entry with common fields to reduce duplication
