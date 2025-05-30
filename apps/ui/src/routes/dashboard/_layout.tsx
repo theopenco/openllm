@@ -1,4 +1,6 @@
 import { Outlet, createFileRoute } from "@tanstack/react-router";
+import { usePostHog } from "posthog-js/react";
+import { useEffect } from "react";
 
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { MobileHeader } from "@/components/dashboard/mobile-header";
@@ -10,7 +12,12 @@ export const Route = createFileRoute("/dashboard/_layout")({
 });
 
 function RouteComponent() {
+	const posthog = usePostHog();
 	useUser({ redirectTo: "/login", redirectWhen: "unauthenticated" });
+
+	useEffect(() => {
+		posthog.capture("page_viewed_dashboard");
+	}, [posthog]);
 
 	return (
 		<SidebarProvider>

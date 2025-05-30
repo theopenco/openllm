@@ -38,6 +38,10 @@ function RouteComponent() {
 	const [isLoading, setIsLoading] = useState(false);
 	useUser({ redirectTo: "/dashboard", redirectWhen: "authenticated" });
 
+	useEffect(() => {
+		posthog.capture("page_viewed_login");
+	}, [posthog]);
+
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
@@ -62,6 +66,10 @@ function RouteComponent() {
 			{
 				onSuccess: () => {
 					posthog.identify(values.email);
+					posthog.capture("user_logged_in", {
+						method: "email",
+						email: values.email,
+					});
 					toast({ title: "Login successful" });
 					navigate({ to: "/dashboard" });
 				},
@@ -98,6 +106,7 @@ function RouteComponent() {
 				});
 				return;
 			}
+			posthog.capture("user_logged_in", { method: "passkey" });
 			toast({ title: "Login successful" });
 			navigate({ to: "/dashboard" });
 		} catch (error: any) {

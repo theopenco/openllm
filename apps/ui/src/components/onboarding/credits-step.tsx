@@ -1,5 +1,6 @@
 import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { CreditCard, Check } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import * as React from "react";
 
@@ -26,6 +27,7 @@ export function CreditsStep() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [selectedAmount, setSelectedAmount] = useState("50");
 	const [isSuccess, setIsSuccess] = useState(false);
+	const posthog = usePostHog();
 
 	const stripe = useStripe();
 	const elements = useElements();
@@ -73,6 +75,10 @@ export function CreditsStep() {
 			}
 
 			setIsSuccess(true);
+			posthog.capture("credits_purchased", {
+				amount: Number(selectedAmount),
+				source: "onboarding",
+			});
 			toast({
 				title: "Payment successful",
 				description: `$${selectedAmount} has been added to your account.`,
