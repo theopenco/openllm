@@ -43,3 +43,6 @@ jobs:
           target: ${{ matrix.app }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            VITE_POSTHOG_HOST=${{ secrets.POSTHOG_HOST }}
+            VITE_POSTHOG_KEY=${{ secrets.POSTHOG_KEY }}
