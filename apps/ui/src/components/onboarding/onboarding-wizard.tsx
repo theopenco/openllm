@@ -1,5 +1,6 @@
 import { Elements } from "@stripe/react-stripe-js";
 import { useNavigate } from "@tanstack/react-router";
+import { usePostHog } from "posthog-js/react";
 import * as React from "react";
 import { useState } from "react";
 
@@ -41,9 +42,13 @@ const STEPS = [
 export function OnboardingWizard() {
 	const [activeStep, setActiveStep] = useState(0);
 	const navigate = useNavigate();
+	const posthog = usePostHog();
 
 	const handleStepChange = (step: number) => {
 		if (step >= STEPS.length) {
+			posthog.capture("onboarding_completed", {
+				completedSteps: STEPS.map((step) => step.id),
+			});
 			navigate({ to: "/dashboard" });
 			return;
 		}
