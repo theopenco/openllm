@@ -45,7 +45,6 @@ export const relations = defineRelations(schema, (r) => ({
 			from: r.providerKey.organizationId,
 			to: r.organization.id,
 		}),
-		logs: r.many.log(),
 	},
 	log: {
 		project: r.one.project({
@@ -55,10 +54,6 @@ export const relations = defineRelations(schema, (r) => ({
 		apiKey: r.one.apiKey({
 			from: r.log.apiKeyId,
 			to: r.apiKey.id,
-		}),
-		providerKey: r.one.providerKey({
-			from: r.log.providerKeyId,
-			to: r.providerKey.id,
 		}),
 	},
 	passkey: {

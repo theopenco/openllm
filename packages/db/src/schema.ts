@@ -191,8 +191,6 @@ export const log = pgTable("log", {
 	apiKeyId: text()
 		.notNull()
 		.references(() => apiKey.id, { onDelete: "cascade" }),
-	// TODO adapt
-	providerKeyId: text().notNull(),
 	duration: integer().notNull(),
 	requestedModel: text().notNull(),
 	requestedProvider: text(),

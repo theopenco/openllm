@@ -11,7 +11,6 @@ export interface Log {
 	organizationId: string;
 	projectId: string;
 	apiKeyId: string;
-	providerKeyId: string;
 	duration: number;
 	requestedModel: string;
 	requestedProvider: string | null;
@@ -39,4 +38,6 @@ export interface Log {
 	streamed: boolean | null;
 	cached: boolean | null;
 	unifiedFinishReason?: string | null;
+	mode: string;
+	usedMode: string;
 }

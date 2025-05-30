@@ -7,12 +7,12 @@ import type { ProviderId } from "./providers";
  */
 export function getProviderHeaders(
 	provider: ProviderId,
-	providerKey: { token: string },
+	token: string,
 ): Record<string, string> {
 	switch (provider) {
 		case "anthropic":
 			return {
-				"x-api-key": providerKey.token,
+				"x-api-key": token,
 				"anthropic-version": "2023-06-01",
 			};
 		case "google-ai-studio":
@@ -23,7 +23,7 @@ export function getProviderHeaders(
 		case "inference.net":
 		default:
 			return {
-				Authorization: `Bearer ${providerKey.token}`,
+				Authorization: `Bearer ${token}`,
 			};
 	}
 }
@@ -325,7 +325,7 @@ export async function validateProviderKey(
 			undefined, // response_format
 		);
 
-		const headers = getProviderHeaders(provider, { token });
+		const headers = getProviderHeaders(provider, token);
 		headers["Content-Type"] = "application/json";
 
 		const response = await fetch(endpoint, {

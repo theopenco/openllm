@@ -131,8 +131,6 @@ export function LogCard({ log }: { log: Log }) {
 								<div className="font-mono text-xs">{log.projectId}</div>
 								<div className="text-muted-foreground">API Key</div>
 								<div className="font-mono text-xs">{log.apiKeyId}</div>
-								<div className="text-muted-foreground">Provider Key</div>
-								<div className="font-mono text-xs">{log.providerKeyId}</div>
 								<div className="text-muted-foreground">Requested Model</div>
 								<div>{log.requestedModel}</div>
 								<div className="text-muted-foreground">Used Model</div>
@@ -233,13 +231,11 @@ export function LogCard({ log }: { log: Log }) {
 								<div className="font-mono text-xs">{log.organizationId}</div>
 								<div className="text-muted-foreground">API Key ID</div>
 								<div className="font-mono text-xs">{log.apiKeyId}</div>
-								<div className="text-muted-foreground">Provider Key ID</div>
-								<div className="font-mono text-xs">{log.providerKeyId}</div>
 								<div className="text-muted-foreground">Mode</div>
-								{/* <div>{log.mode || "api-keys"}</div> */}
+								<div>{log.mode || "api-keys"}</div>
 								<div>api-keys</div>
 								<div className="text-muted-foreground">Used Mode</div>
-								<div>{log.usedModel || "api-keys"}</div>
+								<div>{log.mode || "api-keys"}</div>
 							</div>
 						</div>
 					</div>

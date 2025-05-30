@@ -418,7 +418,6 @@ export interface paths {
 								organizationId: string;
 								projectId: string;
 								apiKeyId: string;
-								providerKeyId: string;
 								duration: number;
 								requestedModel: string;
 								requestedProvider: string | null;
@@ -445,6 +444,10 @@ export interface paths {
 								canceled: boolean | null;
 								streamed: boolean | null;
 								cached: boolean | null;
+								/** @enum {string} */
+								mode: "api-keys" | "credits" | "hybrid";
+								/** @enum {string} */
+								usedMode: "api-keys" | "credits";
 							}[];
 							/** @description Pagination metadata */
 							pagination: {

@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { db, shortid } from "@openllm/db";
+import { db, shortid, type InferSelectModel, type tables } from "@openllm/db";
 import {
 	getProviderEndpoint,
 	getProviderHeaders,
@@ -35,14 +35,17 @@ function getFinishReasonForError(statusCode: number): string {
 	return statusCode >= 500 ? "upstream_error" : "gateway_error";
 }
 
+type ApiKey = InferSelectModel<typeof tables.apiKey>;
+type Project = InferSelectModel<typeof tables.project>;
+
 /**
  * Creates a partial log entry with common fields to reduce duplication
  */
 function createLogEntry(
 	requestId: string,
-	project: any,
-	apiKey: any,
-	providerKey: any,
+	project: Project,
+	apiKey: ApiKey,
+	providerKeyId: string | undefined,
 	usedModel: string,
 	usedProvider: string,
 	requestedModel: string,
@@ -59,7 +62,7 @@ function createLogEntry(
 		organizationId: project.organizationId,
 		projectId: apiKey.projectId,
 		apiKeyId: apiKey.id,
-		providerKeyId: providerKey.id,
+		usedMode: providerKeyId ? "api-keys" : "credits",
 		usedModel,
 		usedProvider,
 		requestedModel,
@@ -71,7 +74,7 @@ function createLogEntry(
 		frequencyPenalty: frequency_penalty || null,
 		presencePenalty: presence_penalty || null,
 		mode: project.mode,
-	};
+	} as const;
 }
 
 /**
@@ -563,7 +566,6 @@ chat.openapi(completions, async (c) => {
 		let availableProviders: string[] = [];
 
 		if (project.mode === "api-keys") {
-			const organization = await getOrganization(project.organizationId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: { eq: "active" },
@@ -572,7 +574,6 @@ chat.openapi(completions, async (c) => {
 			});
 			availableProviders = providerKeys.map((key) => key.provider);
 		} else if (project.mode === "credits" || project.mode === "hybrid") {
-			const organization = await getOrganization(project.organizationId);
 			const providerKeys = await db.query.providerKey.findMany({
 				where: {
 					status: { eq: "active" },
@@ -714,7 +715,8 @@ chat.openapi(completions, async (c) => {
 
 	// Get the provider key for the selected provider based on project mode
 
-	let providerKey;
+	let providerKey: InferSelectModel<typeof tables.providerKey> | undefined;
+	let usedToken: string | undefined;
 
 	if (project.mode === "api-keys") {
 		// Get the provider key from the database using cached helper function
@@ -725,6 +727,8 @@ chat.openapi(completions, async (c) => {
 				message: `No API key set for provider: ${usedProvider}. Please add a provider key in your settings or add credits and switch to credits or hybrid mode.`,
 			});
 		}
+
+		usedToken = providerKey.token;
 	} else if (project.mode === "credits") {
 		// Check if the organization has enough credits using cached helper function
 		const organization = await getOrganization(project.organizationId);
@@ -741,22 +745,14 @@ chat.openapi(completions, async (c) => {
 			});
 		}
 
-		const token = getProviderTokenFromEnv(usedProvider);
-
-		providerKey = {
-			id: `env-${usedProvider}`,
-			token,
-			provider: usedProvider,
-			status: "active",
-			projectId: apiKey.projectId,
-			createdAt: new Date(),
-			updatedAt: new Date(),
-		};
+		usedToken = getProviderTokenFromEnv(usedProvider);
 	} else if (project.mode === "hybrid") {
 		// First try to get the provider key from the database
 		providerKey = await getProviderKey(project.organizationId, usedProvider);
 
-		if (!providerKey) {
+		if (providerKey) {
+			usedToken = providerKey.token;
+		} else {
 			// Check if the organization has enough credits
 			const organization = await getOrganization(project.organizationId);
 
@@ -773,21 +769,17 @@ chat.openapi(completions, async (c) => {
 				});
 			}
 
-			const token = getProviderTokenFromEnv(usedProvider);
-
-			providerKey = {
-				id: `env-${usedProvider}`,
-				token,
-				provider: usedProvider,
-				status: "active",
-				projectId: apiKey.projectId,
-				createdAt: new Date(),
-				updatedAt: new Date(),
-			};
+			usedToken = getProviderTokenFromEnv(usedProvider);
 		}
 	} else {
 		throw new HTTPException(400, {
 			message: `Invalid project mode: ${project.mode}`,
+		});
+	}
+
+	if (!usedToken) {
+		throw new HTTPException(500, {
+			message: `No token`,
 		});
 	}
 
@@ -800,9 +792,9 @@ chat.openapi(completions, async (c) => {
 
 		url = getProviderEndpoint(
 			usedProvider,
-			providerKey.baseUrl || undefined,
+			providerKey?.baseUrl || undefined,
 			usedModel,
-			usedProvider === "google-ai-studio" ? providerKey.token : undefined,
+			usedProvider === "google-ai-studio" ? usedToken : undefined,
 		);
 	} catch (error) {
 		if (usedProvider === "llmgateway" && usedModel !== "custom") {
@@ -848,7 +840,7 @@ chat.openapi(completions, async (c) => {
 				requestId,
 				project,
 				apiKey,
-				providerKey,
+				providerKey?.id,
 				usedModel,
 				usedProvider,
 				requestedModel,
@@ -935,7 +927,7 @@ chat.openapi(completions, async (c) => {
 
 			let res;
 			try {
-				const headers = getProviderHeaders(usedProvider, providerKey);
+				const headers = getProviderHeaders(usedProvider, usedToken);
 				headers["Content-Type"] = "application/json";
 
 				res = await fetch(url, {
@@ -954,7 +946,7 @@ chat.openapi(completions, async (c) => {
 						requestId,
 						project,
 						apiKey,
-						providerKey,
+						providerKey?.id,
 						usedModel,
 						usedProvider,
 						requestedModel,
@@ -1029,7 +1021,7 @@ chat.openapi(completions, async (c) => {
 					requestId,
 					project,
 					apiKey,
-					providerKey,
+					providerKey?.id,
 					usedModel,
 					usedProvider,
 					requestedModel,
@@ -1329,7 +1321,7 @@ chat.openapi(completions, async (c) => {
 					requestId,
 					project,
 					apiKey,
-					providerKey,
+					providerKey?.id,
 					usedModel,
 					usedProvider,
 					requestedModel,
@@ -1380,7 +1372,7 @@ chat.openapi(completions, async (c) => {
 	let canceled = false;
 	let res;
 	try {
-		const headers = getProviderHeaders(usedProvider, providerKey);
+		const headers = getProviderHeaders(usedProvider, usedToken);
 		headers["Content-Type"] = "application/json";
 		res = await fetch(url, {
 			method: "POST",
@@ -1408,7 +1400,7 @@ chat.openapi(completions, async (c) => {
 			requestId,
 			project,
 			apiKey,
-			providerKey,
+			providerKey?.id,
 			usedModel,
 			usedProvider,
 			requestedModel,
@@ -1462,7 +1454,7 @@ chat.openapi(completions, async (c) => {
 			requestId,
 			project,
 			apiKey,
-			providerKey,
+			providerKey?.id,
 			usedModel,
 			usedProvider,
 			requestedModel,
@@ -1552,7 +1544,7 @@ chat.openapi(completions, async (c) => {
 		requestId,
 		project,
 		apiKey,
-		providerKey,
+		providerKey?.id,
 		usedModel,
 		usedProvider,
 		requestedModel,

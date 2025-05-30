@@ -1,7 +1,9 @@
-import { db } from "@openllm/db";
+import { db, type InferSelectModel } from "@openllm/db";
 import crypto from "crypto";
 
 import redisClient from "./redis";
+
+import type { tables } from "@openllm/db";
 
 export function generateCacheKey(payload: Record<string, any>): string {
 	return crypto
@@ -136,7 +138,7 @@ export async function getOrganization(organizationId: string): Promise<any> {
 export async function getProviderKey(
 	organizationId: string,
 	provider: string,
-): Promise<any> {
+): Promise<InferSelectModel<typeof tables.providerKey> | undefined> {
 	try {
 		const providerKeyCacheKey = `provider_key:${organizationId}:${provider}`;
 		const cachedProviderKey = await getCache(providerKeyCacheKey);

@@ -16,7 +16,6 @@ const logSchema = z.object({
 	organizationId: z.string(),
 	projectId: z.string(),
 	apiKeyId: z.string(),
-	providerKeyId: z.string(),
 	duration: z.number(),
 	requestedModel: z.string(),
 	requestedProvider: z.string().nullable(),
@@ -43,6 +42,8 @@ const logSchema = z.object({
 	canceled: z.boolean().nullable(),
 	streamed: z.boolean().nullable(),
 	cached: z.boolean().nullable(),
+	mode: z.enum(["api-keys", "credits", "hybrid"]),
+	usedMode: z.enum(["api-keys", "credits"]),
 });
 
 const querySchema = z.object({

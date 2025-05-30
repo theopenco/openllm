@@ -83,11 +83,6 @@ export async function insertLog(logData: LogInsertData): Promise<unknown> {
 			logData.usedProvider,
 		);
 	}
-	(logData as any).usedMode = determineUsedMode(logData.providerKeyId);
 	await publishToQueue(LOG_QUEUE, logData);
 	return 1; // Return 1 to match test expectations
-}
-
-function determineUsedMode(providerKeyId: string): "api-keys" | "credits" {
-	return providerKeyId.startsWith("env-") ? "credits" : "api-keys";
 }
