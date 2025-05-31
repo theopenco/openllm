@@ -64,8 +64,11 @@ function RouteComponent() {
 				password: values.password,
 			},
 			{
-				onSuccess: () => {
-					posthog.identify(values.email);
+				onSuccess: (ctx) => {
+					posthog.identify(ctx.data.user.id, {
+						email: ctx.data.user.email,
+						name: ctx.data.user.name,
+					});
 					posthog.capture("user_logged_in", {
 						method: "email",
 						email: values.email,

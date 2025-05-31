@@ -31,7 +31,12 @@ export function useUser(options?: UseUserOptions) {
 		gcTime: 0,
 	});
 
-	posthog.identify(data?.user.email);
+	if (data) {
+		posthog.identify(data.user.id, {
+			email: data.user.email,
+			name: data.user.name,
+		});
+	}
 
 	useEffect(() => {
 		if (!options?.redirectTo || !options?.redirectWhen) {

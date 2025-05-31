@@ -61,8 +61,11 @@ function RouteComponent() {
 				callbackURL: "/onboarding",
 			},
 			{
-				onSuccess: () => {
-					posthog.identify(values.email);
+				onSuccess: (ctx) => {
+					posthog.identify(ctx.data.user.id, {
+						email: ctx.data.user.email,
+						name: ctx.data.user.name,
+					});
 					posthog.capture("user_signed_up", {
 						email: values.email,
 						name: values.name,
