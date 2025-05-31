@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db, eq, sql, tables } from "@openllm/db";
+import { db, eq, tables } from "@openllm/db";
 import { HTTPException } from "hono/http-exception";
 import Stripe from "stripe";
 import { z } from "zod";
@@ -526,21 +526,6 @@ payments.openapi(topUpWithSavedMethod, async (c) => {
 				organizationId: userOrganization.organization.id,
 			},
 		});
-
-		// If payment is successful, immediately add credits to the organization
-		if (paymentIntent.status === "succeeded") {
-			await db
-				.update(tables.organization)
-				.set({
-					credits: sql`${tables.organization.credits} + ${amount}`,
-					updatedAt: new Date(),
-				})
-				.where(eq(tables.organization.id, userOrganization.organization.id));
-
-			console.log(
-				`Added ${amount} credits to organization ${userOrganization.organization.id}`,
-			);
-		}
 
 		return c.json({
 			success: true,
