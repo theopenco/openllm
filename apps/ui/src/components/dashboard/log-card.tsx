@@ -100,7 +100,9 @@ export function LogCard({ log }: { log: Log }) {
 						</div>
 						<div className="flex items-center gap-1">
 							<Coins className="h-3.5 w-3.5" />
-							<span>{log.cost ? `$${log.cost.toFixed(6)}` : "?"}</span>
+							<span>
+								{log.cost ? `$${log.cost.toFixed(6)}` : log.cached ? "$0" : "?"}
+							</span>
 						</div>
 						<span className="ml-auto">{formattedTime}</span>
 					</div>

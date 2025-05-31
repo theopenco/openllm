@@ -438,7 +438,11 @@ export interface paths {
 								frequencyPenalty: number | null;
 								presencePenalty: number | null;
 								hasError: boolean | null;
-								errorDetails?: unknown;
+								errorDetails: {
+									statusCode: number;
+									statusText: string;
+									responseText: string;
+								} | null;
 								cost: number | null;
 								inputCost: number | null;
 								outputCost: number | null;

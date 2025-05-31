@@ -30,5 +30,6 @@ jobs:
   e2e:
     uses: ./.github/workflows/run.yml
     secrets: inherit
+    if: ${{ github.actor != 'dependabot[bot]' }}
     with:
       cmd: pnpm run setup && pnpm test:e2e
