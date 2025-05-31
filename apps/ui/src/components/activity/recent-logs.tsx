@@ -1,4 +1,3 @@
-import { UnifiedFinishReason } from "@openllm/db";
 import { models, providers } from "@openllm/models";
 import { useState } from "react";
 
@@ -16,6 +15,15 @@ import {
 } from "@/lib/components/select";
 import { $api } from "@/lib/fetch-client";
 
+const UnifiedFinishReason = {
+	COMPLETED: "completed",
+	LENGTH_LIMIT: "length_limit",
+	CONTENT_FILTER: "content_filter",
+	GATEWAY_ERROR: "gateway_error",
+	UPSTREAM_ERROR: "upstream_error",
+	CANCELED: "canceled",
+	UNKNOWN: "unknown",
+} as const;
 const FINISH_REASONS = ["stop", "length", "error", "content_filter"];
 
 export function RecentLogs() {
