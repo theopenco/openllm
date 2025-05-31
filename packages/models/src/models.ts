@@ -54,13 +54,13 @@ export let models = [
 		],
 	},
 	{
-		model: "gpt-3.5-turbo",
+		model: "gpt-4o-mini",
 		providers: [
 			{
 				providerId: "openai",
-				modelName: "gpt-3.5-turbo",
-				inputPrice: 0.5 / 1e6, // $0.50 per 1M tokens
-				outputPrice: 1.5 / 1e6, // $1.50 per 1M tokens
+				modelName: "gpt-4o-mini",
+				inputPrice: 0.15 / 1e6, // $0.15 per 1M tokens
+				outputPrice: 0.6 / 1e6, // $0.60 per 1M tokens
 			},
 		],
 		jsonOutput: true,
@@ -91,13 +91,13 @@ export let models = [
 		jsonOutput: true,
 	},
 	{
-		model: "gpt-4o-mini",
+		model: "gpt-3.5-turbo",
 		providers: [
 			{
 				providerId: "openai",
-				modelName: "gpt-4o-mini",
-				inputPrice: 0.15 / 1e6, // $0.15 per 1M tokens
-				outputPrice: 0.6 / 1e6, // $0.60 per 1M tokens
+				modelName: "gpt-3.5-turbo",
+				inputPrice: 0.5 / 1e6, // $0.50 per 1M tokens
+				outputPrice: 1.5 / 1e6, // $1.50 per 1M tokens
 			},
 		],
 		jsonOutput: true,
