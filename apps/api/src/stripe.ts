@@ -3,6 +3,7 @@ import { db, eq, sql, tables } from "@openllm/db";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
+import { posthog } from "./posthog";
 import { stripe } from "./routes/payments";
 
 import type { ServerTypes } from "./vars";
@@ -140,6 +141,16 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
 		description: "Payment received via Stripe",
 		createdAt: new Date(),
 		updatedAt: new Date(),
+	});
+
+	posthog.capture({
+		distinctId: organizationId,
+		event: "credits_purchased",
+		properties: {
+			amount: amountInDollars,
+			source: "payment_intent",
+			organizationId,
+		},
 	});
 
 	console.log(
