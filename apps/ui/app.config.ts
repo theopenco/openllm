@@ -25,21 +25,6 @@ export default defineConfig({
 		server: {
 			allowedHosts: ["dev.llmgateway.io"],
 		},
-		build: {
-			rollupOptions: {
-				external: [
-					"cloudflare:sockets",
-					"node:net",
-					"node:tls",
-					"node:fs",
-					"node:path",
-					"node:crypto",
-					"node:stream",
-					"node:util",
-					"node:dns",
-				],
-			},
-		},
 		plugins: [
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
