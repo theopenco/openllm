@@ -81,28 +81,6 @@ async function seed() {
 		organizationId: "test-org-id",
 	});
 
-	// Insert additional provider keys referenced by logs
-	await upsert(tables.providerKey, {
-		id: "anthropic-key-id",
-		token: "test-anthropic-token",
-		provider: "anthropic",
-		organizationId: "test-org-id",
-	});
-
-	await upsert(tables.providerKey, {
-		id: "inference-key-id",
-		token: "test-inference-token",
-		provider: "inference.net",
-		organizationId: "test-org-id",
-	});
-
-	await upsert(tables.providerKey, {
-		id: "google-key-id",
-		token: "test-google-token",
-		provider: "google-vertex",
-		organizationId: "test-org-id",
-	});
-
 	// Insert logs
 	await Promise.all(logs.map((log) => upsert(tables.log, log)));
 }

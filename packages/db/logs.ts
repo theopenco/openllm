@@ -18,6 +18,7 @@ export const logs: Log[] = [
 		responseSize: 250,
 		content: "Failed to process request due to server error",
 		finishReason: "error",
+		unifiedFinishReason: "upstream_error",
 		promptTokens: "45",
 		completionTokens: "0",
 		totalTokens: "45",
@@ -55,6 +56,7 @@ export const logs: Log[] = [
 		responseSize: 1000,
 		content: "Test response content",
 		finishReason: "stop",
+		unifiedFinishReason: "stop",
 		promptTokens: "10",
 		completionTokens: "20",
 		totalTokens: "30",
@@ -97,6 +99,7 @@ export const logs: Log[] = [
 		content:
 			"I've analyzed your code and found several potential optimizations. First, you're creating multiple database connections which can lead to connection pool exhaustion. Second, your query isn't using indexes effectively. I recommend adding an index on the 'created_at' column and restructuring your query to use a JOIN instead of a subquery. This should significantly improve performance for large datasets.",
 		finishReason: "stop",
+		unifiedFinishReason: "stop",
 		promptTokens: "512",
 		completionTokens: "128",
 		totalTokens: "640",
@@ -133,6 +136,7 @@ export const logs: Log[] = [
 		content:
 			"Here's a comprehensive React component that implements the data visualization dashboard you described. I've included responsive design considerations, accessibility features, and proper TypeScript typing throughout. The component uses React hooks for state management and includes error handling for API failures. I've also added detailed comments to explain the implementation choices.",
 		finishReason: "stop",
+		unifiedFinishReason: "stop",
 		promptTokens: "1024",
 		completionTokens: "2048",
 		totalTokens: "3072",
@@ -181,6 +185,7 @@ export const logs: Log[] = [
 		content:
 			"To fix this CSS issue, you need to add 'position: relative' to the parent container and then use 'position: absolute' with appropriate top/left values for the child element. Also, make sure to set a z-index if you want to control stacking order.",
 		finishReason: "stop",
+		unifiedFinishReason: "stop",
 		promptTokens: "156",
 		completionTokens: "89",
 		totalTokens: "245",
@@ -234,6 +239,7 @@ export const logs: Log[] = [
 		content:
 			"I've reviewed your machine learning pipeline and identified several areas for improvement. Your feature engineering approach could benefit from dimensionality reduction techniques like PCA or t-SNE before feeding data into your model. Additionally, your current model architecture might be suffering from overfitting - I suggest implementing dropout layers and regularization. Finally, your evaluation metrics should include precision-recall curves since you're dealing with an imbalanced dataset.",
 		finishReason: "stop",
+		unifiedFinishReason: "stop",
 		promptTokens: "789",
 		completionTokens: "432",
 		totalTokens: "1221",
@@ -282,6 +288,7 @@ export const logs: Log[] = [
 		content:
 			"Based on your requirements, I've created a Docker Compose configuration that sets up a development environment with PostgreSQL, Redis, and your Node.js application. The configuration includes volume mounts for data persistence, environment variables for configuration, and proper networking between services. I've also added health checks to ensure dependencies are ready before your application starts.",
 		finishReason: "stop",
+		unifiedFinishReason: "stop",
 		promptTokens: "345",
 		completionTokens: "567",
 		totalTokens: "912",
@@ -315,6 +322,7 @@ export const logs: Log[] = [
 		content:
 			"The UI mockup you've shared has several usability issues. The contrast ratio between the text and background doesn't meet WCAG accessibility standards. The navigation menu items are too close together, making them difficult to tap on mobile devices. I also notice that the form lacks proper validation indicators and the submit button doesn't have a clear hover state. I recommend increasing text contrast, adding more padding between navigation items, implementing clear form validation states, and enhancing button interactivity.",
 		finishReason: "stop",
+		unifiedFinishReason: "stop",
 		promptTokens: "1543",
 		completionTokens: "321",
 		totalTokens: "1864",
@@ -346,6 +354,7 @@ export const logs: Log[] = [
 		content:
 			"Your Kubernetes deployment is experiencing issues due to resource constraints. The pods are being terminated because they're exceeding their memory limits. I recommend increasing the memory request and limit in your deployment YAML. Additionally, you should implement horizontal pod autoscaling based on memory utilization to handle varying loads. Finally, consider implementing a liveness probe with appropriate parameters to prevent Kubernetes from killing pods during temporary spikes.",
 		finishReason: "stop",
+		unifiedFinishReason: "stop",
 		promptTokens: "432",
 		completionTokens: "321",
 		totalTokens: "753",
@@ -377,6 +386,7 @@ export const logs: Log[] = [
 		content:
 			"I've analyzed your sales data and created visualizations showing trends over time. There's a clear seasonal pattern with peaks in December and July. Your year-over-year growth is approximately 12.3%, but profit margins have decreased by 2.1% in the same period. The best-performing product category is 'Electronics' with 34% of total revenue, while 'Home Goods' has the highest profit margin at 28%. I've also identified potential inventory optimization opportunities that could reduce carrying costs by approximately 15%.",
 		finishReason: "stop",
+		unifiedFinishReason: "stop",
 		promptTokens: "2345",
 		completionTokens: "1234",
 		totalTokens: "3579",
@@ -408,6 +418,7 @@ export const logs: Log[] = [
 		content:
 			"To implement JWT authentication in your Express.js API, you'll need to: 1) Install the jsonwebtoken package, 2) Create a middleware function to verify tokens, 3) Generate tokens during login, and 4) Apply the middleware to protected routes. I've included sample code for each step below.",
 		finishReason: "stop",
+		unifiedFinishReason: "stop",
 		promptTokens: "123",
 		completionTokens: "234",
 		totalTokens: "357",
@@ -468,6 +479,7 @@ export const logs: Log[] = [
 		content:
 			"Here's a Python function that implements the algorithm you described. It has O(n log n) time complexity and O(n) space complexity. I've included comments to explain the key steps and added error handling for edge cases.",
 		finishReason: "length",
+		unifiedFinishReason: "length_limit",
 		promptTokens: "345",
 		completionTokens: "500",
 		totalTokens: "845",
