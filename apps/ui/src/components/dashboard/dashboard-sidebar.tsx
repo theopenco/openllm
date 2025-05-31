@@ -10,6 +10,7 @@ import {
 	Activity,
 	KeyRound,
 } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 
 import { ModeToggle } from "@/components/mode-toggle";
 import { useUser } from "@/hooks/useUser";
@@ -34,6 +35,7 @@ export function DashboardSidebar() {
 	const { location } = useRouterState();
 	const { user } = useUser();
 	const navigate = useNavigate();
+	const posthog = usePostHog();
 
 	const isActive = (path: string) => {
 		return location.pathname === path;
@@ -122,10 +124,12 @@ export function DashboardSidebar() {
 						<div className="text-sm">
 							<div className="font-medium flex items-center gap-2">
 								{user?.name}
+
 								<LogOutIcon
 									className="cursor-pointer"
 									size={14}
 									onClick={async () => {
+										posthog.reset();
 										await signOut({
 											fetchOptions: {
 												onSuccess: () => {

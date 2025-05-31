@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronUp, Settings, User2 } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 
 import { useUser } from "@/hooks/useUser";
 import { signOut } from "@/lib/auth-client";
@@ -40,6 +41,7 @@ const items = [
 export function AppSidebar() {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
+	const posthog = usePostHog();
 
 	const { user, isLoading } = useUser({
 		redirectTo: "/login",
@@ -47,6 +49,7 @@ export function AppSidebar() {
 	});
 
 	const logout = async () => {
+		posthog.reset();
 		await signOut({
 			fetchOptions: {
 				onSuccess: () => {
