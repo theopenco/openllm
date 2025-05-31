@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Copy } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 
 import { Button } from "@/lib/components/button";
@@ -25,6 +26,7 @@ export function CreateApiKeyDialog({
 	children: React.ReactNode;
 }) {
 	const queryClient = useQueryClient();
+	const posthog = usePostHog();
 	const [open, setOpen] = useState(false);
 	const [step, setStep] = useState<"form" | "created">("form");
 	const [name, setName] = useState("");
@@ -56,15 +58,11 @@ export function CreateApiKeyDialog({
 
 					const queryKey = $api.queryOptions("get", "/keys/api").queryKey;
 
-					queryClient.setQueryData(queryKey, (oldData: any) => {
-						if (!oldData) {
-							return { apiKeys: [newCachedKey] };
-						}
+					queryClient.invalidateQueries({ queryKey });
 
-						return {
-							...oldData,
-							apiKeys: [newCachedKey, ...oldData.apiKeys],
-						};
+					posthog.capture("api_key_created", {
+						description: createdKey.description,
+						keyId: createdKey.id,
 					});
 
 					setApiKey(data.apiKey.token);

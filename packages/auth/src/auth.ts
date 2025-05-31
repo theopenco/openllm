@@ -26,7 +26,7 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	plugins: [
 		passkey({
 			rpID: process.env.PASSKEY_RP_ID || "localhost",
-			rpName: process.env.PASSKEY_RP_NAME || "OpenLLM",
+			rpName: process.env.PASSKEY_RP_NAME || "LLMGateway",
 			origin: uiUrl,
 		}),
 	],

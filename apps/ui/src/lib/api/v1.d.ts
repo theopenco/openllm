@@ -413,12 +413,12 @@ export interface paths {
 							/** @description Array of log entries */
 							logs: {
 								id: string;
+								requestId: string;
 								createdAt: string;
 								updatedAt: string;
 								organizationId: string;
 								projectId: string;
 								apiKeyId: string;
-								providerKeyId: string;
 								duration: number;
 								requestedModel: string;
 								requestedProvider: string | null;
@@ -426,6 +426,7 @@ export interface paths {
 								usedProvider: string;
 								responseSize: number;
 								content: string | null;
+								unifiedFinishReason: string | null;
 								finishReason: string | null;
 								promptTokens: string | null;
 								completionTokens: string | null;
@@ -437,7 +438,11 @@ export interface paths {
 								frequencyPenalty: number | null;
 								presencePenalty: number | null;
 								hasError: boolean | null;
-								errorDetails?: unknown;
+								errorDetails: {
+									statusCode: number;
+									statusText: string;
+									responseText: string;
+								} | null;
 								cost: number | null;
 								inputCost: number | null;
 								outputCost: number | null;
@@ -445,6 +450,10 @@ export interface paths {
 								canceled: boolean | null;
 								streamed: boolean | null;
 								cached: boolean | null;
+								/** @enum {string} */
+								mode: "api-keys" | "credits" | "hybrid";
+								/** @enum {string} */
+								usedMode: "api-keys" | "credits";
 							}[];
 							/** @description Pagination metadata */
 							pagination: {
@@ -765,7 +774,7 @@ export interface paths {
 								baseUrl: string | null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
-								projectId: string;
+								organizationId: string;
 								maskedToken: string;
 							}[];
 						};
@@ -788,6 +797,7 @@ export interface paths {
 						token: string;
 						/** Format: uri */
 						baseUrl?: string;
+						organizationId: string;
 					};
 				};
 			};
@@ -807,7 +817,7 @@ export interface paths {
 								baseUrl: string | null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
-								projectId: string;
+								organizationId: string;
 								token: string;
 							};
 						};
@@ -913,7 +923,7 @@ export interface paths {
 								baseUrl: string | null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
-								projectId: string;
+								organizationId: string;
 								maskedToken: string;
 							};
 						};

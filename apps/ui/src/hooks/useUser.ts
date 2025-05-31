@@ -1,4 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { usePostHog } from "posthog-js/react";
+import { useEffect } from "react";
+
+import { $api } from "@/lib/fetch-client";
 
 const API_BASE = "/api/user";
 
@@ -10,6 +15,58 @@ export interface UserUpdateData {
 export interface PasswordUpdateData {
 	currentPassword: string;
 	newPassword: string;
+}
+
+export interface UseUserOptions {
+	redirectTo?: string;
+	redirectWhen?: "authenticated" | "unauthenticated";
+}
+
+export function useUser(options?: UseUserOptions) {
+	const posthog = usePostHog();
+	const navigate = useNavigate();
+
+	const { data, isLoading, error } = $api.useQuery("get", "/user/me", {
+		retry: 0,
+		gcTime: 0,
+	});
+
+	posthog.identify(data?.user.email);
+
+	useEffect(() => {
+		if (!options?.redirectTo || !options?.redirectWhen) {
+			return;
+		}
+
+		const { redirectTo, redirectWhen } = options;
+		const hasUser = !!data?.user;
+
+		if (redirectWhen === "authenticated" && hasUser) {
+			navigate({ to: redirectTo });
+		} else if (
+			redirectWhen === "unauthenticated" &&
+			!isLoading &&
+			!hasUser &&
+			!error
+		) {
+			navigate({ to: redirectTo });
+		}
+	}, [
+		data?.user,
+		isLoading,
+		error,
+		navigate,
+		options?.redirectTo,
+		options?.redirectWhen,
+		options,
+	]);
+
+	return {
+		user: data?.user || null,
+		isLoading,
+		error,
+		data,
+	};
 }
 
 export function useUpdateUser() {

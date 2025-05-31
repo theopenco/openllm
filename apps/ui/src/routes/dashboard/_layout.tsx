@@ -1,9 +1,10 @@
-import { Outlet, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Outlet, createFileRoute } from "@tanstack/react-router";
+import { usePostHog } from "posthog-js/react";
 import { useEffect } from "react";
 
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { MobileHeader } from "@/components/dashboard/mobile-header";
-import { useSession } from "@/lib/auth-client";
+import { useUser } from "@/hooks/useUser";
 import { SidebarProvider } from "@/lib/components/sidebar";
 
 export const Route = createFileRoute("/dashboard/_layout")({
@@ -11,14 +12,12 @@ export const Route = createFileRoute("/dashboard/_layout")({
 });
 
 function RouteComponent() {
-	const navigate = useNavigate();
-	const session = useSession();
+	const posthog = usePostHog();
+	useUser({ redirectTo: "/login", redirectWhen: "unauthenticated" });
 
 	useEffect(() => {
-		if (!session.isPending && !session.data?.user) {
-			navigate({ to: "/login" });
-		}
-	}, [session.data, session.isPending, navigate]);
+		posthog.capture("page_viewed_dashboard");
+	}, [posthog]);
 
 	return (
 		<SidebarProvider>

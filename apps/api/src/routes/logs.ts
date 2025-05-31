@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db } from "@openllm/db";
+import { db, errorDetails } from "@openllm/db";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -11,12 +11,12 @@ export const logs = new OpenAPIHono<ServerTypes>();
 // Using z.object directly instead of createSelectSchema due to compatibility issues
 const logSchema = z.object({
 	id: z.string(),
+	requestId: z.string(),
 	createdAt: z.date(),
 	updatedAt: z.date(),
 	organizationId: z.string(),
 	projectId: z.string(),
 	apiKeyId: z.string(),
-	providerKeyId: z.string(),
 	duration: z.number(),
 	requestedModel: z.string(),
 	requestedProvider: z.string().nullable(),
@@ -24,6 +24,7 @@ const logSchema = z.object({
 	usedProvider: z.string(),
 	responseSize: z.number(),
 	content: z.string().nullable(),
+	unifiedFinishReason: z.string().nullable(),
 	finishReason: z.string().nullable(),
 	promptTokens: z.string().nullable(),
 	completionTokens: z.string().nullable(),
@@ -35,7 +36,7 @@ const logSchema = z.object({
 	frequencyPenalty: z.number().nullable(),
 	presencePenalty: z.number().nullable(),
 	hasError: z.boolean().nullable(),
-	errorDetails: z.any().nullable(),
+	errorDetails: errorDetails.nullable(),
 	cost: z.number().nullable(),
 	inputCost: z.number().nullable(),
 	outputCost: z.number().nullable(),
@@ -43,6 +44,8 @@ const logSchema = z.object({
 	canceled: z.boolean().nullable(),
 	streamed: z.boolean().nullable(),
 	cached: z.boolean().nullable(),
+	mode: z.enum(["api-keys", "credits", "hybrid"]),
+	usedMode: z.enum(["api-keys", "credits"]),
 });
 
 const querySchema = z.object({
@@ -266,8 +269,8 @@ logs.openapi(get, async (c) => {
 			});
 		}
 
-		// Check if the provider key belongs to one of the user's projects
-		if (!projectIds.includes(providerKey.projectId)) {
+		// Check if the provider key belongs to one of the user's organizations
+		if (!organizationIds.includes(providerKey.organizationId)) {
 			throw new HTTPException(403, {
 				message: "You don't have access to this provider key",
 			});

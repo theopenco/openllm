@@ -1,8 +1,10 @@
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "@tanstack/react-start/config";
+import copy from "rollup-plugin-copy";
 import svgr from "vite-plugin-svgr";
 import tsConfigPaths from "vite-tsconfig-paths";
 
+// noinspection JSUnusedGlobalSymbols
 export default defineConfig({
 	server: {
 		devProxy: {
@@ -29,6 +31,10 @@ export default defineConfig({
 			}),
 			tailwindcss(),
 			svgr(),
+			copy({
+				targets: [{ src: "static/*", dest: ".output/static" }],
+				hook: "writeBundle",
+			}),
 		],
 	},
 });

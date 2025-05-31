@@ -9,3 +9,4 @@ apps/**/*.js
 .idea/
 openapi.json
 .DS_Store
+.envrc

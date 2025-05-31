@@ -1,6 +1,5 @@
 import { db, tables } from "@openllm/db";
 import {
-	afterEach,
 	afterAll,
 	beforeEach,
 	beforeAll,
@@ -14,7 +13,7 @@ import {
 	startMockServer,
 	stopMockServer,
 } from "./test-utils/mock-openai-server";
-import { flushLogs, waitForLogs } from "./test-utils/test-helpers";
+import { clearCache, waitForLogs } from "./test-utils/test-helpers";
 
 describe("test", () => {
 	let mockServerUrl: string;
@@ -31,20 +30,27 @@ describe("test", () => {
 		stopMockServer();
 	});
 
-	afterEach(async () => {
+	beforeEach(async () => {
+		await clearCache();
+
 		await Promise.all([
+			db.delete(tables.log),
+			db.delete(tables.apiKey),
+			db.delete(tables.providerKey),
+		]);
+
+		await Promise.all([
+			db.delete(tables.userOrganization),
+			db.delete(tables.project),
+		]);
+
+		await Promise.all([
+			db.delete(tables.organization),
 			db.delete(tables.user),
 			db.delete(tables.account),
 			db.delete(tables.session),
 			db.delete(tables.verification),
-			db.delete(tables.organization),
-			db.delete(tables.userOrganization),
-			db.delete(tables.project),
-			db.delete(tables.apiKey),
-			db.delete(tables.providerKey),
-			db.delete(tables.log),
 		]);
-		await flushLogs();
 	});
 
 	beforeEach(async () => {
@@ -96,7 +102,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "llmgateway",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -203,7 +209,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -239,7 +245,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
-			projectId: "project-id",
+			organizationId: "org-id",
 		});
 
 		// This test will use the default provider (first in the list) for llama-3.3-70b-instruct
@@ -280,7 +286,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "openai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -333,7 +339,7 @@ describe("test", () => {
 		expect(res.status).toBe(400);
 		const errorMessage = await res.text();
 		expect(errorMessage).toMatchInlineSnapshot(
-			`"No API key set for provider: openai. Please add a provider key in your settings or add credits and switch to credits or hybrid mode."`,
+			`"{"error":true,"status":400,"message":"No API key set for provider: openai. Please add a provider key in your settings or add credits and switch to credits or hybrid mode."}"`,
 		);
 	});
 
@@ -351,7 +357,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "sk-test-key",
 			provider: "llmgateway",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -380,7 +386,7 @@ describe("test", () => {
 		const errorResponse = await res.json();
 		expect(errorResponse).toHaveProperty("error");
 		expect(errorResponse.error).toHaveProperty("message");
-		expect(errorResponse.error).toHaveProperty("type", "gateway_error");
+		expect(errorResponse.error).toHaveProperty("type", "upstream_error");
 
 		// Wait for the worker to process the log and check that the error was logged in the database
 		const logs = await waitForLogs(1);
@@ -388,7 +394,7 @@ describe("test", () => {
 
 		// Verify the log has the correct error fields
 		const errorLog = logs[0];
-		expect(errorLog.finishReason).toBe("gateway_error");
+		expect(errorLog.finishReason).toBe("upstream_error");
 	});
 
 	// test for inference.net provider
@@ -405,7 +411,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "inference-test-key",
 			provider: "inference.net",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -450,7 +456,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "kluster-test-key",
 			provider: "kluster.ai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -495,7 +501,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "inference-test-key",
 			provider: "inference.net",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 
@@ -569,7 +575,7 @@ describe("test", () => {
 			id: "provider-key-id",
 			token: "together-test-key",
 			provider: "together.ai",
-			projectId: "project-id",
+			organizationId: "org-id",
 			baseUrl: mockServerUrl,
 		});
 

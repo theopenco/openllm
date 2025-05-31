@@ -26,7 +26,8 @@
 				".vinxi/**",
 				"out/**",
 				"openapi.json"
-			]
+			],
+			"env": ["VITE_POSTHOG_KEY", "VITE_POSTHOG_HOST", "GITHUB_URL"]
 		},
 		"generate": {
 			"dependsOn": ["^generate"],

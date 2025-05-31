@@ -2,11 +2,13 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Loader2, KeySquare } from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { signIn, useSession } from "@/lib/auth-client";
+import { useUser } from "@/hooks/useUser";
+import { signIn } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Form,
@@ -32,15 +34,13 @@ export const Route = createFileRoute("/login")({
 
 function RouteComponent() {
 	const navigate = useNavigate();
+	const posthog = usePostHog();
 	const [isLoading, setIsLoading] = useState(false);
-	const session = useSession();
+	useUser({ redirectTo: "/dashboard", redirectWhen: "authenticated" });
 
-	// Redirect to dashboard if already logged in
 	useEffect(() => {
-		if (session.data?.user) {
-			navigate({ to: "/dashboard" });
-		}
-	}, [session.data, navigate]);
+		posthog.capture("page_viewed_login");
+	}, [posthog]);
 
 	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
@@ -65,6 +65,11 @@ function RouteComponent() {
 			},
 			{
 				onSuccess: () => {
+					posthog.identify(values.email);
+					posthog.capture("user_logged_in", {
+						method: "email",
+						email: values.email,
+					});
 					toast({ title: "Login successful" });
 					navigate({ to: "/dashboard" });
 				},
@@ -101,6 +106,7 @@ function RouteComponent() {
 				});
 				return;
 			}
+			posthog.capture("user_logged_in", { method: "passkey" });
 			toast({ title: "Login successful" });
 			navigate({ to: "/dashboard" });
 		} catch (error: any) {

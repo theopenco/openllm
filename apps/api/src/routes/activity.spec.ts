@@ -37,7 +37,7 @@ describe("activity endpoint", () => {
 			id: "test-provider-key-id",
 			token: "test-provider-token",
 			provider: "openai",
-			projectId: "test-project-id",
+			organizationId: "test-org-id",
 		});
 
 		// Insert some log entries with different dates
@@ -50,12 +50,12 @@ describe("activity endpoint", () => {
 		await db.insert(tables.log).values([
 			{
 				id: "log-1",
+				requestId: "log-1",
 				createdAt: today,
 				updatedAt: today,
 				organizationId: "test-org-id",
 				projectId: "test-project-id",
 				apiKeyId: "test-api-key-id",
-				providerKeyId: "test-provider-key-id",
 				duration: 100,
 				requestedModel: "gpt-4",
 				requestedProvider: "openai",
@@ -69,12 +69,12 @@ describe("activity endpoint", () => {
 			},
 			{
 				id: "log-2",
+				requestId: "log-2",
 				createdAt: today,
 				updatedAt: today,
 				organizationId: "test-org-id",
 				projectId: "test-project-id",
 				apiKeyId: "test-api-key-id",
-				providerKeyId: "test-provider-key-id",
 				duration: 200,
 				requestedModel: "gpt-3.5-turbo",
 				requestedProvider: "openai",
@@ -88,12 +88,12 @@ describe("activity endpoint", () => {
 			},
 			{
 				id: "log-3",
+				requestId: "log-3",
 				createdAt: yesterday,
 				updatedAt: yesterday,
 				organizationId: "test-org-id",
 				projectId: "test-project-id",
 				apiKeyId: "test-api-key-id",
-				providerKeyId: "test-provider-key-id",
 				duration: 150,
 				requestedModel: "gpt-4",
 				requestedProvider: "openai",
@@ -107,12 +107,12 @@ describe("activity endpoint", () => {
 			},
 			{
 				id: "log-4",
+				requestId: "log-4",
 				createdAt: twoDaysAgo,
 				updatedAt: twoDaysAgo,
 				organizationId: "test-org-id",
 				projectId: "test-project-id",
 				apiKeyId: "test-api-key-id",
-				providerKeyId: "test-provider-key-id",
 				duration: 180,
 				requestedModel: "gpt-3.5-turbo",
 				requestedProvider: "openai",

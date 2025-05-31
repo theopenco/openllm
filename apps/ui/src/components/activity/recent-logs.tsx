@@ -94,7 +94,18 @@ export function RecentLogs() {
 			) : (
 				<div className="space-y-4">
 					{data?.logs.length ? (
-						data.logs.map((log) => <LogCard key={log.id} log={log} />)
+						data.logs.map((log) => (
+							<LogCard
+								key={log.id}
+								log={{
+									...log,
+									createdAt: new Date(log.createdAt),
+									updatedAt: new Date(log.updatedAt),
+									messages: log.messages as any,
+									errorDetails: log.errorDetails as any,
+								}}
+							/>
+						))
 					) : (
 						<div className="py-4 text-center text-muted-foreground">
 							No logs found matching the selected filters.

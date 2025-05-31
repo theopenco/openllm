@@ -20,7 +20,10 @@ export function getUnifiedFinishReason(
 		return UnifiedFinishReason.CANCELED;
 	}
 	if (finishReason === "gateway_error") {
-		return UnifiedFinishReason.ERROR;
+		return UnifiedFinishReason.GATEWAY_ERROR;
+	}
+	if (finishReason === "upstream_error") {
+		return UnifiedFinishReason.UPSTREAM_ERROR;
 	}
 
 	switch (provider) {
@@ -80,11 +83,6 @@ export async function insertLog(logData: LogInsertData): Promise<unknown> {
 			logData.usedProvider,
 		);
 	}
-	(logData as any).usedMode = determineUsedMode(logData.providerKeyId);
 	await publishToQueue(LOG_QUEUE, logData);
 	return 1; // Return 1 to match test expectations
-}
-
-function determineUsedMode(providerKeyId: string): "api-keys" | "credits" {
-	return providerKeyId.startsWith("env-") ? "credits" : "api-keys";
 }

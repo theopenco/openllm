@@ -17,6 +17,7 @@ const DEFAULT_TOKENIZER_MODEL = "gpt-4";
  */
 export function calculateCosts(
 	model: Model,
+	provider: string,
 	promptTokens: number | null,
 	completionTokens: number | null,
 	fullOutput?: {
@@ -95,8 +96,24 @@ export function calculateCosts(
 		};
 	}
 
-	const inputPrice = modelInfo.inputPrice || 0;
-	const outputPrice = modelInfo.outputPrice || 0;
+	// Find the provider-specific pricing
+	const providerInfo = modelInfo.providers.find(
+		(p) => p.providerId === provider,
+	);
+
+	if (!providerInfo) {
+		return {
+			inputCost: null,
+			outputCost: null,
+			totalCost: null,
+			promptTokens: calculatedPromptTokens,
+			completionTokens: calculatedCompletionTokens,
+			estimatedCost: isEstimated,
+		};
+	}
+
+	const inputPrice = providerInfo.inputPrice || 0;
+	const outputPrice = providerInfo.outputPrice || 0;
 
 	const inputCost = calculatedPromptTokens * inputPrice;
 	const outputCost = calculatedCompletionTokens * outputPrice;
