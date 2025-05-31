@@ -3,7 +3,17 @@ import type { InferInsertModel } from "drizzle-orm";
 
 type Log = InferInsertModel<typeof tables.log>;
 
-export const logs: Log[] = [
+const defaultLogValues = {
+	hasError: false,
+	estimatedCost: false,
+	canceled: false,
+	streamed: false,
+	cached: false,
+	mode: "api-keys" as const,
+	usedMode: "api-keys" as const,
+};
+
+const rawLogs = [
 	{
 		id: "error-log-example",
 		requestId: "error-log-example",
@@ -35,6 +45,12 @@ export const logs: Log[] = [
 		inputCost: 0,
 		outputCost: 0,
 		hasError: true,
+		estimatedCost: false,
+		canceled: false,
+		streamed: false,
+		cached: false,
+		mode: "api-keys",
+		usedMode: "api-keys",
 		errorDetails: {
 			statusCode: 500,
 			statusText: "Internal Server Error",
@@ -83,6 +99,13 @@ export const logs: Log[] = [
 		cost: 0.06,
 		inputCost: 0.02,
 		outputCost: 0.04,
+		hasError: false,
+		estimatedCost: false,
+		canceled: false,
+		streamed: false,
+		cached: false,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-gpt4-1",
@@ -868,3 +891,8 @@ export const logs: Log[] = [
 		outputCost: 0.06,
 	},
 ];
+
+export const logs = rawLogs.map((log) => ({
+	...defaultLogValues,
+	...log,
+})) as Log[];
