@@ -54,7 +54,6 @@ export default defineConfig({
 				"drizzle-orm/node-postgres",
 				"pg-cloudflare",
 			],
-			noExternal: ["@openllm/db"],
 		},
 		build: {
 			rollupOptions: {
