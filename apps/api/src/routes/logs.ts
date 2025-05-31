@@ -70,6 +70,9 @@ const querySchema = z.object({
 	finishReason: z.string().optional().openapi({
 		description: "Filter logs by finish reason",
 	}),
+	unifiedFinishReason: z.string().optional().openapi({
+		description: "Filter logs by unified finish reason",
+	}),
 	provider: z.string().optional().openapi({
 		description: "Filter logs by provider",
 	}),
@@ -154,6 +157,7 @@ logs.openapi(get, async (c) => {
 		startDate,
 		endDate,
 		finishReason,
+		unifiedFinishReason,
 		provider,
 		model,
 		cursor,
@@ -308,6 +312,11 @@ logs.openapi(get, async (c) => {
 	// Add finish reason filter if provided
 	if (finishReason) {
 		logsWhere.finishReason = finishReason;
+	}
+
+	// Add unified finish reason filter if provided
+	if (unifiedFinishReason) {
+		logsWhere.unifiedFinishReason = unifiedFinishReason;
 	}
 
 	// Add apiKeyId filter if provided

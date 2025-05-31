@@ -1,3 +1,4 @@
+import { UnifiedFinishReason } from "@openllm/db";
 import { models, providers } from "@openllm/models";
 import { useState } from "react";
 
@@ -20,6 +21,9 @@ const FINISH_REASONS = ["stop", "length", "error", "content_filter"];
 export function RecentLogs() {
 	const [dateRange, setDateRange] = useState<DateRange | undefined>();
 	const [finishReason, setFinishReason] = useState<string | undefined>();
+	const [unifiedFinishReason, setUnifiedFinishReason] = useState<
+		string | undefined
+	>();
 	const [provider, setProvider] = useState<string | undefined>();
 	const [model, setModel] = useState<string | undefined>();
 
@@ -29,6 +33,7 @@ export function RecentLogs() {
 				orderBy: "createdAt_desc",
 				dateRange,
 				finishReason,
+				unifiedFinishReason,
 				provider,
 				model,
 			},
@@ -53,6 +58,26 @@ export function RecentLogs() {
 						{FINISH_REASONS.map((reason) => (
 							<SelectItem key={reason} value={reason}>
 								{reason}
+							</SelectItem>
+						))}
+					</SelectContent>
+				</Select>
+
+				<Select
+					onValueChange={setUnifiedFinishReason}
+					value={unifiedFinishReason}
+				>
+					<SelectTrigger>
+						<SelectValue placeholder="Filter by unified reason" />
+					</SelectTrigger>
+					<SelectContent>
+						<SelectItem value="all">All unified reasons</SelectItem>
+						{Object.entries(UnifiedFinishReason).map(([key, value]) => (
+							<SelectItem key={value} value={value}>
+								{key
+									.toLowerCase()
+									.replace(/_/g, " ")
+									.replace(/\b\w/g, (l) => l.toUpperCase())}
 							</SelectItem>
 						))}
 					</SelectContent>

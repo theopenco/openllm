@@ -389,6 +389,7 @@ export interface paths {
 					startDate?: string;
 					endDate?: string;
 					finishReason?: string;
+					unifiedFinishReason?: string;
 					provider?: string;
 					model?: string;
 					cursor?: string;

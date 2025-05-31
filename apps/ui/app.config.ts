@@ -25,6 +25,52 @@ export default defineConfig({
 		server: {
 			allowedHosts: ["dev.llmgateway.io"],
 		},
+		optimizeDeps: {
+			exclude: [
+				"cloudflare:sockets",
+				"node:net",
+				"node:tls",
+				"node:fs",
+				"node:path",
+				"node:crypto",
+				"node:stream",
+				"node:util",
+				"node:dns",
+				"drizzle-orm/node-postgres",
+				"pg-cloudflare",
+			],
+		},
+		ssr: {
+			external: [
+				"cloudflare:sockets",
+				"node:net",
+				"node:tls",
+				"node:fs",
+				"node:path",
+				"node:crypto",
+				"node:stream",
+				"node:util",
+				"node:dns",
+				"drizzle-orm/node-postgres",
+				"pg-cloudflare",
+			],
+			noExternal: ["@openllm/db"],
+		},
+		build: {
+			rollupOptions: {
+				external: [
+					"cloudflare:sockets",
+					"node:net",
+					"node:tls",
+					"node:fs",
+					"node:path",
+					"node:crypto",
+					"node:stream",
+					"node:util",
+					"node:dns",
+				],
+			},
+		},
 		plugins: [
 			tsConfigPaths({
 				projects: ["./tsconfig.json"],
