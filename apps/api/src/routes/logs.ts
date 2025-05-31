@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db } from "@openllm/db";
+import { db, errorDetails } from "@openllm/db";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -36,7 +36,7 @@ const logSchema = z.object({
 	frequencyPenalty: z.number().nullable(),
 	presencePenalty: z.number().nullable(),
 	hasError: z.boolean().nullable(),
-	errorDetails: z.any().nullable(),
+	errorDetails: errorDetails.nullable(),
 	cost: z.number().nullable(),
 	inputCost: z.number().nullable(),
 	outputCost: z.number().nullable(),

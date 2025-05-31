@@ -10,6 +10,9 @@ import {
 } from "drizzle-orm/pg-core";
 import { customAlphabet } from "nanoid";
 
+import type { errorDetails } from "./types";
+import type z from "zod";
+
 export const UnifiedFinishReason = {
 	COMPLETED: "completed",
 	LENGTH_LIMIT: "length_limit",
@@ -210,11 +213,7 @@ export const log = pgTable("log", {
 	frequencyPenalty: real(),
 	presencePenalty: real(),
 	hasError: boolean().default(false),
-	errorDetails: json().$type<{
-		statusCode: number;
-		statusText: string;
-		responseText: string;
-	}>(),
+	errorDetails: json().$type<z.infer<typeof errorDetails>>(),
 	cost: real(),
 	inputCost: real(),
 	outputCost: real(),
