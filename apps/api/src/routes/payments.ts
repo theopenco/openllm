@@ -527,6 +527,12 @@ payments.openapi(topUpWithSavedMethod, async (c) => {
 			},
 		});
 
+		if (paymentIntent.status !== "succeeded") {
+			throw new HTTPException(400, {
+				message: `Payment failed: ${paymentIntent.status}`,
+			});
+		}
+
 		return c.json({
 			success: true,
 		});
