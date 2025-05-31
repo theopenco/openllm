@@ -25,19 +25,6 @@ export default defineConfig({
 		server: {
 			allowedHosts: ["dev.llmgateway.io"],
 		},
-		optimizeDeps: {
-			exclude: [
-				"cloudflare:sockets",
-				"node:net",
-				"node:tls",
-				"node:fs",
-				"node:path",
-				"node:crypto",
-				"node:stream",
-				"node:util",
-				"node:dns",
-			],
-		},
 		build: {
 			rollupOptions: {
 				external: [
