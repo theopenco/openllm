@@ -33,11 +33,25 @@ export interface ModelDefinition {
 export let models = [
 	{
 		model: "custom", // custom provider which expects base URL to be set
-		providers: [{ providerId: "llmgateway", modelName: "custom" }],
+		providers: [
+			{
+				providerId: "llmgateway",
+				modelName: "custom",
+				inputPrice: undefined,
+				outputPrice: undefined,
+			},
+		],
 	},
 	{
 		model: "auto", // native automatic routing
-		providers: [{ providerId: "llmgateway", modelName: "auto" }],
+		providers: [
+			{
+				providerId: "llmgateway",
+				modelName: "auto",
+				inputPrice: undefined,
+				outputPrice: undefined,
+			},
+		],
 	},
 	{
 		model: "gpt-3.5-turbo",

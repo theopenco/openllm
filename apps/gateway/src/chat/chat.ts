@@ -689,8 +689,8 @@ chat.openapi(completions, async (c) => {
 						(p) => p.providerId === provider.providerId,
 					);
 					const totalPrice =
-						(((providerInfo as any)?.inputPrice || 0) +
-							((providerInfo as any)?.outputPrice || 0)) /
+						((providerInfo?.inputPrice || 0) +
+							(providerInfo?.outputPrice || 0)) /
 						2;
 
 					if (totalPrice < lowestPrice) {
