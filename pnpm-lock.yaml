@@ -88,11 +88,11 @@ importers:
         specifier: ^0.5.1
         version: 0.5.1(hono@4.7.10)
       '@hono/zod-openapi':
-        specifier: ^0.19.6
-        version: 0.19.8(hono@4.7.10)(zod@3.24.3)
+        specifier: ^0.19.8
+        version: 0.19.8(hono@4.7.10)(zod@3.25.42)
       '@hono/zod-validator':
         specifier: ^0.5.0
-        version: 0.5.0(hono@4.7.10)(zod@3.24.3)
+        version: 0.5.0(hono@4.7.10)(zod@3.25.42)
       '@openllm/auth':
         specifier: workspace:*
         version: link:../../packages/auth
@@ -106,8 +106,8 @@ importers:
         specifier: 1.2.7
         version: 1.2.7
       drizzle-zod:
-        specifier: 0.7.1
-        version: 0.7.1(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1))(zod@3.24.3)
+        specifier: 0.8.2
+        version: 0.8.2(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1))(zod@3.25.42)
       gateway:
         specifier: workspace:*
         version: link:../gateway
@@ -116,7 +116,7 @@ importers:
         version: 4.7.10
       hono-openapi:
         specifier: ^0.4.6
-        version: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.24.3))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.24.3))(zod@3.24.3)
+        version: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.25.42))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.25.42))(zod@3.25.42)
       posthog-node:
         specifier: 4.18.0
         version: 4.18.0
@@ -124,11 +124,11 @@ importers:
         specifier: 18.1.1
         version: 18.1.1(@types/node@22.15.29)
       zod:
-        specifier: 3.24.3
-        version: 3.24.3
+        specifier: 3.25.42
+        version: 3.25.42
       zod-openapi:
         specifier: ^4.2.4
-        version: 4.2.4(zod@3.24.3)
+        version: 4.2.4(zod@3.25.42)
     devDependencies:
       '@types/node':
         specifier: ^22.15.17
@@ -208,10 +208,10 @@ importers:
         version: 0.5.1(hono@4.7.10)
       '@hono/zod-openapi':
         specifier: ^0.19.6
-        version: 0.19.8(hono@4.7.10)(zod@3.24.3)
+        version: 0.19.8(hono@4.7.10)(zod@3.25.42)
       '@hono/zod-validator':
         specifier: ^0.5.0
-        version: 0.5.0(hono@4.7.10)(zod@3.24.3)
+        version: 0.5.0(hono@4.7.10)(zod@3.25.42)
       '@openllm/db':
         specifier: workspace:*
         version: file:packages/db(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)
@@ -226,7 +226,7 @@ importers:
         version: 4.7.10
       hono-openapi:
         specifier: ^0.4.6
-        version: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.24.3))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.24.3))(zod@3.24.3)
+        version: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.25.42))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.25.42))(zod@3.25.42)
       ioredis:
         specifier: 5.6.1
         version: 5.6.1
@@ -234,11 +234,11 @@ importers:
         specifier: 5.0.1
         version: 5.0.1
       zod:
-        specifier: 3.24.3
-        version: 3.24.3
+        specifier: 3.25.42
+        version: 3.25.42
       zod-openapi:
         specifier: ^4.2.4
-        version: 4.2.4(zod@3.24.3)
+        version: 4.2.4(zod@3.25.42)
     devDependencies:
       '@types/node':
         specifier: ^22.15.17
@@ -403,8 +403,8 @@ importers:
         specifier: 4.3.0
         version: 4.3.0(rollup@4.41.1)(typescript@5.8.3)(vite@6.3.5(@types/node@22.15.29)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.40.0)(tsx@4.19.4)(yaml@2.8.0))
       zod:
-        specifier: 3.24.3
-        version: 3.24.3
+        specifier: 3.25.42
+        version: 3.25.42
     devDependencies:
       '@tailwindcss/vite':
         specifier: ^4.1.4
@@ -454,6 +454,9 @@ importers:
       drizzle-orm:
         specifier: 1.0.0-beta.1-c0277c0
         version: 1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0)
+      drizzle-zod:
+        specifier: 0.8.2
+        version: 0.8.2(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(zod@3.25.42)
       nanoid:
         specifier: 5.1.5
         version: 5.1.5
@@ -461,8 +464,11 @@ importers:
         specifier: ^8.14.1
         version: 8.16.0
       zod:
-        specifier: 3.24.3
-        version: 3.24.3
+        specifier: 3.25.42
+        version: 3.25.42
+      zod-openapi:
+        specifier: ^4.2.4
+        version: 4.2.4(zod@3.25.42)
     devDependencies:
       '@types/pg':
         specifier: ^8.11.12
@@ -5056,11 +5062,11 @@ packages:
       sqlite3:
         optional: true
 
-  drizzle-zod@0.7.1:
-    resolution: {integrity: sha512-nZzALOdz44/AL2U005UlmMqaQ1qe5JfanvLujiTHiiT8+vZJTBFhj3pY4Vk+L6UWyKFfNmLhk602Hn4kCTynKQ==}
+  drizzle-zod@0.8.2:
+    resolution: {integrity: sha512-9Do/16OjFFNrQDZgvMtxtDDwKWbFOxUAIwNPKX98SfxrP8H18vhN1BvNXbhelLcdgCE7GEaXDJqBjMExSkhpkA==}
     peerDependencies:
       drizzle-orm: '>=0.36.0'
-      zod: '>=3.0.0'
+      zod: ^3.25.1
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -9154,11 +9160,8 @@ packages:
     peerDependencies:
       zod: ^3.21.4
 
-  zod@3.24.3:
-    resolution: {integrity: sha512-HhY1oqzWCQWuUqvBFnsyrtZRhyPeR7SUGv+C4+MsisMuVfSPx8HpwWqH8tRahSlt6M3PiFAcoeFhZAqIXTxoSg==}
-
-  zod@3.24.4:
-    resolution: {integrity: sha512-OdqJE9UDRPwWsrHjLN2F8bPxvwJBK22EHLWtanu0LSYr5YqzsaaW3RMgmjwr8Rypg5k+meEJdSPXJZXE/yqOMg==}
+  zod@3.25.42:
+    resolution: {integrity: sha512-PcALTLskaucbeHc41tU/xfjfhcz8z0GdhhDcSgrCTmSazUuqnYqiXO63M0QUBVwpBlsLsNVn5qHSC5Dw3KZvaQ==}
 
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
@@ -9235,10 +9238,10 @@ snapshots:
       '@types/json-schema': 7.0.15
       js-yaml: 4.1.0
 
-  '@asteasolutions/zod-to-openapi@7.3.0(zod@3.24.3)':
+  '@asteasolutions/zod-to-openapi@7.3.0(zod@3.25.42)':
     dependencies:
       openapi3-ts: 4.4.0
-      zod: 3.24.3
+      zod: 3.25.42
 
   '@babel/code-frame@7.26.2':
     dependencies:
@@ -10210,22 +10213,22 @@ snapshots:
     dependencies:
       hono: 4.7.10
 
-  '@hono/zod-openapi@0.19.8(hono@4.7.10)(zod@3.24.3)':
+  '@hono/zod-openapi@0.19.8(hono@4.7.10)(zod@3.25.42)':
     dependencies:
-      '@asteasolutions/zod-to-openapi': 7.3.0(zod@3.24.3)
-      '@hono/zod-validator': 0.7.0(hono@4.7.10)(zod@3.24.3)
+      '@asteasolutions/zod-to-openapi': 7.3.0(zod@3.25.42)
+      '@hono/zod-validator': 0.7.0(hono@4.7.10)(zod@3.25.42)
       hono: 4.7.10
-      zod: 3.24.3
+      zod: 3.25.42
 
-  '@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.24.3)':
+  '@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.25.42)':
     dependencies:
       hono: 4.7.10
-      zod: 3.24.3
+      zod: 3.25.42
 
-  '@hono/zod-validator@0.7.0(hono@4.7.10)(zod@3.24.3)':
+  '@hono/zod-validator@0.7.0(hono@4.7.10)(zod@3.25.42)':
     dependencies:
       hono: 4.7.10
-      zod: 3.24.3
+      zod: 3.25.42
 
   '@hookform/resolvers@5.0.1(react-hook-form@7.56.1(react@19.1.0))':
     dependencies:
@@ -10505,7 +10508,7 @@ snapshots:
       unixify: 1.0.0
       urlpattern-polyfill: 8.0.2
       yargs: 17.7.2
-      zod: 3.24.3
+      zod: 3.25.42
     transitivePeerDependencies:
       - encoding
       - rollup
@@ -10566,9 +10569,11 @@ snapshots:
   '@openllm/db@file:packages/db':
     dependencies:
       drizzle-orm: 1.0.0-beta.1-c0277c0(pg@8.14.1)
+      drizzle-zod: 0.8.2(drizzle-orm@1.0.0-beta.1-c0277c0(pg@8.14.1))(zod@3.25.42)
       nanoid: 5.1.5
       pg: 8.14.1
-      zod: 3.24.3
+      zod: 3.25.42
+      zod-openapi: 4.2.4(zod@3.25.42)
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
       - '@cloudflare/workers-types'
@@ -10602,9 +10607,11 @@ snapshots:
   '@openllm/db@file:packages/db(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)':
     dependencies:
       drizzle-orm: 1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1)
+      drizzle-zod: 0.8.2(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1))(zod@3.25.42)
       nanoid: 5.1.5
       pg: 8.14.1
-      zod: 3.24.3
+      zod: 3.25.42
+      zod-openapi: 4.2.4(zod@3.25.42)
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
       - '@cloudflare/workers-types'
@@ -12206,7 +12213,7 @@ snapshots:
       react-dom: 19.1.0(react@19.1.0)
       vinxi: 0.5.3(@types/node@22.15.29)(db0@0.3.2(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0)))(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(ioredis@5.6.1)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.40.0)(tsx@4.19.4)(yaml@2.8.0)
       vite: 6.3.5(@types/node@22.15.29)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.40.0)(tsx@4.19.4)(yaml@2.8.0)
-      zod: 3.24.3
+      zod: 3.25.42
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -12444,7 +12451,7 @@ snapshots:
       '@tanstack/virtual-file-routes': 1.115.0
       prettier: 3.5.3
       tsx: 4.19.4
-      zod: 3.24.3
+      zod: 3.25.42
     optionalDependencies:
       '@tanstack/react-router': 1.120.13(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
 
@@ -12466,7 +12473,7 @@ snapshots:
       babel-dead-code-elimination: 1.0.10
       chokidar: 3.6.0
       unplugin: 2.3.2
-      zod: 3.24.3
+      zod: 3.25.42
     optionalDependencies:
       '@tanstack/react-router': 1.120.13(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       vite: 6.3.5(@types/node@22.15.29)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.40.0)(tsx@4.19.4)(yaml@2.8.0)
@@ -13266,20 +13273,20 @@ snapshots:
     dependencies:
       '@hono/node-server': 1.14.3(hono@4.7.10)
       '@hono/swagger-ui': 0.5.1(hono@4.7.10)
-      '@hono/zod-openapi': 0.19.8(hono@4.7.10)(zod@3.24.3)
-      '@hono/zod-validator': 0.5.0(hono@4.7.10)(zod@3.24.3)
+      '@hono/zod-openapi': 0.19.8(hono@4.7.10)(zod@3.25.42)
+      '@hono/zod-validator': 0.5.0(hono@4.7.10)(zod@3.25.42)
       '@openllm/auth': file:packages/auth
       '@openllm/db': file:packages/db(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)
       bcrypt-ts: 7.0.0
       better-auth: 1.2.7
-      drizzle-zod: 0.7.1(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(zod@3.24.3)
+      drizzle-zod: 0.8.2(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(zod@3.25.42)
       gateway: file:apps/gateway(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(openapi-types@12.1.3)
       hono: 4.7.10
-      hono-openapi: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.24.3))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.24.3))(zod@3.24.3)
+      hono-openapi: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.25.42))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.25.42))(zod@3.25.42)
       posthog-node: 4.18.0
       stripe: 18.1.1(@types/node@22.15.29)
-      zod: 3.24.3
-      zod-openapi: 4.2.4(zod@3.24.3)
+      zod: 3.25.42
+      zod-openapi: 4.2.4(zod@3.25.42)
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
       - '@cloudflare/workers-types'
@@ -13515,7 +13522,7 @@ snapshots:
       jose: 5.10.0
       kysely: 0.27.6
       nanostores: 0.11.4
-      zod: 3.24.3
+      zod: 3.25.42
 
   better-call@1.0.9:
     dependencies:
@@ -14253,15 +14260,20 @@ snapshots:
     optionalDependencies:
       pg: 8.14.1
 
-  drizzle-zod@0.7.1(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1))(zod@3.24.3):
+  drizzle-zod@0.8.2(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1))(zod@3.25.42):
     dependencies:
       drizzle-orm: 1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1)
-      zod: 3.24.3
+      zod: 3.25.42
 
-  drizzle-zod@0.7.1(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(zod@3.24.3):
+  drizzle-zod@0.8.2(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(zod@3.25.42):
     dependencies:
       drizzle-orm: 1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0)
-      zod: 3.24.3
+      zod: 3.25.42
+
+  drizzle-zod@0.8.2(drizzle-orm@1.0.0-beta.1-c0277c0(pg@8.14.1))(zod@3.25.42):
+    dependencies:
+      drizzle-orm: 1.0.0-beta.1-c0277c0(pg@8.14.1)
+      zod: 3.25.42
 
   dunder-proto@1.0.1:
     dependencies:
@@ -15202,7 +15214,7 @@ snapshots:
       next: 15.3.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       picocolors: 1.1.1
       unist-util-visit: 5.0.0
-      zod: 3.24.4
+      zod: 3.25.42
     transitivePeerDependencies:
       - acorn
       - supports-color
@@ -15289,17 +15301,17 @@ snapshots:
     dependencies:
       '@hono/node-server': 1.14.3(hono@4.7.10)
       '@hono/swagger-ui': 0.5.1(hono@4.7.10)
-      '@hono/zod-openapi': 0.19.8(hono@4.7.10)(zod@3.24.3)
-      '@hono/zod-validator': 0.5.0(hono@4.7.10)(zod@3.24.3)
+      '@hono/zod-openapi': 0.19.8(hono@4.7.10)(zod@3.25.42)
+      '@hono/zod-validator': 0.5.0(hono@4.7.10)(zod@3.25.42)
       '@openllm/db': file:packages/db(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)
       '@openllm/models': file:packages/models
       gpt-tokenizer: 2.9.0
       hono: 4.7.10
-      hono-openapi: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.24.3))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.24.3))(zod@3.24.3)
+      hono-openapi: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.25.42))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.25.42))(zod@3.25.42)
       ioredis: 5.6.1
       redis: 5.0.1
-      zod: 3.24.3
-      zod-openapi: 4.2.4(zod@3.24.3)
+      zod: 3.25.42
+      zod-openapi: 4.2.4(zod@3.25.42)
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
       - '@cloudflare/workers-types'
@@ -15345,17 +15357,17 @@ snapshots:
     dependencies:
       '@hono/node-server': 1.14.3(hono@4.7.10)
       '@hono/swagger-ui': 0.5.1(hono@4.7.10)
-      '@hono/zod-openapi': 0.19.8(hono@4.7.10)(zod@3.24.3)
-      '@hono/zod-validator': 0.5.0(hono@4.7.10)(zod@3.24.3)
+      '@hono/zod-openapi': 0.19.8(hono@4.7.10)(zod@3.25.42)
+      '@hono/zod-validator': 0.5.0(hono@4.7.10)(zod@3.25.42)
       '@openllm/db': file:packages/db
       '@openllm/models': file:packages/models
       gpt-tokenizer: 2.9.0
       hono: 4.7.10
-      hono-openapi: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.24.3))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.24.3))(zod@3.24.3)
+      hono-openapi: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.25.42))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.25.42))(zod@3.25.42)
       ioredis: 5.6.1
       redis: 5.0.1
-      zod: 3.24.3
-      zod-openapi: 4.2.4(zod@3.24.3)
+      zod: 3.25.42
+      zod-openapi: 4.2.4(zod@3.25.42)
     transitivePeerDependencies:
       - '@aws-sdk/client-rds-data'
       - '@cloudflare/workers-types'
@@ -15731,15 +15743,15 @@ snapshots:
     dependencies:
       '@types/hast': 3.0.4
 
-  hono-openapi@0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.24.3))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.24.3))(zod@3.24.3):
+  hono-openapi@0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.25.42))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.25.42))(zod@3.25.42):
     dependencies:
       json-schema-walker: 2.0.0
       openapi-types: 12.1.3
     optionalDependencies:
-      '@hono/zod-validator': 0.5.0(hono@4.7.10)(zod@3.24.3)
+      '@hono/zod-validator': 0.5.0(hono@4.7.10)(zod@3.25.42)
       hono: 4.7.10
-      zod: 3.24.3
-      zod-openapi: 4.2.4(zod@3.24.3)
+      zod: 3.25.42
+      zod-openapi: 4.2.4(zod@3.25.42)
 
   hono@4.7.10: {}
 
@@ -19079,7 +19091,7 @@ snapshots:
       unenv: 1.10.0
       unstorage: 1.16.0(db0@0.3.2(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0)))(ioredis@5.6.1)
       vite: 6.3.5(@types/node@22.15.29)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.40.0)(tsx@4.19.4)(yaml@2.8.0)
-      zod: 3.24.3
+      zod: 3.25.42
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -19157,7 +19169,7 @@ snapshots:
       unenv: 1.10.0
       unstorage: 1.16.0(db0@0.3.2(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0)))(ioredis@5.6.1)
       vite: 6.3.5(@types/node@22.15.29)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.40.0)(tsx@4.19.4)(yaml@2.8.0)
-      zod: 3.24.3
+      zod: 3.25.42
     transitivePeerDependencies:
       - '@azure/app-configuration'
       - '@azure/cosmos'
@@ -19509,12 +19521,10 @@ snapshots:
       compress-commons: 6.0.2
       readable-stream: 4.7.0
 
-  zod-openapi@4.2.4(zod@3.24.3):
+  zod-openapi@4.2.4(zod@3.25.42):
     dependencies:
-      zod: 3.24.3
+      zod: 3.25.42
 
-  zod@3.24.3: {}
-
-  zod@3.24.4: {}
+  zod@3.25.42: {}
 
   zwitch@2.0.4: {}

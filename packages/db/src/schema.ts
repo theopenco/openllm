@@ -9,6 +9,7 @@ import {
 	timestamp,
 } from "drizzle-orm/pg-core";
 import { customAlphabet } from "nanoid";
+import "zod-openapi/extend";
 
 import type { errorDetails } from "./types";
 import type z from "zod";
@@ -174,7 +175,7 @@ export const providerKey = pgTable(
 			.notNull()
 			.references(() => organization.id, { onDelete: "cascade" }),
 	},
-	(table) => [],
+	() => [],
 );
 
 export const log = pgTable("log", {

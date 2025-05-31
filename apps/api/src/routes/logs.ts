@@ -1,52 +1,19 @@
-import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db, errorDetails } from "@openllm/db";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { db, tables } from "@openllm/db";
+import { createSchemaFactory } from "drizzle-zod";
 import { HTTPException } from "hono/http-exception";
-import { z } from "zod";
 
 import type { ServerTypes } from "../vars";
 
 export const logs = new OpenAPIHono<ServerTypes>();
 
-// Use the log schema directly from the database
-// Using z.object directly instead of createSelectSchema due to compatibility issues
-const logSchema = z.object({
-	id: z.string(),
-	requestId: z.string(),
-	createdAt: z.date(),
-	updatedAt: z.date(),
-	organizationId: z.string(),
-	projectId: z.string(),
-	apiKeyId: z.string(),
-	duration: z.number(),
-	requestedModel: z.string(),
-	requestedProvider: z.string().nullable(),
-	usedModel: z.string(),
-	usedProvider: z.string(),
-	responseSize: z.number(),
-	content: z.string().nullable(),
-	unifiedFinishReason: z.string().nullable(),
-	finishReason: z.string().nullable(),
-	promptTokens: z.string().nullable(),
-	completionTokens: z.string().nullable(),
-	totalTokens: z.string().nullable(),
-	messages: z.any(),
-	temperature: z.number().nullable(),
-	maxTokens: z.number().nullable(),
-	topP: z.number().nullable(),
-	frequencyPenalty: z.number().nullable(),
-	presencePenalty: z.number().nullable(),
-	hasError: z.boolean().nullable(),
-	errorDetails: errorDetails.nullable(),
-	cost: z.number().nullable(),
-	inputCost: z.number().nullable(),
-	outputCost: z.number().nullable(),
-	estimatedCost: z.boolean().nullable(),
-	canceled: z.boolean().nullable(),
-	streamed: z.boolean().nullable(),
-	cached: z.boolean().nullable(),
-	mode: z.enum(["api-keys", "credits", "hybrid"]),
-	usedMode: z.enum(["api-keys", "credits"]),
+const { createSelectSchema } = createSchemaFactory({
+	zodInstance: z,
+	coerce: true,
 });
+
+// Use the log schema directly from the database
+const logSchema = createSelectSchema(tables.log);
 
 const querySchema = z.object({
 	apiKeyId: z.string().optional().openapi({
