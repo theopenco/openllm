@@ -101,6 +101,16 @@ export const organization = pgTable("organization", {
 	name: text().notNull(),
 	stripeCustomerId: text(),
 	credits: decimal().notNull().default("0"),
+	autoTopUpEnabled: boolean("auto_top_up_enabled").default(false),
+	autoTopUpThreshold: decimal("auto_top_up_threshold", {
+		precision: 10,
+		scale: 2,
+	}).default("10.00"),
+	autoTopUpAmount: decimal("auto_top_up_amount", {
+		precision: 10,
+		scale: 2,
+	}).default("10.00"),
+	autoTopUpLastTriggered: timestamp("auto_top_up_last_triggered"),
 });
 
 export const userOrganization = pgTable("user_organization", {

@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db, eq, tables } from "@openllm/db";
+import { db, eq, tables, sql } from "@openllm/db";
 import { HTTPException } from "hono/http-exception";
 import Stripe from "stripe";
 import { z } from "zod";
@@ -16,6 +16,117 @@ export const stripe = new Stripe(
 );
 
 export const payments = new OpenAPIHono<ServerTypes>();
+
+const chargeDefaultPaymentMethod = createRoute({
+	method: "post",
+	path: "/charge-default",
+	request: {
+		body: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						organizationId: z.string(),
+						amount: z.number().min(0.01),
+						description: z.string().optional(),
+					}),
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						success: z.boolean(),
+						error: z.string().optional(),
+					}),
+				},
+			},
+			description: "Charge default payment method result",
+		},
+	},
+});
+
+payments.openapi(chargeDefaultPaymentMethod, async (c) => {
+	try {
+		const { organizationId, amount, description } = await c.req.json();
+
+		const organization = await db.query.organization.findFirst({
+			where: {
+				id: {
+					eq: organizationId,
+				},
+			},
+		});
+
+		if (!organization) {
+			return c.json({ success: false, error: "Organization not found" }, 404);
+		}
+
+		const defaultPaymentMethod = await db.query.paymentMethod.findFirst({
+			where: {
+				organizationId: {
+					eq: organizationId,
+				},
+				isDefault: {
+					eq: true,
+				},
+			},
+		});
+
+		if (!defaultPaymentMethod) {
+			return c.json(
+				{ success: false, error: "No default payment method found" },
+				400,
+			);
+		}
+
+		const amountInCents = Math.round(amount * 100);
+
+		const paymentIntent = await stripe.paymentIntents.create({
+			amount: amountInCents,
+			currency: "usd",
+			payment_method: defaultPaymentMethod.stripePaymentMethodId,
+			customer: organization.stripeCustomerId || undefined,
+			confirm: true,
+			return_url: process.env.UI_URL || "http://localhost:3002",
+			metadata: {
+				organizationId,
+				autoTopUp: "true",
+			},
+		});
+
+		if (paymentIntent.status === "succeeded") {
+			await db
+				.update(tables.organization)
+				.set({
+					credits: sql`${tables.organization.credits} + ${amount}`,
+					updatedAt: new Date(),
+				})
+				.where(eq(tables.organization.id, organizationId));
+
+			await db.insert(tables.organizationAction).values({
+				organizationId,
+				type: "credit",
+				amount: amount.toString(),
+				description: description || "Auto top-up via Stripe",
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			});
+
+			return c.json({ success: true });
+		} else {
+			return c.json({
+				success: false,
+				error: `Payment failed with status: ${paymentIntent.status}`,
+			});
+		}
+	} catch (error) {
+		console.error("Error charging default payment method:", error);
+		return c.json({ success: false, error: "Internal server error" }, 500);
+	}
+});
 
 const createPaymentIntent = createRoute({
 	method: "post",
