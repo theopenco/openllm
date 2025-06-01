@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
 import { Loader2, KeySquare } from "lucide-react";
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/login")({
 });
 
 function RouteComponent() {
+	const QueryClient = useQueryClient();
 	const navigate = useNavigate();
 	const posthog = usePostHog();
 	const [isLoading, setIsLoading] = useState(false);
@@ -65,6 +67,7 @@ function RouteComponent() {
 			},
 			{
 				onSuccess: (ctx) => {
+					QueryClient.clear();
 					posthog.identify(ctx.data.user.id, {
 						email: ctx.data.user.email,
 						name: ctx.data.user.name,
@@ -74,7 +77,7 @@ function RouteComponent() {
 						email: values.email,
 					});
 					toast({ title: "Login successful" });
-					navigate({ to: "/dashboard" });
+					navigate({ to: "/dashboard", replace: true });
 				},
 				onError: (ctx) => {
 					toast({

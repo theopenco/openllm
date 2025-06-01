@@ -39,8 +39,7 @@ export default function Dashboard() {
 	});
 	const {
 		data: { organizations },
-		isLoading: isLoadingOrg,
-	} = $api.useSuspenseQuery("get", "/orgs");
+	} = $api.useSuspenseQuery("get", "/orgs", {});
 
 	const organization = organizations[0];
 
@@ -192,21 +191,12 @@ export default function Dashboard() {
 								<CreditCard className="text-muted-foreground h-4 w-4" />
 							</CardHeader>
 							<CardContent>
-								{isLoadingOrg ? (
-									<>
-										<div className="text-2xl font-bold">Loading...</div>
-										<p className="text-muted-foreground text-xs">–</p>
-									</>
-								) : (
-									<>
-										<div className="text-2xl font-bold truncate overflow-ellipsis">
-											${Number(organization?.credits).toFixed(8)}
-										</div>
-										<p className="text-muted-foreground text-xs">
-											Available balance
-										</p>
-									</>
-								)}
+								<div className="text-2xl font-bold truncate overflow-ellipsis">
+									${Number(organization?.credits).toFixed(8)}
+								</div>
+								<p className="text-muted-foreground text-xs">
+									Available balance
+								</p>
 							</CardContent>
 						</Card>
 					</div>
