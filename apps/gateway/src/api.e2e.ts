@@ -529,6 +529,7 @@ test("Error when requesting provider-specific model name without prefix", async 
 });
 
 async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
+	fullContent?: string;
 	hasContent: boolean;
 	eventCount: number;
 	hasValidSSE: boolean;
@@ -576,7 +577,7 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 						) {
 							hasContent = true;
 						}
-					} catch (e) {}
+					} catch (_e) {}
 				}
 			}
 		}
@@ -584,5 +585,5 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 		reader.releaseLock();
 	}
 
-	return { hasContent, eventCount, hasValidSSE };
+	return { fullContent, hasContent, eventCount, hasValidSSE };
 }

@@ -1275,7 +1275,7 @@ chat.openapi(completions, async (c) => {
 										totalTokens = data.usage.total_tokens;
 									}
 									// eslint-disable-next-line unused-imports/no-unused-vars
-								} catch (e) {
+								} catch (_e) {
 									// Ignore parsing errors for incomplete JSON
 								}
 							}

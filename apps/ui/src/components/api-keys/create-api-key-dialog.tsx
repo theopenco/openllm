@@ -46,19 +46,9 @@ export function CreateApiKeyDialog({
 				onSuccess: (data) => {
 					const createdKey = data.apiKey;
 
-					const newCachedKey = {
-						id: createdKey.id,
-						createdAt: createdKey.createdAt,
-						updatedAt: createdKey.updatedAt,
-						description: createdKey.description,
-						status: createdKey.status,
-						projectId: createdKey.projectId,
-						maskedToken: "test-token•••••••••••",
-					};
-
 					const queryKey = $api.queryOptions("get", "/keys/api").queryKey;
 
-					queryClient.invalidateQueries({ queryKey });
+					void queryClient.invalidateQueries({ queryKey });
 
 					posthog.capture("api_key_created", {
 						description: createdKey.description,

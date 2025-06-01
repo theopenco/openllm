@@ -10,6 +10,17 @@ export default [
 			complexity: "off",
 			"max-depth": "off",
 			"max-params": "off",
+			"no-unused-vars": [
+				"error",
+				{
+					vars: "all",
+					args: "none",
+					ignoreRestSiblings: false,
+					varsIgnorePattern: "^_",
+					argsIgnorePattern: "^_",
+					caughtErrorsIgnorePattern: "^_",
+				},
+			],
 		},
 	},
 	{

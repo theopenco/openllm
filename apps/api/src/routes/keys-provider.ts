@@ -231,11 +231,6 @@ keysProvider.openapi(list, async (c) => {
 		return c.json({ providerKeys: [] });
 	}
 
-	// Get all project IDs the user has access to
-	const projectIds = userOrgs.flatMap((org) =>
-		org.organization!.projects.map((project) => project.id),
-	);
-
 	// Get all organization IDs the user has access to
 	const organizationIds = userOrgs.map((org) => org.organization!.id);
 
@@ -325,11 +320,6 @@ keysProvider.openapi(deleteKey, async (c) => {
 			},
 		},
 	});
-
-	// Get all project IDs the user has access to
-	const projectIds = userOrgs.flatMap((org) =>
-		org.organization!.projects.map((project) => project.id),
-	);
 
 	// Get all organization IDs the user has access to
 	const organizationIds = userOrgs.map((org) => org.organization!.id);
@@ -446,11 +436,6 @@ keysProvider.openapi(updateStatus, async (c) => {
 			},
 		},
 	});
-
-	// Get all project IDs the user has access to
-	const projectIds = userOrgs.flatMap((org) =>
-		org.organization!.projects.map((project) => project.id),
-	);
 
 	// Get all organization IDs the user has access to
 	const organizationIds = userOrgs.map((org) => org.organization!.id);
