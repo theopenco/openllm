@@ -4,13 +4,15 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
 import { passkey } from "better-auth/plugins/passkey";
 
+const apiUrl = process.env.API_URL || "/api";
 const uiUrl = process.env.UI_URL || "http://localhost:3002";
 const originUrls = process.env.ORIGIN_URL || "http://localhost:3002";
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	advanced: {
 		defaultCookieAttributes: {
-			path: "/api",
+			// when we use a proxy with the API on the relative path /api, set the cookie path accordingly
+			path: apiUrl.startsWith("http") ? undefined : "/api",
 		},
 	},
 	session: {
@@ -21,7 +23,7 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 		expiresIn: 60 * 60 * 24 * 30, // 30 days
 		updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated)
 	},
-	basePath: "/auth",
+	basePath: apiUrl.startsWith("http") ? "/api/auth" : "/auth",
 	trustedOrigins: originUrls.split(","),
 	plugins: [
 		passkey({

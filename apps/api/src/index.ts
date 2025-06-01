@@ -2,6 +2,7 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db } from "@openllm/db";
 import "dotenv/config";
+import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -13,20 +14,17 @@ import type { ServerTypes } from "./vars";
 
 export const app = new OpenAPIHono<ServerTypes>();
 
-app.use("*", async (c, next) => {
-	c.header(
-		"Access-Control-Allow-Origin",
-		process.env.UI_URL || "http://localhost:3002",
-	);
-	c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-	c.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-	c.header("Access-Control-Allow-Credentials", "true");
-	if (c.req.method === "OPTIONS") {
-		c.status(204);
-		return c.text("");
-	}
-	return await next();
-});
+app.use(
+	"*",
+	cors({
+		origin: process.env.UI_URL || "http://localhost:3002",
+		allowHeaders: ["Content-Type", "Authorization"],
+		allowMethods: ["POST", "GET", "OPTIONS"],
+		exposeHeaders: ["Content-Length"],
+		maxAge: 600,
+		credentials: true,
+	}),
+);
 
 app.onError((error, c) => {
 	if (error instanceof HTTPException) {
