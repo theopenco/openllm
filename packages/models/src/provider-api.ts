@@ -355,7 +355,7 @@ export async function validateProviderKey(
 				} else if (errorJson.message) {
 					errorMessage = errorJson.message;
 				}
-			} catch (_) {}
+			} catch (_err) {}
 
 			return { valid: false, error: errorMessage };
 		}

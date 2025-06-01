@@ -37,11 +37,6 @@ export function CreditsStep() {
 		"/payments/create-payment-intent",
 	);
 
-	const { mutateAsync: createSetupIntent } = $api.useMutation(
-		"post",
-		"/payments/create-setup-intent",
-	);
-
 	async function handleSubmit(e: React.FormEvent) {
 		e.preventDefault();
 

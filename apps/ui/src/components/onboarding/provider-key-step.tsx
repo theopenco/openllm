@@ -53,11 +53,6 @@ export function ProviderKeyStep() {
 	const [isSuccess, setIsSuccess] = useState(false);
 	const { data: organization } = useDefaultOrganization();
 
-	const { data: _providerKeysData } = $api.useSuspenseQuery(
-		"get",
-		"/keys/provider",
-	);
-
 	const providers = [
 		{ id: "openai", name: "OpenAI", supportsBaseUrl: false },
 		{ id: "anthropic", name: "Anthropic", supportsBaseUrl: false },
