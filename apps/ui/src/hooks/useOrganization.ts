@@ -1,6 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
-
-const API_BASE = "/api/orgs";
+import { $api } from "@/lib/fetch-client";
 
 export interface Organization {
 	id: string;
@@ -14,30 +12,16 @@ export interface OrganizationsResponse {
 	organizations: Organization[];
 }
 
-export async function fetchOrganizations(): Promise<OrganizationsResponse> {
-	const res = await fetch(API_BASE, {
-		credentials: "include",
-	});
+export function useDefaultOrganization() {
+	const { data, isLoading, error } = $api.useQuery("get", "/orgs");
 
-	if (!res.ok) {
-		const errorText = await res.text();
-		throw new Error(`Failed to fetch organizations: ${errorText}`);
+	if (!data?.organizations || data.organizations.length === 0) {
+		return {
+			data: null,
+			isLoading,
+			error: error || new Error("No organizations found"),
+		};
 	}
 
-	return await res.json();
-}
-
-export function useDefaultOrganization() {
-	return useQuery({
-		queryKey: ["defaultOrganization"],
-		queryFn: async () => {
-			const data = await fetchOrganizations();
-
-			if (!data.organizations || data.organizations.length === 0) {
-				throw new Error("No organizations found");
-			}
-
-			return data.organizations[0];
-		},
-	});
+	return { data: data.organizations[0], isLoading, error };
 }

@@ -2,6 +2,7 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db } from "@openllm/db";
 import "dotenv/config";
+import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -12,6 +13,18 @@ import { stripeRoutes } from "./stripe";
 import type { ServerTypes } from "./vars";
 
 export const app = new OpenAPIHono<ServerTypes>();
+
+app.use(
+	"*",
+	cors({
+		origin: process.env.UI_URL || "http://localhost:3002,http://localhost:4002",
+		allowHeaders: ["Content-Type", "Authorization", "Cache-Control"],
+		allowMethods: ["POST", "GET", "OPTIONS"],
+		exposeHeaders: ["Content-Length"],
+		maxAge: 600,
+		credentials: true,
+	}),
+);
 
 app.onError((error, c) => {
 	if (error instanceof HTTPException) {
@@ -92,16 +105,12 @@ app.openapi(root, async (c) => {
 
 app.route("/stripe", stripeRoutes);
 
-app.route("/", authHandler);
-
-app.route("/", routes);
-
 app.doc("/json", {
 	servers: [
 		{
 			url:
 				process.env.NODE_ENV === "production"
-					? "https://api.llmgateway.io"
+					? process.env.UI_URL + "/api"
 					: "http://localhost:3002/api",
 		},
 	],
@@ -113,3 +122,7 @@ app.doc("/json", {
 });
 
 app.get("/docs", swaggerUI({ url: "./json" }));
+
+app.route("/", authHandler);
+
+app.route("/", routes);

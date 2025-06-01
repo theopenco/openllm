@@ -1,5 +1,5 @@
 import { PostHog } from "posthog-node";
 
-export const posthog = new PostHog(process.env.POSTHOG_KEY || "key", {
-	host: process.env.POSTHOG_HOST || "key",
+export const posthog = new PostHog(process.env.VITE_POSTHOG_KEY || "key", {
+	host: process.env.VITE_POSTHOG_HOST || "key",
 });

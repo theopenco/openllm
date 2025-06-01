@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -41,7 +40,6 @@ export const Route = createFileRoute("/dashboard/_layout/settings")({
 });
 
 function RouteComponent() {
-	const queryClient = useQueryClient();
 	const { user } = useUser();
 
 	const [name, setName] = useState(user?.name || "");
@@ -59,8 +57,10 @@ function RouteComponent() {
 	const handleUpdateUser = async () => {
 		try {
 			await updateUserMutation.mutateAsync({
-				name: name || undefined,
-				email: email || undefined,
+				body: {
+					name: name || undefined,
+					email: email || undefined,
+				},
 			});
 
 			toast({
@@ -89,8 +89,10 @@ function RouteComponent() {
 
 		try {
 			await updatePasswordMutation.mutateAsync({
-				currentPassword,
-				newPassword,
+				body: {
+					currentPassword,
+					newPassword,
+				},
 			});
 
 			setCurrentPassword("");
@@ -121,7 +123,7 @@ function RouteComponent() {
 		}
 
 		try {
-			await deleteAccountMutation.mutateAsync();
+			await deleteAccountMutation.mutateAsync({});
 
 			navigate({ to: "/login" });
 
@@ -290,7 +292,7 @@ function RouteComponent() {
 							<CardFooter>
 								<Button
 									onClick={async () => {
-										await addPasskey(queryClient);
+										await addPasskey();
 									}}
 								>
 									Add Passkey
