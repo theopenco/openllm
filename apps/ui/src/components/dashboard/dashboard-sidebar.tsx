@@ -9,9 +9,12 @@ import {
 	Settings,
 	Activity,
 	KeyRound,
+	X,
 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
+import { useEffect, useState } from "react";
 
+import { TopUpCreditsButton } from "../credits/top-up-credits-dialog";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useUser } from "@/hooks/useUser";
 import { signOut } from "@/lib/auth-client";
@@ -22,10 +25,12 @@ import {
 	SidebarFooter,
 	SidebarGroup,
 	SidebarGroupContent,
+	SidebarGroupLabel,
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuItem,
 	SidebarRail,
+	useSidebar,
 } from "@/lib/components/sidebar";
 import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
@@ -33,13 +38,43 @@ import { cn } from "@/lib/utils";
 export function DashboardSidebar() {
 	const queryClient = useQueryClient();
 	const { location } = useRouterState();
+	const { toggleSidebar } = useSidebar();
 	const { user } = useUser();
 	const navigate = useNavigate();
 	const posthog = usePostHog();
+	const [showCreditCTA, setShowCreditCTA] = useState(() => {
+		if (typeof window === "undefined") {
+			return true;
+		}
+		return localStorage.getItem("hide-credit-cta") !== "true";
+	});
+
+	const hideCreditCTA = () => {
+		localStorage.setItem("hide-credit-cta", "true");
+		setShowCreditCTA(false);
+	};
 
 	const isActive = (path: string) => {
 		return location.pathname === path;
 	};
+
+	const logout = async () => {
+		posthog.reset();
+		await signOut({
+			fetchOptions: {
+				onSuccess: () => {
+					queryClient.clear();
+					navigate({ to: "/login" });
+				},
+			},
+		});
+	};
+
+	useEffect(() => {
+		if (window.matchMedia("(max-width: 640px)").matches) {
+			toggleSidebar();
+		}
+	}, [location.pathname, toggleSidebar]);
 
 	return (
 		<Sidebar variant="floating">
@@ -56,9 +91,9 @@ export function DashboardSidebar() {
 
 			<SidebarContent className="px-2 py-4">
 				<SidebarGroup>
-					{/* <SidebarGroupLabel className="text-muted-foreground px-2 text-xs font-medium">
+					<SidebarGroupLabel className="text-muted-foreground px-2 text-xs font-medium">
 						Navigation
-					</SidebarGroupLabel> */}
+					</SidebarGroupLabel>
 					<SidebarGroupContent className="mt-2">
 						<SidebarMenu>
 							{[
@@ -115,33 +150,42 @@ export function DashboardSidebar() {
 			</SidebarContent>
 
 			<SidebarFooter className="border-t">
-				<div className="flex items-center justify-between p-4">
+				{showCreditCTA && (
+					<div className="flex relative flex-col items-start space-y-4 rounded-lg bg-primary/5 p-4 dark:bg-primary/10">
+						<button
+							aria-label="Dismiss"
+							onClick={hideCreditCTA}
+							className="absolute right-1.5 top-1.5 rounded-full p-1 text-muted-foreground/70 hover:text-foreground transition"
+						>
+							<X className="h-3 w-3" />
+						</button>
+						<div>
+							<p className="text-sm font-medium">Low on credits?</p>
+							<p className="text-xs text-muted-foreground">
+								Top up in seconds with Stripe
+							</p>
+						</div>
+
+						<TopUpCreditsButton />
+					</div>
+				)}
+
+				<div className="flex items-center justify-between p-4 pt-0">
 					<div className="flex items-center gap-3">
 						<Avatar className="border-border h-9 w-9 border">
 							<AvatarImage src="/vibrant-street-market.png" alt="Avatar" />
 							<AvatarFallback>AU</AvatarFallback>
 						</Avatar>
 						<div className="text-sm">
-							<div className="font-medium flex items-center gap-2">
+							<div className="flex items-center gap-2 font-medium">
 								{user?.name}
-
 								<LogOutIcon
 									className="cursor-pointer"
 									size={14}
-									onClick={async () => {
-										posthog.reset();
-										await signOut({
-											fetchOptions: {
-												onSuccess: () => {
-													queryClient.clear();
-													navigate({ to: "/login" });
-												},
-											},
-										});
-									}}
+									onClick={logout}
 								/>
 							</div>
-							<div className="text-muted-foreground text-xs">{user?.email}</div>
+							<div className="text-xs text-muted-foreground">{user?.email}</div>
 						</div>
 					</div>
 					<ModeToggle />

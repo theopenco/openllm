@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import CodeExample from "@/components/landing/code-example";
+import { CodeExample } from "@/components/landing/code-example";
 import CallToAction from "@/components/landing/cta";
 import Features from "@/components/landing/features";
 import Footer from "@/components/landing/footer";

@@ -123,7 +123,7 @@ export const Navbar = () => {
 										"bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-700 dark:hover:bg-zinc-200 font-medium",
 									)}
 								>
-									<Link to="/dashboard">Get Started</Link>
+									<Link to="/signup">Get Started</Link>
 								</Button>
 								<ThemeToggle />
 							</div>
