@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
@@ -33,6 +34,7 @@ export const Route = createFileRoute("/signup")({
 });
 
 function RouteComponent() {
+	const QueryClient = useQueryClient();
 	const posthog = usePostHog();
 	const [isLoading, setIsLoading] = useState(false);
 	useUser({ redirectTo: "/dashboard", redirectWhen: "authenticated" });
@@ -62,6 +64,7 @@ function RouteComponent() {
 			},
 			{
 				onSuccess: (ctx) => {
+					QueryClient.clear();
 					posthog.identify(ctx.data.user.id, {
 						email: ctx.data.user.email,
 						name: ctx.data.user.name,

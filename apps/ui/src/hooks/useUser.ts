@@ -51,10 +51,9 @@ export function useUser(options?: UseUserOptions) {
 		} else if (
 			redirectWhen === "unauthenticated" &&
 			!isLoading &&
-			!hasUser &&
-			!error
+			(!hasUser || error)
 		) {
-			navigate({ to: redirectTo });
+			navigate({ to: redirectTo, replace: true });
 		}
 	}, [
 		data?.user,
