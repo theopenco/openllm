@@ -17,7 +17,7 @@ export const app = new OpenAPIHono<ServerTypes>();
 app.use(
 	"*",
 	cors({
-		origin: process.env.UI_URL || "http://localhost:3002",
+		origin: process.env.UI_URL || "http://localhost:3002,http://localhost:4002",
 		allowHeaders: ["Content-Type", "Authorization"],
 		allowMethods: ["POST", "GET", "OPTIONS"],
 		exposeHeaders: ["Content-Length"],

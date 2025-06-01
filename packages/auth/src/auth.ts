@@ -10,7 +10,12 @@ const originUrls = process.env.ORIGIN_URL || "http://localhost:3002";
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	advanced: {
+		crossSubDomainCookies: {
+			enabled: apiUrl.startsWith("http"),
+			domain: apiUrl.startsWith("http") ? new URL(apiUrl).host : undefined,
+		},
 		defaultCookieAttributes: {
+			domain: apiUrl.startsWith("http") ? new URL(apiUrl).host : undefined,
 			// when we use a proxy with the API on the relative path /api, set the cookie path accordingly
 			path: apiUrl.startsWith("http") ? undefined : "/api",
 		},
@@ -23,7 +28,7 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 		expiresIn: 60 * 60 * 24 * 30, // 30 days
 		updateAge: 60 * 60 * 24, // 1 day (every 1 day the session expiration is updated)
 	},
-	basePath: apiUrl.startsWith("http") ? "/api/auth" : "/auth",
+	basePath: "/auth",
 	trustedOrigins: originUrls.split(","),
 	plugins: [
 		passkey({
