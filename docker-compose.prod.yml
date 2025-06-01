@@ -3,6 +3,7 @@ name: llmgateway-prod
 services:
   # PostgreSQL Database
   postgres:
+    platform: linux/amd64
     image: postgres:17-alpine
     container_name: llmgateway-postgres
     restart: unless-stopped
@@ -26,6 +27,7 @@ services:
   # Redis for caching and queues
   redis:
     image: redis:8-alpine
+    platform: linux/amd64
     container_name: llmgateway-redis
     restart: unless-stopped
     command:
@@ -62,7 +64,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=80
-      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-llmgateway}
+      - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-change_this_secure_password}@postgres:5432/${POSTGRES_DB:-llmgateway}
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -104,6 +106,7 @@ services:
       dockerfile: Dockerfile
       target: api
       args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:4002}
         VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST}
         VITE_POSTHOG_KEY: ${VITE_POSTHOG_KEY}
     container_name: llmgateway-api
@@ -116,8 +119,8 @@ services:
       - ORIGIN_URL=${ORIGIN_URL:-http://localhost:3002}
       - PASSKEY_RP_ID=${PASSKEY_RP_ID:-localhost}
       - PASSKEY_RP_NAME=${PASSKEY_RP_NAME:-LLMGateway}
-      - POSTHOG_KEY=${POSTHOG_KEY}
-      - POSTHOG_HOST=${POSTHOG_HOST}
+      - VITE_POSTHOG_KEY=${VITE_POSTHOG_KEY}
+      - VITE_POSTHOG_HOST=${VITE_POSTHOG_HOST}
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     ports:
