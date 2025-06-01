@@ -2,7 +2,7 @@ import {
 	CardElement,
 	Elements,
 	useElements,
-	useStripe,
+	useStripe as useStripeElements,
 } from "@stripe/react-stripe-js";
 import { CreditCard, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -22,11 +22,9 @@ import { Input } from "@/lib/components/input";
 import { Label } from "@/lib/components/label";
 import { toast } from "@/lib/components/use-toast";
 import { $api } from "@/lib/fetch-client";
-import { loadStripeNow } from "@/lib/stripe";
+import { useStripe } from "@/lib/stripe";
 
 import type React from "react";
-
-const stripePromise = loadStripeNow();
 
 export function TopUpCreditsButton() {
 	return (
@@ -53,6 +51,7 @@ function TopUpCreditsDialog({ children }: TopUpCreditsDialogProps) {
 	const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
 		string | null
 	>(null);
+	const { stripe, isLoading: stripeLoading } = useStripe();
 
 	const { data: paymentMethodsData } = $api.useSuspenseQuery(
 		"get",
@@ -119,16 +118,20 @@ function TopUpCreditsDialog({ children }: TopUpCreditsDialogProps) {
 						loading={loading}
 					/>
 				) : step === "payment" ? (
-					<Elements stripe={stripePromise}>
-						<PaymentStep
-							amount={amount}
-							onBack={() => setStep("amount")}
-							onSuccess={() => setStep("success")}
-							onCancel={handleClose}
-							setLoading={setLoading}
-							loading={loading}
-						/>
-					</Elements>
+					stripeLoading ? (
+						<div className="p-6 text-center">Loading payment form...</div>
+					) : (
+						<Elements stripe={stripe}>
+							<PaymentStep
+								amount={amount}
+								onBack={() => setStep("amount")}
+								onSuccess={() => setStep("success")}
+								onCancel={handleClose}
+								setLoading={setLoading}
+								loading={loading}
+							/>
+						</Elements>
+					)
 				) : (
 					<SuccessStep onClose={handleClose} />
 				)}
@@ -211,7 +214,7 @@ function PaymentStep({
 	loading: boolean;
 	setLoading: (loading: boolean) => void;
 }) {
-	const stripe = useStripe();
+	const stripe = useStripeElements();
 	const elements = useElements();
 	const { mutateAsync: topUpMutation } = $api.useMutation(
 		"post",
