@@ -243,7 +243,7 @@ export function ActivityChart() {
 
 	return (
 		<Card>
-			<CardHeader className="flex flex-row items-center justify-between pb-2">
+			<CardHeader className="flex flex-col space-y-4 md:flex-row items-center justify-between pb-2">
 				<div>
 					<CardTitle>Model Usage Overview</CardTitle>
 					<CardDescription>
