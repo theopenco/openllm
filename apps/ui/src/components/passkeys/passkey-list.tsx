@@ -1,6 +1,7 @@
 import { formatDistanceToNow } from "date-fns";
 import { KeySquare, Trash2, Loader2 } from "lucide-react";
 
+import { authClient } from "@/lib/auth-client";
 import { Button } from "@/lib/components/button";
 import {
 	Table,
@@ -13,17 +14,15 @@ import {
 import { toast } from "@/lib/components/use-toast";
 import { $api } from "@/lib/fetch-client";
 
-import type { Passkey } from "./types";
-
 export function PasskeyList() {
 	const {
 		data,
 		isPending: isLoading,
-		isError,
+		error,
 		refetch,
-	} = $api.useSuspenseQuery("get", "/user/me/passkeys");
+	} = authClient.useListPasskeys();
 
-	const passkeys: Passkey[] = data?.passkeys ?? [];
+	const passkeys = data ?? [];
 
 	const {
 		mutate: deletePasskey,
@@ -55,7 +54,7 @@ export function PasskeyList() {
 		);
 	}
 
-	if (isError) {
+	if (error) {
 		return (
 			<div className="text-center py-4 text-destructive">
 				<p>Failed to load passkeys.</p>

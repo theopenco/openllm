@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
@@ -41,7 +40,6 @@ export const Route = createFileRoute("/dashboard/_layout/settings")({
 });
 
 function RouteComponent() {
-	const queryClient = useQueryClient();
 	const { user } = useUser();
 
 	const [name, setName] = useState(user?.name || "");
@@ -290,7 +288,7 @@ function RouteComponent() {
 							<CardFooter>
 								<Button
 									onClick={async () => {
-										await addPasskey(queryClient);
+										await addPasskey();
 									}}
 								>
 									Add Passkey
