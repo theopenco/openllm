@@ -153,6 +153,13 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
 	});
 
 	if (owner && owner.user) {
+		posthog.identify({
+			distinctId: owner.user.id,
+			properties: {
+				email: owner.user.email,
+				name: owner.user.name,
+			},
+		});
 		posthog.capture({
 			distinctId: owner.user.id,
 			event: "credits_purchased",
