@@ -13,6 +13,21 @@ import type { ServerTypes } from "./vars";
 
 export const app = new OpenAPIHono<ServerTypes>();
 
+app.use("*", async (c, next) => {
+	c.header(
+		"Access-Control-Allow-Origin",
+		process.env.UI_URL || "http://localhost:3002",
+	);
+	c.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+	c.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+	c.header("Access-Control-Allow-Credentials", "true");
+	if (c.req.method === "OPTIONS") {
+		c.status(204);
+		return c.text("");
+	}
+	return await next();
+});
+
 app.onError((error, c) => {
 	if (error instanceof HTTPException) {
 		const status = error.status;
