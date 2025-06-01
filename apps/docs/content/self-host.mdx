@@ -1,0 +1,438 @@
+---
+title: Self Host LLMGateway
+description: Complete guide to self-hosting LLMGateway using Docker Compose with production-ready configuration.
+---
+
+# Self Host LLMGateway
+
+LLMGateway is a powerful, self-hostable platform that provides a unified API gateway for multiple LLM providers. This guide will walk you through setting up your own instance using Docker Compose.
+
+## Architecture Overview
+
+LLMGateway consists of several components:
+
+- **Gateway Service**: Handles LLM API requests and routing to providers
+- **API Service**: Manages authentication, organizations, and billing
+- **UI Service**: Web interface for managing projects and API keys
+- **PostgreSQL**: Database for storing users, projects, and logs
+- **Redis**: Caching and message queuing
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- Docker and Docker Compose installed
+- At least 2GB of RAM available
+- 10GB of disk space for data persistence
+- API keys for the LLM providers you want to use
+
+## Quick Start
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/theopenco/llmgateway.git
+   cd llmgateway
+   ```
+
+2. **Create environment file**:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. **Configure environment variables** (see [Environment Variables](#environment-variables) section)
+
+4. **Start the services**:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml up -d
+   ```
+
+5. **Initialize the database**:
+
+   ```bash
+   # Wait for services to be healthy, then run database migrations
+   export DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-change_this_secure_password}@localhost:5432/${POSTGRES_DB:-llmgateway}
+   pnpm migrate
+   ```
+
+6. **Access the application**:
+   - UI: http://localhost:3002
+   - API: http://localhost:4002
+   - Gateway: http://localhost:4001
+
+## Environment Variables
+
+Create a `.env` file in the root directory with the following variables:
+
+### Database Configuration
+
+```bash
+# PostgreSQL settings
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=your_secure_password_here
+POSTGRES_DB=llmgateway
+POSTGRES_PORT=5432
+
+# Database URL (automatically constructed)
+DATABASE_URL=postgres://postgres:your_secure_password_here@postgres:5432/llmgateway
+```
+
+### Redis Configuration
+
+```bash
+# Redis settings
+REDIS_PASSWORD=your_redis_password_here
+REDIS_PORT=6379
+```
+
+### Service Ports
+
+```bash
+# Service port mappings
+GATEWAY_PORT=4001
+API_PORT=4002
+UI_PORT=3002
+```
+
+### Authentication & Security
+
+```bash
+# UI and API URLs (update for production)
+UI_URL=http://localhost:3002
+API_URL=http://localhost:4002
+ORIGIN_URL=http://localhost:3002
+
+# Passkey configuration
+PASSKEY_RP_ID=localhost
+PASSKEY_RP_NAME=LLMGateway
+```
+
+### LLM Provider API Keys
+
+Configure the providers you want to use:
+
+```bash
+# OpenAI
+OPENAI_API_KEY=sk-...
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Google Vertex AI
+VERTEX_API_KEY=your_vertex_key
+
+# Google AI Studio
+GOOGLE_AI_STUDIO_API_KEY=your_google_ai_key
+
+# Inference.net
+INFERENCE_NET_API_KEY=your_inference_net_key
+
+# Kluster.ai
+KLUSTER_AI_API_KEY=your_kluster_key
+
+# Together.ai
+TOGETHER_AI_API_KEY=your_together_key
+```
+
+### Analytics (Optional)
+
+```bash
+# PostHog analytics
+VITE_POSTHOG_KEY=your_posthog_key
+VITE_POSTHOG_HOST=https://app.posthog.com
+```
+
+### Payment Processing (Optional)
+
+```bash
+# Stripe configuration
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+```
+
+## Production Deployment
+
+### Domain Configuration
+
+For production deployment, update the following environment variables:
+
+```bash
+# Replace with your actual domain
+UI_URL=https://your-domain.com
+API_URL=https://api.your-domain.com
+ORIGIN_URL=https://your-domain.com
+VITE_API_URL=https://api.your-domain.com
+
+# Update passkey configuration
+PASSKEY_RP_ID=your-domain.com
+PASSKEY_RP_NAME=Your LLMGateway Instance
+```
+
+### SSL/TLS Configuration
+
+The Docker Compose setup serves HTTP only. For production, you should:
+
+1. **Use a reverse proxy** (nginx, Traefik, or Cloudflare) to handle SSL termination
+2. **Update service ports** to not expose them publicly:
+   ```yaml
+   # In docker-compose.prod.yml, change exposed ports to:
+   ports:
+     - "127.0.0.1:4001:80" # Gateway (internal only)
+     - "127.0.0.1:4002:80" # API (internal only)
+     - "127.0.0.1:3002:80" # UI (internal only)
+   ```
+
+### Database Security
+
+1. **Change default passwords** in your `.env` file
+2. **Restrict database access**:
+   ```yaml
+   # Remove or comment out the ports section for postgres in docker-compose.prod.yml
+   # ports:
+   #   - "${POSTGRES_PORT:-5432}:5432"
+   ```
+3. **Enable SSL** for database connections in production
+
+### Backup Strategy
+
+Set up regular backups for your data:
+
+```bash
+# Database backup
+docker compose -f docker-compose.prod.yml exec postgres pg_dump -U postgres llmgateway > backup.sql
+
+# Restore from backup
+docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres llmgateway < backup.sql
+```
+
+## Management Commands
+
+### Database Operations
+
+```bash
+# Run database migrations
+export DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-change_this_secure_password}@localhost:5432/${POSTGRES_DB:-llmgateway}
+pnpm migrate
+
+# Reset database (⚠️ This will delete all data)
+docker compose -f docker-compose.prod.yml exec api pnpm reset
+
+# Seed database with sample data
+docker compose -f docker-compose.prod.yml exec api pnpm seed
+```
+
+### Service Management
+
+```bash
+# View logs
+docker compose -f docker-compose.prod.yml logs -f [service_name]
+
+# Restart a service
+docker compose -f docker-compose.prod.yml restart [service_name]
+
+# Update services
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
+
+# Stop all services
+docker compose -f docker-compose.prod.yml down
+
+# Stop and remove volumes (⚠️ This will delete all data)
+docker compose -f docker-compose.prod.yml down -v
+```
+
+### Health Checks
+
+Check service health:
+
+```bash
+# Gateway health
+curl http://localhost:4001/
+
+# API health
+curl http://localhost:4002/
+
+# UI health
+curl http://localhost:3002/
+```
+
+## Monitoring
+
+### Built-in Health Checks
+
+All services include health checks that you can monitor:
+
+```bash
+# Check service status
+docker compose -f docker-compose.prod.yml ps
+```
+
+### Log Monitoring
+
+Monitor application logs:
+
+```bash
+# Follow all logs
+docker compose -f docker-compose.prod.yml logs -f
+
+# Follow specific service logs
+docker compose -f docker-compose.prod.yml logs -f gateway
+docker compose -f docker-compose.prod.yml logs -f api
+docker compose -f docker-compose.prod.yml logs -f ui
+```
+
+### Resource Usage
+
+Monitor resource usage:
+
+```bash
+# View resource usage
+docker stats
+
+# View disk usage
+docker system df
+```
+
+## Troubleshooting
+
+### Common Issues
+
+#### Services Won't Start
+
+1. **Check Docker and Docker Compose versions**:
+
+   ```bash
+   docker --version
+   docker compose version
+   ```
+
+2. **Verify environment variables**:
+
+   ```bash
+   # Check if .env file exists and has required variables
+   cat .env | grep -E "(POSTGRES_PASSWORD|REDIS_PASSWORD)"
+   ```
+
+3. **Check port conflicts**:
+   ```bash
+   # Check if ports are already in use
+   netstat -tulpn | grep -E "(3002|4001|4002|5432|6379)"
+   ```
+
+#### Database Connection Issues
+
+1. **Check PostgreSQL health**:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml exec postgres pg_isready -U postgres
+   ```
+
+2. **Verify database credentials**:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml exec postgres psql -U postgres -d llmgateway -c "\dt"
+   ```
+
+3. **Reset database if corrupted**:
+   ```bash
+   docker compose -f docker-compose.prod.yml down -v
+   docker compose -f docker-compose.prod.yml up -d postgres
+   # Wait for postgres to be ready, then:
+   docker compose -f docker-compose.prod.yml exec api pnpm push
+   ```
+
+#### Redis Connection Issues
+
+1. **Check Redis health**:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml exec redis redis-cli ping
+   ```
+
+2. **Clear Redis cache**:
+   ```bash
+   docker compose -f docker-compose.prod.yml exec redis redis-cli FLUSHALL
+   ```
+
+#### API Key Issues
+
+1. **Verify provider API keys** are correctly set in your `.env` file
+2. **Check API key format** matches the provider's requirements
+3. **Test API keys** directly with the provider's API
+
+### Performance Optimization
+
+#### Database Performance
+
+1. **Increase shared_buffers** for PostgreSQL:
+
+   ```yaml
+   # Add to postgres service in docker-compose.prod.yml
+   command: postgres -c shared_buffers=256MB -c max_connections=200
+   ```
+
+2. **Enable connection pooling** by adding pgbouncer service
+
+#### Redis Performance
+
+1. **Increase memory limit**:
+   ```yaml
+   # Add to redis service in docker-compose.prod.yml
+   command:
+     [
+       "redis-server",
+       "--maxmemory",
+       "512mb",
+       "--maxmemory-policy",
+       "allkeys-lru",
+     ]
+   ```
+
+#### Application Performance
+
+1. **Increase container resources**:
+   ```yaml
+   # Add to each service in docker-compose.prod.yml
+   deploy:
+     resources:
+       limits:
+         memory: 1G
+         cpus: "0.5"
+   ```
+
+### Security Considerations
+
+1. **Change default passwords** for all services
+2. **Use strong, unique passwords** for production
+3. **Restrict network access** using Docker networks
+4. **Enable SSL/TLS** for all external connections
+5. **Regularly update** Docker images and dependencies
+6. **Monitor logs** for suspicious activity
+7. **Backup data regularly** and test restore procedures
+
+### Getting Help
+
+If you encounter issues not covered in this guide:
+
+1. **Check the logs** for error messages
+2. **Search existing issues** on GitHub
+3. **Create a new issue** with:
+   - Your environment details
+   - Steps to reproduce the problem
+   - Relevant log output
+   - Your configuration (without sensitive data)
+
+## Next Steps
+
+After successfully deploying LLMGateway:
+
+1. **Create your first organization** through the UI
+2. **Add API keys** for your preferred LLM providers
+3. **Create a project** and generate API keys
+4. **Test the gateway** with a simple API call
+5. **Set up monitoring** and alerting
+6. **Configure backups** for production use
+
+For more information on using LLMGateway, see the [API Documentation](/docs/api) and [User Guide](/docs/guide).

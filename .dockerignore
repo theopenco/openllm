@@ -15,5 +15,3 @@
 
 packages/**/*.js
 apps/**/*.js
-
-!.turbo/config.json
