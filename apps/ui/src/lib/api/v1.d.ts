@@ -225,48 +225,6 @@ export interface paths {
 		};
 		trace?: never;
 	};
-	"/user/me/passkeys": {
-		parameters: {
-			query?: never;
-			header?: never;
-			path?: never;
-			cookie?: never;
-		};
-		get: {
-			parameters: {
-				query?: never;
-				header?: never;
-				path?: never;
-				cookie?: never;
-			};
-			requestBody?: never;
-			responses: {
-				/** @description List of user's passkeys. */
-				200: {
-					headers: {
-						[name: string]: unknown;
-					};
-					content: {
-						"application/json": {
-							passkeys: {
-								id: string;
-								name: string | null;
-								deviceType: string | null;
-								createdAt: string;
-							}[];
-						};
-					};
-				};
-			};
-		};
-		put?: never;
-		post?: never;
-		delete?: never;
-		options?: never;
-		head?: never;
-		patch?: never;
-		trace?: never;
-	};
 	"/user/me/passkeys/{id}": {
 		parameters: {
 			query?: never;

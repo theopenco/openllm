@@ -61,54 +61,6 @@ user.openapi(get, async (c) => {
 	});
 });
 
-const passkeySchema = z.object({
-	id: z.string(),
-	name: z.string().nullable(),
-	deviceType: z.string().nullable(),
-	createdAt: z.date(),
-});
-
-const listPasskeys = createRoute({
-	method: "get",
-	path: "/me/passkeys",
-	request: {},
-	responses: {
-		200: {
-			content: {
-				"application/json": {
-					schema: z.object({
-						passkeys: z.array(passkeySchema).openapi({}),
-					}),
-				},
-			},
-			description: "List of user's passkeys.",
-		},
-	},
-});
-
-user.openapi(listPasskeys, async (c) => {
-	const authUser = c.get("user");
-
-	if (!authUser) {
-		throw new HTTPException(401, {
-			message: "Unauthorized",
-		});
-	}
-
-	const passkeys = await db.query.passkey.findMany({
-		where: {
-			userId: {
-				eq: authUser.id,
-			},
-		},
-		orderBy: (passkey, { desc }) => [desc(passkey.createdAt)],
-	});
-
-	return c.json({
-		passkeys,
-	});
-});
-
 const updateUserSchema = z.object({
 	name: z.string().optional(),
 	email: z.string().email("Invalid email address").optional(),
