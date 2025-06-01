@@ -56,9 +56,6 @@ services:
       context: .
       dockerfile: Dockerfile
       target: gateway
-      args:
-        VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST}
-        VITE_POSTHOG_KEY: ${VITE_POSTHOG_KEY}
     container_name: llmgateway-gateway
     restart: unless-stopped
     environment:
@@ -105,10 +102,6 @@ services:
       context: .
       dockerfile: Dockerfile
       target: api
-      args:
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:4002}
-        VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST}
-        VITE_POSTHOG_KEY: ${VITE_POSTHOG_KEY}
     container_name: llmgateway-api
     restart: unless-stopped
     environment:
@@ -151,6 +144,7 @@ services:
       dockerfile: Dockerfile
       target: ui
       args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:4002}
         VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST}
         VITE_POSTHOG_KEY: ${VITE_POSTHOG_KEY}
         VITE_API: ${VITE_API:-http://localhost:4002}
