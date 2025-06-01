@@ -15,11 +15,18 @@ export interface Organization {
 }
 
 export function useDefaultProject() {
-	const { data: orgsData } = $api.useSuspenseQuery("get", "/orgs");
+	const { data: orgsData, isError: orgsError } = $api.useSuspenseQuery(
+		"get",
+		"/orgs",
+	);
+
+	if (orgsError || !orgsData?.organizations?.length) {
+		return { data: null, isError: true };
+	}
 
 	const defaultOrg = orgsData.organizations[0];
 
-	const { data: projectsData } = $api.useSuspenseQuery(
+	const { data: projectsData, isError: projectsError } = $api.useSuspenseQuery(
 		"get",
 		"/orgs/{id}/projects",
 		{
@@ -29,8 +36,12 @@ export function useDefaultProject() {
 		},
 	);
 
+	if (projectsError || !projectsData?.projects?.length) {
+		return { data: null, isError: true };
+	}
+
 	return {
 		data: projectsData.projects[0],
-		queryKey: ["defaultProject"],
+		isError: false,
 	};
 }

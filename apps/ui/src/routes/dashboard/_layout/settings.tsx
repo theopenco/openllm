@@ -57,8 +57,10 @@ function RouteComponent() {
 	const handleUpdateUser = async () => {
 		try {
 			await updateUserMutation.mutateAsync({
-				name: name || undefined,
-				email: email || undefined,
+				body: {
+					name: name || undefined,
+					email: email || undefined,
+				},
 			});
 
 			toast({
@@ -87,8 +89,10 @@ function RouteComponent() {
 
 		try {
 			await updatePasswordMutation.mutateAsync({
-				currentPassword,
-				newPassword,
+				body: {
+					currentPassword,
+					newPassword,
+				},
 			});
 
 			setCurrentPassword("");
@@ -119,7 +123,7 @@ function RouteComponent() {
 		}
 
 		try {
-			await deleteAccountMutation.mutateAsync();
+			await deleteAccountMutation.mutateAsync({});
 
 			navigate({ to: "/login" });
 
