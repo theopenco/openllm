@@ -54,7 +54,7 @@ Before you begin, ensure you have:
    ```bash
    # Wait for services to be healthy, then run database migrations
    export DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-change_this_secure_password}@localhost:5432/${POSTGRES_DB:-llmgateway}
-   pnpm push-dev
+   pnpm migrate
    ```
 
 6. **Access the application**:
@@ -213,7 +213,8 @@ docker compose -f docker-compose.prod.yml exec -T postgres psql -U postgres llmg
 
 ```bash
 # Run database migrations
-docker compose -f docker-compose.prod.yml exec api pnpm push
+export DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-change_this_secure_password}@localhost:5432/${POSTGRES_DB:-llmgateway}
+pnpm migrate
 
 # Reset database (⚠️ This will delete all data)
 docker compose -f docker-compose.prod.yml exec api pnpm reset

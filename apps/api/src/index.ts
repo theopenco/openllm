@@ -105,10 +105,6 @@ app.openapi(root, async (c) => {
 
 app.route("/stripe", stripeRoutes);
 
-app.route("/", authHandler);
-
-app.route("/", routes);
-
 app.doc("/json", {
 	servers: [
 		{
@@ -126,3 +122,7 @@ app.doc("/json", {
 });
 
 app.get("/docs", swaggerUI({ url: "./json" }));
+
+app.route("/", authHandler);
+
+app.route("/", routes);
