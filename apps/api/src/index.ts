@@ -18,7 +18,7 @@ app.use(
 	"*",
 	cors({
 		origin: process.env.UI_URL || "http://localhost:3002,http://localhost:4002",
-		allowHeaders: ["Content-Type", "Authorization"],
+		allowHeaders: ["Content-Type", "Authorization", "Cache-Control"],
 		allowMethods: ["POST", "GET", "OPTIONS"],
 		exposeHeaders: ["Content-Length"],
 		maxAge: 600,
@@ -110,7 +110,7 @@ app.doc("/json", {
 		{
 			url:
 				process.env.NODE_ENV === "production"
-					? "https://llmgateway.io/api"
+					? process.env.UI_URL + "/api"
 					: "http://localhost:3002/api",
 		},
 	],

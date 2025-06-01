@@ -6,18 +6,19 @@ import { passkey } from "better-auth/plugins/passkey";
 
 const apiUrl = process.env.API_URL || "/api";
 const uiUrl = process.env.UI_URL || "http://localhost:3002";
-const originUrls = process.env.ORIGIN_URL || "http://localhost:3002";
+const originUrls =
+	process.env.ORIGIN_URL || "http://localhost:3002,http://localhost:4002";
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	advanced: {
 		crossSubDomainCookies: {
 			enabled: apiUrl.startsWith("http"),
-			domain: apiUrl.startsWith("http") ? new URL(apiUrl).host : undefined,
+			domain: apiUrl.startsWith("http") ? new URL(apiUrl).hostname : undefined,
 		},
 		defaultCookieAttributes: {
-			domain: apiUrl.startsWith("http") ? new URL(apiUrl).host : undefined,
+			domain: apiUrl.startsWith("http") ? new URL(apiUrl).hostname : undefined,
 			// when we use a proxy with the API on the relative path /api, set the cookie path accordingly
-			path: apiUrl.startsWith("http") ? undefined : "/api",
+			path: apiUrl.startsWith("http") ? "/" : "/api",
 		},
 	},
 	session: {
