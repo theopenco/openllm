@@ -1,4 +1,8 @@
-import { CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
+import {
+	CardElement,
+	useStripe as useStripeElements,
+	useElements,
+} from "@stripe/react-stripe-js";
 import { CreditCard, Check } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
@@ -29,7 +33,7 @@ export function CreditsStep() {
 	const [isSuccess, setIsSuccess] = useState(false);
 	const posthog = usePostHog();
 
-	const stripe = useStripe();
+	const stripe = useStripeElements();
 	const elements = useElements();
 
 	const { mutateAsync: createPaymentIntent } = $api.useMutation(

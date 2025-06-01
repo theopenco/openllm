@@ -10,9 +10,7 @@ import { ProviderKeyStep } from "./provider-key-step";
 import { WelcomeStep } from "./welcome-step";
 import { Card, CardContent } from "@/lib/components/card";
 import { Stepper } from "@/lib/components/stepper";
-import { loadStripeNow } from "@/lib/stripe";
-
-const stripePromise = loadStripeNow();
+import { useStripe } from "@/lib/stripe";
 
 const STEPS = [
 	{
@@ -43,6 +41,7 @@ export function OnboardingWizard() {
 	const [activeStep, setActiveStep] = useState(0);
 	const navigate = useNavigate();
 	const posthog = usePostHog();
+	const { stripe, isLoading: stripeLoading } = useStripe();
 
 	const handleStepChange = (step: number) => {
 		if (step >= STEPS.length) {
@@ -72,9 +71,13 @@ export function OnboardingWizard() {
 						className="mb-6"
 					>
 						{activeStep === 3 ? (
-							<Elements stripe={stripePromise}>
-								<CurrentStepComponent />
-							</Elements>
+							stripeLoading ? (
+								<div className="p-6 text-center">Loading payment form...</div>
+							) : (
+								<Elements stripe={stripe}>
+									<CurrentStepComponent />
+								</Elements>
+							)
 						) : (
 							<CurrentStepComponent />
 						)}

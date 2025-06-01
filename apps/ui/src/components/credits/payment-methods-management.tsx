@@ -2,7 +2,7 @@ import {
 	CardElement,
 	Elements,
 	useElements,
-	useStripe,
+	useStripe as useStripeElements,
 } from "@stripe/react-stripe-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { CreditCard, Trash2, Plus } from "lucide-react";
@@ -20,11 +20,9 @@ import {
 } from "@/lib/components/dialog";
 import { toast } from "@/lib/components/use-toast";
 import { $api } from "@/lib/fetch-client";
-import { loadStripeNow } from "@/lib/stripe";
+import { useStripe } from "@/lib/stripe";
 
 import type React from "react";
-
-const stripePromise = loadStripeNow();
 
 export function PaymentMethodsManagement() {
 	const queryClient = useQueryClient();
@@ -167,6 +165,7 @@ export function PaymentMethodsManagement() {
 
 function AddPaymentMethodDialog() {
 	const [open, setOpen] = useState(false);
+	const { stripe, isLoading: stripeLoading } = useStripe();
 
 	return (
 		<Dialog open={open} onOpenChange={setOpen}>
@@ -177,16 +176,20 @@ function AddPaymentMethodDialog() {
 				</Button>
 			</DialogTrigger>
 			<DialogContent>
-				<Elements stripe={stripePromise}>
-					<AddPaymentMethodForm onSuccess={() => setOpen(false)} />
-				</Elements>
+				{stripeLoading ? (
+					<div className="p-6 text-center">Loading payment form...</div>
+				) : (
+					<Elements stripe={stripe}>
+						<AddPaymentMethodForm onSuccess={() => setOpen(false)} />
+					</Elements>
+				)}
 			</DialogContent>
 		</Dialog>
 	);
 }
 
 function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
-	const stripe = useStripe();
+	const stripe = useStripeElements();
 	const elements = useElements();
 	const [loading, setLoading] = useState(false);
 
