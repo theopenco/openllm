@@ -143,44 +143,25 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
 		updatedAt: new Date(),
 	});
 
-	const owner = await db.query.userOrganization.findFirst({
-		where: {
-			organizationId,
-		},
-		with: {
-			user: true,
+	posthog.groupIdentify({
+		groupType: "organization",
+		groupKey: organizationId,
+		properties: {
+			name: organization.name,
 		},
 	});
-
-	if (owner && owner.user) {
-		posthog.groupIdentify({
-			groupType: "organization",
-			groupKey: organizationId,
-			properties: {
-				name: organization.name,
-			},
-		});
-		posthog.identify({
-			distinctId: owner.user.id,
-			properties: {
-				email: owner.user.email,
-				name: owner.user.name,
-			},
-		});
-		posthog.capture({
-			distinctId: owner.user.id,
-			event: "credits_purchased",
-			groups: {
-				organization: organizationId,
-			},
-			properties: {
-				email: owner.user.email,
-				amount: amountInDollars,
-				source: "payment_intent",
-				organization: organizationId,
-			},
-		});
-	}
+	posthog.capture({
+		distinctId: "organization",
+		event: "credits_purchased",
+		groups: {
+			organization: organizationId,
+		},
+		properties: {
+			amount: amountInDollars,
+			source: "payment_intent",
+			organization: organizationId,
+		},
+	});
 
 	console.log(
 		`Added ${amountInDollars} credits to organization ${organizationId}`,
