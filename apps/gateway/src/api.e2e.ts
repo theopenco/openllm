@@ -12,6 +12,18 @@ import {
 
 const testModels = models
 	.filter((model) => !["custom", "auto"].includes(model.model))
+	.filter((model) => {
+		return model.providers.some((provider) => {
+			const envVar = getProviderEnvVar(provider.providerId);
+			if (!envVar) {
+				console.log(
+					`Skipping ${model.model} - no API key provided for ${provider.providerId}`,
+				);
+				return false;
+			}
+			return true;
+		});
+	})
 	.flatMap((model) => {
 		const testCases = [];
 
@@ -23,11 +35,14 @@ const testModels = models
 
 		// Create entries for provider-specific requests using provider/model format
 		for (const provider of model.providers) {
-			testCases.push({
-				model: `${provider.providerId}/${model.model}`,
-				providers: [provider],
-				originalModel: model.model, // Keep track of the original model for reference
-			});
+			const envVar = getProviderEnvVar(provider.providerId);
+			if (envVar) {
+				testCases.push({
+					model: `${provider.providerId}/${model.model}`,
+					providers: [provider],
+					originalModel: model.model, // Keep track of the original model for reference
+				});
+			}
 		}
 
 		return testCases;
