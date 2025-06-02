@@ -1024,6 +1024,10 @@ export interface paths {
 								updatedAt: string;
 								name: string;
 								credits: string;
+								autoTopUpEnabled: boolean;
+								autoTopUpThreshold: string;
+								autoTopUpAmount: string;
+								autoTopUpLastTriggered: string | null;
 							}[];
 						};
 					};
@@ -1085,6 +1089,53 @@ export interface paths {
 		options?: never;
 		head?: never;
 		patch?: never;
+		trace?: never;
+	};
+	"/orgs/{id}": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						autoTopUpEnabled?: boolean;
+						autoTopUpThreshold?: string;
+						autoTopUpAmount?: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Organization updated successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							success: boolean;
+						};
+					};
+				};
+			};
+		};
 		trace?: never;
 	};
 	"/payments/create-payment-intent": {

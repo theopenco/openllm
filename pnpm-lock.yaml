@@ -107,7 +107,7 @@ importers:
         version: 1.2.7
       drizzle-zod:
         specifier: 0.7.1
-        version: 0.7.1(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1))(zod@3.24.3)
+        version: 0.7.1(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(zod@3.24.3)
       gateway:
         specifier: workspace:*
         version: link:../gateway
@@ -233,6 +233,9 @@ importers:
       redis:
         specifier: 5.0.1
         version: 5.0.1
+      stripe:
+        specifier: 18.1.1
+        version: 18.1.1(@types/node@22.15.29)
       zod:
         specifier: 3.24.3
         version: 3.24.3
@@ -332,7 +335,7 @@ importers:
         version: 1.120.13(@tanstack/react-router@1.120.13(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(vite@6.3.5(@types/node@22.15.29)(jiti@2.4.2)(lightningcss@1.30.1)(terser@5.40.0)(tsx@4.19.4)(yaml@2.8.0))
       api:
         specifier: workspace:*
-        version: file:apps/api(@types/node@22.15.29)(@types/pg@8.15.2)(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(gel@2.1.0)(kysely@0.27.6)(openapi-types@12.1.3)
+        version: link:../api
       better-auth:
         specifier: 1.2.7
         version: 1.2.7
@@ -1997,9 +2000,6 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
-
-  '@openllm/auth@file:packages/auth':
-    resolution: {directory: packages/auth, type: directory}
 
   '@openllm/db@file:packages/db':
     resolution: {directory: packages/db, type: directory}
@@ -4083,9 +4083,6 @@ packages:
   anymatch@3.1.3:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
-
-  api@file:apps/api:
-    resolution: {directory: apps/api, type: directory}
 
   archiver-utils@5.0.2:
     resolution: {integrity: sha512-wuLJMmIBQYCsGZgYLTy5FIB2pF6Lfb6cXMSF8Qywwk3t20zWnAi7zLcQFdKQmIB8wyZpY5ER38x08GbwtR2cLA==}
@@ -10559,10 +10556,6 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@openllm/auth@file:packages/auth':
-    dependencies:
-      better-auth: 1.2.7
-
   '@openllm/db@file:packages/db':
     dependencies:
       drizzle-orm: 1.0.0-beta.1-c0277c0(pg@8.14.1)
@@ -13262,68 +13255,6 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.1
 
-  api@file:apps/api(@types/node@22.15.29)(@types/pg@8.15.2)(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(gel@2.1.0)(kysely@0.27.6)(openapi-types@12.1.3):
-    dependencies:
-      '@hono/node-server': 1.14.3(hono@4.7.10)
-      '@hono/swagger-ui': 0.5.1(hono@4.7.10)
-      '@hono/zod-openapi': 0.19.8(hono@4.7.10)(zod@3.24.3)
-      '@hono/zod-validator': 0.5.0(hono@4.7.10)(zod@3.24.3)
-      '@openllm/auth': file:packages/auth
-      '@openllm/db': file:packages/db(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)
-      bcrypt-ts: 7.0.0
-      better-auth: 1.2.7
-      drizzle-zod: 0.7.1(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(zod@3.24.3)
-      gateway: file:apps/gateway(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(openapi-types@12.1.3)
-      hono: 4.7.10
-      hono-openapi: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.24.3))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.24.3))(zod@3.24.3)
-      posthog-node: 4.18.0
-      stripe: 18.1.1(@types/node@22.15.29)
-      zod: 3.24.3
-      zod-openapi: 4.2.4(zod@3.24.3)
-    transitivePeerDependencies:
-      - '@aws-sdk/client-rds-data'
-      - '@cloudflare/workers-types'
-      - '@electric-sql/pglite'
-      - '@hono/arktype-validator'
-      - '@hono/effect-validator'
-      - '@hono/typebox-validator'
-      - '@hono/valibot-validator'
-      - '@libsql/client'
-      - '@libsql/client-wasm'
-      - '@neondatabase/serverless'
-      - '@op-engineering/op-sqlite'
-      - '@opentelemetry/api'
-      - '@planetscale/database'
-      - '@prisma/client'
-      - '@sinclair/typebox'
-      - '@tidbcloud/serverless'
-      - '@types/better-sqlite3'
-      - '@types/node'
-      - '@types/pg'
-      - '@types/sql.js'
-      - '@valibot/to-json-schema'
-      - '@vercel/postgres'
-      - '@xata.io/client'
-      - arktype
-      - better-sqlite3
-      - bun-types
-      - debug
-      - drizzle-orm
-      - effect
-      - expo-sqlite
-      - gel
-      - knex
-      - kysely
-      - mysql2
-      - openapi-types
-      - pg-native
-      - postgres
-      - prisma
-      - sql.js
-      - sqlite3
-      - supports-color
-      - valibot
-
   archiver-utils@5.0.2:
     dependencies:
       glob: 10.4.5
@@ -14252,11 +14183,6 @@ snapshots:
   drizzle-orm@1.0.0-beta.1-c0277c0(pg@8.14.1):
     optionalDependencies:
       pg: 8.14.1
-
-  drizzle-zod@0.7.1(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1))(zod@3.24.3):
-    dependencies:
-      drizzle-orm: 1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1)
-      zod: 3.24.3
 
   drizzle-zod@0.7.1(drizzle-orm@1.0.0-beta.1-c0277c0(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.16.0))(zod@3.24.3):
     dependencies:
@@ -15284,62 +15210,6 @@ snapshots:
       is-callable: 1.2.7
 
   functions-have-names@1.2.3: {}
-
-  gateway@file:apps/gateway(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(openapi-types@12.1.3):
-    dependencies:
-      '@hono/node-server': 1.14.3(hono@4.7.10)
-      '@hono/swagger-ui': 0.5.1(hono@4.7.10)
-      '@hono/zod-openapi': 0.19.8(hono@4.7.10)(zod@3.24.3)
-      '@hono/zod-validator': 0.5.0(hono@4.7.10)(zod@3.24.3)
-      '@openllm/db': file:packages/db(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)
-      '@openllm/models': file:packages/models
-      gpt-tokenizer: 2.9.0
-      hono: 4.7.10
-      hono-openapi: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.10)(zod@3.24.3))(hono@4.7.10)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.24.3))(zod@3.24.3)
-      ioredis: 5.6.1
-      redis: 5.0.1
-      zod: 3.24.3
-      zod-openapi: 4.2.4(zod@3.24.3)
-    transitivePeerDependencies:
-      - '@aws-sdk/client-rds-data'
-      - '@cloudflare/workers-types'
-      - '@electric-sql/pglite'
-      - '@hono/arktype-validator'
-      - '@hono/effect-validator'
-      - '@hono/typebox-validator'
-      - '@hono/valibot-validator'
-      - '@libsql/client'
-      - '@libsql/client-wasm'
-      - '@neondatabase/serverless'
-      - '@op-engineering/op-sqlite'
-      - '@opentelemetry/api'
-      - '@planetscale/database'
-      - '@prisma/client'
-      - '@sinclair/typebox'
-      - '@tidbcloud/serverless'
-      - '@types/better-sqlite3'
-      - '@types/pg'
-      - '@types/sql.js'
-      - '@valibot/to-json-schema'
-      - '@vercel/postgres'
-      - '@xata.io/client'
-      - arktype
-      - better-sqlite3
-      - bun-types
-      - effect
-      - expo-sqlite
-      - gel
-      - knex
-      - kysely
-      - mysql2
-      - openapi-types
-      - pg-native
-      - postgres
-      - prisma
-      - sql.js
-      - sqlite3
-      - supports-color
-      - valibot
 
   gateway@file:apps/gateway(openapi-types@12.1.3):
     dependencies:
