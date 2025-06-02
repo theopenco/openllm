@@ -1,11 +1,11 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import {
+	type ApiKey,
 	db,
-	shortid,
 	type InferSelectModel,
 	type Project,
+	shortid,
 	type tables,
-	type ApiKey,
 } from "@openllm/db";
 import {
 	getProviderEndpoint,
@@ -19,6 +19,7 @@ import {
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
 
+import { invokeBedrockModel, invokeBedrockModelStream } from "../lib/bedrock";
 import {
 	generateCacheKey,
 	getCache,
@@ -932,6 +933,124 @@ chat.openapi(completions, async (c) => {
 
 			let res;
 			try {
+				// Handle Bedrock differently using AWS SDK
+				if (usedProvider === "bedrock") {
+					const bedrockStream = await invokeBedrockModelStream(
+						usedModel,
+						requestBody,
+						usedToken,
+						requestId,
+					);
+
+					let fullContent = "";
+					let finishReason = null;
+					let promptTokens = null;
+					let completionTokens = null;
+					let totalTokens = null;
+
+					try {
+						for await (const chunk of bedrockStream) {
+							if (canceled) {
+								break;
+							}
+
+							await stream.writeSSE({
+								event: "chunk",
+								data: JSON.stringify(chunk),
+								id: String(eventId++),
+							});
+
+							// Extract content for logging
+							if (chunk.choices?.[0]?.delta?.content) {
+								fullContent += chunk.choices[0].delta.content;
+							}
+							if (chunk.choices?.[0]?.finish_reason) {
+								finishReason = chunk.choices[0].finish_reason;
+							}
+							if (chunk.usage) {
+								promptTokens = chunk.usage.prompt_tokens;
+								completionTokens = chunk.usage.completion_tokens;
+								totalTokens = chunk.usage.total_tokens;
+							}
+						}
+
+						await stream.writeSSE({
+							event: "done",
+							data: "[DONE]",
+							id: String(eventId++),
+						});
+					} catch (bedrockError) {
+						console.error("Bedrock streaming error:", bedrockError);
+						await stream.writeSSE({
+							event: "error",
+							data: JSON.stringify({
+								error: {
+									message: `Bedrock error: ${bedrockError instanceof Error ? bedrockError.message : "Unknown error"}`,
+									type: "bedrock_error",
+									param: null,
+									code: "bedrock_error",
+								},
+							}),
+							id: String(eventId++),
+						});
+					} finally {
+						// Clean up the event listeners
+						c.req.raw.signal.removeEventListener("abort", onAbort);
+
+						// Log the streaming request
+						const duration = Date.now() - startTime;
+						const costs = calculateCosts(
+							usedModel,
+							usedProvider,
+							promptTokens,
+							completionTokens,
+							{
+								prompt: messages.map((m) => m.content).join("\n"),
+								completion: fullContent,
+							},
+						);
+
+						const baseLogEntry = createLogEntry(
+							requestId,
+							project,
+							apiKey,
+							providerKey?.id,
+							usedModel,
+							usedProvider,
+							requestedModel,
+							requestedProvider,
+							messages,
+							temperature,
+							max_tokens,
+							top_p,
+							frequency_penalty,
+							presence_penalty,
+						);
+
+						await insertLog({
+							...baseLogEntry,
+							duration,
+							responseSize: fullContent.length,
+							content: fullContent,
+							finishReason: finishReason,
+							promptTokens: promptTokens,
+							completionTokens: completionTokens,
+							totalTokens: totalTokens,
+							hasError: false,
+							errorDetails: null,
+							streamed: true,
+							canceled: canceled,
+							inputCost: costs.inputCost,
+							outputCost: costs.outputCost,
+							cost: costs.totalCost,
+							estimatedCost: costs.estimatedCost,
+							cached: false,
+						});
+					}
+					return;
+				}
+
+				// Standard fetch for other providers
 				const headers = getProviderHeaders(usedProvider, usedToken);
 				headers["Content-Type"] = "application/json";
 
@@ -1376,15 +1495,90 @@ chat.openapi(completions, async (c) => {
 
 	let canceled = false;
 	let res;
+	let json;
+
 	try {
-		const headers = getProviderHeaders(usedProvider, usedToken);
-		headers["Content-Type"] = "application/json";
-		res = await fetch(url, {
-			method: "POST",
-			headers,
-			body: JSON.stringify(requestBody),
-			signal: requestCanBeCanceled ? controller.signal : undefined,
-		});
+		// Handle Bedrock differently using AWS SDK
+		if (usedProvider === "bedrock") {
+			try {
+				json = await invokeBedrockModel(
+					usedModel,
+					requestBody,
+					usedToken,
+					requestId,
+				);
+			} catch (bedrockError) {
+				console.error("Bedrock API error:", bedrockError);
+
+				// Log the error in the database
+				const baseLogEntry = createLogEntry(
+					requestId,
+					project,
+					apiKey,
+					providerKey?.id,
+					usedModel,
+					usedProvider,
+					requestedModel,
+					requestedProvider,
+					messages,
+					temperature,
+					max_tokens,
+					top_p,
+					frequency_penalty,
+					presence_penalty,
+				);
+
+				await insertLog({
+					...baseLogEntry,
+					duration: Date.now() - startTime,
+					responseSize: 0,
+					content: null,
+					finishReason: "error",
+					promptTokens: null,
+					completionTokens: null,
+					totalTokens: null,
+					hasError: true,
+					streamed: false,
+					canceled: false,
+					errorDetails: {
+						statusCode: 500,
+						statusText: "Bedrock Error",
+						responseText:
+							bedrockError instanceof Error
+								? bedrockError.message
+								: "Unknown error",
+					},
+					estimatedCost: false,
+					cached: false,
+				});
+
+				return c.json(
+					{
+						error: {
+							message: `Bedrock error: ${bedrockError instanceof Error ? bedrockError.message : "Unknown error"}`,
+							type: "bedrock_error",
+							param: null,
+							code: "bedrock_error",
+							requestedProvider,
+							usedProvider,
+							requestedModel,
+							usedModel,
+						},
+					},
+					500,
+				);
+			}
+		} else {
+			// Standard fetch for other providers
+			const headers = getProviderHeaders(usedProvider, usedToken);
+			headers["Content-Type"] = "application/json";
+			res = await fetch(url, {
+				method: "POST",
+				headers,
+				body: JSON.stringify(requestBody),
+				signal: requestCanBeCanceled ? controller.signal : undefined,
+			});
+		}
 	} catch (error) {
 		if (error instanceof Error && error.name === "AbortError") {
 			canceled = true;
@@ -1511,11 +1705,17 @@ chat.openapi(completions, async (c) => {
 		);
 	}
 
-	if (!res) {
-		throw new Error("No response from provider");
+	// For Bedrock, we already have the JSON response
+	if (usedProvider === "bedrock") {
+		if (!json) {
+			throw new Error("No response from Bedrock");
+		}
+	} else {
+		if (!res) {
+			throw new Error("No response from provider");
+		}
+		json = await res.json();
 	}
-
-	const json = await res.json();
 	if (process.env.NODE_ENV !== "production") {
 		console.log("response", json);
 	}

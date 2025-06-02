@@ -215,6 +215,12 @@ export let models = [
 				inputPrice: 0.07 / 1e6,
 				outputPrice: 0.33 / 1e6,
 			},
+			{
+				providerId: "bedrock",
+				modelName: "meta.llama3-1-8b-instruct-v1:0",
+				inputPrice: 0.75 / 1e6,
+				outputPrice: 1.0 / 1e6,
+			},
 		],
 	},
 	{
@@ -229,13 +235,13 @@ export let models = [
 		],
 	},
 	{
-		model: "meta.llama3-2-1b-instruct-v1:0",
+		model: "deepseek.r1-v1-experimental-1",
 		providers: [
 			{
 				providerId: "bedrock",
-				modelName: "meta.llama3-2-1b-instruct-v1:0",
-				inputPrice: 0.75 / 1e6,
-				outputPrice: 1.0 / 1e6,
+				modelName: "us.deepseek.r1-v1:0",
+				inputPrice: 0.5 / 1e6,
+				outputPrice: 1.5 / 1e6,
 			},
 		],
 	},
