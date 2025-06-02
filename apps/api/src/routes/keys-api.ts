@@ -173,7 +173,9 @@ keysApi.openapi(list, async (c) => {
 
 	// Get all project IDs the user has access to
 	const projectIds = userOrgs.flatMap((org) =>
-		org.organization!.projects.map((project) => project.id),
+		org
+			.organization!.projects.filter((project) => project.status !== "deleted")
+			.map((project) => project.id),
 	);
 
 	// Get all API keys for these projects
@@ -265,7 +267,9 @@ keysApi.openapi(deleteKey, async (c) => {
 
 	// Get all project IDs the user has access to
 	const projectIds = userOrgs.flatMap((org) =>
-		org.organization!.projects.map((project) => project.id),
+		org
+			.organization!.projects.filter((project) => project.status !== "deleted")
+			.map((project) => project.id),
 	);
 
 	// Find the API key
@@ -383,7 +387,9 @@ keysApi.openapi(updateStatus, async (c) => {
 
 	// Get all project IDs the user has access to
 	const projectIds = userOrgs.flatMap((org) =>
-		org.organization!.projects.map((project) => project.id),
+		org
+			.organization!.projects.filter((project) => project.status !== "deleted")
+			.map((project) => project.id),
 	);
 
 	// Find the API key

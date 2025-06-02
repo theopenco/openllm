@@ -101,6 +101,9 @@ export const organization = pgTable("organization", {
 	name: text().notNull(),
 	stripeCustomerId: text(),
 	credits: decimal().notNull().default("0"),
+	status: text({
+		enum: ["active", "inactive", "deleted"],
+	}).default("active"),
 });
 
 export const userOrganization = pgTable("user_organization", {
@@ -136,6 +139,9 @@ export const project = pgTable("project", {
 	})
 		.notNull()
 		.default("api-keys"),
+	status: text({
+		enum: ["active", "inactive", "deleted"],
+	}).default("active"),
 });
 
 export const apiKey = pgTable("api_key", {

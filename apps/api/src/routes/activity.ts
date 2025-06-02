@@ -103,6 +103,9 @@ activity.openapi(getActivity, async (c) => {
 			organizationId: {
 				in: organizationIds,
 			},
+			status: {
+				ne: "deleted",
+			},
 		},
 	});
 
