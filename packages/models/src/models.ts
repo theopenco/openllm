@@ -164,12 +164,19 @@ export let models = [
 		model: "gemini-2.0-flash",
 		providers: [
 			{
+				providerId: "google-openai-compat",
+				modelName: "gemini-2.0-flash",
+				inputPrice: 0.00000015,
+				outputPrice: 0.0000006,
+			},
+			{
 				providerId: "google-ai-studio",
 				modelName: "gemini-2.0-flash",
 				inputPrice: 0.00000015,
 				outputPrice: 0.0000006,
 			},
 		],
+		jsonOutput: true,
 	},
 	{
 		model: "gpt-4-turbo",

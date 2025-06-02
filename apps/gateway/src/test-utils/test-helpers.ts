@@ -50,6 +50,7 @@ export function getProviderEnvVar(provider: string): string | undefined {
 	const envMap: Record<string, string> = {
 		openai: "OPENAI_API_KEY",
 		anthropic: "ANTHROPIC_API_KEY",
+		"google-openai-compat": "GOOGLE_AI_STUDIO_API_KEY",
 		"google-vertex": "VERTEX_API_KEY",
 		"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
 		"inference.net": "INFERENCE_NET_API_KEY",

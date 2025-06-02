@@ -47,6 +47,7 @@ export const providerLogoComponents: Partial<
 	llmgateway: OpenLLMLogo,
 	openai: OpenAILogo,
 	anthropic: AnthropicLogo,
+	"google-openai-compat": GoogleVertexLogo,
 	"google-vertex": GoogleVertexLogo,
 	"inference.net": InferenceLogo,
 	"kluster.ai": KlusterLogo,

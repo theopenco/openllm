@@ -56,6 +56,11 @@ export function ProviderKeyStep() {
 	const providers = [
 		{ id: "openai", name: "OpenAI", supportsBaseUrl: false },
 		{ id: "anthropic", name: "Anthropic", supportsBaseUrl: false },
+		{
+			id: "google-openai-compat",
+			name: "Google AI (OpenAI Compatible)",
+			supportsBaseUrl: false,
+		},
 		{ id: "google-vertex", name: "Google Vertex AI", supportsBaseUrl: true },
 		{ id: "inference.net", name: "Inference.net", supportsBaseUrl: true },
 		{ id: "kluster.ai", name: "Kluster.ai", supportsBaseUrl: true },

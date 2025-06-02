@@ -96,6 +96,9 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 		case "anthropic":
 			token = process.env.ANTHROPIC_API_KEY;
 			break;
+		case "google-openai-compat":
+			token = process.env.GOOGLE_AI_STUDIO_API_KEY;
+			break;
 		case "google-vertex":
 			token = process.env.VERTEX_API_KEY;
 			break;
@@ -152,6 +155,7 @@ function parseProviderResponse(usedProvider: Provider, json: any) {
 			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
 			finishReason = json.candidates?.[0]?.finishReason || null;
 			break;
+		case "google-openai-compat":
 		case "inference.net":
 		case "kluster.ai":
 		case "together.ai":
@@ -596,6 +600,7 @@ chat.openapi(completions, async (c) => {
 					const envVarMap = {
 						openai: "OPENAI_API_KEY",
 						anthropic: "ANTHROPIC_API_KEY",
+						"google-openai-compat": "GOOGLE_AI_STUDIO_API_KEY",
 						"google-vertex": "VERTEX_API_KEY",
 						"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
 						"inference.net": "INFERENCE_NET_API_KEY",

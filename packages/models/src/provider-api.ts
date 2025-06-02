@@ -17,6 +17,7 @@ export function getProviderHeaders(
 			};
 		case "google-ai-studio":
 			return {};
+		case "google-openai-compat":
 		case "google-vertex":
 		case "kluster.ai":
 		case "openai":
@@ -50,6 +51,7 @@ export function prepareRequestBody(
 	};
 
 	switch (usedProvider) {
+		case "google-openai-compat":
 		case "openai": {
 			if (stream) {
 				requestBody.stream_options = {
@@ -215,6 +217,9 @@ export function getProviderEndpoint(
 			case "anthropic":
 				url = "https://api.anthropic.com";
 				break;
+			case "google-openai-compat":
+				url = "https://generativelanguage.googleapis.com/v1beta/openai";
+				break;
 			case "google-vertex":
 			case "google-ai-studio":
 				url = "https://generativelanguage.googleapis.com";
@@ -247,6 +252,8 @@ export function getProviderEndpoint(
 				: `${url}/v1beta/models/gemini-2.0-flash:generateContent`;
 			return token ? `${baseEndpoint}?key=${token}` : baseEndpoint;
 		}
+		case "google-openai-compat":
+			return `${url}/chat/completions`;
 		case "inference.net":
 		case "kluster.ai":
 		case "openai":
@@ -294,6 +301,9 @@ export async function validateProviderKey(
 				break;
 			case "anthropic":
 				validationModel = "claude-3-haiku-20240307";
+				break;
+			case "google-openai-compat":
+				validationModel = "gemini-2.0-flash";
 				break;
 			case "google-vertex":
 			case "google-ai-studio":

@@ -86,6 +86,16 @@ export const providers = [
 		cancellation: true,
 		color: "#ff6b35",
 	},
+	{
+		id: "google-openai-compat",
+		name: "Google AI (OpenAI Compatible)",
+		description:
+			"Google's Gemini models accessible through OpenAI-compatible API endpoints.",
+		streaming: true,
+		cancellation: true,
+		jsonOutput: true,
+		color: "#4285f4",
+	},
 ] as const satisfies ProviderDefinition[];
 
 export type ProviderId = (typeof providers)[number]["id"];
