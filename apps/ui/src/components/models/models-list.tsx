@@ -24,10 +24,15 @@ export function ModelsList() {
 							<div key={provider.providerId} className="mt-2">
 								<div className="font-medium">{provider.providerId}:</div>
 								{provider.inputPrice !== undefined && (
-									<div>Input: ${provider.inputPrice.toFixed(8)} / token</div>
+									<div>
+										Input: ${(provider.inputPrice * 1e6).toFixed(2)} / M tokens
+									</div>
 								)}
 								{provider.outputPrice !== undefined && (
-									<div>Output: ${provider.outputPrice.toFixed(8)} / token</div>
+									<div>
+										Output: ${(provider.outputPrice * 1e6).toFixed(2)} / M
+										tokens
+									</div>
 								)}
 								{provider.imageInputPrice !== undefined && (
 									<div>
