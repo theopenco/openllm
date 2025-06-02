@@ -53,6 +53,9 @@ const listModelsResponseSchema = z.object({
 });
 
 const listModels = createRoute({
+	operationId: "v1_models",
+	summary: "Models",
+	description: "List all available models",
 	method: "get",
 	path: "/",
 	request: {},

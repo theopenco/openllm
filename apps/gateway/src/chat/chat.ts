@@ -323,6 +323,7 @@ export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
 	operationId: "v1_chat_completions",
+	summary: "Chat Completions",
 	description: "Create a completion for the chat conversation",
 	method: "post",
 	path: "/completions",
