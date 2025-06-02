@@ -22,6 +22,14 @@ const apiKeySchema = z.object({
 // Schema for creating a new API key
 const createApiKeySchema = z.object({
 	description: z.string().min(1).max(255),
+	projectId: z.string().min(1),
+});
+
+// Schema for listing API keys
+const listApiKeysQuerySchema = z.object({
+	projectId: z.string().optional().openapi({
+		description: "Filter API keys by project ID",
+	}),
 });
 
 // Schema for updating an API key status
@@ -69,9 +77,9 @@ keysApi.openapi(create, async (c) => {
 		});
 	}
 
-	const { description } = await c.req.json();
+	const { description, projectId } = await c.req.json();
 
-	// Get the user's projects
+	// Get the user's organizations
 	const userOrgs = await db.query.userOrganization.findMany({
 		where: {
 			userId: {
@@ -87,14 +95,24 @@ keysApi.openapi(create, async (c) => {
 		},
 	});
 
-	if (!userOrgs.length || !userOrgs[0].organization?.projects.length) {
+	if (!userOrgs.length) {
 		throw new HTTPException(400, {
-			message: "No projects found for user",
+			message: "No organizations found for user",
 		});
 	}
 
-	// Use the first project for simplicity
-	const projectId = userOrgs[0].organization.projects[0].id;
+	// Get all project IDs the user has access to
+	const projectIds = userOrgs.flatMap((org) =>
+		org
+			.organization!.projects.filter((project) => project.status !== "deleted")
+			.map((project) => project.id),
+	);
+
+	if (!projectIds.includes(projectId)) {
+		throw new HTTPException(403, {
+			message: "You don't have access to this project",
+		});
+	}
 
 	// Generate a token with a prefix for better identification
 	const token = `llmgtwy_` + shortid(40);
@@ -121,7 +139,9 @@ keysApi.openapi(create, async (c) => {
 const list = createRoute({
 	method: "get",
 	path: "/api",
-	request: {},
+	request: {
+		query: listApiKeysQuerySchema,
+	},
 	responses: {
 		200: {
 			content: {
@@ -151,6 +171,9 @@ keysApi.openapi(list, async (c) => {
 		});
 	}
 
+	const query = c.req.valid("query");
+	const { projectId } = query;
+
 	// Get the user's projects
 	const userOrgs = await db.query.userOrganization.findMany({
 		where: {
@@ -178,11 +201,17 @@ keysApi.openapi(list, async (c) => {
 			.map((project) => project.id),
 	);
 
-	// Get all API keys for these projects
+	if (projectId && !projectIds.includes(projectId)) {
+		throw new HTTPException(403, {
+			message: "You don't have access to this project",
+		});
+	}
+
+	// Get API keys for the specified project or all accessible projects
 	const apiKeys = await db.query.apiKey.findMany({
 		where: {
 			projectId: {
-				in: projectIds,
+				in: projectId ? [projectId] : projectIds,
 			},
 		},
 	});

@@ -3,6 +3,7 @@ import { Copy } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 
+import { useDefaultProject } from "@/hooks/useDefaultProject";
 import { Button } from "@/lib/components/button";
 import {
 	Dialog,
@@ -27,6 +28,7 @@ export function CreateApiKeyDialog({
 }) {
 	const queryClient = useQueryClient();
 	const posthog = usePostHog();
+	const { data: defaultProject, isError } = useDefaultProject();
 	const [open, setOpen] = useState(false);
 	const [step, setStep] = useState<"form" | "created">("form");
 	const [name, setName] = useState("");
@@ -36,17 +38,28 @@ export function CreateApiKeyDialog({
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
+
+		if (!defaultProject?.id) {
+			toast({ title: "No project available.", variant: "destructive" });
+			return;
+		}
+
 		createApiKey(
 			{
 				body: {
 					description: name,
+					projectId: defaultProject.id,
 				},
 			},
 			{
 				onSuccess: (data) => {
 					const createdKey = data.apiKey;
 
-					const queryKey = $api.queryOptions("get", "/keys/api").queryKey;
+					const queryKey = $api.queryOptions("get", "/keys/api", {
+						params: {
+							query: { projectId: defaultProject?.id },
+						},
+					}).queryKey;
 
 					void queryClient.invalidateQueries({ queryKey });
 
@@ -92,6 +105,15 @@ export function CreateApiKeyDialog({
 							<DialogTitle>Create API Key</DialogTitle>
 							<DialogDescription>
 								Create a new API key to access LLM Gateway.
+								{isError || !defaultProject ? (
+									<span className="text-destructive block mt-1">
+										Unable to load project. Please try again.
+									</span>
+								) : (
+									<span className="block mt-1">
+										Project: {defaultProject.name}
+									</span>
+								)}
 							</DialogDescription>
 						</DialogHeader>
 						<form onSubmit={handleSubmit} className="space-y-4 py-4">
@@ -109,7 +131,9 @@ export function CreateApiKeyDialog({
 								<Button type="button" variant="outline" onClick={handleClose}>
 									Cancel
 								</Button>
-								<Button type="submit">Create API Key</Button>
+								<Button type="submit" disabled={isError || !defaultProject}>
+									Create API Key
+								</Button>
 							</DialogFooter>
 						</form>
 					</>
