@@ -218,7 +218,7 @@ export function getProviderEndpoint(
 				url = "https://api.anthropic.com";
 				break;
 			case "google-openai-compat":
-				url = "https://generativelanguage.googleapis.com/v1beta/openai";
+				url = "https://generativelanguage.googleapis.com/v1beta";
 				break;
 			case "google-vertex":
 			case "google-ai-studio":

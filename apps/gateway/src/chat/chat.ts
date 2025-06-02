@@ -1109,6 +1109,9 @@ chat.openapi(completions, async (c) => {
 					for (const line of lines) {
 						if (line.startsWith("data: ")) {
 							if (line === "data: [DONE]") {
+								if (usedProvider === "google-openai-compat" && !finishReason) {
+									finishReason = "stop";
+								}
 								await stream.writeSSE({
 									event: "done",
 									data: "[DONE]",
@@ -1219,6 +1222,7 @@ chat.openapi(completions, async (c) => {
 												finishReason = data.candidates[0].finishReason;
 											}
 											break;
+										case "google-openai-compat":
 										case "inference.net":
 										case "kluster.ai":
 										case "together.ai":
