@@ -228,4 +228,15 @@ export let models = [
 			},
 		],
 	},
+	{
+		model: "meta.llama3-2-1b-instruct-v1:0",
+		providers: [
+			{
+				providerId: "bedrock",
+				modelName: "meta.llama3-2-1b-instruct-v1:0",
+				inputPrice: 0.75 / 1e6,
+				outputPrice: 1.0 / 1e6,
+			},
+		],
+	},
 ] as const satisfies ModelDefinition[];

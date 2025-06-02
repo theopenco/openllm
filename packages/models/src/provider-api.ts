@@ -17,6 +17,21 @@ export function getProviderHeaders(
 			};
 		case "google-ai-studio":
 			return {};
+		case "bedrock": {
+			const [accessKeyId, secretAccessKey] = (token || "").split(":");
+			if (!accessKeyId || !secretAccessKey) {
+				throw new Error(
+					"Invalid AWS_BEDROCK_API_KEY format. Expected: access_key:secret_key",
+				);
+			}
+
+			return {
+				"Content-Type": "application/json",
+				Accept: "application/json",
+				Authorization: `AWS4-HMAC-SHA256 Credential=${accessKeyId}`,
+				"X-Amz-Content-Sha256": "UNSIGNED-PAYLOAD",
+			};
+		}
 		case "google-vertex":
 		case "kluster.ai":
 		case "openai":
@@ -169,6 +184,31 @@ export function prepareRequestBody(
 			}
 			break;
 		}
+		case "bedrock": {
+			delete requestBody.model;
+			delete requestBody.stream;
+			delete requestBody.messages;
+
+			const formattedPrompt = messages
+				.map((msg) => {
+					if (msg.role === "system") {
+						return `<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n${msg.content}<|eot_id|>`;
+					} else if (msg.role === "user") {
+						return `<|start_header_id|>user<|end_header_id|>\n${msg.content}<|eot_id|>`;
+					} else {
+						return `<|start_header_id|>assistant<|end_header_id|>\n${msg.content}<|eot_id|>`;
+					}
+				})
+				.join("");
+
+			return {
+				prompt:
+					formattedPrompt + "<|start_header_id|>assistant<|end_header_id|>\n",
+				temperature: temperature || 0.5,
+				top_p: top_p || 0.9,
+				max_gen_len: max_tokens || 512,
+			};
+		}
 	}
 
 	return requestBody;
@@ -228,6 +268,11 @@ export function getProviderEndpoint(
 			case "together.ai":
 				url = "https://api.together.ai";
 				break;
+			case "bedrock": {
+				const bedrockRegion = "us-east-1";
+				url = `https://bedrock-runtime.${bedrockRegion}.amazonaws.com`;
+				break;
+			}
 			default:
 				throw new Error(`Provider ${provider} requires a baseUrl`);
 		}
@@ -247,6 +292,8 @@ export function getProviderEndpoint(
 				: `${url}/v1beta/models/gemini-2.0-flash:generateContent`;
 			return token ? `${baseEndpoint}?key=${token}` : baseEndpoint;
 		}
+		case "bedrock":
+			return `${url}/model/${modelName}/invoke`;
 		case "inference.net":
 		case "kluster.ai":
 		case "openai":
@@ -307,6 +354,9 @@ export async function validateProviderKey(
 				break;
 			case "together.ai":
 				validationModel = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo";
+				break;
+			case "bedrock":
+				validationModel = "meta.llama3-2-1b-instruct-v1:0";
 				break;
 			default:
 				throw new Error(`Provider ${provider} not supported for validation`);
