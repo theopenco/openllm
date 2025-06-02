@@ -105,7 +105,11 @@ keysProvider.openapi(create, async (c) => {
 		},
 	});
 
-	if (!userOrgs.length || !userOrgs[0].organization?.projects.length) {
+	const activeProjects = userOrgs[0]?.organization?.projects.filter(
+		(project) => project.status !== "deleted",
+	);
+
+	if (!userOrgs.length || !activeProjects?.length) {
 		throw new HTTPException(403, {
 			message:
 				"You don't have access to this organization or it has no projects",
@@ -232,7 +236,9 @@ keysProvider.openapi(list, async (c) => {
 	}
 
 	// Get all organization IDs the user has access to
-	const organizationIds = userOrgs.map((org) => org.organization!.id);
+	const organizationIds = userOrgs
+		.filter((org) => org.organization?.status !== "deleted")
+		.map((org) => org.organization!.id);
 
 	// Get all provider keys for these organizations
 	const providerKeys = await db.query.providerKey.findMany({
@@ -322,7 +328,9 @@ keysProvider.openapi(deleteKey, async (c) => {
 	});
 
 	// Get all organization IDs the user has access to
-	const organizationIds = userOrgs.map((org) => org.organization!.id);
+	const organizationIds = userOrgs
+		.filter((org) => org.organization?.status !== "deleted")
+		.map((org) => org.organization!.id);
 
 	// Find the provider key
 	const providerKey = await db.query.providerKey.findFirst({
@@ -438,7 +446,9 @@ keysProvider.openapi(updateStatus, async (c) => {
 	});
 
 	// Get all organization IDs the user has access to
-	const organizationIds = userOrgs.map((org) => org.organization!.id);
+	const organizationIds = userOrgs
+		.filter((org) => org.organization?.status !== "deleted")
+		.map((org) => org.organization!.id);
 
 	// Find the provider key
 	const providerKey = await db.query.providerKey.findFirst({

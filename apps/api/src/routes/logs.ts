@@ -191,7 +191,9 @@ logs.openapi(get, async (c) => {
 	}
 
 	// Get all organizations the user is a member of
-	const organizationIds = userOrganizations.map((uo) => uo.organizationId);
+	const organizationIds = userOrganizations
+		.filter((uo) => uo.organization?.status !== "deleted")
+		.map((uo) => uo.organizationId);
 
 	// If org filter is provided, check if user has access to it
 	if (orgId && !organizationIds.includes(orgId)) {
@@ -205,6 +207,9 @@ logs.openapi(get, async (c) => {
 		where: {
 			organizationId: {
 				in: orgId ? [orgId] : organizationIds,
+			},
+			status: {
+				ne: "deleted",
 			},
 		},
 	};
