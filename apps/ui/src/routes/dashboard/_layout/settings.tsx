@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { AutoTopUpSettings } from "@/components/credits/auto-topup-settings";
 import { PaymentMethodsManagement } from "@/components/credits/payment-methods-management";
 import { addPasskey } from "@/components/passkeys/add-passkey";
 import { PasskeyList } from "@/components/passkeys/passkey-list";
@@ -310,6 +311,19 @@ function RouteComponent() {
 							</CardHeader>
 							<CardContent className="space-y-4">
 								<PaymentMethodsManagement />
+							</CardContent>
+						</Card>
+
+						<Card>
+							<CardHeader>
+								<CardTitle>Auto Top-up</CardTitle>
+								<CardDescription>
+									Automatically add credits when your balance falls below a
+									threshold
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="space-y-4">
+								<AutoTopUpSettings />
 							</CardContent>
 						</Card>
 					</TabsContent>
