@@ -2,6 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { KeyIcon, MoreHorizontal, PlusIcon } from "lucide-react";
 
 import { CreateApiKeyDialog } from "./create-api-key-dialog";
+import { useDefaultProject } from "@/hooks/useDefaultProject";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -36,7 +37,12 @@ import { $api } from "@/lib/fetch-client";
 
 export function ApiKeysList() {
 	const queryClient = useQueryClient();
-	const { data } = $api.useSuspenseQuery("get", "/keys/api");
+	const { data: defaultProject } = useDefaultProject();
+	const { data } = $api.useSuspenseQuery("get", "/keys/api", {
+		params: {
+			query: { projectId: defaultProject?.id },
+		},
+	});
 	const { mutate: deleteMutation } = $api.useMutation(
 		"delete",
 		"/keys/api/{id}",
@@ -57,7 +63,11 @@ export function ApiKeysList() {
 			},
 			{
 				onSuccess: () => {
-					const queryKey = $api.queryOptions("get", "/keys/api").queryKey;
+					const queryKey = $api.queryOptions("get", "/keys/api", {
+						params: {
+							query: { projectId: defaultProject?.id },
+						},
+					}).queryKey;
 
 					queryClient.invalidateQueries({ queryKey });
 
@@ -87,7 +97,11 @@ export function ApiKeysList() {
 			},
 			{
 				onSuccess: () => {
-					const queryKey = $api.queryOptions("get", "/keys/api").queryKey;
+					const queryKey = $api.queryOptions("get", "/keys/api", {
+						params: {
+							query: { projectId: defaultProject?.id },
+						},
+					}).queryKey;
 
 					queryClient.invalidateQueries({ queryKey });
 

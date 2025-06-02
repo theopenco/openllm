@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useDefaultProject } from "../../hooks/useDefaultProject";
 import { Button } from "../../lib/components/button";
 import {
 	Card,
@@ -35,6 +36,7 @@ type FormValues = z.infer<typeof formSchema>;
 export function ApiKeyStep() {
 	const [isLoading, setIsLoading] = useState(false);
 	const [apiKey, setApiKey] = useState<string | null>(null);
+	const { data: defaultProject, isError } = useDefaultProject();
 
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
@@ -47,9 +49,23 @@ export function ApiKeyStep() {
 
 	async function onSubmit(values: FormValues) {
 		setIsLoading(true);
+
+		if (!defaultProject?.id) {
+			toast({
+				title: "Error",
+				description: "No project available. Please try again.",
+				variant: "destructive",
+			});
+			setIsLoading(false);
+			return;
+		}
+
 		try {
 			const response = await createApiKey.mutateAsync({
-				body: { description: values.name },
+				body: {
+					description: values.name,
+					projectId: defaultProject.id,
+				},
 			});
 			setApiKey(response.apiKey.token);
 			toast({
@@ -96,6 +112,15 @@ export function ApiKeyStep() {
 						<CardDescription>
 							Create an API key to authenticate your requests to the LLM
 							Gateway.
+							{isError || !defaultProject ? (
+								<span className="text-destructive block mt-1">
+									Unable to load project. Please try again.
+								</span>
+							) : (
+								<span className="block mt-1">
+									Project: {defaultProject.name}
+								</span>
+							)}
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
@@ -118,7 +143,11 @@ export function ApiKeyStep() {
 											</FormItem>
 										)}
 									/>
-									<Button type="submit" className="w-full" disabled={isLoading}>
+									<Button
+										type="submit"
+										className="w-full"
+										disabled={isLoading || isError || !defaultProject}
+									>
 										{isLoading ? "Creating..." : "Create API Key"}
 									</Button>
 								</form>

@@ -506,7 +506,9 @@ export interface paths {
 		};
 		get: {
 			parameters: {
-				query?: never;
+				query?: {
+					projectId?: string;
+				};
 				header?: never;
 				path?: never;
 				cookie?: never;
@@ -547,6 +549,7 @@ export interface paths {
 				content: {
 					"application/json": {
 						description: string;
+						projectId: string;
 					};
 				};
 			};
