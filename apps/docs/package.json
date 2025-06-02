@@ -12,7 +12,7 @@
 		"dev": "next dev --turbo --port 3005",
 		"gen-docs": "node scripts/generate-docs.mjs",
 		"generate": "fumadocs-mdx && pnpm gen-docs",
-		"postinstall": "pnpm generate || true",
+		"postinstall": "fumadocs-mdx || true",
 		"start": "next start -H 0.0.0.0"
 	},
 	"dependencies": {
