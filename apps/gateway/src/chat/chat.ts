@@ -1223,6 +1223,15 @@ chat.openapi(completions, async (c) => {
 											}
 											break;
 										case "google-openai-compat":
+											if (data.choices && data.choices[0]) {
+												if (data.choices[0].delta?.content) {
+													fullContent += data.choices[0].delta.content;
+												}
+												if (data.choices[0].finish_reason) {
+													finishReason = data.choices[0].finish_reason;
+												}
+											}
+											break;
 										case "inference.net":
 										case "kluster.ai":
 										case "together.ai":
@@ -1299,6 +1308,10 @@ chat.openapi(completions, async (c) => {
 
 				// Log the streaming request
 				const duration = Date.now() - startTime;
+
+				if (usedProvider === "google-openai-compat" && !finishReason) {
+					finishReason = "stop";
+				}
 
 				// Calculate estimated tokens for Anthropic if not provided
 				let calculatedPromptTokens = promptTokens;
