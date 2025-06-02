@@ -68,7 +68,7 @@ function convertBedrockResponse(
 	modelId: string,
 	requestId: string,
 ): any {
-	if (modelId.startsWith("anthropic.")) {
+	if (modelId.includes("anthropic.")) {
 		// Anthropic Claude response format
 		return {
 			id: requestId,
@@ -94,7 +94,7 @@ function convertBedrockResponse(
 					(response.usage?.output_tokens || 0),
 			},
 		};
-	} else if (modelId.startsWith("meta.")) {
+	} else if (modelId.includes("meta.")) {
 		// Meta Llama response format
 		return {
 			id: requestId,
@@ -119,7 +119,7 @@ function convertBedrockResponse(
 					(response.generation_token_count || 0),
 			},
 		};
-	} else if (modelId.startsWith("amazon.")) {
+	} else if (modelId.includes("amazon.")) {
 		// Amazon Titan response format
 		return {
 			id: requestId,
@@ -259,7 +259,7 @@ async function* streamBedrockResponse(
 		if (event.chunk?.bytes) {
 			const chunk = JSON.parse(new TextDecoder().decode(event.chunk.bytes));
 
-			if (modelId.startsWith("anthropic.")) {
+			if (modelId.includes("anthropic.")) {
 				// Anthropic Claude streaming format
 				if (chunk.type === "content_block_delta" && chunk.delta?.text) {
 					yield {
@@ -298,7 +298,7 @@ async function* streamBedrockResponse(
 						},
 					};
 				}
-			} else if (modelId.startsWith("meta.")) {
+			} else if (modelId.includes("meta.")) {
 				// Meta Llama streaming format
 				if (chunk.generation) {
 					yield {

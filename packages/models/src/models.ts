@@ -229,11 +229,11 @@ export let models = [
 		],
 	},
 	{
-		model: "us.meta.llama3-2-1b-instruct-v1:0--experimental-471",
+		model: "meta.llama3-70b-instruct-v1:0",
 		providers: [
 			{
 				providerId: "bedrock",
-				modelName: "us.meta.llama3-2-1b-instruct-v1:0",
+				modelName: "meta.llama3-70b-instruct-v1:0",
 				inputPrice: 0.75 / 1e6,
 				outputPrice: 1.0 / 1e6,
 			},
