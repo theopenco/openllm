@@ -13,7 +13,8 @@ export default defineConfig({
 			},
 		},
 		prerender: {
-			routes: ["/"],
+			// render /dashboard as an app entrypoint, crawl will discover the rest
+			routes: ["/", "/dashboard"],
 			crawlLinks: true,
 		},
 		preset: process.env.SERVER_PRESET || "static",
