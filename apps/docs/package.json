@@ -10,7 +10,8 @@
 	"scripts": {
 		"build": "pnpm generate && tsc && next build",
 		"dev": "next dev --turbo --port 3005",
-		"generate": "fumadocs-mdx",
+		"gen-docs": "node scripts/generate-docs.mjs",
+		"generate": "fumadocs-mdx && pnpm gen-docs",
 		"postinstall": "pnpm generate || true",
 		"start": "next start -H 0.0.0.0"
 	},
