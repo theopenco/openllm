@@ -924,7 +924,52 @@ export interface paths {
 		get?: never;
 		put?: never;
 		post?: never;
-		delete?: never;
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Project deleted successfully. */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+				/** @description Unauthorized. */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+				/** @description Project not found. */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+			};
+		};
 		options?: never;
 		head?: never;
 		patch: {
@@ -965,6 +1010,8 @@ export interface paths {
 								cacheDurationSeconds: number;
 								/** @enum {string} */
 								mode: "api-keys" | "credits" | "hybrid";
+								/** @enum {string|null} */
+								status: "active" | "inactive" | "deleted" | null;
 							};
 						};
 					};
@@ -993,6 +1040,88 @@ export interface paths {
 				};
 			};
 		};
+		trace?: never;
+	};
+	"/projects": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						name: string;
+						organizationId: string;
+						cachingEnabled?: boolean;
+						cacheDurationSeconds?: number;
+						/** @enum {string} */
+						mode?: "api-keys" | "credits" | "hybrid";
+					};
+				};
+			};
+			responses: {
+				/** @description Project created successfully. */
+				201: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							project: {
+								id: string;
+								createdAt: string;
+								updatedAt: string;
+								name: string;
+								organizationId: string;
+								cachingEnabled: boolean;
+								cacheDurationSeconds: number;
+								/** @enum {string} */
+								mode: "api-keys" | "credits" | "hybrid";
+								/** @enum {string|null} */
+								status: "active" | "inactive" | "deleted" | null;
+							};
+						};
+					};
+				};
+				/** @description Unauthorized. */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+				/** @description You do not have access to this organization. */
+				403: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
 		trace?: never;
 	};
 	"/orgs": {
@@ -1024,6 +1153,8 @@ export interface paths {
 								updatedAt: string;
 								name: string;
 								credits: string;
+								/** @enum {string|null} */
+								status: "active" | "inactive" | "deleted" | null;
 							}[];
 						};
 					};
@@ -1031,7 +1162,42 @@ export interface paths {
 			};
 		};
 		put?: never;
-		post?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						name: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Organization created successfully. */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							organization: {
+								id: string;
+								createdAt: string;
+								updatedAt: string;
+								name: string;
+								credits: string;
+								/** @enum {string|null} */
+								status: "active" | "inactive" | "deleted" | null;
+							};
+						};
+					};
+				};
+			};
+		};
 		delete?: never;
 		options?: never;
 		head?: never;
@@ -1073,6 +1239,8 @@ export interface paths {
 								cacheDurationSeconds: number;
 								/** @enum {string} */
 								mode: "api-keys" | "credits" | "hybrid";
+								/** @enum {string|null} */
+								status: "active" | "inactive" | "deleted" | null;
 							}[];
 						};
 					};
@@ -1085,6 +1253,127 @@ export interface paths {
 		options?: never;
 		head?: never;
 		patch?: never;
+		trace?: never;
+	};
+	"/orgs/{id}": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post?: never;
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Organization deleted successfully. */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+				/** @description Unauthorized. */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+				/** @description Organization not found. */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+			};
+		};
+		options?: never;
+		head?: never;
+		patch: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						name?: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Organization updated successfully. */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+							organization: {
+								id: string;
+								createdAt: string;
+								updatedAt: string;
+								name: string;
+								credits: string;
+								/** @enum {string|null} */
+								status: "active" | "inactive" | "deleted" | null;
+							};
+						};
+					};
+				};
+				/** @description Unauthorized. */
+				401: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+				/** @description Organization not found. */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+			};
+		};
 		trace?: never;
 	};
 	"/payments/create-payment-intent": {
