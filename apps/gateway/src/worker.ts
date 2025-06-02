@@ -68,7 +68,7 @@ async function checkAndTriggerAutoTopUp(organizationId: string): Promise<void> {
 			amount: amountInCents,
 			currency: "usd",
 			payment_method: defaultPaymentMethod.stripePaymentMethodId,
-			customer: org.stripeCustomerId,
+			customer: org.stripeCustomerId || undefined,
 			confirm: true,
 			return_url: process.env.UI_URL || "http://localhost:3002",
 			metadata: {

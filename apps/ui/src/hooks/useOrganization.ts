@@ -6,6 +6,10 @@ export interface Organization {
 	credits: number;
 	createdAt: string;
 	updatedAt: string;
+	autoTopUpEnabled: boolean;
+	autoTopUpThreshold: string;
+	autoTopUpAmount: string;
+	autoTopUpLastTriggered: string | null;
 }
 
 export interface OrganizationsResponse {

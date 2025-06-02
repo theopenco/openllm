@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 
 import { useDefaultOrganization } from "@/hooks/useOrganization";
@@ -5,47 +6,28 @@ import { Button } from "@/lib/components/button";
 import { Input } from "@/lib/components/input";
 import { Label } from "@/lib/components/label";
 import { toast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 export function AutoTopUpSettings() {
-	const { data: currentOrganization } = useDefaultOrganization();
+	const { data: currentOrganization, isLoading } = useDefaultOrganization();
 	const [enabled, setEnabled] = useState(false);
 	const [threshold, setThreshold] = useState("10.00");
 	const [amount, setAmount] = useState("10.00");
-	const [isLoading, setIsLoading] = useState(false);
-	const [isSaving, setIsSaving] = useState(false);
+
+	const queryClient = useQueryClient();
+	const queryKey = $api.queryOptions("get", "/orgs").queryKey;
+
+	const updateMutation = $api.useMutation("patch", "/orgs/{id}");
 
 	useEffect(() => {
-		const fetchSettings = async () => {
-			if (!currentOrganization?.id) {
-				return;
-			}
+		if (currentOrganization) {
+			setEnabled(currentOrganization.autoTopUpEnabled || false);
+			setThreshold(currentOrganization.autoTopUpThreshold || "10.00");
+			setAmount(currentOrganization.autoTopUpAmount || "10.00");
+		}
+	}, [currentOrganization]);
 
-			setIsLoading(true);
-			try {
-				const response = await fetch(
-					`/api/orgs/${currentOrganization.id}/auto-topup`,
-					{
-						credentials: "include",
-					},
-				);
-
-				if (response.ok) {
-					const data = await response.json();
-					setEnabled(data.autoTopUpEnabled || false);
-					setThreshold(data.autoTopUpThreshold || "10.00");
-					setAmount(data.autoTopUpAmount || "10.00");
-				}
-			} catch (error) {
-				console.error("Failed to fetch auto top-up settings:", error);
-			} finally {
-				setIsLoading(false);
-			}
-		};
-
-		fetchSettings();
-	}, [currentOrganization?.id]);
-
-	const handleSave = async () => {
+	const handleSave = () => {
 		if (!currentOrganization?.id) {
 			return;
 		}
@@ -71,42 +53,32 @@ export function AutoTopUpSettings() {
 			return;
 		}
 
-		setIsSaving(true);
-		try {
-			const response = await fetch(
-				`/api/orgs/${currentOrganization.id}/auto-topup`,
-				{
-					method: "PUT",
-					headers: {
-						"Content-Type": "application/json",
-					},
-					credentials: "include",
-					body: JSON.stringify({
-						autoTopUpEnabled: enabled,
-						autoTopUpThreshold: threshold,
-						autoTopUpAmount: amount,
-					}),
+		updateMutation.mutate(
+			{
+				params: { path: { id: currentOrganization.id } },
+				body: {
+					autoTopUpEnabled: enabled,
+					autoTopUpThreshold: threshold,
+					autoTopUpAmount: amount,
 				},
-			);
-
-			if (response.ok) {
-				toast({
-					title: "Success",
-					description: "Auto top-up settings updated",
-				});
-			} else {
-				throw new Error("Failed to update settings");
-			}
-		} catch (error) {
-			toast({
-				title: "Error",
-				description:
-					error instanceof Error ? error.message : "An error occurred",
-				variant: "destructive",
-			});
-		} finally {
-			setIsSaving(false);
-		}
+			},
+			{
+				onSuccess: () => {
+					toast({
+						title: "Success",
+						description: "Auto top-up settings updated",
+					});
+					queryClient.invalidateQueries({ queryKey });
+				},
+				onError: (error: any) => {
+					toast({
+						title: "Error",
+						description: error?.message ?? "Failed to update settings",
+						variant: "destructive",
+					});
+				},
+			},
+		);
 	};
 
 	if (isLoading) {
@@ -164,8 +136,8 @@ export function AutoTopUpSettings() {
 				</div>
 			)}
 
-			<Button onClick={handleSave} disabled={isSaving}>
-				{isSaving ? "Saving..." : "Save Settings"}
+			<Button onClick={handleSave} disabled={updateMutation.isPending}>
+				{updateMutation.isPending ? "Saving..." : "Save Settings"}
 			</Button>
 		</div>
 	);
