@@ -11,6 +11,26 @@ import { models } from "./models";
 
 import type { ServerTypes } from "./vars";
 
+export const config = {
+	servers: [
+		{
+			url:
+				process.env.NODE_ENV === "production"
+					? process.env.UI_URL || "http://localhost:4001"
+					: "http://localhost:4001",
+		},
+	],
+	openapi: "3.0.0",
+	info: {
+		version: "1.0.0",
+		title: "My API",
+	},
+	externalDocs: {
+		url: "https://docs.llmgateway.io",
+		description: "LLMGateway Documentation",
+	},
+};
+
 export const app = new OpenAPIHono<ServerTypes>();
 
 // Middleware to check for application/json content type on POST requests
@@ -124,12 +144,6 @@ v1.route("/models", models);
 
 app.route("/v1", v1);
 
-app.doc("/json", {
-	openapi: "3.0.0",
-	info: {
-		version: "1.0.0",
-		title: "My API",
-	},
-});
+app.doc("/json", config);
 
 app.get("/docs", swaggerUI({ url: "/json" }));
