@@ -15,6 +15,7 @@ import { createFileRoute } from '@tanstack/react-router'
 import { Route as rootRoute } from './routes/__root'
 import { Route as SignupImport } from './routes/signup'
 import { Route as OnboardingImport } from './routes/onboarding'
+import { Route as ModelsImport } from './routes/models'
 import { Route as LoginImport } from './routes/login'
 import { Route as IndexImport } from './routes/index'
 import { Route as DashboardLayoutImport } from './routes/dashboard/_layout'
@@ -47,6 +48,12 @@ const SignupRoute = SignupImport.update({
 const OnboardingRoute = OnboardingImport.update({
   id: '/onboarding',
   path: '/onboarding',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ModelsRoute = ModelsImport.update({
+  id: '/models',
+  path: '/models',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -126,6 +133,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginImport
+      parentRoute: typeof rootRoute
+    }
+    '/models': {
+      id: '/models'
+      path: '/models'
+      fullPath: '/models'
+      preLoaderRoute: typeof ModelsImport
       parentRoute: typeof rootRoute
     }
     '/onboarding': {
@@ -249,6 +263,7 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/models': typeof ModelsRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardLayoutRouteWithChildren
@@ -264,6 +279,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/models': typeof ModelsRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardLayoutIndexRoute
@@ -279,6 +295,7 @@ export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/models': typeof ModelsRoute
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardRouteWithChildren
@@ -297,6 +314,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/login'
+    | '/models'
     | '/onboarding'
     | '/signup'
     | '/dashboard'
@@ -311,6 +329,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/models'
     | '/onboarding'
     | '/signup'
     | '/dashboard'
@@ -324,6 +343,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/login'
+    | '/models'
     | '/onboarding'
     | '/signup'
     | '/dashboard'
@@ -341,6 +361,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LoginRoute: typeof LoginRoute
+  ModelsRoute: typeof ModelsRoute
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
   DashboardRoute: typeof DashboardRouteWithChildren
@@ -349,6 +370,7 @@ export interface RootRouteChildren {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LoginRoute: LoginRoute,
+  ModelsRoute: ModelsRoute,
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
   DashboardRoute: DashboardRouteWithChildren,
@@ -366,6 +388,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/login",
+        "/models",
         "/onboarding",
         "/signup",
         "/dashboard"
@@ -376,6 +399,9 @@ export const routeTree = rootRoute
     },
     "/login": {
       "filePath": "login.tsx"
+    },
+    "/models": {
+      "filePath": "models.tsx"
     },
     "/onboarding": {
       "filePath": "onboarding.tsx"
