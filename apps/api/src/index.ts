@@ -12,6 +12,22 @@ import { stripeRoutes } from "./stripe";
 
 import type { ServerTypes } from "./vars";
 
+export const config = {
+	servers: [
+		{
+			url:
+				process.env.NODE_ENV === "production"
+					? process.env.UI_URL + "/api"
+					: "http://localhost:3002/api",
+		},
+	],
+	openapi: "3.0.0",
+	info: {
+		version: "1.0.0",
+		title: "My API",
+	},
+};
+
 export const app = new OpenAPIHono<ServerTypes>();
 
 app.use(
@@ -105,21 +121,7 @@ app.openapi(root, async (c) => {
 
 app.route("/stripe", stripeRoutes);
 
-app.doc("/json", {
-	servers: [
-		{
-			url:
-				process.env.NODE_ENV === "production"
-					? process.env.UI_URL + "/api"
-					: "http://localhost:3002/api",
-		},
-	],
-	openapi: "3.0.0",
-	info: {
-		version: "1.0.0",
-		title: "My API",
-	},
-});
+app.doc("/json", config);
 
 app.get("/docs", swaggerUI({ url: "./json" }));
 
