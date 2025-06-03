@@ -4,11 +4,13 @@ import { usePostHog } from "posthog-js/react";
 import React, { useState } from "react";
 
 import anthropicLogo from "@/assets/models/anthropic.svg?react";
+import GoogleStudioAiLogo from "@/assets/models/google-studio-ai.svg?react";
 import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
 import InferenceLogo from "@/assets/models/inference-net.svg?react";
 import KlusterLogo from "@/assets/models/kluster-ai.svg?react";
 import OpenAiLogo from "@/assets/models/openai.svg?react";
 import OpenLLMLogo from "@/assets/models/openllm.svg?react";
+import TogetherAiLogo from "@/assets/models/together-ai.svg?react";
 import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/lib/components/button";
 import {
@@ -41,6 +43,8 @@ const providerLogoComponents: Partial<
 	"google-vertex": GoogleVertexLogo,
 	"inference.net": InferenceLogo,
 	"kluster.ai": KlusterLogo,
+	"together.ai": TogetherAiLogo,
+	"google-ai-studio": GoogleStudioAiLogo,
 };
 
 export function CreateProviderKeyDialog({
