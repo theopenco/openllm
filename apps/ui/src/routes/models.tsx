@@ -23,33 +23,6 @@ interface ProviderModel {
 	outputPrice?: number;
 }
 
-const normaliseProviderName = (raw: string): string => {
-	const lower = raw.toLowerCase();
-	if (lower.includes("openai") || lower.includes("gpt")) {
-		return "OpenAI";
-	}
-	if (lower.includes("anthropic") || lower.includes("claude")) {
-		return "Anthropic";
-	}
-	if (
-		lower.includes("google") ||
-		lower.includes("gemini") ||
-		lower.includes("vertex")
-	) {
-		return "Google";
-	}
-	if (lower.includes("mistral")) {
-		return "Mistral";
-	}
-	if (lower.includes("cohere")) {
-		return "Cohere";
-	}
-	if (lower.includes("meta")) {
-		return "Meta";
-	}
-	return raw.charAt(0).toUpperCase() + raw.slice(1);
-};
-
 const getProviderIcon = (provider: string) => {
 	const lower = provider.toLowerCase();
 	if (lower.includes("openai") || lower.includes("gpt")) {
@@ -67,19 +40,12 @@ const getProviderIcon = (provider: string) => {
 	return <Code className="h-5 w-5" />;
 };
 
-const providerNameMap = Object.fromEntries(
-	(providerDefinitions as { id: string; name: string }[]).map((p) => [
-		p.id,
-		p.name,
-	]),
-);
-
 const groupedProviders = modelDefinitions.reduce<
 	Record<string, ProviderModel[]>
 >((acc, def) => {
 	def.providers.forEach((map) => {
-		const providerName =
-			providerNameMap[map.providerId] ?? normaliseProviderName(map.providerId);
+		const provider = providerDefinitions.find((p) => p.id === map.providerId);
+		const providerName = provider!.name;
 		if (!acc[providerName]) {
 			acc[providerName] = [];
 		}
@@ -135,9 +101,7 @@ function ProvidersPage() {
 							<div key={providerName} className="space-y-6">
 								<div className="flex items-center gap-3">
 									{getProviderIcon(providerName)}
-									<h2 className="text-2xl font-semibold capitalize">
-										{providerName}
-									</h2>
+									<h2 className="text-2xl font-semibold">{providerName}</h2>
 									<span className="text-sm text-muted-foreground">
 										{models.length} model{models.length !== 1 && "s"}
 									</span>
