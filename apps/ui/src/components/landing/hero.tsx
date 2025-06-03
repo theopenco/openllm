@@ -7,6 +7,7 @@ import { Navbar } from "./navbar";
 import heroImageLight from "@/assets/hero-light.png";
 import heroImageDark from "@/assets/hero.png";
 import { Button } from "@/lib/components/button";
+import { DOCS_URL } from "@/lib/env";
 
 const transitionVariants = {
 	item: {
@@ -94,7 +95,7 @@ export function Hero({ navbarOnly }: { navbarOnly?: boolean }) {
 								<div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
 									<AnimatedGroup variants={transitionVariants}>
 										<a
-											href="https://docs.llmgateway.io/"
+											href={DOCS_URL}
 											target="_blank"
 											className="hover:bg-background dark:hover:border-t-border bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-black/5 transition-all duration-300 dark:border-t-white/5 dark:shadow-zinc-950"
 										>
@@ -159,7 +160,7 @@ export function Hero({ navbarOnly }: { navbarOnly?: boolean }) {
 											variant="ghost"
 											className="h-10.5 rounded-xl px-5"
 										>
-											<a href="https://docs.llmgateway.io" target="_blank">
+											<a href={DOCS_URL} target="_blank">
 												<span className="text-nowrap">View Documentation</span>
 											</a>
 										</Button>

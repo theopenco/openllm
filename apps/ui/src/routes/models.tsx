@@ -22,6 +22,7 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/lib/components/card";
+import { DOCS_URL } from "@/lib/env";
 import Logo from "@/lib/icons/Logo";
 
 const providerLogoComponents: Partial<
@@ -174,7 +175,7 @@ function ProvidersPage() {
 
 					<footer className="mt-16 text-center">
 						<a
-							href="https://docs.llmgateway.io/v1/models"
+							href={`${DOCS_URL}/v1/models`}
 							target="_blank"
 							className="inline-flex items-center gap-2 text-sm text-muted-foreground"
 						>
