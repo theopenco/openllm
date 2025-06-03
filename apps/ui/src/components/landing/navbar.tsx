@@ -9,7 +9,8 @@ import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
-	{ name: "Features", href: "#features" },
+	{ name: "Models", href: "/models" },
+	{ name: "Features", href: "/#features" },
 	{ name: "Documentation", href: "https://docs.llmgateway.io", external: true },
 ];
 

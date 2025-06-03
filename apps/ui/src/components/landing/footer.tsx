@@ -1,3 +1,5 @@
+import { Link } from "@tanstack/react-router";
+
 import { GITHUB_URL } from "@/lib/env";
 import Logo from "@/lib/icons/Logo";
 
@@ -31,6 +33,14 @@ export default function Footer() {
 									>
 										Features
 									</a>
+								</li>
+								<li>
+									<Link
+										to="/models"
+										className="text-sm hover:text-black dark:hover:text-white"
+									>
+										Models
+									</Link>
 								</li>
 							</ul>
 						</div>
