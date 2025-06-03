@@ -86,6 +86,15 @@ export const providers = [
 		cancellation: true,
 		color: "#ff6b35",
 	},
+	{
+		id: "bedrock",
+		name: "AWS Bedrock",
+		description: "Amazon's fully managed foundation model service",
+		streaming: true,
+		cancellation: true,
+		jsonOutput: false,
+		color: "#FF9900",
+	},
 ] as const satisfies ProviderDefinition[];
 
 export type ProviderId = (typeof providers)[number]["id"];
