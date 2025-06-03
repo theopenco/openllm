@@ -1,4 +1,7 @@
-import { models as modelDefinitions } from "@openllm/models";
+import {
+	models as modelDefinitions,
+	providers as providerDefinitions,
+} from "@openllm/models";
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink, Zap, Brain, Mic, ImageIcon, Code } from "lucide-react";
 
@@ -15,6 +18,7 @@ import {
 interface ProviderModel {
 	model: string;
 	providerId: string;
+	providerName: string;
 	inputPrice?: number;
 	outputPrice?: number;
 }
@@ -63,17 +67,26 @@ const getProviderIcon = (provider: string) => {
 	return <Code className="h-5 w-5" />;
 };
 
+const providerNameMap = Object.fromEntries(
+	(providerDefinitions as { id: string; name: string }[]).map((p) => [
+		p.id,
+		p.name,
+	]),
+);
+
 const groupedProviders = modelDefinitions.reduce<
 	Record<string, ProviderModel[]>
 >((acc, def) => {
 	def.providers.forEach((map) => {
-		const provider = normaliseProviderName(map.providerId);
-		if (!acc[provider]) {
-			acc[provider] = [];
+		const providerName =
+			providerNameMap[map.providerId] ?? normaliseProviderName(map.providerId);
+		if (!acc[providerName]) {
+			acc[providerName] = [];
 		}
-		acc[provider].push({
+		acc[providerName].push({
 			model: def.model,
 			providerId: map.providerId,
+			providerName,
 			inputPrice: map.inputPrice,
 			outputPrice: map.outputPrice,
 		});
@@ -140,7 +153,7 @@ function ProvidersPage() {
 													{model.model}
 												</CardTitle>
 												<CardDescription className="text-xs">
-													{model.providerId}
+													{model.providerName}
 												</CardDescription>
 											</CardHeader>
 											<CardContent className="mt-auto space-y-2">
@@ -162,10 +175,14 @@ function ProvidersPage() {
 					</section>
 
 					<footer className="mt-16 text-center">
-						<div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+						<a
+							href="https://docs.llmgateway.io/v1/models"
+							target="_blank"
+							className="inline-flex items-center gap-2 text-sm text-muted-foreground"
+						>
 							<span>Data sourced from @openllm/models</span>
 							<ExternalLink className="h-4 w-4" />
-						</div>
+						</a>
 					</footer>
 				</div>
 			</main>

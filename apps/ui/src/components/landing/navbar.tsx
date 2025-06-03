@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 const menuItems = [
 	{ name: "Models", href: "/models" },
 	{ name: "Features", href: "/#features" },
-	{ name: "Documentation", href: "https://docs.llmgateway.io", external: true },
+	{ name: "Docs", href: "https://docs.llmgateway.io", external: true },
 ];
 
 export const Navbar = () => {
