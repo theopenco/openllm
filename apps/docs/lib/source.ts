@@ -11,6 +11,4 @@ export const source = loader({
 	},
 });
 
-export const openapi = createOpenAPI({
-	// options
-});
+export const openapi = createOpenAPI({});
