@@ -2,6 +2,7 @@ import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { db } from "@openllm/db";
 import "dotenv/config";
+import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -32,6 +33,17 @@ export const config = {
 };
 
 export const app = new OpenAPIHono<ServerTypes>();
+
+app.use(
+	"*",
+	cors({
+		origin: "https://docs.llmgateway.io",
+		allowHeaders: ["Content-Type", "Cache-Control"],
+		allowMethods: ["POST", "GET", "OPTIONS"],
+		exposeHeaders: ["Content-Length"],
+		maxAge: 600,
+	}),
+);
 
 // Middleware to check for application/json content type on POST requests
 app.use("*", async (c, next) => {
