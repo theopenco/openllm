@@ -10,6 +10,13 @@ import {
 	getProviderEnvVar,
 } from "./test-utils/test-helpers";
 
+// Helper function to get test options with retry for CI environment
+function getTestOptions() {
+	return process.env.CI ? { retry: 3 } : {};
+}
+
+console.log("running with test options:", getTestOptions());
+
 const testModels = models
 	.filter((model) => !["custom", "auto"].includes(model.model))
 	.flatMap((model) => {
@@ -181,6 +188,7 @@ describe("e2e tests with real provider keys", () => {
 			// expect(log.outputCost).not.toBeNull();
 			// expect(log.cost).not.toBeNull();
 		},
+		getTestOptions(),
 	);
 
 	test.each(streamingModels)(
@@ -224,6 +232,7 @@ describe("e2e tests with real provider keys", () => {
 			// expect(log.cost).not.toBeNull();
 			// expect(log.cost).toBeGreaterThanOrEqual(0);
 		},
+		getTestOptions(),
 	);
 
 	test.each(
@@ -268,6 +277,7 @@ describe("e2e tests with real provider keys", () => {
 			const parsedContent = JSON.parse(content);
 			expect(parsedContent).toHaveProperty("message");
 		},
+		getTestOptions(),
 	);
 
 	test("JSON output mode error for unsupported model", async () => {
