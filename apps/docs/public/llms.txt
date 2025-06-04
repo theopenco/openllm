@@ -117,6 +117,7 @@ LLMGateway is a self-hostable platform that provides a unified API gateway for m
 
 6. **Access your LLMGateway**:
    * Web Interface: [http://localhost:3002](http://localhost:3002)
+   * Documentation: [http://localhost:3005](http://localhost:3005)
    * API Endpoint: [http://localhost:4002](http://localhost:4002)
    * Gateway: [http://localhost:4001](http://localhost:4001)
 
