@@ -154,6 +154,9 @@ importers:
       next:
         specifier: 15.3.3
         version: 15.3.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      posthog-js:
+        specifier: 1.248.1
+        version: 1.248.1
       react:
         specifier: ^19.1.0
         version: 19.1.0

@@ -178,6 +178,8 @@ services:
       target: docs
       args:
         VITE_DOCS_URL: ${VITE_DOCS_URL:-http://localhost:3005}
+        NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY}
+        NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST}
     container_name: llmgateway-docs
     restart: unless-stopped
     ports:
