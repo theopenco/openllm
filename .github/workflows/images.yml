@@ -44,5 +44,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           build-args: |
+            VITE_DOCS_URL=${{ secrets.VITE_DOCS_URL }}
             VITE_POSTHOG_HOST=${{ secrets.VITE_POSTHOG_HOST }}
             VITE_POSTHOG_KEY=${{ secrets.VITE_POSTHOG_KEY }}

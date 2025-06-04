@@ -16,7 +16,7 @@ export const config = {
 		{
 			url:
 				process.env.NODE_ENV === "production"
-					? process.env.UI_URL || "http://localhost:4001"
+					? process.env.UI_URL || "https://api.llmgateway.io"
 					: "http://localhost:4001",
 		},
 	],

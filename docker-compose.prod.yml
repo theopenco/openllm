@@ -145,6 +145,7 @@ services:
       dockerfile: Dockerfile
       target: ui
       args:
+        VITE_DOCS_URL: ${VITE_DOCS_URL:-http://localhost:3005}
         VITE_API_URL: ${VITE_API_URL:-http://localhost:4002}
         VITE_POSTHOG_HOST: ${VITE_POSTHOG_HOST}
         VITE_POSTHOG_KEY: ${VITE_POSTHOG_KEY}

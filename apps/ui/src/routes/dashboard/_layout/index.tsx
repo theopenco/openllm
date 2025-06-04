@@ -23,6 +23,7 @@ import {
 	CardTitle,
 } from "@/lib/components/card";
 import { Tabs, TabsList, TabsTrigger } from "@/lib/components/tabs";
+import { DOCS_URL } from "@/lib/env";
 import { $api } from "@/lib/fetch-client";
 
 export const Route = createFileRoute("/dashboard/_layout/")({
@@ -247,7 +248,7 @@ export default function Dashboard() {
 									Add Provider
 								</Button>
 								<Button variant="outline" className="justify-start" asChild>
-									<a href="https://docs.llmgateway.io/" target="_blank">
+									<a href={DOCS_URL} target="_blank">
 										<ArrowUpRight className="mr-2 h-4 w-4" />
 										View Documentation
 									</a>
