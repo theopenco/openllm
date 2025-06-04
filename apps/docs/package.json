@@ -11,7 +11,6 @@
 		"build": "pnpm generate && tsc && next build",
 		"dev": "next dev --turbo --port 3005",
 		"gen-docs": "node scripts/generate-docs.mjs",
-		"gen-llms": "tsx scripts/generate-llms.ts",
 		"generate": "fumadocs-mdx && pnpm gen-docs",
 		"postinstall": "fumadocs-mdx || true",
 		"start": "next start -H 0.0.0.0"
