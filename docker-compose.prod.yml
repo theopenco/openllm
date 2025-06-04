@@ -170,6 +170,34 @@ services:
     networks:
       - llmgateway-network
 
+  # Docs Service (Static files served via Nginx)
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: docs
+      args:
+        VITE_DOCS_URL: ${VITE_DOCS_URL:-http://localhost:3005}
+    container_name: llmgateway-docs
+    restart: unless-stopped
+    ports:
+      - "${DOCS_PORT:-3005}:80"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:80/",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - llmgateway-network
+
 volumes:
   postgres_data:
     driver: local
