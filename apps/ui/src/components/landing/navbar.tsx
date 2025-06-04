@@ -5,13 +5,14 @@ import { useEffect, useState } from "react";
 import { GitHubStars } from "./github-stars";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "@/lib/components/button";
+import { DOCS_URL } from "@/lib/env";
 import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
 
 const menuItems = [
 	{ name: "Models", href: "/models" },
 	{ name: "Features", href: "/#features" },
-	{ name: "Docs", href: "https://docs.llmgateway.io", external: true },
+	{ name: "Docs", href: DOCS_URL, external: true },
 ];
 
 export const Navbar = () => {

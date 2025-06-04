@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 
-import { GITHUB_URL } from "@/lib/env";
+import { DOCS_URL, GITHUB_URL } from "@/lib/env";
 import Logo from "@/lib/icons/Logo";
 
 export default function Footer() {
@@ -52,7 +52,7 @@ export default function Footer() {
 							<ul className="space-y-2">
 								<li>
 									<a
-										href="https://docs.llmgateway.io"
+										href={DOCS_URL}
 										target="_blank"
 										className="text-sm hover:text-black dark:hover:text-white"
 									>
