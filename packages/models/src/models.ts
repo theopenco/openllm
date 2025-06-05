@@ -370,16 +370,4 @@ export let models = [
 			},
 		],
 	},
-	{
-		model: "gemini-2.5-pro-experimental",
-		providers: [
-			{
-				providerId: "google-ai-studio",
-				modelName: "gemini-2.5-pro-experimental",
-				inputPrice: 1.25 / 1e6,
-				outputPrice: 10.0 / 1e6,
-				contextSize: 1000000,
-			},
-		],
-	},
 ] as const satisfies ModelDefinition[];
