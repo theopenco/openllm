@@ -311,6 +311,18 @@ export let models = [
 		],
 	},
 	{
+		model: "gemini-2.5-pro-preview-06-05",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-pro-preview-06-05",
+				inputPrice: 1.25 / 1e6,
+				outputPrice: 10.0 / 1e6,
+				contextSize: 1000000,
+			},
+		],
+	},
+	{
 		model: "gemini-2.5-flash-preview-04-17",
 		providers: [
 			{
