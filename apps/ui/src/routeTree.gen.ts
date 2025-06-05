@@ -14,9 +14,11 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as SignupImport } from './routes/signup'
+import { Route as PlaygroundImport } from './routes/playground'
 import { Route as OnboardingImport } from './routes/onboarding'
 import { Route as ModelsImport } from './routes/models'
 import { Route as LoginImport } from './routes/login'
+import { Route as ChatImport } from './routes/chat'
 import { Route as IndexImport } from './routes/index'
 import { Route as DashboardLayoutImport } from './routes/dashboard/_layout'
 import { Route as DashboardLayoutIndexImport } from './routes/dashboard/_layout/index'
@@ -45,6 +47,12 @@ const SignupRoute = SignupImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const PlaygroundRoute = PlaygroundImport.update({
+  id: '/playground',
+  path: '/playground',
+  getParentRoute: () => rootRoute,
+} as any)
+
 const OnboardingRoute = OnboardingImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -60,6 +68,12 @@ const ModelsRoute = ModelsImport.update({
 const LoginRoute = LoginImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ChatRoute = ChatImport.update({
+  id: '/chat',
+  path: '/chat',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -128,6 +142,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexImport
       parentRoute: typeof rootRoute
     }
+    '/chat': {
+      id: '/chat'
+      path: '/chat'
+      fullPath: '/chat'
+      preLoaderRoute: typeof ChatImport
+      parentRoute: typeof rootRoute
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -147,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingImport
+      parentRoute: typeof rootRoute
+    }
+    '/playground': {
+      id: '/playground'
+      path: '/playground'
+      fullPath: '/playground'
+      preLoaderRoute: typeof PlaygroundImport
       parentRoute: typeof rootRoute
     }
     '/signup': {
@@ -262,9 +290,11 @@ const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/chat': typeof ChatRoute
   '/login': typeof LoginRoute
   '/models': typeof ModelsRoute
   '/onboarding': typeof OnboardingRoute
+  '/playground': typeof PlaygroundRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardLayoutRouteWithChildren
   '/dashboard/activity': typeof DashboardLayoutActivityRoute
@@ -278,9 +308,11 @@ export interface FileRoutesByFullPath {
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/chat': typeof ChatRoute
   '/login': typeof LoginRoute
   '/models': typeof ModelsRoute
   '/onboarding': typeof OnboardingRoute
+  '/playground': typeof PlaygroundRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardLayoutIndexRoute
   '/dashboard/activity': typeof DashboardLayoutActivityRoute
@@ -294,9 +326,11 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/chat': typeof ChatRoute
   '/login': typeof LoginRoute
   '/models': typeof ModelsRoute
   '/onboarding': typeof OnboardingRoute
+  '/playground': typeof PlaygroundRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/_layout': typeof DashboardLayoutRouteWithChildren
@@ -313,9 +347,11 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/chat'
     | '/login'
     | '/models'
     | '/onboarding'
+    | '/playground'
     | '/signup'
     | '/dashboard'
     | '/dashboard/activity'
@@ -328,9 +364,11 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/chat'
     | '/login'
     | '/models'
     | '/onboarding'
+    | '/playground'
     | '/signup'
     | '/dashboard'
     | '/dashboard/activity'
@@ -342,9 +380,11 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/chat'
     | '/login'
     | '/models'
     | '/onboarding'
+    | '/playground'
     | '/signup'
     | '/dashboard'
     | '/dashboard/_layout'
@@ -360,18 +400,22 @@ export interface FileRouteTypes {
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChatRoute: typeof ChatRoute
   LoginRoute: typeof LoginRoute
   ModelsRoute: typeof ModelsRoute
   OnboardingRoute: typeof OnboardingRoute
+  PlaygroundRoute: typeof PlaygroundRoute
   SignupRoute: typeof SignupRoute
   DashboardRoute: typeof DashboardRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChatRoute: ChatRoute,
   LoginRoute: LoginRoute,
   ModelsRoute: ModelsRoute,
   OnboardingRoute: OnboardingRoute,
+  PlaygroundRoute: PlaygroundRoute,
   SignupRoute: SignupRoute,
   DashboardRoute: DashboardRouteWithChildren,
 }
@@ -387,15 +431,20 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/chat",
         "/login",
         "/models",
         "/onboarding",
+        "/playground",
         "/signup",
         "/dashboard"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/chat": {
+      "filePath": "chat.tsx"
     },
     "/login": {
       "filePath": "login.tsx"
@@ -405,6 +454,9 @@ export const routeTree = rootRoute
     },
     "/onboarding": {
       "filePath": "onboarding.tsx"
+    },
+    "/playground": {
+      "filePath": "playground.tsx"
     },
     "/signup": {
       "filePath": "signup.tsx"
