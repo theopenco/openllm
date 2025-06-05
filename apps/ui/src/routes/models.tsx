@@ -24,6 +24,7 @@ import {
 } from "@/lib/components/card";
 import { DOCS_URL } from "@/lib/env";
 import Logo from "@/lib/icons/Logo";
+import { formatContextSize } from "@/lib/utils";
 
 const providerLogoComponents: Partial<
 	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>> | null>
@@ -43,6 +44,7 @@ interface ProviderModel {
 	providerName: string;
 	inputPrice?: number;
 	outputPrice?: number;
+	contextSize?: number;
 }
 
 const getProviderIcon = (providerId: ProviderId) => {
@@ -87,6 +89,7 @@ const groupedProviders = modelDefinitions.reduce<
 			providerName: provider.name,
 			inputPrice: map.inputPrice,
 			outputPrice: map.outputPrice,
+			contextSize: map.contextSize,
 		});
 	});
 	return acc;
@@ -155,6 +158,11 @@ function ProvidersPage() {
 													</CardDescription>
 												</CardHeader>
 												<CardContent className="mt-auto space-y-2">
+													{model.contextSize && (
+														<p className="text-xs text-muted-foreground">
+															Context: {formatContextSize(model.contextSize)}
+														</p>
+													)}
 													{(model.inputPrice !== undefined ||
 														model.outputPrice !== undefined) && (
 														<p className="text-xs text-muted-foreground">
