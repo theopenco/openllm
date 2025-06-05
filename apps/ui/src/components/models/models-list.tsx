@@ -4,6 +4,7 @@ import { models } from "@openllm/models";
 
 import { Badge } from "@/lib/components/badge";
 import { Card } from "@/lib/components/card";
+import { formatContextSize } from "@/lib/utils";
 
 import type { ModelDefinition } from "@openllm/models";
 
@@ -23,6 +24,9 @@ export function ModelsList() {
 						{model.providers.map((provider) => (
 							<div key={provider.providerId} className="mt-2">
 								<div className="font-medium">{provider.providerId}:</div>
+								{provider.contextSize && (
+									<div>Context: {formatContextSize(provider.contextSize)}</div>
+								)}
 								{provider.inputPrice !== undefined && (
 									<div>
 										Input: ${(provider.inputPrice * 1e6).toFixed(2)} / M tokens
