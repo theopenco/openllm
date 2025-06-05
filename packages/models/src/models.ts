@@ -228,4 +228,125 @@ export let models = [
 			},
 		],
 	},
+	{
+		model: "claude-3-7-sonnet",
+		providers: [
+			{
+				providerId: "anthropic",
+				modelName: "claude-3-7-sonnet-latest",
+				inputPrice: 0.000003,
+				outputPrice: 0.000015,
+			},
+		],
+	},
+	{
+		model: "claude-sonnet-4-20250514",
+		providers: [
+			{
+				providerId: "anthropic",
+				modelName: "claude-sonnet-4-20250514",
+				inputPrice: 0.000003,
+				outputPrice: 0.000015,
+			},
+		],
+	},
+	{
+		model: "claude-opus-4-20250514",
+		providers: [
+			{
+				providerId: "anthropic",
+				modelName: "claude-opus-4-20250514",
+				inputPrice: 0.000003,
+				outputPrice: 0.000015,
+			},
+		],
+	},
+	{
+		model: "claude-3-5-sonnet",
+		providers: [
+			{
+				providerId: "anthropic",
+				modelName: "claude-3-5-sonnet-latest",
+				inputPrice: 0.000003,
+				outputPrice: 0.000015,
+			},
+		],
+	},
+	{
+		model: "gemini-2.5-pro-preview-05-06",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-pro-preview-05-06",
+				inputPrice: 0.00000015,
+				outputPrice: 0.0000006,
+			},
+		],
+	},
+	{
+		model: "gemini-2.5-flash-preview-04-17",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-flash-preview-04-17",
+				inputPrice: 0.00000015,
+				outputPrice: 0.0000006,
+			},
+		],
+	},
+	{
+		model: "gemini-2.5-flash-preview-05-20",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-flash-preview-05-20",
+				inputPrice: 0.00000015,
+				outputPrice: 0.0000006,
+			},
+		],
+	},
+	{
+		model: "gemini-2.5-flash-preview-04-17-thinking",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-flash-preview-04-17-thinking",
+				inputPrice: 0.00000015,
+				outputPrice: 0.0000006,
+			},
+		],
+	},
+	{
+		model: "gemini-1.5-flash-8b",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-1.5-flash-8b",
+				inputPrice: 0.00000015,
+				outputPrice: 0.0000006,
+			},
+		],
+	},
+	{
+		model: "gemini-2.0-flash-lite",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.0-flash-lite",
+				inputPrice: 0.00000015,
+				outputPrice: 0.0000006,
+			},
+		],
+	},
+	{
+		model: "gemini-2.5-pro-experimental",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-pro-experimental",
+				inputPrice: 0.00000015,
+				outputPrice: 0.0000006,
+			},
+		],
+	},
 ] as const satisfies ModelDefinition[];
