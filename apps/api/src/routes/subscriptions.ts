@@ -80,12 +80,19 @@ subscriptions.openapi(createProSubscription, async (c) => {
 	try {
 		const stripeCustomerId = await ensureStripeCustomer(organization.id);
 
+		// Check if STRIPE_PRO_PRICE_ID is set
+		if (!process.env.STRIPE_PRO_PRICE_ID) {
+			throw new HTTPException(500, {
+				message: "STRIPE_PRO_PRICE_ID environment variable is not set",
+			});
+		}
+
 		// Create a subscription using the default payment method
 		const subscription = await stripe.subscriptions.create({
 			customer: stripeCustomerId,
 			items: [
 				{
-					price: process.env.STRIPE_PRO_PRICE_ID || "price_1234567890",
+					price: process.env.STRIPE_PRO_PRICE_ID,
 				},
 			],
 			default_payment_method: defaultPaymentMethod.stripePaymentMethodId,
