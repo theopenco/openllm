@@ -436,11 +436,16 @@ async function handleSubscriptionUpdated(
 ) {
 	const subscription = event.data.object;
 	const { customer, metadata } = subscription;
-	const current_period_end = (subscription as any).current_period_end;
+
+	const current_period_end =
+		subscription.items.data.length > 0
+			? subscription.items.data[0].current_period_end
+			: undefined;
 
 	const result = await resolveOrganizationFromStripeEvent({
 		metadata: metadata as { organizationId?: string } | undefined,
 		customer: typeof customer === "string" ? customer : customer?.id,
+		subscription: subscription.id,
 	});
 
 	if (!result) {
@@ -451,7 +456,9 @@ async function handleSubscriptionUpdated(
 	const { organizationId } = result;
 
 	// Update plan expiration date
-	const planExpiresAt = new Date(current_period_end * 1000);
+	const planExpiresAt = current_period_end
+		? new Date(current_period_end * 1000)
+		: undefined;
 
 	await db
 		.update(tables.organization)

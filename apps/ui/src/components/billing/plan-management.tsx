@@ -144,8 +144,8 @@ export function PlanManagement() {
 						{planExpiresAt && (
 							<p className="text-sm text-muted-foreground mt-1">
 								{subscriptionStatus?.cancelAtPeriodEnd
-									? `Expires on ${planExpiresAt.toLocaleDateString()}`
-									: `Renews on ${planExpiresAt.toLocaleDateString()}`}
+									? `Expires on ${planExpiresAt.toDateString()}`
+									: `Renews on ${planExpiresAt.toDateString()}`}
 							</p>
 						)}
 					</div>
