@@ -375,14 +375,19 @@ function UpgradeDialog({ onSuccess }: { onSuccess: () => void }) {
 				</div>
 			</div>
 			<DialogFooter>
-				<Button
-					onClick={handleUpgrade}
-					disabled={loading || createSubscriptionMutation.isPending}
-				>
-					{loading || createSubscriptionMutation.isPending
-						? "Processing..."
-						: "Upgrade for $50/month"}
-				</Button>
+				<div className="flex flex-col gap-2 items-end">
+					<Button
+						onClick={handleUpgrade}
+						disabled={loading || createSubscriptionMutation.isPending}
+					>
+						{loading || createSubscriptionMutation.isPending
+							? "Processing..."
+							: "Upgrade for $50/month now"}
+					</Button>
+					<div className="text-sm text-muted-foreground">
+						<p>We will charge your card now.</p>
+					</div>
+				</div>
 			</DialogFooter>
 		</Elements>
 	);
