@@ -385,6 +385,28 @@ async function handleInvoicePaymentSucceeded(invoice: any) {
 		console.log(
 			`Verification - organization plan is now: ${updatedOrganization?.plan}`,
 		);
+
+		// Track subscription creation in PostHog
+		posthog.groupIdentify({
+			groupType: "organization",
+			groupKey: organizationId,
+			properties: {
+				name: organization.name,
+			},
+		});
+		posthog.capture({
+			distinctId: "organization",
+			event: "subscription_created",
+			groups: {
+				organization: organizationId,
+			},
+			properties: {
+				plan: "pro",
+				organization: organizationId,
+				subscriptionId: subscriptionId,
+				source: "stripe_invoice",
+			},
+		});
 	} catch (error) {
 		console.error(
 			`Error updating organization ${organizationId} to pro plan:`,
@@ -450,6 +472,28 @@ async function handleSubscriptionDeleted(subscription: any) {
 			updatedAt: new Date(),
 		})
 		.where(eq(tables.organization.id, organizationId));
+
+	// Track subscription cancellation in PostHog
+	posthog.groupIdentify({
+		groupType: "organization",
+		groupKey: organizationId,
+		properties: {
+			name: result.organization.name,
+		},
+	});
+	posthog.capture({
+		distinctId: "organization",
+		event: "subscription_cancelled",
+		groups: {
+			organization: organizationId,
+		},
+		properties: {
+			previousPlan: "pro",
+			newPlan: "free",
+			organization: organizationId,
+			source: "stripe_subscription_deleted",
+		},
+	});
 
 	console.log(`Downgraded organization ${organizationId} to free plan`);
 }
