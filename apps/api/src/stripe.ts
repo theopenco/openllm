@@ -7,6 +7,7 @@ import { posthog } from "./posthog";
 import { stripe } from "./routes/payments";
 
 import type { ServerTypes } from "./vars";
+import type Stripe from "stripe";
 
 export async function ensureStripeCustomer(
 	organizationId: string,
@@ -178,21 +179,31 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 
 		switch (event.type) {
 			case "payment_intent.succeeded":
-				await handlePaymentIntentSucceeded(event.data.object);
+				await handlePaymentIntentSucceeded(
+					event as Stripe.PaymentIntentSucceededEvent,
+				);
 				break;
 			case "payment_intent.payment_failed":
 				break;
 			case "setup_intent.succeeded":
-				await handleSetupIntentSucceeded(event.data.object);
+				await handleSetupIntentSucceeded(
+					event as Stripe.SetupIntentSucceededEvent,
+				);
 				break;
 			case "invoice.payment_succeeded":
-				await handleInvoicePaymentSucceeded(event.data.object);
+				await handleInvoicePaymentSucceeded(
+					event as Stripe.InvoicePaymentSucceededEvent,
+				);
 				break;
 			case "customer.subscription.updated":
-				await handleSubscriptionUpdated(event.data.object);
+				await handleSubscriptionUpdated(
+					event as Stripe.CustomerSubscriptionUpdatedEvent,
+				);
 				break;
 			case "customer.subscription.deleted":
-				await handleSubscriptionDeleted(event.data.object);
+				await handleSubscriptionDeleted(
+					event as Stripe.CustomerSubscriptionDeletedEvent,
+				);
 				break;
 			default:
 				console.log(`Unhandled event type: ${event.type}`);
@@ -207,7 +218,10 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 	}
 });
 
-async function handlePaymentIntentSucceeded(paymentIntent: any) {
+async function handlePaymentIntentSucceeded(
+	event: Stripe.PaymentIntentSucceededEvent,
+) {
+	const paymentIntent = event.data.object;
 	const { metadata, amount } = paymentIntent;
 
 	const result = await resolveOrganizationFromStripeEvent({
@@ -268,7 +282,10 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
 	);
 }
 
-async function handleSetupIntentSucceeded(setupIntent: any) {
+async function handleSetupIntentSucceeded(
+	event: Stripe.SetupIntentSucceededEvent,
+) {
+	const setupIntent = event.data.object;
 	const { metadata, payment_method } = setupIntent;
 	const { organizationId } = metadata;
 
@@ -309,7 +326,10 @@ async function handleSetupIntentSucceeded(setupIntent: any) {
 	});
 }
 
-async function handleInvoicePaymentSucceeded(invoice: any) {
+async function handleInvoicePaymentSucceeded(
+	event: Stripe.InvoicePaymentSucceededEvent,
+) {
+	const invoice = event.data.object;
 	const { customer, subscription, metadata } = invoice;
 
 	// Extract subscription ID from line items if not directly available
@@ -416,7 +436,10 @@ async function handleInvoicePaymentSucceeded(invoice: any) {
 	}
 }
 
-async function handleSubscriptionUpdated(subscription: any) {
+async function handleSubscriptionUpdated(
+	event: Stripe.CustomerSubscriptionUpdatedEvent,
+) {
+	const subscription = event.data.object;
 	const { customer, current_period_end, metadata } = subscription;
 
 	const result = await resolveOrganizationFromStripeEvent({
@@ -447,7 +470,10 @@ async function handleSubscriptionUpdated(subscription: any) {
 	);
 }
 
-async function handleSubscriptionDeleted(subscription: any) {
+async function handleSubscriptionDeleted(
+	event: Stripe.CustomerSubscriptionDeletedEvent,
+) {
+	const subscription = event.data.object;
 	const { customer, metadata } = subscription;
 
 	const result = await resolveOrganizationFromStripeEvent({
