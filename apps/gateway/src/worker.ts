@@ -1,6 +1,6 @@
 import { db, log, organization, eq, sql } from "@openllm/db";
 
-import { getProject } from "./lib/cache";
+import { getProject, getOrganization } from "./lib/cache";
 import { consumeFromQueue, LOG_QUEUE } from "./lib/redis";
 
 import type { LogInsertData } from "./lib/logs";
@@ -17,11 +17,24 @@ export async function processLogQueue(): Promise<void> {
 	try {
 		const logData = message.map((i) => JSON.parse(i) as LogInsertData);
 
-		await db.insert(log).values(
-			logData.map((i) => ({
-				...i,
-			})),
+		const processedLogData = await Promise.all(
+			logData.map(async (data) => {
+				const organization = await getOrganization(data.organizationId);
+
+				if (organization?.retentionLevel === "none") {
+					const {
+						messages: _messages,
+						content: _content,
+						...metadataOnly
+					} = data;
+					return metadataOnly;
+				}
+
+				return data;
+			}),
 		);
+
+		await db.insert(log).values(processedLogData as any);
 
 		for (const data of logData) {
 			if (!data.cost || data.cached) {
