@@ -35,6 +35,11 @@ curl -X POST https://api.llmgateway.io/v1/chat/completions \
 }'
 ```
 
+<!--
+Note: Replace `$LLM_GATEWAY_API_KEY` with your actual API key.
+Ensure the model name ("gpt-4o") is correct and supported by your gateway setup.
+-->
+
 ## Development Setup
 
 1. Install dependencies:
@@ -50,6 +55,7 @@ curl -X POST https://api.llmgateway.io/v1/chat/completions \
    ```
 
 3. Build for production:
+
    ```bash
    pnpm build
    ```
@@ -57,7 +63,7 @@ curl -X POST https://api.llmgateway.io/v1/chat/completions \
 ## Folder Structure
 
 - `apps/ui`: Vite + React frontend
-- `apps/api`: Hono backend
+- `apps/api`: Hono backend API
 - `apps/gateway`: API gateway for routing LLM requests
 - `apps/docs`: Documentation site
 - `packages/db`: Drizzle ORM schema and migrations
@@ -65,5 +71,8 @@ curl -X POST https://api.llmgateway.io/v1/chat/completions \
 - `packages/shared`: Shared types and utilities
 
 ## License
+
+<!-- Add your license information here, e.g., MIT License, Apache 2.0, etc. -->
+
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
