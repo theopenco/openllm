@@ -225,7 +225,7 @@ export const log = pgTable("log", {
 	promptTokens: decimal(),
 	completionTokens: decimal(),
 	totalTokens: decimal(),
-	messages: json().notNull(),
+	messages: json(),
 	temperature: real(),
 	maxTokens: integer(),
 	topP: real(),
