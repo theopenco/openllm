@@ -186,6 +186,15 @@ subscriptions.openapi(cancelProSubscription, async (c) => {
 			cancel_at_period_end: true,
 		});
 
+		// Update organization to mark subscription as cancelled
+		await db
+			.update(tables.organization)
+			.set({
+				subscriptionCancelled: true,
+				updatedAt: new Date(),
+			})
+			.where(eq(tables.organization.id, organization.id));
+
 		return c.json({
 			success: true,
 		});
@@ -287,7 +296,6 @@ const getSubscriptionStatus = createRoute({
 						plan: z.enum(["free", "pro"]),
 						subscriptionId: z.string().nullable(),
 						planExpiresAt: z.string().nullable(),
-						cancelAtPeriodEnd: z.boolean().nullable(),
 						subscriptionCancelled: z.boolean(),
 					}),
 				},
@@ -322,25 +330,11 @@ subscriptions.openapi(getSubscriptionStatus, async (c) => {
 	}
 
 	const organization = userOrganization.organization;
-	let cancelAtPeriodEnd = null;
-
-	// If there's a subscription, get its status from Stripe
-	if (organization.stripeSubscriptionId) {
-		try {
-			const subscription = await stripe.subscriptions.retrieve(
-				organization.stripeSubscriptionId,
-			);
-			cancelAtPeriodEnd = subscription.cancel_at_period_end;
-		} catch (error) {
-			console.error("Error retrieving subscription:", error);
-		}
-	}
 
 	return c.json({
 		plan: organization.plan || "free",
 		subscriptionId: organization.stripeSubscriptionId,
 		planExpiresAt: organization.planExpiresAt?.toISOString() || null,
-		cancelAtPeriodEnd,
 		subscriptionCancelled: organization.subscriptionCancelled || false,
 	});
 });

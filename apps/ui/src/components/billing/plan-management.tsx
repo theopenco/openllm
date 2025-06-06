@@ -35,9 +35,6 @@ export function PlanManagement() {
 	const { data: subscriptionStatus } = $api.useQuery(
 		"get",
 		"/subscriptions/status",
-		{
-			retry: 1,
-		},
 	);
 
 	const cancelSubscriptionMutation = $api.useMutation(
@@ -61,6 +58,9 @@ export function PlanManagement() {
 
 		try {
 			await cancelSubscriptionMutation.mutateAsync({});
+			await queryClient.invalidateQueries({
+				queryKey: $api.queryOptions("get", "/subscriptions/status").queryKey,
+			});
 			toast({
 				title: "Subscription Canceled",
 				description:
@@ -143,7 +143,7 @@ export function PlanManagement() {
 						</p>
 						{planExpiresAt && (
 							<p className="text-sm text-muted-foreground mt-1">
-								{subscriptionStatus?.cancelAtPeriodEnd
+								{subscriptionStatus?.subscriptionCancelled
 									? `Expires on ${planExpiresAt.toDateString()}`
 									: `Renews on ${planExpiresAt.toDateString()}`}
 							</p>
@@ -206,7 +206,7 @@ export function PlanManagement() {
 					</Dialog>
 				) : (
 					<div className="flex gap-2">
-						{!subscriptionStatus?.cancelAtPeriodEnd && (
+						{!subscriptionStatus?.subscriptionCancelled && (
 							<Button
 								variant="outline"
 								onClick={handleCancelSubscription}
@@ -217,7 +217,7 @@ export function PlanManagement() {
 									: "Cancel Subscription"}
 							</Button>
 						)}
-						{subscriptionStatus?.cancelAtPeriodEnd && (
+						{subscriptionStatus?.subscriptionCancelled && (
 							<div className="flex items-center gap-2">
 								<Badge variant="destructive">Subscription Canceled</Badge>
 								<Button

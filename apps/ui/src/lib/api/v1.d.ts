@@ -1779,7 +1779,7 @@ export interface paths {
 							plan: "free" | "pro";
 							subscriptionId: string | null;
 							planExpiresAt: string | null;
-							cancelAtPeriodEnd: boolean | null;
+							subscriptionCancelled: boolean;
 						};
 					};
 				};
