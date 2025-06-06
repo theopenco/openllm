@@ -1,3 +1,4 @@
+import { models, providers } from "@openllm/models";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 
@@ -49,6 +50,20 @@ function RouteComponent() {
 
 	const isAuthenticated = !isUserLoading && !!user;
 	const showAuthDialog = !isUserLoading && !user;
+
+	// Check if the selected model supports streaming
+	const getModelStreamingSupport = (modelName: string) => {
+		const modelInfo = models.find((m) => m.model === modelName);
+		if (!modelInfo) {
+			return false;
+		}
+
+		// Check if any provider for this model supports streaming
+		return modelInfo.providers.some((provider) => {
+			const providerInfo = providers.find((p) => p.id === provider.providerId);
+			return providerInfo?.streaming === true;
+		});
+	};
 
 	useEffect(() => {
 		if (isApiKeyLoaded && !userApiKey && !showAuthDialog) {
@@ -133,6 +148,7 @@ function RouteComponent() {
 				data: { role: "user", content },
 			});
 
+			const supportsStreaming = getModelStreamingSupport(selectedModel);
 			const response = await fetch("/api/chat/completion", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
@@ -142,7 +158,7 @@ function RouteComponent() {
 						role: msg.role,
 						content: msg.content,
 					})),
-					stream: true,
+					stream: supportsStreaming,
 					apiKey: userApiKey,
 				}),
 			});
@@ -153,66 +169,86 @@ function RouteComponent() {
 				throw new Error(`API Error: ${response.status} ${response.statusText}`);
 			}
 
-			const reader = response.body?.getReader();
-			if (!reader) {
-				throw new Error("No response body");
-			}
+			if (supportsStreaming) {
+				// Handle streaming response
+				const reader = response.body?.getReader();
+				if (!reader) {
+					throw new Error("No response body");
+				}
 
-			const assistantMessage = addLocalMessage({
-				role: "assistant",
-				content: "",
-			});
-			let assistantContent = "";
-			const decoder = new TextDecoder();
-			let buffer = "";
+				const assistantMessage = addLocalMessage({
+					role: "assistant",
+					content: "",
+				});
+				let assistantContent = "";
+				const decoder = new TextDecoder();
+				let buffer = "";
 
-			try {
-				while (true) {
-					const { done, value } = await reader.read();
-					if (done) {
-						break;
-					}
+				try {
+					while (true) {
+						const { done, value } = await reader.read();
+						if (done) {
+							break;
+						}
 
-					const chunk = decoder.decode(value, { stream: true });
-					buffer += chunk;
-					const lines = buffer.split("\n");
-					buffer = lines.pop() || "";
+						const chunk = decoder.decode(value, { stream: true });
+						buffer += chunk;
+						const lines = buffer.split("\n");
+						buffer = lines.pop() || "";
 
-					for (const line of lines) {
-						if (line.startsWith("data: ")) {
-							const data = line.slice(6);
-							if (data === "[DONE]") {
-								continue;
-							}
-
-							try {
-								const parsed = JSON.parse(data);
-								const content = parsed.choices?.[0]?.delta?.content;
-								if (content) {
-									assistantContent += content;
-									setMessages((prev) =>
-										prev.map((msg) =>
-											msg.id === assistantMessage.id
-												? { ...msg, content: assistantContent }
-												: msg,
-										),
-									);
+						for (const line of lines) {
+							if (line.startsWith("data: ")) {
+								const data = line.slice(6);
+								if (data === "[DONE]") {
+									continue;
 								}
-							} catch (e) {
-								console.error("Error parsing stream data:", e);
+
+								try {
+									const parsed = JSON.parse(data);
+									const content = parsed.choices?.[0]?.delta?.content;
+									if (content) {
+										assistantContent += content;
+										setMessages((prev) =>
+											prev.map((msg) =>
+												msg.id === assistantMessage.id
+													? { ...msg, content: assistantContent }
+													: msg,
+											),
+										);
+									}
+								} catch (e) {
+									console.error("Error parsing stream data:", e);
+								}
 							}
 						}
 					}
+
+					if (assistantContent.trim()) {
+						await addMessage.mutateAsync({
+							chatId,
+							data: { role: "assistant", content: assistantContent },
+						});
+					}
+				} finally {
+					reader.releaseLock();
 				}
+			} else {
+				// Handle non-streaming response
+				const responseData = await response.json();
+				const assistantContent =
+					responseData.choices?.[0]?.message?.content || "";
 
 				if (assistantContent.trim()) {
+					addLocalMessage({
+						role: "assistant",
+						content: assistantContent,
+					});
+
 					await addMessage.mutateAsync({
 						chatId,
 						data: { role: "assistant", content: assistantContent },
 					});
 				}
-			} finally {
-				reader.releaseLock();
 			}
 		} catch (err) {
 			setError((err as Error).message);
