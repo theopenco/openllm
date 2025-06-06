@@ -237,14 +237,10 @@ export const log = pgTable("log", {
 	cached: boolean().default(false),
 	mode: text({
 		enum: ["api-keys", "credits", "hybrid"],
-	})
-		.notNull()
-		.default("api-keys"),
+	}).notNull(),
 	usedMode: text({
 		enum: ["api-keys", "credits"],
-	})
-		.notNull()
-		.default("api-keys"),
+	}).notNull(),
 });
 
 export const passkey = pgTable("passkey", {
