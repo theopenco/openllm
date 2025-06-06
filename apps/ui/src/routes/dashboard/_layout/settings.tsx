@@ -152,7 +152,7 @@ function RouteComponent() {
 						<TabsTrigger value="preferences">Preferences</TabsTrigger>
 						<TabsTrigger value="account">Account</TabsTrigger>
 						<TabsTrigger value="security">Security</TabsTrigger>
-						<TabsTrigger value="payment">Payment</TabsTrigger>
+						<TabsTrigger value="billing">Billing</TabsTrigger>
 						<TabsTrigger value="advanced">Advanced</TabsTrigger>
 					</TabsList>
 					<TabsContent value="preferences" className="space-y-4">
@@ -300,12 +300,12 @@ function RouteComponent() {
 							</CardFooter>
 						</Card>
 					</TabsContent>
-					<TabsContent value="payment" className="space-y-4">
+					<TabsContent value="billing" className="space-y-4">
 						<Card>
 							<CardHeader>
-								<CardTitle>Payment Methods</CardTitle>
+								<CardTitle>Billing</CardTitle>
 								<CardDescription>
-									Manage your payment methods for topping up credits
+									Manage your plan, payment methods, and credits
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-4">

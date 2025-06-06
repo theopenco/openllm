@@ -19,6 +19,10 @@ export interface ProviderModelMapping {
 	 * Price per image input in USD
 	 */
 	imageInputPrice?: number;
+	/**
+	 * Maximum context window size in tokens
+	 */
+	contextSize?: number;
 }
 
 export interface ModelDefinition {
@@ -39,6 +43,7 @@ export let models = [
 				modelName: "custom",
 				inputPrice: undefined,
 				outputPrice: undefined,
+				contextSize: undefined,
 			},
 		],
 	},
@@ -50,6 +55,7 @@ export let models = [
 				modelName: "auto",
 				inputPrice: undefined,
 				outputPrice: undefined,
+				contextSize: undefined,
 			},
 		],
 	},
@@ -59,8 +65,9 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-4o-mini",
-				inputPrice: 0.15 / 1e6, // $0.15 per 1M tokens
-				outputPrice: 0.6 / 1e6, // $0.60 per 1M tokens
+				inputPrice: 0.15 / 1e6,
+				outputPrice: 0.6 / 1e6,
+				contextSize: 128000,
 			},
 		],
 		jsonOutput: true,
@@ -71,8 +78,9 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-4",
-				inputPrice: 30.0 / 1e6, // $30.00 per 1M tokens
-				outputPrice: 60.0 / 1e6, // $60.00 per 1M tokens
+				inputPrice: 30.0 / 1e6,
+				outputPrice: 60.0 / 1e6,
+				contextSize: 128000,
 			},
 		],
 		jsonOutput: false,
@@ -83,9 +91,10 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-4o",
-				inputPrice: 2.5 / 1e6, // $2.50 per 1M tokens
-				outputPrice: 10.0 / 1e6, // $10.00 per 1M tokens
+				inputPrice: 2.5 / 1e6,
+				outputPrice: 10.0 / 1e6,
 				imageInputPrice: 0.00553,
+				contextSize: 128000,
 			},
 		],
 		jsonOutput: true,
@@ -96,8 +105,9 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-3.5-turbo",
-				inputPrice: 0.5 / 1e6, // $0.50 per 1M tokens
-				outputPrice: 1.5 / 1e6, // $1.50 per 1M tokens
+				inputPrice: 0.5 / 1e6,
+				outputPrice: 1.5 / 1e6,
+				contextSize: 16385,
 			},
 		],
 		jsonOutput: true,
@@ -108,8 +118,9 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-4.1",
-				inputPrice: 2.0 / 1e6, // $2.00 per 1M tokens
-				outputPrice: 8.0 / 1e6, // $8.00 per 1M tokens
+				inputPrice: 2.0 / 1e6,
+				outputPrice: 8.0 / 1e6,
+				contextSize: 1000000,
 			},
 		],
 		jsonOutput: true,
@@ -120,8 +131,9 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-4.1-mini",
-				inputPrice: 0.4 / 1e6, // $0.40 per 1M tokens
-				outputPrice: 1.6 / 1e6, // $1.60 per 1M tokens
+				inputPrice: 0.4 / 1e6,
+				outputPrice: 1.6 / 1e6,
+				contextSize: 1000000,
 			},
 		],
 		jsonOutput: true,
@@ -132,8 +144,9 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-4.1-nano",
-				inputPrice: 0.1 / 1e6, // $0.10 per 1M tokens
-				outputPrice: 0.4 / 1e6, // $0.40 per 1M tokens
+				inputPrice: 0.1 / 1e6,
+				outputPrice: 0.4 / 1e6,
+				contextSize: 1000000,
 			},
 		],
 		jsonOutput: true,
@@ -144,8 +157,9 @@ export let models = [
 			{
 				providerId: "anthropic",
 				modelName: "claude-3-7-sonnet-20250219",
-				inputPrice: 0.000003,
-				outputPrice: 0.000015,
+				inputPrice: 3.0 / 1e6,
+				outputPrice: 15.0 / 1e6,
+				contextSize: 200000,
 			},
 		],
 	},
@@ -155,8 +169,9 @@ export let models = [
 			{
 				providerId: "anthropic",
 				modelName: "claude-3-5-sonnet-20241022",
-				inputPrice: 0.0000008,
-				outputPrice: 0.000004,
+				inputPrice: 3.0 / 1e6,
+				outputPrice: 15.0 / 1e6,
+				contextSize: 200000,
 			},
 		],
 	},
@@ -166,8 +181,9 @@ export let models = [
 			{
 				providerId: "google-ai-studio",
 				modelName: "gemini-2.0-flash",
-				inputPrice: 0.00000015,
-				outputPrice: 0.0000006,
+				inputPrice: 0.1 / 1e6,
+				outputPrice: 0.4 / 1e6,
+				contextSize: 1000000,
 			},
 		],
 	},
@@ -177,8 +193,9 @@ export let models = [
 			{
 				providerId: "openai",
 				modelName: "gpt-4-turbo",
-				inputPrice: 0.00001,
-				outputPrice: 0.00003,
+				inputPrice: 10.0 / 1e6,
+				outputPrice: 30.0 / 1e6,
+				contextSize: 128000,
 			},
 		],
 		jsonOutput: true,
@@ -189,8 +206,9 @@ export let models = [
 			{
 				providerId: "anthropic",
 				modelName: "claude-2.1",
-				inputPrice: 0.000008,
-				outputPrice: 0.000024,
+				inputPrice: 8.0 / 1e6,
+				outputPrice: 24.0 / 1e6,
+				contextSize: 200000,
 			},
 		],
 	},
@@ -202,18 +220,21 @@ export let models = [
 				modelName: "meta-llama/llama-3.1-8b-instruct/fp-8",
 				inputPrice: 0.07 / 1e6,
 				outputPrice: 0.33 / 1e6,
+				contextSize: 128000,
 			},
 			{
 				providerId: "kluster.ai",
 				modelName: "klusterai/Meta-Llama-3.1-8B-Instruct-Turbo",
 				inputPrice: 0.07 / 1e6,
 				outputPrice: 0.33 / 1e6,
+				contextSize: 128000,
 			},
 			{
 				providerId: "together.ai",
 				modelName: "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
-				inputPrice: 0.07 / 1e6,
-				outputPrice: 0.33 / 1e6,
+				inputPrice: 0.88 / 1e6,
+				outputPrice: 0.88 / 1e6,
+				contextSize: 128000,
 			},
 		],
 	},
@@ -225,6 +246,139 @@ export let models = [
 				modelName: "meta-llama/llama-3.1-70b-instruct/fp-16",
 				inputPrice: 0.07 / 1e6,
 				outputPrice: 0.33 / 1e6,
+				contextSize: 128000,
+			},
+		],
+	},
+	{
+		model: "claude-3-7-sonnet",
+		providers: [
+			{
+				providerId: "anthropic",
+				modelName: "claude-3-7-sonnet-latest",
+				inputPrice: 3.0 / 1e6,
+				outputPrice: 15.0 / 1e6,
+				contextSize: 200000,
+			},
+		],
+	},
+	{
+		model: "claude-sonnet-4-20250514",
+		providers: [
+			{
+				providerId: "anthropic",
+				modelName: "claude-sonnet-4-20250514",
+				inputPrice: 3.0 / 1e6,
+				outputPrice: 15.0 / 1e6,
+				contextSize: 200000,
+			},
+		],
+	},
+	{
+		model: "claude-opus-4-20250514",
+		providers: [
+			{
+				providerId: "anthropic",
+				modelName: "claude-opus-4-20250514",
+				inputPrice: 3.0 / 1e6,
+				outputPrice: 15.0 / 1e6,
+				contextSize: 200000,
+			},
+		],
+	},
+	{
+		model: "claude-3-5-sonnet",
+		providers: [
+			{
+				providerId: "anthropic",
+				modelName: "claude-3-5-sonnet-latest",
+				inputPrice: 3.0 / 1e6,
+				outputPrice: 15.0 / 1e6,
+				contextSize: 200000,
+			},
+		],
+	},
+	{
+		model: "gemini-2.5-pro-preview-05-06",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-pro-preview-05-06",
+				inputPrice: 1.25 / 1e6,
+				outputPrice: 10.0 / 1e6,
+				contextSize: 1000000,
+			},
+		],
+	},
+	{
+		model: "gemini-2.5-pro-preview-06-05",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-pro-preview-06-05",
+				inputPrice: 1.25 / 1e6,
+				outputPrice: 10.0 / 1e6,
+				contextSize: 1000000,
+			},
+		],
+	},
+	{
+		model: "gemini-2.5-flash-preview-04-17",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-flash-preview-04-17",
+				inputPrice: 0.15 / 1e6,
+				outputPrice: 0.6 / 1e6,
+				contextSize: 1000000,
+			},
+		],
+	},
+	{
+		model: "gemini-2.5-flash-preview-05-20",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-flash-preview-05-20",
+				inputPrice: 0.15 / 1e6,
+				outputPrice: 0.6 / 1e6,
+				contextSize: 1000000,
+			},
+		],
+	},
+	{
+		model: "gemini-2.5-flash-preview-04-17-thinking",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.5-flash-preview-04-17-thinking",
+				inputPrice: 0.15 / 1e6,
+				outputPrice: 0.6 / 1e6,
+				contextSize: 1000000,
+			},
+		],
+	},
+	{
+		model: "gemini-1.5-flash-8b",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-1.5-flash-8b",
+				inputPrice: 0.0375 / 1e6,
+				outputPrice: 0.15 / 1e6,
+				contextSize: 1000000,
+			},
+		],
+	},
+	{
+		model: "gemini-2.0-flash-lite",
+		providers: [
+			{
+				providerId: "google-ai-studio",
+				modelName: "gemini-2.0-flash-lite",
+				inputPrice: 0.075 / 1e6,
+				outputPrice: 0.3 / 1e6,
+				contextSize: 1000000,
 			},
 		],
 	},
