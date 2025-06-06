@@ -179,31 +179,21 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 
 		switch (event.type) {
 			case "payment_intent.succeeded":
-				await handlePaymentIntentSucceeded(
-					event as Stripe.PaymentIntentSucceededEvent,
-				);
+				await handlePaymentIntentSucceeded(event);
 				break;
 			case "payment_intent.payment_failed":
 				break;
 			case "setup_intent.succeeded":
-				await handleSetupIntentSucceeded(
-					event as Stripe.SetupIntentSucceededEvent,
-				);
+				await handleSetupIntentSucceeded(event);
 				break;
 			case "invoice.payment_succeeded":
-				await handleInvoicePaymentSucceeded(
-					event as Stripe.InvoicePaymentSucceededEvent,
-				);
+				await handleInvoicePaymentSucceeded(event);
 				break;
 			case "customer.subscription.updated":
-				await handleSubscriptionUpdated(
-					event as Stripe.CustomerSubscriptionUpdatedEvent,
-				);
+				await handleSubscriptionUpdated(event);
 				break;
 			case "customer.subscription.deleted":
-				await handleSubscriptionDeleted(
-					event as Stripe.CustomerSubscriptionDeletedEvent,
-				);
+				await handleSubscriptionDeleted(event);
 				break;
 			default:
 				console.log(`Unhandled event type: ${event.type}`);
@@ -287,7 +277,7 @@ async function handleSetupIntentSucceeded(
 ) {
 	const setupIntent = event.data.object;
 	const { metadata, payment_method } = setupIntent;
-	const { organizationId } = metadata;
+	const organizationId = metadata?.organizationId;
 
 	if (!organizationId || !payment_method) {
 		console.error("Missing organizationId or payment_method in setupIntent");
@@ -302,11 +292,14 @@ async function handleSetupIntentSucceeded(
 		return;
 	}
 
-	await stripe.paymentMethods.attach(payment_method, {
+	const paymentMethodId =
+		typeof payment_method === "string" ? payment_method : payment_method.id;
+
+	await stripe.paymentMethods.attach(paymentMethodId, {
 		customer: stripeCustomerId,
 	});
 
-	const paymentMethod = await stripe.paymentMethods.retrieve(payment_method);
+	const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
 	const existingPaymentMethods = await db.query.paymentMethod.findMany({
 		where: {
@@ -317,7 +310,7 @@ async function handleSetupIntentSucceeded(
 	const isDefault = existingPaymentMethods.length === 0;
 
 	await db.insert(tables.paymentMethod).values({
-		stripePaymentMethodId: payment_method,
+		stripePaymentMethodId: paymentMethodId,
 		organizationId,
 		type: paymentMethod.type,
 		isDefault,
@@ -330,10 +323,12 @@ async function handleInvoicePaymentSucceeded(
 	event: Stripe.InvoicePaymentSucceededEvent,
 ) {
 	const invoice = event.data.object;
-	const { customer, subscription, metadata } = invoice;
+	const { customer, metadata } = invoice;
+	const subscription = (invoice as any).subscription;
 
 	// Extract subscription ID from line items if not directly available
-	let subscriptionId = subscription;
+	let subscriptionId =
+		typeof subscription === "string" ? subscription : subscription?.id;
 	if (
 		!subscriptionId &&
 		invoice.lines &&
@@ -360,8 +355,8 @@ async function handleInvoicePaymentSucceeded(
 	}
 
 	const result = await resolveOrganizationFromStripeEvent({
-		metadata,
-		customer,
+		metadata: metadata as { organizationId?: string } | undefined,
+		customer: typeof customer === "string" ? customer : customer?.id,
 		subscription: subscriptionId,
 		lines: invoice.lines,
 	});
@@ -440,11 +435,12 @@ async function handleSubscriptionUpdated(
 	event: Stripe.CustomerSubscriptionUpdatedEvent,
 ) {
 	const subscription = event.data.object;
-	const { customer, current_period_end, metadata } = subscription;
+	const { customer, metadata } = subscription;
+	const current_period_end = (subscription as any).current_period_end;
 
 	const result = await resolveOrganizationFromStripeEvent({
-		metadata,
-		customer,
+		metadata: metadata as { organizationId?: string } | undefined,
+		customer: typeof customer === "string" ? customer : customer?.id,
 	});
 
 	if (!result) {
@@ -477,8 +473,8 @@ async function handleSubscriptionDeleted(
 	const { customer, metadata } = subscription;
 
 	const result = await resolveOrganizationFromStripeEvent({
-		metadata,
-		customer,
+		metadata: metadata as { organizationId?: string } | undefined,
+		customer: typeof customer === "string" ? customer : customer?.id,
 	});
 
 	if (!result) {
