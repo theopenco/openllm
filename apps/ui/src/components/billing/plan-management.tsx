@@ -30,6 +30,7 @@ export function PlanManagement() {
 	const { data: organization } = useDefaultOrganization();
 	const { toast } = useToast();
 	const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
+	const queryClient = useQueryClient();
 
 	const { data: subscriptionStatus } = $api.useQuery(
 		"get",
@@ -42,6 +43,11 @@ export function PlanManagement() {
 	const cancelSubscriptionMutation = $api.useMutation(
 		"post",
 		"/subscriptions/cancel-pro-subscription",
+	);
+
+	const resumeSubscriptionMutation = $api.useMutation(
+		"post",
+		"/subscriptions/resume-pro-subscription",
 	);
 
 	const handleCancelSubscription = async () => {
@@ -64,6 +70,34 @@ export function PlanManagement() {
 			toast({
 				title: "Error",
 				description: `Failed to cancel subscription. Please try again. Error: ${error}`,
+				variant: "destructive",
+			});
+		}
+	};
+
+	const handleResumeSubscription = async () => {
+		const confirmed = window.confirm(
+			"Are you sure you want to resume your Pro subscription? Your subscription will continue and you'll be charged at the next billing cycle.",
+		);
+
+		if (!confirmed) {
+			return;
+		}
+
+		try {
+			await resumeSubscriptionMutation.mutateAsync({});
+			await queryClient.invalidateQueries({
+				queryKey: $api.queryOptions("get", "/subscriptions/status").queryKey,
+			});
+			toast({
+				title: "Subscription Resumed",
+				description:
+					"Your Pro subscription has been resumed. You'll continue to have access to all Pro features.",
+			});
+		} catch (error) {
+			toast({
+				title: "Error",
+				description: `Failed to resume subscription. Please try again. Error: ${error}`,
 				variant: "destructive",
 			});
 		}
@@ -184,7 +218,18 @@ export function PlanManagement() {
 							</Button>
 						)}
 						{subscriptionStatus?.cancelAtPeriodEnd && (
-							<Badge variant="destructive">Subscription Canceled</Badge>
+							<div className="flex items-center gap-2">
+								<Badge variant="destructive">Subscription Canceled</Badge>
+								<Button
+									variant="default"
+									onClick={handleResumeSubscription}
+									disabled={resumeSubscriptionMutation.isPending}
+								>
+									{resumeSubscriptionMutation.isPending
+										? "Resuming..."
+										: "Resume Subscription"}
+								</Button>
+							</div>
 						)}
 					</div>
 				)}

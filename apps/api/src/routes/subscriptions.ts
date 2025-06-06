@@ -196,6 +196,84 @@ subscriptions.openapi(cancelProSubscription, async (c) => {
 	}
 });
 
+const resumeProSubscription = createRoute({
+	method: "post",
+	path: "/resume-pro-subscription",
+	request: {},
+	responses: {
+		200: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						success: z.boolean(),
+					}),
+				},
+			},
+			description: "Pro subscription resumed successfully",
+		},
+	},
+});
+
+subscriptions.openapi(resumeProSubscription, async (c) => {
+	const user = c.get("user");
+
+	if (!user) {
+		throw new HTTPException(401, {
+			message: "Unauthorized",
+		});
+	}
+
+	const userOrganization = await db.query.userOrganization.findFirst({
+		where: {
+			userId: user.id,
+		},
+		with: {
+			organization: true,
+		},
+	});
+
+	if (!userOrganization || !userOrganization.organization) {
+		throw new HTTPException(404, {
+			message: "Organization not found",
+		});
+	}
+
+	const organization = userOrganization.organization;
+
+	if (!organization.stripeSubscriptionId) {
+		throw new HTTPException(400, {
+			message: "No active subscription found",
+		});
+	}
+
+	try {
+		// Check if subscription is actually cancelled
+		const subscription = await stripe.subscriptions.retrieve(
+			organization.stripeSubscriptionId,
+		);
+
+		if (!subscription.cancel_at_period_end) {
+			throw new HTTPException(400, {
+				message: "Subscription is not cancelled",
+			});
+		}
+
+		// Resume the subscription by setting cancel_at_period_end to false
+		await stripe.subscriptions.update(organization.stripeSubscriptionId, {
+			cancel_at_period_end: false,
+		});
+
+		return c.json({
+			success: true,
+		});
+	} catch (error) {
+		console.error("Stripe subscription resume error:", error);
+		throw new HTTPException(500, {
+			message: "Failed to resume subscription",
+		});
+	}
+});
+
 const getSubscriptionStatus = createRoute({
 	method: "get",
 	path: "/status",
