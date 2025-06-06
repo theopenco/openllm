@@ -108,6 +108,8 @@ describe("logs route", () => {
 				temperature: 0.7,
 				maxTokens: 100,
 				messages: JSON.stringify([{ role: "user", content: "Hello" }]),
+				mode: "api-keys",
+				usedMode: "api-keys",
 			},
 			{
 				id: "test-log-id-2",
@@ -129,6 +131,8 @@ describe("logs route", () => {
 				temperature: 0.8,
 				maxTokens: 200,
 				messages: JSON.stringify([{ role: "user", content: "Hello 2" }]),
+				mode: "api-keys",
+				usedMode: "api-keys",
 			},
 		]);
 	});
@@ -212,7 +216,9 @@ describe("logs route", () => {
 					temperature: 0.7,
 					maxTokens: 100,
 					messages: JSON.stringify([{ role: "user", content: `Hello ${i}` }]),
-				});
+					mode: "api-keys",
+					usedMode: "api-keys",
+				} as const);
 			}
 			await db.insert(tables.log).values(additionalLogs);
 		});
