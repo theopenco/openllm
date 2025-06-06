@@ -16,6 +16,7 @@ const organizationSchema = z.object({
 	credits: z.string(),
 	plan: z.enum(["free", "pro"]),
 	planExpiresAt: z.date().nullable(),
+	retentionLevel: z.enum(["retain", "none"]),
 	status: z.enum(["active", "inactive", "deleted"]).nullable(),
 });
 
@@ -37,6 +38,7 @@ const createOrganizationSchema = z.object({
 
 const updateOrganizationSchema = z.object({
 	name: z.string().min(1).max(255).optional(),
+	retentionLevel: z.enum(["retain", "none"]).optional(),
 });
 
 const getOrganizations = createRoute({
@@ -260,7 +262,7 @@ organization.openapi(updateOrganization, async (c) => {
 	}
 
 	const { id } = c.req.param();
-	const { name } = await c.req.json();
+	const { name, retentionLevel } = await c.req.json();
 
 	const userOrganization = await db.query.userOrganization.findFirst({
 		where: {
@@ -288,6 +290,9 @@ organization.openapi(updateOrganization, async (c) => {
 	const updateData: any = {};
 	if (name !== undefined) {
 		updateData.name = name;
+	}
+	if (retentionLevel !== undefined) {
+		updateData.retentionLevel = retentionLevel;
 	}
 
 	const [updatedOrganization] = await db

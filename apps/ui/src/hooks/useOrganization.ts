@@ -6,6 +6,7 @@ export interface Organization {
 	credits: number;
 	plan: "free" | "pro";
 	planExpiresAt: string | null;
+	retentionLevel: "retain" | "none";
 	createdAt: string;
 	updatedAt: string;
 }
