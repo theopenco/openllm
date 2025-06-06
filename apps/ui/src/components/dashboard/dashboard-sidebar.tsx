@@ -10,6 +10,7 @@ import {
 	Activity,
 	KeyRound,
 	X,
+	ChevronRight,
 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useState } from "react";
@@ -29,6 +30,9 @@ import {
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubItem,
+	SidebarMenuSubButton,
 	SidebarRail,
 	useSidebar,
 } from "@/lib/components/sidebar";
@@ -56,6 +60,10 @@ export function DashboardSidebar() {
 
 	const isActive = (path: string) => {
 		return location.pathname === path;
+	};
+
+	const isSettingsActive = () => {
+		return location.pathname.startsWith("/dashboard/settings");
 	};
 
 	const logout = async () => {
@@ -123,11 +131,6 @@ export function DashboardSidebar() {
 									label: "Models",
 									icon: CreditCard,
 								},
-								{
-									href: "/dashboard/settings",
-									label: "Settings",
-									icon: Settings,
-								},
 							].map((item) => (
 								<SidebarMenuItem key={item.href}>
 									<Link
@@ -144,6 +147,55 @@ export function DashboardSidebar() {
 									</Link>
 								</SidebarMenuItem>
 							))}
+							<SidebarMenuItem>
+								<div
+									className={cn(
+										"flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+										isSettingsActive()
+											? "bg-primary/10 text-primary"
+											: "text-foreground/70",
+									)}
+								>
+									<Settings className="h-4 w-4" />
+									<span>Settings</span>
+									<ChevronRight className="ml-auto h-4 w-4" />
+								</div>
+								<SidebarMenuSub>
+									{[
+										{
+											href: "/dashboard/settings/preferences",
+											label: "Preferences",
+										},
+										{
+											href: "/dashboard/settings/account",
+											label: "Account",
+										},
+										{
+											href: "/dashboard/settings/security",
+											label: "Security",
+										},
+										{
+											href: "/dashboard/settings/billing",
+											label: "Billing",
+										},
+										{
+											href: "/dashboard/settings/advanced",
+											label: "Advanced",
+										},
+									].map((item) => (
+										<SidebarMenuSubItem key={item.href}>
+											<SidebarMenuSubButton
+												asChild
+												isActive={isActive(item.href)}
+											>
+												<Link to={item.href}>
+													<span>{item.label}</span>
+												</Link>
+											</SidebarMenuSubButton>
+										</SidebarMenuSubItem>
+									))}
+								</SidebarMenuSub>
+							</SidebarMenuItem>
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
