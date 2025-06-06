@@ -1,0 +1,1 @@
+ALTER TABLE "organization" ADD COLUMN "retention_level" text DEFAULT 'retain' NOT NULL;
