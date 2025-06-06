@@ -109,6 +109,11 @@ export const organization = pgTable("organization", {
 		.default("free"),
 	planExpiresAt: timestamp(),
 	subscriptionCancelled: boolean().notNull().default(false),
+	retentionLevel: text({
+		enum: ["retain", "none"],
+	})
+		.notNull()
+		.default("retain"),
 	status: text({
 		enum: ["active", "inactive", "deleted"],
 	}).default("active"),
@@ -220,7 +225,7 @@ export const log = pgTable("log", {
 	promptTokens: decimal(),
 	completionTokens: decimal(),
 	totalTokens: decimal(),
-	messages: json().notNull(),
+	messages: json(),
 	temperature: real(),
 	maxTokens: integer(),
 	topP: real(),

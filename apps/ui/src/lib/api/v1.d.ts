@@ -1159,6 +1159,8 @@ export interface paths {
 								/** @enum {string} */
 								plan: "free" | "pro";
 								planExpiresAt: string | null;
+								/** @enum {string} */
+								retentionLevel: "retain" | "none";
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
 							}[];
@@ -1199,6 +1201,8 @@ export interface paths {
 								/** @enum {string} */
 								plan: "free" | "pro";
 								planExpiresAt: string | null;
+								/** @enum {string} */
+								retentionLevel: "retain" | "none";
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
 							};
@@ -1335,6 +1339,8 @@ export interface paths {
 				content: {
 					"application/json": {
 						name?: string;
+						/** @enum {string} */
+						retentionLevel?: "retain" | "none";
 					};
 				};
 			};
@@ -1356,6 +1362,8 @@ export interface paths {
 								/** @enum {string} */
 								plan: "free" | "pro";
 								planExpiresAt: string | null;
+								/** @enum {string} */
+								retentionLevel: "retain" | "none";
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
 							};

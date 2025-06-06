@@ -178,17 +178,17 @@ export function PlanManagement() {
 							</div>
 							<div className="flex items-center gap-2">
 								<div className="w-2 h-2 rounded-full bg-green-500" />
-								<span>Credits System</span>
+								<span>90-day data retention</span>
 							</div>
 						</div>
 						<div className="space-y-2">
 							<div className="flex items-center gap-2">
 								<div className="w-2 h-2 rounded-full bg-green-500" />
-								<span>API Access</span>
+								<span>Credits System</span>
 							</div>
 							<div className="flex items-center gap-2">
 								<div className="w-2 h-2 rounded-full bg-green-500" />
-								<span>Usage Analytics</span>
+								<span>Hybrid Mode</span>
 							</div>
 						</div>
 					</div>
@@ -375,14 +375,19 @@ function UpgradeDialog({ onSuccess }: { onSuccess: () => void }) {
 				</div>
 			</div>
 			<DialogFooter>
-				<Button
-					onClick={handleUpgrade}
-					disabled={loading || createSubscriptionMutation.isPending}
-				>
-					{loading || createSubscriptionMutation.isPending
-						? "Processing..."
-						: "Upgrade for $50/month"}
-				</Button>
+				<div className="flex flex-col gap-2 items-end">
+					<Button
+						onClick={handleUpgrade}
+						disabled={loading || createSubscriptionMutation.isPending}
+					>
+						{loading || createSubscriptionMutation.isPending
+							? "Processing..."
+							: "Upgrade for $50/month now"}
+					</Button>
+					<div className="text-sm text-muted-foreground">
+						<p>We will charge your card now.</p>
+					</div>
+				</div>
 			</DialogFooter>
 		</Elements>
 	);
