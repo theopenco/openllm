@@ -440,8 +440,6 @@ describe("e2e tests with real provider keys", () => {
 			baseUrl: "https://api.openai.com", // Use real OpenAI endpoint for testing
 			status: "active",
 			organizationId: "org-id",
-			createdAt: new Date(),
-			updatedAt: new Date(),
 		});
 
 		await db.insert(tables.apiKey).values({

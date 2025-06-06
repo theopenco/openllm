@@ -35,7 +35,6 @@ export async function ensureStripeCustomer(
 			.update(tables.organization)
 			.set({
 				stripeCustomerId,
-				updatedAt: new Date(),
 			})
 			.where(eq(tables.organization.id, organizationId));
 	}
@@ -233,7 +232,6 @@ async function handlePaymentIntentSucceeded(
 		.update(tables.organization)
 		.set({
 			credits: sql`${tables.organization.credits} + ${amountInDollars}`,
-			updatedAt: new Date(),
 		})
 		.where(eq(tables.organization.id, organizationId));
 
@@ -243,8 +241,6 @@ async function handlePaymentIntentSucceeded(
 		type: "credit",
 		amount: amountInDollars.toString(),
 		description: "Payment received via Stripe",
-		createdAt: new Date(),
-		updatedAt: new Date(),
 	});
 
 	posthog.groupIdentify({
@@ -314,8 +310,6 @@ async function handleSetupIntentSucceeded(
 		organizationId,
 		type: paymentMethod.type,
 		isDefault,
-		createdAt: new Date(),
-		updatedAt: new Date(),
 	});
 }
 
@@ -381,7 +375,6 @@ async function handleInvoicePaymentSucceeded(
 			.set({
 				plan: "pro",
 				subscriptionCancelled: false,
-				updatedAt: new Date(),
 			})
 			.where(eq(tables.organization.id, organizationId))
 			.returning();
@@ -470,7 +463,6 @@ async function handleSubscriptionUpdated(
 		.set({
 			planExpiresAt,
 			subscriptionCancelled: !isSubscriptionActive,
-			updatedAt: new Date(),
 		})
 		.where(eq(tables.organization.id, organizationId));
 
@@ -529,7 +521,6 @@ async function handleSubscriptionDeleted(
 			stripeSubscriptionId: null,
 			planExpiresAt: null,
 			subscriptionCancelled: true,
-			updatedAt: new Date(),
 		})
 		.where(eq(tables.organization.id, organizationId));
 

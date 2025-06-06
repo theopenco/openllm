@@ -19,7 +19,6 @@ export async function processLogQueue(): Promise<void> {
 
 		await db.insert(log).values(
 			logData.map((i) => ({
-				createdAt: new Date(),
 				...i,
 			})),
 		);

@@ -109,7 +109,6 @@ subscriptions.openapi(createProSubscription, async (c) => {
 			.set({
 				stripeSubscriptionId: subscription.id,
 				subscriptionCancelled: false,
-				updatedAt: new Date(),
 			})
 			.where(eq(tables.organization.id, organization.id));
 
@@ -198,7 +197,6 @@ subscriptions.openapi(cancelProSubscription, async (c) => {
 			.update(tables.organization)
 			.set({
 				subscriptionCancelled: true,
-				updatedAt: new Date(),
 			})
 			.where(eq(tables.organization.id, organization.id));
 
