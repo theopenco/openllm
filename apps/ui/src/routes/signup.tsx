@@ -21,6 +21,10 @@ import {
 import { Input } from "@/lib/components/input";
 import { toast } from "@/lib/components/use-toast";
 
+const searchSchema = z.object({
+	nextUrl: z.string().optional(),
+});
+
 const formSchema = z.object({
 	name: z.string().min(2, { message: "Name is required" }),
 	email: z.string().email({ message: "Please enter a valid email address" }),
@@ -30,6 +34,7 @@ const formSchema = z.object({
 });
 
 export const Route = createFileRoute("/signup")({
+	validateSearch: searchSchema,
 	component: RouteComponent,
 });
 
@@ -37,6 +42,7 @@ function RouteComponent() {
 	const QueryClient = useQueryClient();
 	const posthog = usePostHog();
 	const [isLoading, setIsLoading] = useState(false);
+	const { nextUrl } = Route.useSearch();
 	useUser({ redirectTo: "/dashboard", redirectWhen: "authenticated" });
 
 	useEffect(() => {
@@ -60,7 +66,7 @@ function RouteComponent() {
 				name: values.name,
 				email: values.email,
 				password: values.password,
-				callbackURL: "/onboarding",
+				callbackURL: nextUrl || "/onboarding",
 			},
 			{
 				onSuccess: (ctx) => {

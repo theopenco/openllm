@@ -9,7 +9,10 @@ import {
 
 export function Faq() {
 	return (
-		<section className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-gray-950">
+		<section
+			className="w-full py-12 md:py-24 lg:py-32 bg-white dark:bg-black"
+			id="faq"
+		>
 			<div className="container mx-auto px-4 md:px-6">
 				{/* Heading */}
 				<div className="flex flex-col items-center justify-center space-y-4 text-center">
@@ -31,11 +34,11 @@ export function Faq() {
 						className="w-full"
 						defaultValue="item-1"
 					>
-						{/* Item 1 */}
+						{/* Item 1 – differentiation */}
 						<AccordionItem value="item-1" className="py-2">
 							<AccordionPrimitive.Header className="flex">
 								<AccordionPrimitive.Trigger className="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-4 rounded-md py-2 text-left text-lg font-medium leading-6 transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&[data-state=open]>svg]:rotate-180 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0 dark:text-gray-200">
-									What makes your service different from OpenRouter?
+									What makes LLM Gateway different from OpenRouter?
 									<PlusIcon
 										size={18}
 										className="pointer-events-none shrink-0 opacity-60 transition-transform duration-200"
@@ -47,26 +50,26 @@ export function Faq() {
 								<p>Unlike OpenRouter, we offer:</p>
 								<ul className="list-disc pl-6 mt-2 space-y-1">
 									<li>
-										Full self-hosting capabilities with an MIT license, giving
-										you complete control over your infrastructure
+										Full <strong>self‑hosting</strong> under an MIT license –
+										run the gateway entirely on your infra, free forever
 									</li>
 									<li>
-										Enhanced analytics with deeper insights into your model
-										usage and performance
+										Deeper, real‑time <strong>cost & latency analytics</strong>{" "}
+										for every request
 									</li>
 									<li>
-										No fees when using your own provider keys, maximizing cost
-										efficiency
+										<strong>Zero gateway fee</strong> on the $50 Pro plan when
+										you bring your own provider keys
 									</li>
 									<li>
-										Greater flexibility and customization options for enterprise
-										deployments
+										Flexible <strong>enterprise add‑ons</strong> (dedicated
+										shard, custom SLAs)
 									</li>
 								</ul>
 							</AccordionContent>
 						</AccordionItem>
 
-						{/* Item 2 */}
+						{/* Item 2 – models */}
 						<AccordionItem value="item-2" className="py-2">
 							<AccordionPrimitive.Header className="flex">
 								<AccordionPrimitive.Trigger className="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-4 rounded-md py-2 text-left text-lg font-medium leading-6 transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&[data-state=open]>svg]:rotate-180 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0 dark:text-gray-200">
@@ -79,15 +82,18 @@ export function Faq() {
 								</AccordionPrimitive.Trigger>
 							</AccordionPrimitive.Header>
 							<AccordionContent className="overflow-hidden transition-all data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up text-gray-500 dark:text-gray-400 pb-2">
-								We support a comprehensive range of AI models across various
-								providers. For a complete and up-to-date list of all supported
-								models, please visit our public models page. We regularly update
-								our supported models to ensure you have access to the latest and
-								most powerful AI capabilities.
+								We support a growing catalog of commercial and open‑source LLMs
+								across all major providers (OpenAI, Anthropic, Google, Mistral,
+								Groq and more). Check the{" "}
+								<a href="/models" className="underline">
+									models page
+								</a>{" "}
+								for the up‑to‑date list – we typically add new releases within
+								48 hours.
 							</AccordionContent>
 						</AccordionItem>
 
-						{/* Item 3 */}
+						{/* Item 3 – uptime */}
 						<AccordionItem value="item-3" className="py-2">
 							<AccordionPrimitive.Header className="flex">
 								<AccordionPrimitive.Trigger className="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-4 rounded-md py-2 text-left text-lg font-medium leading-6 transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&[data-state=open]>svg]:rotate-180 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0 dark:text-gray-200">
@@ -100,19 +106,18 @@ export function Faq() {
 								</AccordionPrimitive.Trigger>
 							</AccordionPrimitive.Header>
 							<AccordionContent className="overflow-hidden transition-all data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up text-gray-500 dark:text-gray-400 pb-2">
-								We're committed to providing reliable service with high
-								availability. We're currently implementing a public status page
-								where you can monitor our system performance, uptime metrics,
-								and any ongoing incidents in real-time. This transparency
-								ensures you're always informed about our service status.
+								Our public status page posts real‑time metrics. Managed Pro &
+								Enterprise instances come with a{" "}
+								<strong>99.9 % uptime SLA</strong>; self‑host installations
+								depend on your infrastructure.
 							</AccordionContent>
 						</AccordionItem>
 
-						{/* Item 4 */}
+						{/* Item 4 – pricing */}
 						<AccordionItem value="item-4" className="py-2">
 							<AccordionPrimitive.Header className="flex">
 								<AccordionPrimitive.Trigger className="focus-visible:border-ring focus-visible:ring-ring/50 flex flex-1 items-center justify-between gap-4 rounded-md py-2 text-left text-lg font-medium leading-6 transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 [&>svg>path:last-child]:origin-center [&>svg>path:last-child]:transition-all [&>svg>path:last-child]:duration-200 [&[data-state=open]>svg]:rotate-180 [&[data-state=open]>svg>path:last-child]:rotate-90 [&[data-state=open]>svg>path:last-child]:opacity-0 dark:text-gray-200">
-									How much do you charge for your services?
+									How much does it cost?
 									<PlusIcon
 										size={18}
 										className="pointer-events-none shrink-0 opacity-60 transition-transform duration-200"
@@ -121,29 +126,28 @@ export function Faq() {
 								</AccordionPrimitive.Trigger>
 							</AccordionPrimitive.Header>
 							<AccordionContent className="overflow-hidden transition-all data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up text-gray-500 dark:text-gray-400 pb-2">
-								<p>
-									Our pricing structure is designed to be flexible and
-									cost-effective:
-								</p>
+								<p>Our pricing is simple and transparent:</p>
 								<ul className="list-disc pl-6 mt-2 space-y-1">
 									<li>
-										<strong>Free tier:</strong> No fees when providing your own
-										provider API keys
+										<strong>Free – credits + 5&nbsp;% fee:</strong>{" "}
+										Pay‑as‑you‑go credits to use any model; a flat 5&nbsp;%
+										platform fee is applied to each request.
 									</li>
 									<li>
-										<strong>Self-hosted option:</strong> Fully self-host our
-										solution for free with our MIT-licensed software
+										<strong>Pro – $50/month:</strong> Bring your own LLM
+										provider keys <em>or</em> use credits with{" "}
+										<strong>zero</strong> gateway fee. Includes premium
+										analytics, higher rate limits and priority email support.
 									</li>
 									<li>
-										<strong>Premium features:</strong> Access to advanced
-										analytics and deeper insights
+										<strong>Enterprise:</strong> Custom SLA, dedicated shard,
+										volume discounts. Contact sales for a tailored quote.
+									</li>
+									<li>
+										<strong>Self‑host:</strong> Deploy the MIT‑licensed gateway
+										on your own infrastructure — free forever.
 									</li>
 								</ul>
-								<p className="mt-2">
-									We're currently finalizing our complete pricing structure for
-									managed services and enterprise solutions. Contact us for more
-									details on custom pricing options.
-								</p>
 							</AccordionContent>
 						</AccordionItem>
 					</Accordion>

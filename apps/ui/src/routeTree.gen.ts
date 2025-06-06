@@ -14,6 +14,7 @@ import { createFileRoute } from '@tanstack/react-router'
 
 import { Route as rootRoute } from './routes/__root'
 import { Route as SignupImport } from './routes/signup'
+import { Route as PricingImport } from './routes/pricing'
 import { Route as OnboardingImport } from './routes/onboarding'
 import { Route as ModelsImport } from './routes/models'
 import { Route as LoginImport } from './routes/login'
@@ -42,6 +43,12 @@ const DashboardRoute = DashboardImport.update({
 const SignupRoute = SignupImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const PricingRoute = PricingImport.update({
+  id: '/pricing',
+  path: '/pricing',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -147,6 +154,13 @@ declare module '@tanstack/react-router' {
       path: '/onboarding'
       fullPath: '/onboarding'
       preLoaderRoute: typeof OnboardingImport
+      parentRoute: typeof rootRoute
+    }
+    '/pricing': {
+      id: '/pricing'
+      path: '/pricing'
+      fullPath: '/pricing'
+      preLoaderRoute: typeof PricingImport
       parentRoute: typeof rootRoute
     }
     '/signup': {
@@ -265,6 +279,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/models': typeof ModelsRoute
   '/onboarding': typeof OnboardingRoute
+  '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardLayoutRouteWithChildren
   '/dashboard/activity': typeof DashboardLayoutActivityRoute
@@ -281,6 +296,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/models': typeof ModelsRoute
   '/onboarding': typeof OnboardingRoute
+  '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardLayoutIndexRoute
   '/dashboard/activity': typeof DashboardLayoutActivityRoute
@@ -297,6 +313,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/models': typeof ModelsRoute
   '/onboarding': typeof OnboardingRoute
+  '/pricing': typeof PricingRoute
   '/signup': typeof SignupRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/_layout': typeof DashboardLayoutRouteWithChildren
@@ -316,6 +333,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/models'
     | '/onboarding'
+    | '/pricing'
     | '/signup'
     | '/dashboard'
     | '/dashboard/activity'
@@ -331,6 +349,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/models'
     | '/onboarding'
+    | '/pricing'
     | '/signup'
     | '/dashboard'
     | '/dashboard/activity'
@@ -345,6 +364,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/models'
     | '/onboarding'
+    | '/pricing'
     | '/signup'
     | '/dashboard'
     | '/dashboard/_layout'
@@ -363,6 +383,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ModelsRoute: typeof ModelsRoute
   OnboardingRoute: typeof OnboardingRoute
+  PricingRoute: typeof PricingRoute
   SignupRoute: typeof SignupRoute
   DashboardRoute: typeof DashboardRouteWithChildren
 }
@@ -372,6 +393,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ModelsRoute: ModelsRoute,
   OnboardingRoute: OnboardingRoute,
+  PricingRoute: PricingRoute,
   SignupRoute: SignupRoute,
   DashboardRoute: DashboardRouteWithChildren,
 }
@@ -390,6 +412,7 @@ export const routeTree = rootRoute
         "/login",
         "/models",
         "/onboarding",
+        "/pricing",
         "/signup",
         "/dashboard"
       ]
@@ -405,6 +428,9 @@ export const routeTree = rootRoute
     },
     "/onboarding": {
       "filePath": "onboarding.tsx"
+    },
+    "/pricing": {
+      "filePath": "pricing.tsx"
     },
     "/signup": {
       "filePath": "signup.tsx"

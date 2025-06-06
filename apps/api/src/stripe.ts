@@ -88,6 +88,15 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 			case "setup_intent.succeeded":
 				await handleSetupIntentSucceeded(event.data.object);
 				break;
+			case "checkout.session.completed":
+				await handleCheckoutSessionCompleted(event.data.object);
+				break;
+			case "customer.subscription.updated":
+				await handleSubscriptionUpdated(event.data.object);
+				break;
+			case "customer.subscription.deleted":
+				await handleSubscriptionDeleted(event.data.object);
+				break;
 			default:
 				console.log(`Unhandled event type: ${event.type}`);
 		}
@@ -207,4 +216,79 @@ async function handleSetupIntentSucceeded(setupIntent: any) {
 		createdAt: new Date(),
 		updatedAt: new Date(),
 	});
+}
+
+async function handleCheckoutSessionCompleted(session: any) {
+	const organizationId = session.metadata?.organizationId;
+	const plan = session.metadata?.plan;
+	const type = session.metadata?.type;
+
+	console.log(
+		`Checkout session completed for org ${organizationId}, plan: ${plan}, type: ${type}`,
+	);
+
+	if (organizationId && plan) {
+		if (type === "subscription_dev") {
+			// For development payments, just upgrade the plan
+			await db
+				.update(tables.organization)
+				.set({
+					plan: plan as "free" | "pro" | "enterprise",
+					subscriptionStatus: "active",
+					updatedAt: new Date(),
+				})
+				.where(eq(tables.organization.id, organizationId));
+		} else {
+			// For real subscriptions
+			await db
+				.update(tables.organization)
+				.set({
+					plan: plan as "free" | "pro" | "enterprise",
+					stripeSubscriptionId: session.subscription as string,
+					subscriptionStatus: "active",
+					updatedAt: new Date(),
+				})
+				.where(eq(tables.organization.id, organizationId));
+		}
+	}
+}
+
+async function handleSubscriptionUpdated(subscription: any) {
+	// Find organization by stripe customer ID
+	const organization = await db.query.organization.findFirst({
+		where: {
+			stripeCustomerId: subscription.customer as string,
+		},
+	});
+
+	if (organization) {
+		await db
+			.update(tables.organization)
+			.set({
+				subscriptionStatus: subscription.status as any,
+				updatedAt: new Date(),
+			})
+			.where(eq(tables.organization.id, organization.id));
+	}
+}
+
+async function handleSubscriptionDeleted(subscription: any) {
+	// Find organization by stripe customer ID
+	const organization = await db.query.organization.findFirst({
+		where: {
+			stripeCustomerId: subscription.customer as string,
+		},
+	});
+
+	if (organization) {
+		await db
+			.update(tables.organization)
+			.set({
+				plan: "free",
+				subscriptionStatus: "canceled",
+				stripeSubscriptionId: null,
+				updatedAt: new Date(),
+			})
+			.where(eq(tables.organization.id, organization.id));
+	}
 }

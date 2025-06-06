@@ -14,6 +14,11 @@ const organizationSchema = z.object({
 	updatedAt: z.date(),
 	name: z.string(),
 	credits: z.string(),
+	plan: z.enum(["free", "pro", "enterprise"]),
+	stripeSubscriptionId: z.string().nullable(),
+	subscriptionStatus: z
+		.enum(["active", "canceled", "past_due", "incomplete", "trialing"])
+		.nullable(),
 	status: z.enum(["active", "inactive", "deleted"]).nullable(),
 });
 

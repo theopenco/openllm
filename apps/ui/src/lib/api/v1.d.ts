@@ -1156,6 +1156,17 @@ export interface paths {
 								updatedAt: string;
 								name: string;
 								credits: string;
+								/** @enum {string} */
+								plan: "free" | "pro" | "enterprise";
+								stripeSubscriptionId: string | null;
+								/** @enum {string|null} */
+								subscriptionStatus:
+									| "active"
+									| "canceled"
+									| "past_due"
+									| "incomplete"
+									| "trialing"
+									| null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
 							}[];
@@ -1193,6 +1204,17 @@ export interface paths {
 								updatedAt: string;
 								name: string;
 								credits: string;
+								/** @enum {string} */
+								plan: "free" | "pro" | "enterprise";
+								stripeSubscriptionId: string | null;
+								/** @enum {string|null} */
+								subscriptionStatus:
+									| "active"
+									| "canceled"
+									| "past_due"
+									| "incomplete"
+									| "trialing"
+									| null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
 							};
@@ -1347,6 +1369,17 @@ export interface paths {
 								updatedAt: string;
 								name: string;
 								credits: string;
+								/** @enum {string} */
+								plan: "free" | "pro" | "enterprise";
+								stripeSubscriptionId: string | null;
+								/** @enum {string|null} */
+								subscriptionStatus:
+									| "active"
+									| "canceled"
+									| "past_due"
+									| "incomplete"
+									| "trialing"
+									| null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
 							};
@@ -1613,6 +1646,130 @@ export interface paths {
 			};
 			responses: {
 				/** @description Payment processed successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							success: boolean;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/subscriptions/create": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						/** @enum {string} */
+						plan: "pro";
+						/** @enum {string} */
+						billing: "monthly" | "annual";
+					};
+				};
+			};
+			responses: {
+				/** @description Checkout session created successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							url: string;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/subscriptions/webhook": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": unknown;
+				};
+			};
+			responses: {
+				/** @description Webhook processed successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							received: boolean;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/subscriptions/cancel": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Subscription canceled successfully */
 				200: {
 					headers: {
 						[name: string]: unknown;

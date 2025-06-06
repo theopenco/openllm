@@ -101,6 +101,15 @@ export const organization = pgTable("organization", {
 	name: text().notNull(),
 	stripeCustomerId: text(),
 	credits: decimal().notNull().default("0"),
+	plan: text({
+		enum: ["free", "pro", "enterprise"],
+	})
+		.notNull()
+		.default("free"),
+	stripeSubscriptionId: text(),
+	subscriptionStatus: text({
+		enum: ["active", "canceled", "past_due", "incomplete", "trialing"],
+	}),
 	status: text({
 		enum: ["active", "inactive", "deleted"],
 	}).default("active"),
