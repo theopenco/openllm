@@ -18,6 +18,7 @@ describe("provider keys route", () => {
 		await db.insert(tables.organization).values({
 			id: "test-org-id",
 			name: "Test Organization",
+			plan: "pro",
 		});
 
 		// Associate user with organization

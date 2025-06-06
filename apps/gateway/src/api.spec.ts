@@ -63,6 +63,7 @@ describe("test", () => {
 		await db.insert(tables.organization).values({
 			id: "org-id",
 			name: "Test Organization",
+			plan: "pro",
 		});
 
 		await db.insert(tables.userOrganization).values({
@@ -75,6 +76,7 @@ describe("test", () => {
 			id: "project-id",
 			name: "Test Project",
 			organizationId: "org-id",
+			mode: "api-keys",
 		});
 	});
 
