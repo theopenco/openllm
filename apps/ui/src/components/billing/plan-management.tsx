@@ -282,7 +282,11 @@ function UpgradeDialog({ onSuccess }: { onSuccess: () => void }) {
 					variant: "destructive",
 					className: "text-white",
 				});
-			} else {
+				return;
+			}
+			const status = result.paymentIntent?.status;
+
+			if (status === "succeeded") {
 				await queryClient.invalidateQueries({
 					queryKey: $api.queryOptions("get", "/subscriptions/status").queryKey,
 				});
@@ -291,6 +295,31 @@ function UpgradeDialog({ onSuccess }: { onSuccess: () => void }) {
 					description: "Welcome to Pro! You may need to refresh the page.",
 				});
 				onSuccess();
+			} else if (status === "requires_action") {
+				toast({
+					title: "Additional Authentication Required",
+					description: "Please complete the additional authentication steps.",
+				});
+			} else if (status === "processing") {
+				toast({
+					title: "Payment Processing",
+					description:
+						"Your payment is being processed. Please check later for completion.",
+				});
+			} else if (status === "requires_capture") {
+				toast({
+					title: "Payment Authorized",
+					description:
+						"Your payment has been authorized and will be captured soon.",
+				});
+			} else {
+				toast({
+					title: `Payment Status: ${status}`,
+					description:
+						"Unable to determine payment status. Please contact support.",
+					variant: "destructive",
+					className: "text-white",
+				});
 			}
 		} catch (error: any) {
 			toast({
