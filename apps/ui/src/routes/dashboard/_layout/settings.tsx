@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
+import { PlanManagement } from "@/components/billing/plan-management";
 import { PaymentMethodsManagement } from "@/components/credits/payment-methods-management";
 import { addPasskey } from "@/components/passkeys/add-passkey";
 import { PasskeyList } from "@/components/passkeys/passkey-list";
@@ -301,11 +302,13 @@ function RouteComponent() {
 						</Card>
 					</TabsContent>
 					<TabsContent value="billing" className="space-y-4">
+						<PlanManagement />
 						<Card>
 							<CardHeader>
-								<CardTitle>Billing</CardTitle>
+								<CardTitle>Payment Methods</CardTitle>
 								<CardDescription>
-									Manage your plan, payment methods, and credits
+									Manage your saved payment methods for credits and
+									subscriptions
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-4">

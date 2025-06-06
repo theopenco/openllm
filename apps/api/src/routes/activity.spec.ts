@@ -66,6 +66,8 @@ describe("activity endpoint", () => {
 				completionTokens: "20",
 				totalTokens: "30",
 				messages: JSON.stringify([{ role: "user", content: "Hello" }]),
+				mode: "api-keys",
+				usedMode: "api-keys",
 			},
 			{
 				id: "log-2",
@@ -85,6 +87,8 @@ describe("activity endpoint", () => {
 				completionTokens: "15",
 				totalTokens: "20",
 				messages: JSON.stringify([{ role: "user", content: "Hi" }]),
+				mode: "api-keys",
+				usedMode: "api-keys",
 			},
 			{
 				id: "log-3",
@@ -104,6 +108,8 @@ describe("activity endpoint", () => {
 				completionTokens: "25",
 				totalTokens: "40",
 				messages: JSON.stringify([{ role: "user", content: "Test" }]),
+				mode: "api-keys",
+				usedMode: "api-keys",
 			},
 			{
 				id: "log-4",
@@ -123,6 +129,8 @@ describe("activity endpoint", () => {
 				completionTokens: "18",
 				totalTokens: "26",
 				messages: JSON.stringify([{ role: "user", content: "Query" }]),
+				mode: "api-keys",
+				usedMode: "api-keys",
 			},
 		]);
 	});

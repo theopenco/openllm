@@ -330,7 +330,6 @@ payments.openapi(setDefaultPaymentMethod, async (c) => {
 			.update(tables.paymentMethod)
 			.set({
 				isDefault: false,
-				updatedAt: new Date(),
 			})
 			.where(eq(tables.paymentMethod.organizationId, organizationId));
 
@@ -338,7 +337,6 @@ payments.openapi(setDefaultPaymentMethod, async (c) => {
 			.update(tables.paymentMethod)
 			.set({
 				isDefault: true,
-				updatedAt: new Date(),
 			})
 			.where(eq(tables.paymentMethod.id, paymentMethodId));
 

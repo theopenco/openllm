@@ -41,6 +41,8 @@ export const logs: Log[] = [
 			responseText:
 				"The server encountered an unexpected condition that prevented it from fulfilling the request. The model service is temporarily unavailable.",
 		},
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "test-log-id-1",
@@ -83,6 +85,8 @@ export const logs: Log[] = [
 		cost: 0.06,
 		inputCost: 0.02,
 		outputCost: 0.04,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-gpt4-1",
@@ -120,6 +124,8 @@ export const logs: Log[] = [
 		cost: 0.32,
 		inputCost: 0.16,
 		outputCost: 0.16,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-claude-sonnet-2",
@@ -167,6 +173,8 @@ export const logs: Log[] = [
 		cost: 0.92,
 		inputCost: 0.46,
 		outputCost: 0.46,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-gpt35-turbo-1",
@@ -221,6 +229,8 @@ export const logs: Log[] = [
 		cost: 0.12,
 		inputCost: 0.06,
 		outputCost: 0.06,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-llama3-70b-1",
@@ -270,6 +280,8 @@ export const logs: Log[] = [
 		cost: 0.24,
 		inputCost: 0.12,
 		outputCost: 0.12,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-claude-sonnet-1",
@@ -304,6 +316,8 @@ export const logs: Log[] = [
 		cost: 0.18,
 		inputCost: 0.09,
 		outputCost: 0.09,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-gpt4o-1",
@@ -338,6 +352,8 @@ export const logs: Log[] = [
 		cost: 0.37,
 		inputCost: 0.18,
 		outputCost: 0.19,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-gemini-1",
@@ -370,6 +386,8 @@ export const logs: Log[] = [
 		cost: 0.15,
 		inputCost: 0.07,
 		outputCost: 0.08,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-gpt4-2",
@@ -402,6 +420,8 @@ export const logs: Log[] = [
 		cost: 1.07,
 		inputCost: 0.54,
 		outputCost: 0.53,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-claude-haiku-1",
@@ -433,6 +453,8 @@ export const logs: Log[] = [
 		cost: 0.07,
 		inputCost: 0.03,
 		outputCost: 0.04,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-gpt4-error-1",
@@ -463,6 +485,8 @@ export const logs: Log[] = [
 		cost: 0.05,
 		inputCost: 0.05,
 		outputCost: 0,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-gpt4o-mini-1",
@@ -495,6 +519,8 @@ export const logs: Log[] = [
 		cost: 0.11,
 		inputCost: 0.05,
 		outputCost: 0.06,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-5",
@@ -517,6 +543,8 @@ export const logs: Log[] = [
 		cost: 0.07,
 		inputCost: 0.03,
 		outputCost: 0.04,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-6",
@@ -539,6 +567,8 @@ export const logs: Log[] = [
 		cost: 0.05,
 		inputCost: 0.02,
 		outputCost: 0.03,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-7",
@@ -561,6 +591,8 @@ export const logs: Log[] = [
 		cost: 0.08,
 		inputCost: 0.04,
 		outputCost: 0.04,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-8",
@@ -583,6 +615,8 @@ export const logs: Log[] = [
 		cost: 0.06,
 		inputCost: 0.03,
 		outputCost: 0.03,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-9",
@@ -605,6 +639,8 @@ export const logs: Log[] = [
 		cost: 0.09,
 		inputCost: 0.04,
 		outputCost: 0.05,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-10",
@@ -627,6 +663,8 @@ export const logs: Log[] = [
 		cost: 0.07,
 		inputCost: 0.03,
 		outputCost: 0.04,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-11",
@@ -649,6 +687,8 @@ export const logs: Log[] = [
 		cost: 0.1,
 		inputCost: 0.05,
 		outputCost: 0.05,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-12",
@@ -671,6 +711,8 @@ export const logs: Log[] = [
 		cost: 0.07,
 		inputCost: 0.03,
 		outputCost: 0.04,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-13",
@@ -693,6 +735,8 @@ export const logs: Log[] = [
 		cost: 0.11,
 		inputCost: 0.05,
 		outputCost: 0.06,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-14",
@@ -715,6 +759,8 @@ export const logs: Log[] = [
 		cost: 0.08,
 		inputCost: 0.04,
 		outputCost: 0.04,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-15",
@@ -737,6 +783,8 @@ export const logs: Log[] = [
 		cost: 0.12,
 		inputCost: 0.06,
 		outputCost: 0.06,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-16",
@@ -761,6 +809,8 @@ export const logs: Log[] = [
 		cost: 0.09,
 		inputCost: 0.04,
 		outputCost: 0.05,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-17",
@@ -783,6 +833,8 @@ export const logs: Log[] = [
 		cost: 0.13,
 		inputCost: 0.06,
 		outputCost: 0.07,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-18",
@@ -805,6 +857,8 @@ export const logs: Log[] = [
 		cost: 0.1,
 		inputCost: 0.05,
 		outputCost: 0.05,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-19",
@@ -827,6 +881,8 @@ export const logs: Log[] = [
 		cost: 0.14,
 		inputCost: 0.07,
 		outputCost: 0.07,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 	{
 		id: "log-20",
@@ -849,5 +905,7 @@ export const logs: Log[] = [
 		cost: 0.11,
 		inputCost: 0.05,
 		outputCost: 0.06,
+		mode: "api-keys",
+		usedMode: "api-keys",
 	},
 ];

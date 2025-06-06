@@ -20,6 +20,7 @@ describe("e2e tests for provider keys", () => {
 		await db.insert(tables.organization).values({
 			id: "test-org-id",
 			name: "Test Organization",
+			plan: "pro",
 		});
 
 		await db.insert(tables.userOrganization).values({
@@ -32,6 +33,7 @@ describe("e2e tests for provider keys", () => {
 			id: "test-project-id",
 			name: "Test Project",
 			organizationId: "test-org-id",
+			mode: "api-keys",
 		});
 	});
 

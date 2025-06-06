@@ -1156,6 +1156,9 @@ export interface paths {
 								updatedAt: string;
 								name: string;
 								credits: string;
+								/** @enum {string} */
+								plan: "free" | "pro";
+								planExpiresAt: string | null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
 							}[];
@@ -1193,6 +1196,9 @@ export interface paths {
 								updatedAt: string;
 								name: string;
 								credits: string;
+								/** @enum {string} */
+								plan: "free" | "pro";
+								planExpiresAt: string | null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
 							};
@@ -1347,6 +1353,9 @@ export interface paths {
 								updatedAt: string;
 								name: string;
 								credits: string;
+								/** @enum {string} */
+								plan: "free" | "pro";
+								planExpiresAt: string | null;
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
 							};
@@ -1625,6 +1634,159 @@ export interface paths {
 				};
 			};
 		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/subscriptions/create-pro-subscription": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Pro subscription created successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							clientSecret: string | null;
+							subscriptionId: string;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/subscriptions/cancel-pro-subscription": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Pro subscription canceled successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							success: boolean;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/subscriptions/resume-pro-subscription": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Pro subscription resumed successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							success: boolean;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/subscriptions/status": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Subscription status retrieved successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							/** @enum {string} */
+							plan: "free" | "pro";
+							subscriptionId: string | null;
+							planExpiresAt: string | null;
+							subscriptionCancelled: boolean;
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
 		delete?: never;
 		options?: never;
 		head?: never;

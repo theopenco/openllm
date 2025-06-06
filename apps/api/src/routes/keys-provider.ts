@@ -116,6 +116,16 @@ keysProvider.openapi(create, async (c) => {
 		});
 	}
 
+	const organization = userOrgs[0].organization;
+
+	// Check if organization has pro plan for provider keys
+	if (organization?.plan !== "pro") {
+		throw new HTTPException(403, {
+			message:
+				"Provider keys are only available on the Pro plan. Please upgrade to use your own API keys.",
+		});
+	}
+
 	// Check if a provider key already exists for this provider and organization
 	const existingKey = await db.query.providerKey.findFirst({
 		where: {
