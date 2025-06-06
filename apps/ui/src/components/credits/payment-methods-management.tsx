@@ -189,6 +189,7 @@ function AddPaymentMethodDialog() {
 }
 
 function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
+	const queryClient = useQueryClient();
 	const stripe = useStripeElements();
 	const elements = useElements();
 	const [loading, setLoading] = useState(false);
@@ -223,6 +224,10 @@ function AddPaymentMethodForm({ onSuccess }: { onSuccess: () => void }) {
 					variant: "destructive",
 				});
 			} else {
+				await queryClient.invalidateQueries({
+					queryKey: $api.queryOptions("get", "/payments/payment-methods")
+						.queryKey,
+				});
 				toast({
 					title: "Success",
 					description: "Payment method added successfully",

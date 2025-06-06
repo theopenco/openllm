@@ -79,6 +79,7 @@ describe("e2e tests with real provider keys", () => {
 		await db.insert(tables.organization).values({
 			id: "org-id",
 			name: "Test Organization",
+			plan: "pro",
 		});
 
 		await db.insert(tables.userOrganization).values({
@@ -91,6 +92,7 @@ describe("e2e tests with real provider keys", () => {
 			id: "project-id",
 			name: "Test Project",
 			organizationId: "org-id",
+			mode: "api-keys",
 		});
 
 		await db.insert(tables.apiKey).values({
@@ -438,8 +440,6 @@ describe("e2e tests with real provider keys", () => {
 			baseUrl: "https://api.openai.com", // Use real OpenAI endpoint for testing
 			status: "active",
 			organizationId: "org-id",
-			createdAt: new Date(),
-			updatedAt: new Date(),
 		});
 
 		await db.insert(tables.apiKey).values({

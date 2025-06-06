@@ -1,4 +1,4 @@
-import { models, providers } from "@openllm/models";
+import { models, providers, type ModelDefinition } from "@openllm/models";
 import { Check, ChevronDown } from "lucide-react";
 
 import { Badge } from "@/lib/components/badge";
@@ -15,6 +15,28 @@ interface ModelSelectorProps {
 	onModelSelect: (model: string) => void;
 }
 
+interface LocalModel {
+	model: string;
+	jsonOutput: boolean;
+	providers: Array<{
+		providerId: string;
+		modelName: string;
+		inputPrice?: number;
+		outputPrice?: number;
+		imageInputPrice?: number;
+		contextSize?: number;
+		providerInfo?: {
+			id: string;
+			name: string;
+			description: string;
+			streaming?: boolean;
+			cancellation?: boolean;
+			jsonOutput?: boolean;
+			color?: string;
+		};
+	}>;
+}
+
 export function ModelSelector({
 	selectedModel,
 	onModelSelect,
@@ -24,7 +46,7 @@ export function ModelSelector({
 	};
 
 	// Group by model instead of provider to avoid duplicates
-	const uniqueModels = models.map((model) => {
+	const uniqueModels: LocalModel[] = models.map((model) => {
 		const modelProviders = model.providers
 			.map((provider) => {
 				const providerInfo = getProviderInfo(provider.providerId);
@@ -35,9 +57,10 @@ export function ModelSelector({
 			})
 			.filter((p) => p.providerInfo); // Filter out providers that don't exist
 
+		const typedModel = model as ModelDefinition;
 		return {
-			model: model.model,
-			jsonOutput: (model as any).jsonOutput ?? false,
+			model: typedModel.model,
+			jsonOutput: typedModel.jsonOutput ?? false,
 			providers: modelProviders,
 		};
 	});
@@ -93,12 +116,13 @@ export function ModelSelector({
 							</div>
 
 							<div className="flex flex-col items-end text-xs text-muted-foreground">
-								{model.providers[0]?.inputPrice && (
-									<div>
-										${(model.providers[0].inputPrice * 1e6).toFixed(2)}/1M
-										tokens
-									</div>
-								)}
+								{model.providers[0]?.inputPrice !== null &&
+									model.providers[0]?.inputPrice !== undefined && (
+										<div>
+											${(model.providers[0].inputPrice * 1e6).toFixed(2)}/1M
+											tokens
+										</div>
+									)}
 								<div className="flex gap-1 mt-1">
 									{model.jsonOutput && (
 										<Badge variant="secondary" className="text-xs px-1 py-0">

@@ -3,6 +3,8 @@ import * as React from "react";
 import { useState } from "react";
 
 import { useDefaultProject } from "@/hooks/useDefaultProject";
+import { useDefaultOrganization } from "@/hooks/useOrganization";
+import { Badge } from "@/lib/components/badge";
 import { Button } from "@/lib/components/button";
 import { Label } from "@/lib/components/label";
 import { RadioGroup, RadioGroupItem } from "@/lib/components/radio-group";
@@ -13,6 +15,7 @@ import { $api } from "@/lib/fetch-client";
 export function ProjectModeSettings() {
 	const { toast } = useToast();
 	const { data: defaultProject, isError } = useDefaultProject();
+	const { data: organization } = useDefaultOrganization();
 	const queryClient = useQueryClient();
 
 	const updateProject = $api.useMutation("patch", "/projects/{id}", {
@@ -28,6 +31,8 @@ export function ProjectModeSettings() {
 		defaultProject?.mode || "api-keys",
 	);
 
+	const isProPlan = organization?.plan === "pro";
+
 	if (isError || !defaultProject) {
 		return (
 			<div className="space-y-2">
@@ -40,6 +45,17 @@ export function ProjectModeSettings() {
 	}
 
 	const handleSave = async () => {
+		// Check if trying to set api-keys or hybrid mode without pro plan
+		if ((mode === "api-keys" || mode === "hybrid") && !isProPlan) {
+			toast({
+				title: "Upgrade Required",
+				description:
+					"Provider keys are only available on the Pro plan. Please upgrade to use API keys mode.",
+				variant: "destructive",
+			});
+			return;
+		}
+
 		try {
 			await updateProject.mutateAsync({
 				params: { path: { id: defaultProject.id } },
@@ -83,25 +99,46 @@ export function ProjectModeSettings() {
 							id: "api-keys",
 							label: "API Keys",
 							desc: "Use your own provider API keys (OpenAI, Anthropic, etc.)",
+							requiresPro: true,
 						},
 						{
 							id: "credits",
 							label: "Credits",
 							desc: "Use your organization credits and our internal API keys",
+							requiresPro: false,
 						},
 						{
 							id: "hybrid",
 							label: "Hybrid",
 							desc: "Use your own API keys when available, fall back to credits when needed",
+							requiresPro: true,
 						},
-					].map(({ id, label, desc }) => (
+					].map(({ id, label, desc, requiresPro }) => (
 						<div key={id} className="flex items-start space-x-2">
-							<RadioGroupItem value={id} id={id} />
-							<div className="space-y-1">
-								<Label htmlFor={id} className="font-medium">
-									{label}
-								</Label>
-								<p className="text-muted-foreground text-sm">{desc}</p>
+							<RadioGroupItem
+								value={id}
+								id={id}
+								disabled={requiresPro && !isProPlan}
+							/>
+							<div className="space-y-1 flex-1">
+								<div className="flex items-center gap-2">
+									<Label
+										htmlFor={id}
+										className={`font-medium ${requiresPro && !isProPlan ? "text-muted-foreground" : ""}`}
+									>
+										{label}
+									</Label>
+									{requiresPro && !isProPlan && (
+										<Badge variant="outline" className="text-xs">
+											Pro Only
+										</Badge>
+									)}
+								</div>
+								<p
+									className={`text-sm ${requiresPro && !isProPlan ? "text-muted-foreground" : "text-muted-foreground"}`}
+								>
+									{desc}
+								</p>
 							</div>
 						</div>
 					))}

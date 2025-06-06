@@ -99,8 +99,16 @@ export const organization = pgTable("organization", {
 		.defaultNow()
 		.$onUpdate(() => new Date()),
 	name: text().notNull(),
-	stripeCustomerId: text(),
+	stripeCustomerId: text().unique(),
+	stripeSubscriptionId: text().unique(),
 	credits: decimal().notNull().default("0"),
+	plan: text({
+		enum: ["free", "pro"],
+	})
+		.notNull()
+		.default("free"),
+	planExpiresAt: timestamp(),
+	subscriptionCancelled: boolean().notNull().default(false),
 	status: text({
 		enum: ["active", "inactive", "deleted"],
 	}).default("active"),
@@ -138,7 +146,7 @@ export const project = pgTable("project", {
 		enum: ["api-keys", "credits", "hybrid"],
 	})
 		.notNull()
-		.default("api-keys"),
+		.default("credits"),
 	status: text({
 		enum: ["active", "inactive", "deleted"],
 	}).default("active"),
@@ -229,14 +237,10 @@ export const log = pgTable("log", {
 	cached: boolean().default(false),
 	mode: text({
 		enum: ["api-keys", "credits", "hybrid"],
-	})
-		.notNull()
-		.default("api-keys"),
+	}).notNull(),
 	usedMode: text({
 		enum: ["api-keys", "credits"],
-	})
-		.notNull()
-		.default("api-keys"),
+	}).notNull(),
 });
 
 export const passkey = pgTable("passkey", {

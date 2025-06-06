@@ -162,7 +162,7 @@ export function ApiKeyManager({ open, onOpenChange }: ApiKeyManagerProps) {
 	const handleSubmit = async (values: z.infer<typeof apiKeySchema>) => {
 		setIsLoading(true);
 		try {
-			const testResponse = await fetch("/api/chat/completion", {
+			const testResponse = await fetch("/chat/completion", {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

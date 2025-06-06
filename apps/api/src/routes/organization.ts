@@ -14,6 +14,8 @@ const organizationSchema = z.object({
 	updatedAt: z.date(),
 	name: z.string(),
 	credits: z.string(),
+	plan: z.enum(["free", "pro"]),
+	planExpiresAt: z.date().nullable(),
 	status: z.enum(["active", "inactive", "deleted"]).nullable(),
 });
 

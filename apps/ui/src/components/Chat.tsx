@@ -7,6 +7,7 @@ import { Button } from "@/lib/components/button";
 import { Card } from "@/lib/components/card";
 import { Input } from "@/lib/components/input";
 import { ScrollArea } from "@/lib/components/scroll-area";
+import { toast } from "@/lib/components/use-toast";
 
 interface Message {
 	role: "user" | "assistant";
@@ -48,7 +49,10 @@ export function Chat() {
 			});
 
 			if (!response.ok) {
-				throw new Error("Failed to get response");
+				const errorData = await response.json().catch(() => ({}));
+				const errorMessage =
+					errorData.message || `Server error: ${response.status}`;
+				throw new Error(errorMessage);
 			}
 
 			const data = await response.json();
@@ -58,7 +62,18 @@ export function Chat() {
 			]);
 		} catch (error) {
 			console.error("Chat error:", error);
-			// You might want to show an error message to the user here
+
+			// Show user-friendly error message
+			const errorMessage =
+				error instanceof Error ? error.message : "An unexpected error occurred";
+			toast({
+				title: "Chat Error",
+				description: errorMessage,
+				variant: "destructive",
+			});
+
+			// Remove the user message that failed to get a response
+			setMessages((prev) => prev.slice(0, -1));
 		} finally {
 			setIsLoading(false);
 		}

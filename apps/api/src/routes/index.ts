@@ -10,6 +10,7 @@ import { logs } from "./logs";
 import organization from "./organization";
 import { payments } from "./payments";
 import projects from "./projects";
+import { subscriptions } from "./subscriptions";
 import { user } from "./user";
 
 import type { ServerTypes } from "../vars";
@@ -44,3 +45,4 @@ routes.route("/orgs", organization);
 routes.route("/payments", payments);
 routes.route("/chat", chat);
 routes.route("/chats", chats);
+routes.route("/subscriptions", subscriptions);
