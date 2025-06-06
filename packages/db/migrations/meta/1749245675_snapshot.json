@@ -1,5 +1,5 @@
 {
-  "id": "cb7098cd-377a-4c3d-a305-e190ce40a05e",
+  "id": "9aadfdfd-2d9c-4edf-83d4-e4d00b96743d",
   "prevId": "df2381f4-c37d-4bc8-8837-89d149973fb2",
   "version": "7",
   "dialect": "postgresql",
@@ -410,15 +410,13 @@
           "name": "mode",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'api-keys'"
+          "notNull": true
         },
         "used_mode": {
           "name": "used_mode",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'api-keys'"
+          "notNull": true
         }
       },
       "indexes": {},
@@ -530,6 +528,13 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": false
+        },
+        "subscription_cancelled": {
+          "name": "subscription_cancelled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
         },
         "status": {
           "name": "status",

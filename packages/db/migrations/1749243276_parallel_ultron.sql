@@ -1,1 +1,0 @@
-ALTER TABLE "organization" ADD COLUMN "subscription_cancelled" boolean DEFAULT false NOT NULL;
