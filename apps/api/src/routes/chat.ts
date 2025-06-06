@@ -31,7 +31,9 @@ chat.post("/completion", async (c) => {
 		const authToken = apiKey;
 
 		const response = await fetch(
-			"https://api.llmgateway.io/v1/chat/completions",
+			process.env.NODE_ENV === "production"
+				? "https://api.llmgateway.io/v1/chat/completions"
+				: "http://localhost:4001/v1/chat/completions",
 			{
 				method: "POST",
 				headers: {
