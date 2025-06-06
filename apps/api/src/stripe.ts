@@ -42,6 +42,103 @@ export async function ensureStripeCustomer(
 	return stripeCustomerId;
 }
 
+/**
+ * Unified helper to resolve organizationId from various Stripe event sources
+ * and validate that the organization exists in the database.
+ */
+async function resolveOrganizationFromStripeEvent(eventData: {
+	metadata?: { organizationId?: string };
+	customer?: string;
+	subscription?: string;
+	lines?: { data?: Array<{ metadata?: { organizationId?: string } }> };
+}): Promise<{ organizationId: string; organization: any } | null> {
+	let organizationId: string | null = null;
+
+	// 1. Try to get organizationId from direct metadata
+	if (eventData.metadata?.organizationId) {
+		organizationId = eventData.metadata.organizationId;
+		console.log(`Found organizationId in direct metadata: ${organizationId}`);
+	}
+
+	// 2. Check line items metadata (common in invoices)
+	if (!organizationId && eventData.lines?.data) {
+		console.log(
+			`Checking ${eventData.lines.data.length} line items for organizationId`,
+		);
+		for (const lineItem of eventData.lines.data) {
+			if (lineItem.metadata?.organizationId) {
+				organizationId = lineItem.metadata.organizationId;
+				console.log(
+					`Found organizationId in line item metadata: ${organizationId}`,
+				);
+				break;
+			}
+		}
+	}
+
+	// 3. Try to get from subscription metadata if subscription ID is available
+	if (!organizationId && eventData.subscription) {
+		try {
+			const stripeSubscription = await stripe.subscriptions.retrieve(
+				eventData.subscription,
+			);
+			if (stripeSubscription.metadata?.organizationId) {
+				organizationId = stripeSubscription.metadata.organizationId;
+				console.log(
+					`Found organizationId in subscription metadata: ${organizationId}`,
+				);
+			}
+		} catch (error) {
+			console.error("Error retrieving subscription:", error);
+		}
+	}
+
+	// 4. Fallback: find organization by Stripe customer ID
+	if (!organizationId && eventData.customer) {
+		const organization = await db.query.organization.findFirst({
+			where: {
+				stripeCustomerId: eventData.customer,
+			},
+		});
+
+		if (organization) {
+			organizationId = organization.id;
+			console.log(
+				`Found organizationId via customer lookup: ${organizationId}`,
+			);
+		}
+	}
+
+	if (!organizationId) {
+		console.error(`Organization not found for event data:`, {
+			hasMetadata: !!eventData.metadata,
+			customer: eventData.customer,
+			subscription: eventData.subscription,
+			lineItemsCount: eventData.lines?.data?.length || 0,
+		});
+		return null;
+	}
+
+	// Validate that the organization exists
+	const organization = await db.query.organization.findFirst({
+		where: {
+			id: organizationId,
+		},
+	});
+
+	if (!organization) {
+		console.error(
+			`Organization with ID ${organizationId} does not exist in database`,
+		);
+		return null;
+	}
+
+	console.log(
+		`Successfully resolved organization: ${organization.name} (${organization.id})`,
+	);
+	return { organizationId, organization };
+}
+
 export const stripeRoutes = new OpenAPIHono<ServerTypes>();
 
 const webhookHandler = createRoute({
@@ -112,23 +209,17 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 
 async function handlePaymentIntentSucceeded(paymentIntent: any) {
 	const { metadata, amount } = paymentIntent;
-	const { organizationId } = metadata;
 
-	if (!organizationId) {
-		console.error("Missing organizationId in paymentIntent metadata");
-		return;
-	}
-
-	const organization = await db.query.organization.findFirst({
-		where: {
-			id: organizationId,
-		},
+	const result = await resolveOrganizationFromStripeEvent({
+		metadata,
 	});
 
-	if (!organization) {
-		console.error(`Organization not found: ${organizationId}`);
+	if (!result) {
+		console.error("Could not resolve organization from payment intent");
 		return;
 	}
+
+	const { organizationId, organization } = result;
 
 	// Convert amount from cents to dollars
 	const amountInDollars = amount / 100;
@@ -219,80 +310,104 @@ async function handleSetupIntentSucceeded(setupIntent: any) {
 }
 
 async function handleInvoicePaymentSucceeded(invoice: any) {
-	const { customer, subscription } = invoice;
+	const { customer, subscription, metadata } = invoice;
 
-	if (!subscription) {
+	// Extract subscription ID from line items if not directly available
+	let subscriptionId = subscription;
+	if (
+		!subscriptionId &&
+		invoice.lines &&
+		invoice.lines.data &&
+		invoice.lines.data.length > 0
+	) {
+		const firstLineItem = invoice.lines.data[0];
+		if (
+			firstLineItem.parent &&
+			firstLineItem.parent.subscription_item_details
+		) {
+			subscriptionId =
+				firstLineItem.parent.subscription_item_details.subscription;
+		}
+	}
+
+	console.log(
+		`Processing invoice payment succeeded for customer: ${customer}, subscription: ${subscriptionId}`,
+	);
+
+	if (!subscriptionId) {
+		console.log("Not a subscription invoice, skipping");
 		return; // Not a subscription invoice
 	}
 
-	// Try to get organization ID from subscription metadata first
-	let organizationId = null;
+	const result = await resolveOrganizationFromStripeEvent({
+		metadata,
+		customer,
+		subscription: subscriptionId,
+		lines: invoice.lines,
+	});
 
-	// Check if we have organizationId in the invoice metadata
-	if (metadata && metadata.organizationId) {
-		organizationId = metadata.organizationId;
-	} else {
-		// Fallback: get subscription details to find organizationId
-		try {
-			const stripeSubscription =
-				await stripe.subscriptions.retrieve(subscription);
-			if (
-				stripeSubscription.metadata &&
-				stripeSubscription.metadata.organizationId
-			) {
-				organizationId = stripeSubscription.metadata.organizationId;
-			}
-		} catch (error) {
-			console.error("Error retrieving subscription:", error);
-		}
-	}
-
-	// If we still don't have organizationId, try to find by customer ID
-	if (!organizationId) {
-		const organization = await db.query.organization.findFirst({
-			where: {
-				stripeCustomerId: customer,
-			},
-		});
-
-		if (organization) {
-			organizationId = organization.id;
-		}
-	}
-
-	if (!organizationId) {
+	if (!result) {
 		console.error(
-			`Organization not found for customer: ${customer}, subscription: ${subscription}`,
+			`Organization not found for customer: ${customer}, subscription: ${subscriptionId}`,
 		);
 		return;
 	}
 
-	// Update organization to pro plan
-	await db
-		.update(tables.organization)
-		.set({
-			plan: "pro",
-			updatedAt: new Date(),
-		})
-		.where(eq(tables.organization.id, organizationId));
+	const { organizationId, organization } = result;
 
-	console.log(`Upgraded organization ${organizationId} to pro plan`);
+	console.log(
+		`Found organization: ${organization.name} (${organization.id}), current plan: ${organization.plan}`,
+	);
+
+	// Update organization to pro plan
+	try {
+		const result = await db
+			.update(tables.organization)
+			.set({
+				plan: "pro",
+				updatedAt: new Date(),
+			})
+			.where(eq(tables.organization.id, organizationId))
+			.returning();
+
+		console.log(
+			`Successfully upgraded organization ${organizationId} to pro plan. Updated rows:`,
+			result.length,
+		);
+
+		// Verify the update
+		const updatedOrganization = await db.query.organization.findFirst({
+			where: {
+				id: organizationId,
+			},
+		});
+
+		console.log(
+			`Verification - organization plan is now: ${updatedOrganization?.plan}`,
+		);
+	} catch (error) {
+		console.error(
+			`Error updating organization ${organizationId} to pro plan:`,
+			error,
+		);
+		throw error;
+	}
 }
 
 async function handleSubscriptionUpdated(subscription: any) {
-	const { customer, current_period_end } = subscription;
+	const { customer, current_period_end, metadata } = subscription;
 
-	// Find organization by Stripe customer ID
-	const organization = await db.query.organization.findFirst({
-		where: {
-			stripeCustomerId: customer,
-		},
+	const result = await resolveOrganizationFromStripeEvent({
+		metadata,
+		customer,
 	});
 
-	if (!organization) {
+	if (!result) {
 		console.error(`Organization not found for customer: ${customer}`);
 		return;
 	}
+
+	const { organizationId } = result;
 
 	// Update plan expiration date
 	const planExpiresAt = new Date(current_period_end * 1000);
@@ -303,27 +418,27 @@ async function handleSubscriptionUpdated(subscription: any) {
 			planExpiresAt,
 			updatedAt: new Date(),
 		})
-		.where(eq(tables.organization.id, organization.id));
+		.where(eq(tables.organization.id, organizationId));
 
 	console.log(
-		`Updated subscription for organization ${organization.id}, expires at: ${planExpiresAt}`,
+		`Updated subscription for organization ${organizationId}, expires at: ${planExpiresAt}`,
 	);
 }
 
 async function handleSubscriptionDeleted(subscription: any) {
-	const { customer } = subscription;
+	const { customer, metadata } = subscription;
 
-	// Find organization by Stripe customer ID
-	const organization = await db.query.organization.findFirst({
-		where: {
-			stripeCustomerId: customer,
-		},
+	const result = await resolveOrganizationFromStripeEvent({
+		metadata,
+		customer,
 	});
 
-	if (!organization) {
+	if (!result) {
 		console.error(`Organization not found for customer: ${customer}`);
 		return;
 	}
+
+	const { organizationId } = result;
 
 	// Downgrade organization to free plan
 	await db
@@ -334,7 +449,7 @@ async function handleSubscriptionDeleted(subscription: any) {
 			planExpiresAt: null,
 			updatedAt: new Date(),
 		})
-		.where(eq(tables.organization.id, organization.id));
+		.where(eq(tables.organization.id, organizationId));
 
-	console.log(`Downgraded organization ${organization.id} to free plan`);
+	console.log(`Downgraded organization ${organizationId} to free plan`);
 }

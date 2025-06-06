@@ -221,7 +221,7 @@ function UpgradeDialog({ onSuccess }: { onSuccess: () => void }) {
 				});
 				toast({
 					title: "Upgrade Successful",
-					description: "Welcome to Pro!",
+					description: "Welcome to Pro! You may need to refresh the page.",
 				});
 				onSuccess();
 				return;
@@ -243,7 +243,7 @@ function UpgradeDialog({ onSuccess }: { onSuccess: () => void }) {
 				});
 				toast({
 					title: "Upgrade Successful",
-					description: "Welcome to Pro!",
+					description: "Welcome to Pro! You may need to refresh the page.",
 				});
 				onSuccess();
 			}
