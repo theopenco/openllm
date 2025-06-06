@@ -4,6 +4,8 @@ export interface Organization {
 	id: string;
 	name: string;
 	credits: number;
+	plan: "free" | "pro";
+	planExpiresAt: string | null;
 	createdAt: string;
 	updatedAt: string;
 }

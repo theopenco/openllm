@@ -100,7 +100,14 @@ export const organization = pgTable("organization", {
 		.$onUpdate(() => new Date()),
 	name: text().notNull(),
 	stripeCustomerId: text(),
+	stripeSubscriptionId: text(),
 	credits: decimal().notNull().default("0"),
+	plan: text({
+		enum: ["free", "pro"],
+	})
+		.notNull()
+		.default("free"),
+	planExpiresAt: timestamp(),
 	status: text({
 		enum: ["active", "inactive", "deleted"],
 	}).default("active"),
@@ -138,7 +145,7 @@ export const project = pgTable("project", {
 		enum: ["api-keys", "credits", "hybrid"],
 	})
 		.notNull()
-		.default("api-keys"),
+		.default("credits"),
 	status: text({
 		enum: ["active", "inactive", "deleted"],
 	}).default("active"),

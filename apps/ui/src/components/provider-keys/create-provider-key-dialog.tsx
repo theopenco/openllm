@@ -12,6 +12,8 @@ import OpenAiLogo from "@/assets/models/openai.svg?react";
 import OpenLLMLogo from "@/assets/models/openllm.svg?react";
 import TogetherAiLogo from "@/assets/models/together-ai.svg?react";
 import { useDefaultOrganization } from "@/hooks/useOrganization";
+import { Alert, AlertDescription } from "@/lib/components/alert";
+import { Badge } from "@/lib/components/badge";
 import { Button } from "@/lib/components/button";
 import {
 	Dialog,
@@ -67,6 +69,8 @@ export function CreateProviderKeyDialog({
 	const { data: providerKeysData, isPending: isLoading } =
 		$api.useSuspenseQuery("get", "/keys/provider");
 
+	const isProPlan = organization?.plan === "pro";
+
 	const createMutation = $api.useMutation("post", "/keys/provider");
 
 	const availableProviders = providers.filter((provider) => {
@@ -86,6 +90,17 @@ export function CreateProviderKeyDialog({
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
+
+		if (!isProPlan) {
+			toast({
+				title: "Upgrade Required",
+				description:
+					"Provider keys are only available on the Pro plan. Please upgrade to use your own API keys.",
+				variant: "destructive",
+				className: "text-white",
+			});
+			return;
+		}
 
 		if (!selectedProvider || !token) {
 			toast({
@@ -184,6 +199,14 @@ export function CreateProviderKeyDialog({
 						Create a new provider key to connect to an LLM provider.
 					</DialogDescription>
 				</DialogHeader>
+				{!isProPlan && (
+					<Alert>
+						<AlertDescription className="flex items-center justify-between">
+							<span>Provider keys are only available on the Pro plan.</span>
+							<Badge variant="outline">Pro Only</Badge>
+						</AlertDescription>
+					</Alert>
+				)}
 				<form onSubmit={handleSubmit} className="space-y-4 py-4">
 					<div className="space-y-2">
 						<Label htmlFor="provider">Provider</Label>
@@ -254,7 +277,10 @@ export function CreateProviderKeyDialog({
 						<Button
 							type="submit"
 							disabled={
-								availableProviders.length === 0 || isLoading || isValidating
+								!isProPlan ||
+								availableProviders.length === 0 ||
+								isLoading ||
+								isValidating
 							}
 						>
 							{isValidating ? "Validating..." : "Add Provider Key"}
