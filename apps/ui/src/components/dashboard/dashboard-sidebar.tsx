@@ -14,12 +14,12 @@ import {
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useState } from "react";
 
-import { TopUpCreditsButton } from "../credits/top-up-credits-dialog";
 import { ModeToggle } from "@/components/mode-toggle";
 import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { useUser } from "@/hooks/useUser";
 import { signOut } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/lib/components/avatar";
+import { Button } from "@/lib/components/button";
 import {
 	Sidebar,
 	SidebarContent,
@@ -168,8 +168,9 @@ export function DashboardSidebar() {
 							</p>
 						</div>
 
-						{/* TODO link to plan management here instead of credits */}
-						<TopUpCreditsButton />
+						<Button asChild>
+							<Link to="/dashboard/settings/billing">Upgrade</Link>
+						</Button>
 					</div>
 				)}
 
