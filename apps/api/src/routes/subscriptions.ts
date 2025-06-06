@@ -280,6 +280,14 @@ subscriptions.openapi(resumeProSubscription, async (c) => {
 			cancel_at_period_end: false,
 		});
 
+		// Update organization to mark subscription as not cancelled
+		await db
+			.update(tables.organization)
+			.set({
+				subscriptionCancelled: false,
+			})
+			.where(eq(tables.organization.id, organization.id));
+
 		return c.json({
 			success: true,
 		});
