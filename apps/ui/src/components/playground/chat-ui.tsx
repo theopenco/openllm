@@ -78,14 +78,10 @@ export function ChatUi({
 				"[data-radix-scroll-area-viewport]",
 			);
 			if (scrollContainer) {
-				// Use a small delay to ensure content is rendered
-				const timeoutId = setTimeout(() => {
-					scrollContainer.scrollTop = scrollContainer.scrollHeight;
-				}, 10);
-				return () => clearTimeout(timeoutId);
+				scrollContainer.scrollTop = scrollContainer.scrollHeight;
 			}
 		}
-	}, [messages, messages.length, messages[messages.length - 1]?.content]);
+	}, [messages]);
 
 	// Focus textarea on mount
 	useEffect(() => {
@@ -136,7 +132,7 @@ export function ChatUi({
 	};
 
 	return (
-		<div className="flex flex-col h-full bg-gray-50/50 dark:bg-gray-900/50">
+		<div className="flex flex-col h-full bg-muted/30">
 			{/* Error Alert */}
 			{error && (
 				<div className="p-4 border-b">
@@ -156,8 +152,8 @@ export function ChatUi({
 							<div className="text-center space-y-4">
 								<Bot className="h-16 w-16 mx-auto text-muted-foreground/50" />
 								<div>
-									<h3 className="text-2xl font-semibold mb-2">
-										Welcome to OpenLLM Playground
+									<h3 className="text-2xl font-semibold mb-2 text-foreground">
+										Welcome to LLM Gateway Playground
 									</h3>
 									<p className="text-muted-foreground">
 										Start a conversation with AI. Ask questions, get help with
@@ -165,13 +161,22 @@ export function ChatUi({
 									</p>
 								</div>
 								<div className="flex gap-2 justify-center">
-									<Badge variant="secondary" className="text-xs">
+									<Badge
+										variant="outline"
+										className="text-xs border-muted-foreground/20"
+									>
 										Streaming
 									</Badge>
-									<Badge variant="secondary" className="text-xs">
+									<Badge
+										variant="outline"
+										className="text-xs border-muted-foreground/20"
+									>
 										Multiple Models
 									</Badge>
-									<Badge variant="secondary" className="text-xs">
+									<Badge
+										variant="outline"
+										className="text-xs border-muted-foreground/20"
+									>
 										Real-time
 									</Badge>
 								</div>
@@ -189,7 +194,7 @@ export function ChatUi({
 											<Button
 												key={index}
 												variant="outline"
-												className="h-auto p-4 text-left justify-start hover:bg-accent/50 transition-colors"
+												className="h-auto p-4 text-left justify-start hover:bg-muted/50 transition-colors border-muted-foreground/20"
 												onClick={() => handleStarterPrompt(prompt.prompt)}
 											>
 												<div className="flex gap-3 w-full">
@@ -225,8 +230,8 @@ export function ChatUi({
 									<AvatarFallback
 										className={
 											message.role === "user"
-												? "bg-blue-500 text-white"
-												: "bg-green-500 text-white"
+												? "bg-foreground text-background"
+												: "bg-muted text-muted-foreground"
 										}
 									>
 										{message.role === "user" ? (
@@ -267,8 +272,8 @@ export function ChatUi({
 										<div
 											className={`prose prose-sm max-w-none dark:prose-invert p-4 rounded-lg ${
 												message.role === "user"
-													? "bg-blue-500 text-white prose-invert max-w-[80%]"
-													: "bg-white dark:bg-gray-800 border shadow-sm max-w-full"
+													? "bg-foreground text-background prose-invert max-w-[80%]"
+													: "bg-background border shadow-sm max-w-full"
 											}`}
 										>
 											<div className="whitespace-pre-wrap font-sans text-sm leading-relaxed break-words">
@@ -304,12 +309,12 @@ export function ChatUi({
 						{isLoading && (
 							<div className="flex gap-4">
 								<Avatar className="h-8 w-8 shrink-0">
-									<AvatarFallback className="bg-green-500 text-white">
+									<AvatarFallback className="bg-muted text-muted-foreground">
 										<Bot className="h-4 w-4" />
 									</AvatarFallback>
 								</Avatar>
 								<div className="flex-1">
-									<div className="flex items-center gap-1 p-4 bg-white dark:bg-gray-800 border rounded-lg shadow-sm w-fit">
+									<div className="flex items-center gap-1 p-4 bg-background border rounded-lg shadow-sm w-fit">
 										<div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
 										<div
 											className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
@@ -352,7 +357,7 @@ export function ChatUi({
 							onChange={(e) => setInput(e.target.value)}
 							onKeyDown={handleKeyDown}
 							placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
-							className="min-h-[80px] max-h-[200px] resize-none pr-12 bg-white dark:bg-gray-800"
+							className="min-h-[80px] max-h-[200px] resize-none pr-12 bg-background border-muted-foreground/20"
 							disabled={isLoading}
 						/>
 						<Button
@@ -366,7 +371,8 @@ export function ChatUi({
 					</form>
 
 					<div className="text-xs text-muted-foreground mt-2 text-center">
-						OpenLLM can make mistakes. Consider checking important information.
+						This Playground can make mistakes. Consider checking important
+						information.
 					</div>
 				</div>
 			</div>

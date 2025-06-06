@@ -15,12 +15,20 @@ const chatCompletionSchema = z.object({
 	),
 	model: z.string(),
 	stream: z.boolean().optional().default(false),
+	apiKey: z.string().optional(), // Optional user API key
 });
 
 chat.post("/completion", async (c) => {
 	try {
 		const body = await c.req.json();
-		const { messages, model, stream } = chatCompletionSchema.parse(body);
+		const { messages, model, stream, apiKey } =
+			chatCompletionSchema.parse(body);
+
+		// Require user to provide their own API key
+		if (!apiKey) {
+			return c.json({ error: "API key is required" }, 400);
+		}
+		const authToken = apiKey;
 
 		const response = await fetch(
 			"https://api.llmgateway.io/v1/chat/completions",
@@ -28,7 +36,7 @@ chat.post("/completion", async (c) => {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
-					Authorization: `Bearer ${process.env.LLM_GATEWAY_API_KEY}`,
+					Authorization: `Bearer ${authToken}`,
 				},
 				body: JSON.stringify({
 					model,

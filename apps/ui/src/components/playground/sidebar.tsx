@@ -1,8 +1,34 @@
+import { useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
-import { Plus, MessageSquare, Edit2, Trash2, Settings } from "lucide-react";
+import {
+	Plus,
+	MessageSquare,
+	Edit2,
+	Trash2,
+	LogOutIcon,
+	MoreVerticalIcon,
+} from "lucide-react";
+import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 
+import { ModeToggle } from "../mode-toggle";
+import {
+	useChats,
+	useDeleteChat,
+	useUpdateChat,
+	type Chat,
+} from "@/hooks/useChats";
+import { useUser } from "@/hooks/useUser";
+import { signOut } from "@/lib/auth-client";
+import { Avatar, AvatarFallback } from "@/lib/components/avatar";
 import { Button } from "@/lib/components/button";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/lib/components/dropdown-menu";
 import { Input } from "@/lib/components/input";
 import {
 	Sidebar,
@@ -14,82 +40,83 @@ import {
 	SidebarMenuButton,
 	SidebarMenuItem,
 } from "@/lib/components/sidebar";
-
-interface ChatSession {
-	id: string;
-	title: string;
-	createdAt: Date;
-	updatedAt: Date;
-	messageCount: number;
-}
+import { toast } from "@/lib/components/use-toast";
+import Logo from "@/lib/icons/Logo";
 
 interface ChatSidebarProps {
 	currentChatId?: string;
 	onChatSelect?: (chatId: string) => void;
 	onNewChat?: () => void;
+	userApiKey: string | null;
 }
 
 export function ChatSidebar({
 	currentChatId,
 	onChatSelect,
 	onNewChat,
+	userApiKey,
 }: ChatSidebarProps) {
-	// Mock chat sessions for now - this would come from state management/API later
-	const [chats, setChats] = useState<ChatSession[]>([
-		{
-			id: "1",
-			title: "Getting started with OpenLLM",
-			createdAt: new Date(Date.now() - 86400000), // 1 day ago
-			updatedAt: new Date(Date.now() - 86400000),
-			messageCount: 8,
-		},
-		{
-			id: "2",
-			title: "Model comparison discussion",
-			createdAt: new Date(Date.now() - 3600000), // 1 hour ago
-			updatedAt: new Date(Date.now() - 3600000),
-			messageCount: 12,
-		},
-		{
-			id: "3",
-			title: "Code review assistance",
-			createdAt: new Date(Date.now() - 1800000), // 30 minutes ago
-			updatedAt: new Date(Date.now() - 1800000),
-			messageCount: 5,
-		},
-	]);
+	const queryClient = useQueryClient();
+	const navigate = useNavigate();
+	const posthog = usePostHog();
+	const { user } = useUser();
+
+	// Use real chat data from API
+	const { data: chatsData, isLoading } = useChats();
+	const deleteChat = useDeleteChat();
+	const updateChat = useUpdateChat();
 
 	const [editingId, setEditingId] = useState<string | null>(null);
 	const [editTitle, setEditTitle] = useState("");
 
-	const handleEditTitle = (chat: ChatSession) => {
+	const chats = chatsData?.chats || [];
+
+	const logout = async () => {
+		posthog.reset();
+		await signOut({
+			fetchOptions: {
+				onSuccess: () => {
+					queryClient.clear();
+					navigate({ to: "/login" });
+				},
+			},
+		});
+	};
+
+	const handleEditTitle = (chat: Chat) => {
 		setEditingId(chat.id);
 		setEditTitle(chat.title);
 	};
 
 	const saveTitle = (chatId: string) => {
 		if (editTitle.trim()) {
-			setChats((prev) =>
-				prev.map((chat) =>
-					chat.id === chatId
-						? { ...chat, title: editTitle.trim(), updatedAt: new Date() }
-						: chat,
-				),
-			);
+			updateChat.mutate({
+				id: chatId,
+				data: { title: editTitle.trim() },
+			});
 		}
 		setEditingId(null);
 		setEditTitle("");
 	};
 
-	const deleteChat = (chatId: string) => {
-		setChats((prev) => prev.filter((chat) => chat.id !== chatId));
-		// If deleting current chat, trigger new chat
+	const handleDeleteChat = (chatId: string) => {
+		if (!userApiKey) {
+			toast({
+				title: "API Key Required",
+				description: "You must provide an API key to delete chats.",
+				variant: "destructive",
+			});
+			return;
+		}
+
+		deleteChat.mutate(chatId);
 		if (currentChatId === chatId) {
-			onNewChat?.();
+			onChatSelect?.("");
 		}
 	};
 
-	const formatDate = (date: Date) => {
+	const formatDate = (dateString: string) => {
+		const date = new Date(dateString);
 		const now = new Date();
 		const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
 
@@ -104,7 +131,7 @@ export function ChatSidebar({
 		}
 	};
 
-	const groupChatsByDate = (chats: ChatSession[]) => {
+	const groupChatsByDate = (chats: Chat[]) => {
 		const today = new Date();
 		const yesterday = new Date(today);
 		yesterday.setDate(yesterday.getDate() - 1);
@@ -112,10 +139,10 @@ export function ChatSidebar({
 		lastWeek.setDate(lastWeek.getDate() - 7);
 
 		const groups = {
-			today: [] as ChatSession[],
-			yesterday: [] as ChatSession[],
-			lastWeek: [] as ChatSession[],
-			older: [] as ChatSession[],
+			today: [] as Chat[],
+			yesterday: [] as Chat[],
+			lastWeek: [] as Chat[],
+			older: [] as Chat[],
 		};
 
 		chats.forEach((chat) => {
@@ -135,10 +162,13 @@ export function ChatSidebar({
 	};
 
 	const chatGroups = groupChatsByDate(
-		[...chats].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
+		[...chats].sort(
+			(a, b) =>
+				new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+		),
 	);
 
-	const renderChatGroup = (title: string, chats: ChatSession[]) => {
+	const renderChatGroup = (title: string, chats: Chat[]) => {
 		if (chats.length === 0) {
 			return null;
 		}
@@ -154,7 +184,7 @@ export function ChatSidebar({
 							<SidebarMenuButton
 								isActive={currentChatId === chat.id}
 								onClick={() => onChatSelect?.(chat.id)}
-								className="w-full justify-start gap-2 group relative pr-8"
+								className="w-full justify-start gap-3 group relative pr-10 py-6"
 							>
 								<MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
 								{editingId === chat.id ? (
@@ -171,12 +201,12 @@ export function ChatSidebar({
 												setEditTitle("");
 											}
 										}}
-										className="h-6 text-sm border-none p-0 focus-visible:ring-0 bg-transparent"
+										className="h-7 text-sm border-none px-1 focus-visible:ring-0 bg-transparent"
 										autoFocus
 									/>
 								) : (
 									<div className="flex-1 min-w-0">
-										<div className="truncate text-sm font-medium">
+										<div className="truncate text-sm font-medium mb-0.5">
 											{chat.title}
 										</div>
 										<div className="text-xs text-muted-foreground">
@@ -188,25 +218,41 @@ export function ChatSidebar({
 
 								{/* Action buttons */}
 								{currentChatId === chat.id && editingId !== chat.id && (
-									<div className="absolute right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background">
-										<SidebarMenuAction
-											onClick={(e) => {
-												e.stopPropagation();
-												handleEditTitle(chat);
-											}}
-											className="h-6 w-6"
-										>
-											<Edit2 className="h-3 w-3" />
-										</SidebarMenuAction>
-										<SidebarMenuAction
-											onClick={(e) => {
-												e.stopPropagation();
-												deleteChat(chat.id);
-											}}
-											className="h-6 w-6 text-destructive hover:text-destructive"
-										>
-											<Trash2 className="h-3 w-3" />
-										</SidebarMenuAction>
+									<div className="absolute right-0 top-2 bottom-0">
+										<DropdownMenu>
+											<DropdownMenuTrigger asChild>
+												<SidebarMenuAction
+													onClick={(e) => {
+														e.stopPropagation();
+													}}
+													className="h-7 w-7 cursor-pointer"
+												>
+													<MoreVerticalIcon className="h-3.5 w-3.5" />
+												</SidebarMenuAction>
+											</DropdownMenuTrigger>
+											<DropdownMenuContent align="end" className="w-48">
+												<DropdownMenuItem
+													onClick={(e) => {
+														e.stopPropagation();
+														handleEditTitle(chat);
+													}}
+													className="flex items-center gap-2"
+												>
+													<Edit2 className="h-4 w-4" />
+													Rename
+												</DropdownMenuItem>
+												<DropdownMenuItem
+													onClick={(e) => {
+														e.stopPropagation();
+														handleDeleteChat(chat.id);
+													}}
+													className="flex items-center gap-2 text-destructive focus:text-destructive"
+												>
+													<Trash2 className="h-4 w-4" />
+													Delete
+												</DropdownMenuItem>
+											</DropdownMenuContent>
+										</DropdownMenu>
 									</div>
 								)}
 							</SidebarMenuButton>
@@ -217,18 +263,47 @@ export function ChatSidebar({
 		);
 	};
 
-	return (
-		<Sidebar className="border-r w-80">
-			<SidebarHeader className="p-4 border-b">
-				<Button
-					onClick={onNewChat}
-					className="w-full justify-start gap-2 bg-primary hover:bg-primary/90"
-				>
-					<Plus className="h-4 w-4" />
-					New Chat
-				</Button>
-			</SidebarHeader>
+	if (isLoading) {
+		return (
+			<Sidebar className="border-r w-80">
+				<SidebarHeader className="p-4 border-b">
+					<Button
+						onClick={onNewChat}
+						className="w-full justify-start gap-2 bg-primary hover:bg-primary/90"
+					>
+						<Plus className="h-4 w-4" />
+						New Chat
+					</Button>
+				</SidebarHeader>
+				<SidebarContent className="px-2 py-4">
+					<div className="flex items-center justify-center py-8">
+						<div className="text-sm text-muted-foreground">
+							Loading chats...
+						</div>
+					</div>
+				</SidebarContent>
+			</Sidebar>
+		);
+	}
 
+	return (
+		<Sidebar>
+			<SidebarHeader>
+				<div className="flex flex-col items-center gap-4 mb-4">
+					<Link to="/" className="flex self-start items-center gap-2 my-2">
+						<Logo className="h-10 w-10" />
+						<h1 className="text-xl font-semibold">LLM Gateway</h1>
+					</Link>
+					<Button
+						variant="outline"
+						className="w-full flex items-center gap-2"
+						onClick={onNewChat}
+					>
+						<Plus className="h-4 w-4" />
+						New Chat
+					</Button>
+				</div>
+			</SidebarHeader>
 			<SidebarContent className="px-2 py-4">
 				<SidebarMenu>
 					{renderChatGroup("Today", chatGroups.today)}
@@ -250,14 +325,26 @@ export function ChatSidebar({
 				</SidebarMenu>
 			</SidebarContent>
 
-			<SidebarFooter className="p-4 border-t">
-				<Button
-					variant="ghost"
-					className="w-full justify-start gap-2 text-muted-foreground"
-				>
-					<Settings className="h-4 w-4" />
-					Settings
-				</Button>
+			<SidebarFooter className="border-t">
+				<div className="flex items-center justify-between p-4 pt-0">
+					<div className="flex items-center gap-3">
+						<Avatar className="border-border h-9 w-9 border">
+							<AvatarFallback className="bg-muted">AU</AvatarFallback>
+						</Avatar>
+						<div className="text-sm">
+							<div className="flex items-center gap-2 font-medium">
+								{user?.name}
+								<LogOutIcon
+									className="cursor-pointer"
+									size={14}
+									onClick={logout}
+								/>
+							</div>
+							<div className="text-xs text-muted-foreground">{user?.email}</div>
+						</div>
+					</div>
+					<ModeToggle />
+				</div>
 			</SidebarFooter>
 		</Sidebar>
 	);

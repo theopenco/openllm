@@ -286,3 +286,37 @@ export const organizationAction = pgTable("organization_action", {
 	amount: decimal().notNull(),
 	description: text(),
 });
+
+export const chat = pgTable("chat", {
+	id: text().primaryKey().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+	title: text().notNull(),
+	userId: text()
+		.notNull()
+		.references(() => user.id, { onDelete: "cascade" }),
+	model: text().notNull(),
+	status: text({
+		enum: ["active", "archived", "deleted"],
+	}).default("active"),
+});
+
+export const message = pgTable("message", {
+	id: text().primaryKey().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+	chatId: text()
+		.notNull()
+		.references(() => chat.id, { onDelete: "cascade" }),
+	role: text({
+		enum: ["user", "assistant", "system"],
+	}).notNull(),
+	content: text().notNull(),
+	sequence: integer().notNull(), // To maintain message order
+});

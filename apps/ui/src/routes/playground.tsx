@@ -1,9 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+import { ApiKeyManager } from "@/components/playground/api-key-manager";
+import { AuthDialog } from "@/components/playground/auth-dialog";
 import { ChatHeader } from "@/components/playground/chat-header";
 import { ChatUi } from "@/components/playground/chat-ui";
 import { ChatSidebar } from "@/components/playground/sidebar";
+import { useApiKey } from "@/hooks/useApiKey";
+import {
+	useCreateChat,
+	useAddMessage,
+	useChat,
+	useChats,
+} from "@/hooks/useChats";
+import { useUser } from "@/hooks/useUser";
 import { SidebarProvider } from "@/lib/components/sidebar";
 
 export interface Message {
@@ -18,17 +28,53 @@ export const Route = createFileRoute("/playground")({
 });
 
 function RouteComponent() {
+	const { user, isLoading: isUserLoading } = useUser();
+	const { userApiKey, isLoaded: isApiKeyLoaded } = useApiKey();
 	const [selectedModel, setSelectedModel] = useState("gpt-4o-mini");
+
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [currentChatId, setCurrentChatId] = useState<string | null>(null);
 
+	// Chat API hooks
+	const createChat = useCreateChat();
+	const addMessage = useAddMessage();
+	const { data: currentChatData, isLoading: _isChatLoading } = useChat(
+		currentChatId || "",
+	);
+	const { data: _chatsData } = useChats();
+
+	const [showApiKeyManager, setShowApiKeyManager] = useState(false);
+
+	const isAuthenticated = !isUserLoading && !!user;
+	const showAuthDialog = !isUserLoading && !user;
+
+	useEffect(() => {
+		if (isApiKeyLoaded && !userApiKey && !showAuthDialog) {
+			setShowApiKeyManager(true);
+		}
+	}, [isApiKeyLoaded, userApiKey, showAuthDialog]);
+
+	useEffect(() => {
+		if (currentChatData?.messages) {
+			const chatMessages: Message[] = currentChatData.messages.map(
+				(msg: any) => ({
+					id: msg.id,
+					role: msg.role,
+					content: msg.content,
+					timestamp: new Date(msg.createdAt),
+				}),
+			);
+			setMessages(chatMessages);
+		}
+	}, [currentChatData]);
+
 	const handleModelSelect = (model: string) => {
 		setSelectedModel(model);
 	};
 
-	const addMessage = (message: Omit<Message, "id" | "timestamp">) => {
+	const addLocalMessage = (message: Omit<Message, "id" | "timestamp">) => {
 		const newMessage: Message = {
 			...message,
 			id: Date.now().toString(),
@@ -38,43 +84,85 @@ function RouteComponent() {
 		return newMessage;
 	};
 
+	const ensureCurrentChat = async (userMessage?: string): Promise<string> => {
+		if (currentChatId) {
+			return currentChatId;
+		}
+
+		try {
+			const title = userMessage
+				? userMessage.slice(0, 50) + (userMessage.length > 50 ? "..." : "")
+				: "New Chat";
+
+			const chatData = await createChat.mutateAsync({
+				title,
+				model: selectedModel,
+			});
+			const newChatId = chatData.chat.id;
+			setCurrentChatId(newChatId);
+			return newChatId;
+		} catch (error: any) {
+			console.error("Failed to create chat:", error);
+			setError("Failed to create a new chat. Please try again.");
+			throw error;
+		}
+	};
+
 	const handleSendMessage = async (content: string) => {
-		if (!content.trim()) {
+		if (!isAuthenticated || !content.trim()) {
+			return;
+		}
+
+		if (!isApiKeyLoaded) {
+			return;
+		}
+
+		if (!userApiKey) {
+			setShowApiKeyManager(true);
 			return;
 		}
 
 		setIsLoading(true);
-		addMessage({ role: "user", content });
+		addLocalMessage({ role: "user", content });
 
 		try {
+			const chatId = await ensureCurrentChat(content);
+
+			await addMessage.mutateAsync({
+				chatId,
+				data: { role: "user", content },
+			});
+
 			const response = await fetch("/api/chat/completion", {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-				},
+				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
 					model: selectedModel,
 					messages: [...messages, { role: "user", content }].map((msg) => ({
 						role: msg.role,
 						content: msg.content,
 					})),
-					stream: true, // Enable streaming
+					stream: true,
+					apiKey: userApiKey,
 				}),
 			});
 
 			if (!response.ok) {
+				const errorText = await response.text();
+				setError(`API Error: ${errorText}`);
 				throw new Error(`API Error: ${response.status} ${response.statusText}`);
 			}
 
-			// Handle streaming response
 			const reader = response.body?.getReader();
 			if (!reader) {
 				throw new Error("No response body");
 			}
 
-			const assistantMessage = addMessage({ role: "assistant", content: "" });
+			const assistantMessage = addLocalMessage({
+				role: "assistant",
+				content: "",
+			});
 			let assistantContent = "";
-
 			const decoder = new TextDecoder();
 			let buffer = "";
 
@@ -110,49 +198,24 @@ function RouteComponent() {
 										),
 									);
 								}
-							} catch (_e) {
-								// Ignore parse errors for streaming chunks
+							} catch (e) {
+								console.error("Error parsing stream data:", e);
 							}
 						}
 					}
 				}
-			} catch (streamError) {
-				console.error("Streaming error:", streamError);
-				// If streaming fails, try to get whatever content we have
-				if (!assistantContent.trim()) {
-					throw streamError;
+
+				if (assistantContent.trim()) {
+					await addMessage.mutateAsync({
+						chatId,
+						data: { role: "assistant", content: assistantContent },
+					});
 				}
+			} finally {
+				reader.releaseLock();
 			}
-		} catch (error) {
-			console.warn("API failed, using mock response:", error);
-
-			// Simulate streaming for fallback response
-			const mockResponses = [
-				"I'm GPT-4o-mini, a language model created by OpenAI.",
-				"I'm an AI assistant based on GPT-4o-mini. How can I help you?",
-				"I'm a large language model called GPT-4o-mini. What would you like to know?",
-				"I'm an AI assistant. I can help you with various tasks and questions.",
-				"I'm GPT-4o-mini, an AI language model. How may I assist you today?",
-			];
-
-			const response =
-				mockResponses[Math.floor(Math.random() * mockResponses.length)];
-			const assistantMessage = addMessage({ role: "assistant", content: "" });
-
-			// Simulate typing effect for mock response
-			for (let i = 0; i <= response.length; i++) {
-				await new Promise<void>((resolve) => {
-					setTimeout(() => resolve(), 20);
-				});
-				const partialContent = response.slice(0, i);
-				setMessages((prev) =>
-					prev.map((msg) =>
-						msg.id === assistantMessage.id
-							? { ...msg, content: partialContent }
-							: msg,
-					),
-				);
-			}
+		} catch (err) {
+			setError((err as Error).message);
 		} finally {
 			setIsLoading(false);
 		}
@@ -163,51 +226,49 @@ function RouteComponent() {
 		setError(null);
 	};
 
-	const handleNewChat = () => {
-		clearMessages();
-		setCurrentChatId(null);
+	const handleNewChat = async () => {
+		if (!userApiKey) {
+			setShowApiKeyManager(true);
+			return;
+		}
 		setError(null);
+		setCurrentChatId(null);
+		setMessages([]);
 	};
 
 	const handleChatSelect = (chatId: string) => {
-		// In a real app, this would load the chat history from storage/API
 		setCurrentChatId(chatId);
-		// For now, just clear current messages
-		clearMessages();
 	};
 
 	return (
-		<SidebarProvider
-			defaultOpen={true}
-			style={
-				{
-					"--sidebar-width": "20rem",
-					"--sidebar-width-mobile": "22rem",
-				} as React.CSSProperties
-			}
-		>
-			<div className="flex h-screen w-full">
+		<SidebarProvider>
+			<div className="relative flex h-screen w-full">
 				<ChatSidebar
-					currentChatId={currentChatId ?? undefined}
-					onChatSelect={handleChatSelect}
 					onNewChat={handleNewChat}
+					onChatSelect={handleChatSelect}
+					currentChatId={currentChatId ?? undefined}
+					userApiKey={userApiKey}
 				/>
-				<div className="flex-1 flex w-full flex-col">
+				<main className="flex flex-1 flex-col">
 					<ChatHeader
 						selectedModel={selectedModel}
 						onModelSelect={handleModelSelect}
+						onManageApiKey={() => setShowApiKeyManager(true)}
 					/>
-					<main className="flex-1 overflow-hidden">
-						<ChatUi
-							messages={messages}
-							isLoading={isLoading}
-							error={error}
-							onSendMessage={handleSendMessage}
-							onClearMessages={clearMessages}
-						/>
-					</main>
-				</div>
+					<ChatUi
+						messages={messages}
+						isLoading={isLoading}
+						onSendMessage={handleSendMessage}
+						onClearMessages={clearMessages}
+						error={error}
+					/>
+				</main>
 			</div>
+			<AuthDialog open={showAuthDialog} />
+			<ApiKeyManager
+				open={showApiKeyManager}
+				onOpenChange={setShowApiKeyManager}
+			/>
 		</SidebarProvider>
 	);
 }

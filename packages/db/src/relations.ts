@@ -9,6 +9,10 @@ export const relations = defineRelations(schema, (r) => ({
 			from: r.user.id,
 			to: r.passkey.userId,
 		}),
+		chats: r.many.chat({
+			from: r.user.id,
+			to: r.chat.userId,
+		}),
 	},
 	organization: {
 		userOrganizations: r.many.userOrganization(),
@@ -60,6 +64,22 @@ export const relations = defineRelations(schema, (r) => ({
 		user: r.one.user({
 			from: r.passkey.userId,
 			to: r.user.id,
+		}),
+	},
+	chat: {
+		user: r.one.user({
+			from: r.chat.userId,
+			to: r.user.id,
+		}),
+		messages: r.many.message({
+			from: r.chat.id,
+			to: r.message.chatId,
+		}),
+	},
+	message: {
+		chat: r.one.chat({
+			from: r.message.chatId,
+			to: r.chat.id,
 		}),
 	},
 }));

@@ -1,6 +1,7 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
+import { ApiKeyManager } from "./playground/api-key-manager";
 import { ChatHeader } from "./playground/chat-header";
 import { Button } from "@/lib/components/button";
 import { Card } from "@/lib/components/card";
@@ -17,6 +18,7 @@ export function Chat() {
 	const [input, setInput] = useState("");
 	const [isLoading, setIsLoading] = useState(false);
 	const [selectedModel, setSelectedModel] = useState("gpt-4.1");
+	const [showApiKeyManager, setShowApiKeyManager] = useState(false);
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -71,6 +73,7 @@ export function Chat() {
 			<ChatHeader
 				selectedModel={selectedModel}
 				onModelSelect={handleModelSelect}
+				onManageApiKey={() => setShowApiKeyManager(true)}
 			/>
 			<Card className="flex-1 mx-4 my-4 p-4">
 				<ScrollArea className="h-[calc(100vh-12rem)] pr-4">
@@ -116,6 +119,10 @@ export function Chat() {
 					</Button>
 				</form>
 			</Card>
+			<ApiKeyManager
+				open={showApiKeyManager}
+				onOpenChange={setShowApiKeyManager}
+			/>
 		</div>
 	);
 }
