@@ -96,11 +96,12 @@ subscriptions.openapi(createProSubscription, async (c) => {
 			},
 		});
 
-		// Update organization with subscription ID
+		// Update organization with subscription ID and mark as not cancelled
 		await db
 			.update(tables.organization)
 			.set({
 				stripeSubscriptionId: subscription.id,
+				subscriptionCancelled: false,
 				updatedAt: new Date(),
 			})
 			.where(eq(tables.organization.id, organization.id));
@@ -287,6 +288,7 @@ const getSubscriptionStatus = createRoute({
 						subscriptionId: z.string().nullable(),
 						planExpiresAt: z.string().nullable(),
 						cancelAtPeriodEnd: z.boolean().nullable(),
+						subscriptionCancelled: z.boolean(),
 					}),
 				},
 			},
@@ -339,5 +341,6 @@ subscriptions.openapi(getSubscriptionStatus, async (c) => {
 		subscriptionId: organization.stripeSubscriptionId,
 		planExpiresAt: organization.planExpiresAt?.toISOString() || null,
 		cancelAtPeriodEnd,
+		subscriptionCancelled: organization.subscriptionCancelled || false,
 	});
 });

@@ -374,12 +374,13 @@ async function handleInvoicePaymentSucceeded(
 		`Found organization: ${organization.name} (${organization.id}), current plan: ${organization.plan}`,
 	);
 
-	// Update organization to pro plan
+	// Update organization to pro plan and mark subscription as not cancelled
 	try {
 		const result = await db
 			.update(tables.organization)
 			.set({
 				plan: "pro",
+				subscriptionCancelled: false,
 				updatedAt: new Date(),
 			})
 			.where(eq(tables.organization.id, organizationId))
@@ -453,23 +454,52 @@ async function handleSubscriptionUpdated(
 		return;
 	}
 
-	const { organizationId } = result;
+	const { organizationId, organization } = result;
 
 	// Update plan expiration date
 	const planExpiresAt = current_period_end
 		? new Date(current_period_end * 1000)
 		: undefined;
 
+	// Check if subscription is active and organization was previously cancelled
+	const isSubscriptionActive = subscription.status === "active";
+	const wasSubscriptionCancelled = organization.subscriptionCancelled;
+
 	await db
 		.update(tables.organization)
 		.set({
 			planExpiresAt,
+			subscriptionCancelled: !isSubscriptionActive,
 			updatedAt: new Date(),
 		})
 		.where(eq(tables.organization.id, organizationId));
 
+	// Track subscription reactivation if it was previously cancelled and is now active
+	if (isSubscriptionActive && wasSubscriptionCancelled) {
+		posthog.groupIdentify({
+			groupType: "organization",
+			groupKey: organizationId,
+			properties: {
+				name: organization.name,
+			},
+		});
+		posthog.capture({
+			distinctId: "organization",
+			event: "subscription_reactivated",
+			groups: {
+				organization: organizationId,
+			},
+			properties: {
+				plan: "pro",
+				organization: organizationId,
+				source: "stripe_subscription_updated",
+			},
+		});
+		console.log(`Reactivated subscription for organization ${organizationId}`);
+	}
+
 	console.log(
-		`Updated subscription for organization ${organizationId}, expires at: ${planExpiresAt}`,
+		`Updated subscription for organization ${organizationId}, expires at: ${planExpiresAt}, cancelled: ${!isSubscriptionActive}`,
 	);
 }
 
@@ -491,13 +521,14 @@ async function handleSubscriptionDeleted(
 
 	const { organizationId } = result;
 
-	// Downgrade organization to free plan
+	// Downgrade organization to free plan and mark subscription as cancelled
 	await db
 		.update(tables.organization)
 		.set({
 			plan: "free",
 			stripeSubscriptionId: null,
 			planExpiresAt: null,
+			subscriptionCancelled: true,
 			updatedAt: new Date(),
 		})
 		.where(eq(tables.organization.id, organizationId));

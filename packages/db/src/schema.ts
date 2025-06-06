@@ -108,6 +108,7 @@ export const organization = pgTable("organization", {
 		.notNull()
 		.default("free"),
 	planExpiresAt: timestamp(),
+	subscriptionCancelled: boolean().notNull().default(false),
 	status: text({
 		enum: ["active", "inactive", "deleted"],
 	}).default("active"),
