@@ -99,8 +99,8 @@ export const organization = pgTable("organization", {
 		.defaultNow()
 		.$onUpdate(() => new Date()),
 	name: text().notNull(),
-	stripeCustomerId: text(),
-	stripeSubscriptionId: text(),
+	stripeCustomerId: text().unique(),
+	stripeSubscriptionId: text().unique(),
 	credits: decimal().notNull().default("0"),
 	plan: text({
 		enum: ["free", "pro"],
