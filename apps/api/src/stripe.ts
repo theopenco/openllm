@@ -564,7 +564,7 @@ async function handleSubscriptionUpdated(
 		: undefined;
 
 	// Check if subscription is active and organization was previously cancelled
-	const isSubscriptionActive = subscription.status === "active";
+	const isSubscriptionActive = !planExpiresAt;
 	const wasSubscriptionCancelled = organization.subscriptionCancelled;
 
 	// Create transaction record for subscription cancellation if it was cancelled
