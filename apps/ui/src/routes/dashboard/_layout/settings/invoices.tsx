@@ -22,9 +22,8 @@ interface Transaction {
 		| "subscription_start"
 		| "subscription_cancel"
 		| "subscription_end";
-	amount: string;
+	amount: string | null;
 	creditAmount: string | null;
-	totalAmount: string | null;
 	currency: string;
 	status: "pending" | "completed" | "failed";
 	stripePaymentIntentId: string | null;
