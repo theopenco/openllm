@@ -98,6 +98,7 @@ export function PricingPlans() {
 					description: "Welcome to Pro! Your subscription is now active.",
 				});
 				await fetchSubscriptionStatus();
+				navigate({ to: "/dashboard" });
 			}
 		} catch (error: any) {
 			toast({
