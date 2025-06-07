@@ -30,6 +30,17 @@ function AutoTopUpSettings() {
 	const [threshold, setThreshold] = useState(10);
 	const [amount, setAmount] = useState(10);
 
+	const { data: feeData } = $api.useQuery(
+		"post",
+		"/payments/calculate-fees",
+		{
+			body: { amount },
+		},
+		{
+			enabled: amount >= 5,
+		},
+	);
+
 	useEffect(() => {
 		if (organization) {
 			setEnabled(organization.autoTopUpEnabled || false);
@@ -179,6 +190,44 @@ function AutoTopUpSettings() {
 						</p>
 					</div>
 				</div>
+
+				{feeData && enabled && amount >= 10 && (
+					<div className="border rounded-lg p-4 bg-muted/50">
+						<p className="font-medium mb-2">Estimated Auto Top-up Fees</p>
+						<div className="space-y-1 text-sm text-muted-foreground">
+							<div className="flex justify-between">
+								<span>Credits</span>
+								<span>${feeData.baseAmount.toFixed(2)}</span>
+							</div>
+							<div className="flex justify-between">
+								<span>Stripe fees ($0.35 + 2.9%)</span>
+								<span>${feeData.stripeFee.toFixed(2)}</span>
+							</div>
+							{feeData.internationalFee > 0 && (
+								<div className="flex justify-between">
+									<span>International card fee (1.5%)</span>
+									<span>${feeData.internationalFee.toFixed(2)}</span>
+								</div>
+							)}
+							{feeData.planFee > 0 && (
+								<div className="flex justify-between">
+									<span>Service fee (5% - Free plan)</span>
+									<span>${feeData.planFee.toFixed(2)}</span>
+								</div>
+							)}
+							{organization?.plan === "pro" && (
+								<div className="flex justify-between text-green-600">
+									<span>Service fee (Pro plan)</span>
+									<span>$0.00</span>
+								</div>
+							)}
+							<div className="border-t pt-1 flex justify-between font-medium text-foreground">
+								<span>Estimated total</span>
+								<span>${feeData.totalAmount.toFixed(2)}</span>
+							</div>
+						</div>
+					</div>
+				)}
 
 				<div className="flex justify-end">
 					<Button

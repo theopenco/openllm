@@ -227,11 +227,15 @@ async function handlePaymentIntentSucceeded(
 	// Convert amount from cents to dollars
 	const amountInDollars = amount / 100;
 
-	// Update organization credits
+	const baseAmount = paymentIntent.metadata?.baseAmount
+		? parseFloat(paymentIntent.metadata.baseAmount)
+		: amountInDollars;
+
+	// Update organization credits with base amount only (fees are not added as credits)
 	await db
 		.update(tables.organization)
 		.set({
-			credits: sql`${tables.organization.credits} + ${amountInDollars}`,
+			credits: sql`${tables.organization.credits} + ${baseAmount}`,
 		})
 		.where(eq(tables.organization.id, organizationId));
 
@@ -257,14 +261,15 @@ async function handlePaymentIntentSucceeded(
 			organization: organizationId,
 		},
 		properties: {
-			amount: amountInDollars,
+			amount: baseAmount,
+			totalPaid: amountInDollars,
 			source: "payment_intent",
 			organization: organizationId,
 		},
 	});
 
 	console.log(
-		`Added ${amountInDollars} credits to organization ${organizationId}`,
+		`Added ${baseAmount} credits to organization ${organizationId} (paid ${amountInDollars} including fees)`,
 	);
 }
 
