@@ -86,7 +86,7 @@ function AutoTopUpSettings() {
 				title: "Settings saved",
 				description: "Your auto top-up settings have been updated.",
 			});
-		} catch (_error) {
+		} catch {
 			toast({
 				title: "Error",
 				description: "Failed to save auto top-up settings.",
