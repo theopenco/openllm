@@ -47,7 +47,7 @@ import { cn } from "@/lib/utils";
 export function DashboardSidebar() {
 	const queryClient = useQueryClient();
 	const { location } = useRouterState();
-	const { toggleSidebar } = useSidebar();
+	const { toggleSidebar, isMobile } = useSidebar();
 	const { user } = useUser();
 	const { data: organization } = useDefaultOrganization();
 	const navigate = useNavigate();
@@ -164,6 +164,11 @@ export function DashboardSidebar() {
 												? "bg-primary/10 text-primary"
 												: "text-foreground/70 hover:bg-accent hover:text-accent-foreground",
 										)}
+										onClick={() => {
+											if (isMobile) {
+												toggleSidebar();
+											}
+										}}
 									>
 										<item.icon className="h-4 w-4" />
 										<span>{item.label}</span>
@@ -221,7 +226,14 @@ export function DashboardSidebar() {
 													asChild
 													isActive={isActive(item.href)}
 												>
-													<Link to={item.href}>
+													<Link
+														to={item.href}
+														onClick={() => {
+															if (isMobile) {
+																toggleSidebar();
+															}
+														}}
+													>
 														<span>{item.label}</span>
 													</Link>
 												</SidebarMenuSubButton>
