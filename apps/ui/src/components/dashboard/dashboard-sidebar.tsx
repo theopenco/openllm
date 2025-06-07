@@ -229,7 +229,7 @@ export function DashboardSidebar() {
 			</SidebarContent>
 
 			<SidebarFooter className="border-t">
-				{showCreditCTA && organization?.plan !== "pro" && (
+				{showCreditCTA && organization && organization.plan !== "pro" && (
 					<div className="flex relative flex-col items-start space-y-4 rounded-lg bg-primary/5 p-4 dark:bg-primary/10">
 						<button
 							aria-label="Dismiss"
