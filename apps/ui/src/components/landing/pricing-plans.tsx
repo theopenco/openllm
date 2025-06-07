@@ -222,8 +222,8 @@ export function PricingPlans() {
 			features: [
 				"Access to ALL models",
 				"Pay with credits",
-				"5% fee on credit usage",
-				"Basic analytics",
+				"5% LLMGateway fee on credit usage",
+				"3-day data retention",
 				"Standard support",
 			],
 			cta: user ? "Current Plan" : "Get Started",
@@ -239,11 +239,10 @@ export function PricingPlans() {
 			},
 			features: [
 				"Access to ALL models",
-				"Use your own API keys",
+				"Use your own API keys without surcharges",
 				"NO fees on credit usage",
-				"Advanced analytics dashboard",
+				"90-day data retention",
 				"Priority support",
-				"Custom provider integration",
 			],
 			cta:
 				subscriptionStatus?.plan === "pro"
@@ -263,11 +262,10 @@ export function PricingPlans() {
 			},
 			features: [
 				"Everything in Pro",
-				"Custom SLAs",
-				"Dedicated account manager",
 				"Advanced security features",
 				"Custom integrations",
 				"On-boarding assistance",
+				"Unlimited data retention",
 				"24/7 premium support",
 			],
 			cta: "Contact Sales",
