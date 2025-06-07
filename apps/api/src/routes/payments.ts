@@ -541,3 +541,103 @@ payments.openapi(topUpWithSavedMethod, async (c) => {
 		});
 	}
 });
+
+const getAutoTopUpSettings = createRoute({
+	method: "get",
+	path: "/auto-topup-settings",
+	request: {},
+	responses: {
+		200: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						enabled: z.boolean(),
+						threshold: z.string(),
+						amount: z.string(),
+					}),
+				},
+			},
+			description: "Auto top-up settings retrieved successfully",
+		},
+	},
+});
+
+payments.openapi(getAutoTopUpSettings, async (c) => {
+	const user = c.get("user");
+	if (!user) {
+		throw new HTTPException(401, { message: "Unauthorized" });
+	}
+
+	const userOrganization = await db.query.userOrganization.findFirst({
+		where: { userId: user.id },
+		with: { organization: true },
+	});
+
+	if (!userOrganization?.organization) {
+		throw new HTTPException(404, { message: "Organization not found" });
+	}
+
+	const org = userOrganization.organization;
+	return c.json({
+		enabled: org.autoTopUpEnabled || false,
+		threshold: org.autoTopUpThreshold || "10",
+		amount: org.autoTopUpAmount || "10",
+	});
+});
+
+const updateAutoTopUpSettings = createRoute({
+	method: "post",
+	path: "/auto-topup-settings",
+	request: {
+		body: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						enabled: z.boolean(),
+						threshold: z.number().min(5),
+						amount: z.number().min(10),
+					}),
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			content: {
+				"application/json": {
+					schema: z.object({ success: z.boolean() }),
+				},
+			},
+			description: "Auto top-up settings updated successfully",
+		},
+	},
+});
+
+payments.openapi(updateAutoTopUpSettings, async (c) => {
+	const user = c.get("user");
+	if (!user) {
+		throw new HTTPException(401, { message: "Unauthorized" });
+	}
+
+	const { enabled, threshold, amount } = c.req.valid("json");
+
+	const userOrganization = await db.query.userOrganization.findFirst({
+		where: { userId: user.id },
+		with: { organization: true },
+	});
+
+	if (!userOrganization?.organization) {
+		throw new HTTPException(404, { message: "Organization not found" });
+	}
+
+	await db
+		.update(tables.organization)
+		.set({
+			autoTopUpEnabled: enabled,
+			autoTopUpThreshold: threshold.toString(),
+			autoTopUpAmount: amount.toString(),
+		})
+		.where(eq(tables.organization.id, userOrganization.organization.id));
+
+	return c.json({ success: true });
+});

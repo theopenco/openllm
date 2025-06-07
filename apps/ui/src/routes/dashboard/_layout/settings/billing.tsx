@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
+import { AutoTopUpSettings } from "@/components/billing/auto-topup-settings";
 import { PlanManagement } from "@/components/billing/plan-management";
 import { PaymentMethodsManagement } from "@/components/credits/payment-methods-management";
 import { SettingsLoading } from "@/components/settings/settings-loading";
@@ -26,6 +27,7 @@ function RouteComponent() {
 				</div>
 				<div className="space-y-4">
 					<PlanManagement />
+					<AutoTopUpSettings />
 					<Card>
 						<CardHeader>
 							<CardTitle>Payment Methods</CardTitle>

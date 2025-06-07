@@ -102,6 +102,9 @@ export const organization = pgTable("organization", {
 	stripeCustomerId: text().unique(),
 	stripeSubscriptionId: text().unique(),
 	credits: decimal().notNull().default("0"),
+	autoTopUpEnabled: boolean().notNull().default(false),
+	autoTopUpThreshold: decimal().default("10"),
+	autoTopUpAmount: decimal().default("10"),
 	plan: text({
 		enum: ["free", "pro"],
 	})
@@ -294,4 +297,14 @@ export const organizationAction = pgTable("organization_action", {
 	}).notNull(),
 	amount: decimal().notNull(),
 	description: text(),
+});
+
+export const lock = pgTable("lock", {
+	id: text().primaryKey().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+	key: text().notNull().unique(),
 });
