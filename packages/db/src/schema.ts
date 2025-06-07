@@ -140,7 +140,8 @@ export const transaction = pgTable("transaction", {
 			"credit_topup",
 		],
 	}).notNull(),
-	amount: decimal().notNull(),
+	creditAmount: decimal().notNull(),
+	totalAmount: decimal().notNull(),
 	currency: text().notNull().default("USD"),
 	status: text({
 		enum: ["pending", "completed", "failed"],

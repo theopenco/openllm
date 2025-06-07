@@ -226,17 +226,18 @@ async function handlePaymentIntentSucceeded(
 	const { organizationId, organization } = result;
 
 	// Convert amount from cents to dollars
-	const amountInDollars = amount / 100;
+	const totalAmountInDollars = amount / 100;
 
-	const baseAmount = paymentIntent.metadata?.baseAmount
+	// Get the credit amount (base amount without fees) from metadata
+	const creditAmount = paymentIntent.metadata?.baseAmount
 		? parseFloat(paymentIntent.metadata.baseAmount)
-		: amountInDollars;
+		: totalAmountInDollars; // Fallback for legacy transactions
 
-	// Update organization credits with base amount only (fees are not added as credits)
+	// Update organization credits with credit amount only (fees are not added as credits)
 	await db
 		.update(tables.organization)
 		.set({
-			credits: sql`${tables.organization.credits} + ${baseAmount}`,
+			credits: sql`${tables.organization.credits} + ${creditAmount}`,
 		})
 		.where(eq(tables.organization.id, organizationId));
 
@@ -249,6 +250,8 @@ async function handlePaymentIntentSucceeded(
 			.set({
 				status: "completed",
 				description: "Auto top-up completed via Stripe webhook",
+				creditAmount: creditAmount.toString(),
+				totalAmount: totalAmountInDollars.toString(),
 			})
 			.where(eq(tables.transaction.id, transactionId))
 			.returning()
@@ -266,7 +269,9 @@ async function handlePaymentIntentSucceeded(
 			await db.insert(tables.transaction).values({
 				organizationId,
 				type: "credit_topup",
-				amount: amountInDollars.toString(),
+				amount: totalAmountInDollars.toString(), // Legacy field
+				creditAmount: creditAmount.toString(),
+				totalAmount: totalAmountInDollars.toString(),
 				currency: paymentIntent.currency.toUpperCase(),
 				status: "completed",
 				stripePaymentIntentId: paymentIntent.id,
@@ -278,7 +283,9 @@ async function handlePaymentIntentSucceeded(
 		await db.insert(tables.transaction).values({
 			organizationId,
 			type: "credit_topup",
-			amount: amountInDollars.toString(),
+			amount: totalAmountInDollars.toString(), // Legacy field
+			creditAmount: creditAmount.toString(),
+			totalAmount: totalAmountInDollars.toString(),
 			currency: paymentIntent.currency.toUpperCase(),
 			status: "completed",
 			stripePaymentIntentId: paymentIntent.id,
@@ -300,15 +307,15 @@ async function handlePaymentIntentSucceeded(
 			organization: organizationId,
 		},
 		properties: {
-			amount: baseAmount,
-			totalPaid: amountInDollars,
+			amount: creditAmount,
+			totalPaid: totalAmountInDollars,
 			source: "payment_intent",
 			organization: organizationId,
 		},
 	});
 
 	console.log(
-		`Added ${baseAmount} credits to organization ${organizationId} (paid ${amountInDollars} including fees)`,
+		`Added ${creditAmount} credits to organization ${organizationId} (paid ${totalAmountInDollars} including fees)`,
 	);
 }
 
