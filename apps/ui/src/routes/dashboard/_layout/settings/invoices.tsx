@@ -89,7 +89,10 @@ function InvoicesPage() {
 									{data.transactions.map((transaction: Transaction) => (
 										<tr key={transaction.id} className="border-b">
 											<td className="p-4 align-middle">
-												{format(new Date(transaction.createdAt), "MMM d, yyyy")}
+												{format(
+													new Date(transaction.createdAt),
+													"MMM d, yyyy HH:mm",
+												)}
 											</td>
 											<td className="p-4 align-middle">
 												{transaction.type === "credit_topup" && "Credit Top-up"}

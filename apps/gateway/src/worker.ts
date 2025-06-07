@@ -1,15 +1,4 @@
-import {
-	db,
-	log,
-	organization,
-	paymentMethod,
-	eq,
-	sql,
-	and,
-	lt,
-	desc,
-	tables,
-} from "@openllm/db";
+import { db, log, organization, eq, sql, and, lt, tables } from "@openllm/db";
 
 import { getProject, getOrganization } from "./lib/cache";
 import { consumeFromQueue, LOG_QUEUE } from "./lib/redis";
@@ -52,60 +41,69 @@ async function processAutoTopUp(): Promise<void> {
 	}
 
 	try {
-		const orgsNeedingTopUp = await db
-			.select()
-			.from(organization)
-			.where(
-				and(
-					eq(organization.autoTopUpEnabled, true),
-					sql`CAST(${organization.credits} AS DECIMAL) < CAST(${organization.autoTopUpThreshold} AS DECIMAL)`,
-				),
-			);
+		const orgsNeedingTopUp = await db.query.organization.findMany({
+			where: {
+				autoTopUpEnabled: {
+					eq: true,
+				},
+			},
+		});
 
-		for (const org of orgsNeedingTopUp) {
+		// Filter organizations that need top-up based on credits vs threshold
+		const filteredOrgs = orgsNeedingTopUp.filter((org) => {
+			const credits = Number(org.credits || 0);
+			const threshold = Number(org.autoTopUpThreshold || 10);
+			return credits < threshold;
+		});
+
+		for (const org of filteredOrgs) {
 			try {
 				// Check if there's a recent pending or failed auto top-up transaction
-				const recentTransaction = await db
-					.select()
-					.from(tables.transaction)
-					.where(
-						and(
-							eq(tables.transaction.organizationId, org.id),
-							eq(tables.transaction.type, "credit_topup"),
-							sql`${tables.transaction.createdAt} > NOW() - INTERVAL '1 hour'`,
-						),
-					)
-					.orderBy(desc(tables.transaction.createdAt))
-					.limit(1)
-					.then((rows) => rows[0]);
+				const recentTransaction = await db.query.transaction.findFirst({
+					where: {
+						organizationId: {
+							eq: org.id,
+						},
+						type: {
+							eq: "credit_topup",
+						},
+					},
+					orderBy: {
+						createdAt: "desc",
+					},
+				});
 
-				// Skip if there's a recent pending transaction (webhook hasn't arrived yet)
-				if (recentTransaction?.status === "pending") {
-					console.log(
-						`Skipping auto top-up for organization ${org.id}: pending transaction exists`,
-					);
-					continue;
+				// Additional check for time constraint (within 1 hour) and status
+				if (recentTransaction) {
+					const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+					if (recentTransaction.createdAt > oneHourAgo) {
+						// Recent transaction within 1 hour, check its status
+						if (recentTransaction.status === "pending") {
+							console.log(
+								`Skipping auto top-up for organization ${org.id}: pending transaction exists`,
+							);
+							continue;
+						}
+
+						if (recentTransaction.status === "failed") {
+							console.log(
+								`Skipping auto top-up for organization ${org.id}: most recent transaction failed`,
+							);
+							continue;
+						}
+					}
 				}
 
-				// Skip if the most recent transaction failed (to prevent repeated failures)
-				if (recentTransaction?.status === "failed") {
-					console.log(
-						`Skipping auto top-up for organization ${org.id}: most recent transaction failed`,
-					);
-					continue;
-				}
-
-				const defaultPaymentMethod = await db
-					.select()
-					.from(paymentMethod)
-					.where(
-						and(
-							eq(paymentMethod.organizationId, org.id),
-							eq(paymentMethod.isDefault, true),
-						),
-					)
-					.limit(1)
-					.then((rows) => rows[0]);
+				const defaultPaymentMethod = await db.query.paymentMethod.findFirst({
+					where: {
+						organizationId: {
+							eq: org.id,
+						},
+						isDefault: {
+							eq: true,
+						},
+					},
+				});
 
 				if (!defaultPaymentMethod) {
 					console.log(
