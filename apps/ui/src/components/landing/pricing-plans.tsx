@@ -295,7 +295,7 @@ export function PricingPlans() {
 		},
 	];
 
-	const discount = 10;
+	const discount = 20;
 
 	return (
 		<section className="w-full py-12 md:py-24 bg-muted/30" id="pricing">
