@@ -97,7 +97,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
 				<Toaster />
 				{process.env.NODE_ENV === "development" && (
 					<>
-						<TanStackRouterDevtools position="top-right" />
+						<TanStackRouterDevtools position="bottom-left" />
 						<ReactQueryDevtools buttonPosition="bottom-right" />
 					</>
 				)}

@@ -2,7 +2,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	BarChart3,
-	CreditCard,
 	Key,
 	LayoutDashboard,
 	LogOutIcon,
@@ -12,6 +11,9 @@ import {
 	X,
 	ChevronRight,
 	ChevronDown,
+	BotMessageSquare,
+	BrainCircuit,
+	FileText,
 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useState } from "react";
@@ -38,6 +40,7 @@ import {
 	SidebarRail,
 	useSidebar,
 } from "@/lib/components/sidebar";
+import { DOCS_URL } from "@/lib/env";
 import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
 
@@ -149,7 +152,7 @@ export function DashboardSidebar() {
 								{
 									href: "/dashboard/models",
 									label: "Models",
-									icon: CreditCard,
+									icon: BrainCircuit,
 								},
 							].map((item) => (
 								<SidebarMenuItem key={item.href}>
@@ -226,6 +229,44 @@ export function DashboardSidebar() {
 										))}
 									</SidebarMenuSub>
 								)}
+							</SidebarMenuItem>
+						</SidebarMenu>
+					</SidebarGroupContent>
+				</SidebarGroup>
+
+				<SidebarGroup>
+					<SidebarGroupLabel className="text-muted-foreground px-2 text-xs font-medium">
+						Tools & Resources
+					</SidebarGroupLabel>
+					<SidebarGroupContent className="mt-2">
+						<SidebarMenu>
+							<SidebarMenuItem>
+								<a
+									href="/playground"
+									target="_blank"
+									rel="noopener noreferrer"
+									className={cn(
+										"flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+										"text-foreground/70 hover:bg-accent hover:text-accent-foreground",
+									)}
+								>
+									<BotMessageSquare className="h-4 w-4" />
+									<span>Playground</span>
+								</a>
+							</SidebarMenuItem>
+							<SidebarMenuItem>
+								<a
+									href={DOCS_URL}
+									target="_blank"
+									rel="noopener noreferrer"
+									className={cn(
+										"flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+										"text-foreground/70 hover:bg-accent hover:text-accent-foreground",
+									)}
+								>
+									<FileText className="h-4 w-4" />
+									<span>Docs</span>
+								</a>
 							</SidebarMenuItem>
 						</SidebarMenu>
 					</SidebarGroupContent>

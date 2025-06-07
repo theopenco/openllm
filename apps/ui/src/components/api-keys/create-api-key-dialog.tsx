@@ -1,8 +1,7 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { Copy } from "lucide-react";
-import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 
+import { useCreateApiKey } from "@/hooks/useCreateApiKey";
 import { useDefaultProject } from "@/hooks/useDefaultProject";
 import { Button } from "@/lib/components/button";
 import {
@@ -17,7 +16,6 @@ import {
 import { Input } from "@/lib/components/input";
 import { Label } from "@/lib/components/label";
 import { toast } from "@/lib/components/use-toast";
-import { $api } from "@/lib/fetch-client";
 
 import type React from "react";
 
@@ -26,56 +24,20 @@ export function CreateApiKeyDialog({
 }: {
 	children: React.ReactNode;
 }) {
-	const queryClient = useQueryClient();
-	const posthog = usePostHog();
 	const { data: defaultProject, isError } = useDefaultProject();
 	const [open, setOpen] = useState(false);
 	const [step, setStep] = useState<"form" | "created">("form");
 	const [name, setName] = useState("");
 	const [apiKey, setApiKey] = useState("");
 
-	const { mutate: createApiKey } = $api.useMutation("post", "/keys/api");
+	const { create } = useCreateApiKey();
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-
-		if (!defaultProject?.id) {
-			toast({ title: "No project available.", variant: "destructive" });
-			return;
-		}
-
-		createApiKey(
-			{
-				body: {
-					description: name,
-					projectId: defaultProject.id,
-				},
-			},
-			{
-				onSuccess: (data) => {
-					const createdKey = data.apiKey;
-
-					const queryKey = $api.queryOptions("get", "/keys/api", {
-						params: {
-							query: { projectId: defaultProject?.id },
-						},
-					}).queryKey;
-
-					void queryClient.invalidateQueries({ queryKey });
-
-					posthog.capture("api_key_created", {
-						description: createdKey.description,
-						keyId: createdKey.id,
-					});
-
-					setApiKey(data.apiKey.token);
-					setStep("created");
-				},
-				onError: () => {
-					toast({ title: "Failed to create API key.", variant: "destructive" });
-				},
-			},
-		);
+		create(name, (token) => {
+			setApiKey(token);
+			setStep("created");
+		});
 	};
 
 	const copyToClipboard = () => {

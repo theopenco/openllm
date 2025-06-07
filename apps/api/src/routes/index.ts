@@ -2,6 +2,8 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { auth } from "@openllm/auth";
 
 import { activity } from "./activity";
+import { chat } from "./chat";
+import { chats } from "./chats";
 import keysApi from "./keys-api";
 import keysProvider from "./keys-provider";
 import { logs } from "./logs";
@@ -41,4 +43,6 @@ routes.route("/projects", projects);
 
 routes.route("/orgs", organization);
 routes.route("/payments", payments);
+routes.route("/chat", chat);
+routes.route("/chats", chats);
 routes.route("/subscriptions", subscriptions);

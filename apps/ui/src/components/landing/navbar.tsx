@@ -5,15 +5,19 @@ import { useEffect, useState } from "react";
 import { GitHubStars } from "./github-stars";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "@/lib/components/button";
+import {
+	NavigationMenu,
+	NavigationMenuContent,
+	NavigationMenuItem,
+	NavigationMenuLink,
+	NavigationMenuList,
+	NavigationMenuTrigger,
+} from "@/lib/components/navigation-menu";
 import { DOCS_URL } from "@/lib/env";
 import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
 
-const menuItems = [
-	{ name: "Models", href: "/models" },
-	{ name: "Features", href: "/#features" },
-	{ name: "Docs", href: DOCS_URL, external: true },
-];
+const menuItems = [{ name: "Pricing", href: "/#pricing", external: false }];
 
 export const Navbar = () => {
 	const [menuState, setMenuState] = useState(false);
@@ -73,20 +77,42 @@ export const Navbar = () => {
 												href={item.href}
 												target="_blank"
 												rel="noopener noreferrer"
-												className="text-muted-foreground hover:text-accent-foreground block duration-150"
+												className="text-muted-foreground hover:text-accent-foreground block duration-150 px-4 py-2"
 											>
 												{item.name}
 											</a>
 										) : (
 											<Link
 												to={item.href}
-												className="text-muted-foreground hover:text-accent-foreground block duration-150"
+												className="text-muted-foreground hover:text-accent-foreground block duration-150 px-4 py-2"
 											>
 												{item.name}
 											</Link>
 										)}
 									</li>
 								))}
+								<li>
+									<NavigationMenu>
+										<NavigationMenuList>
+											<NavigationMenuItem>
+												<NavigationMenuTrigger className="text-muted-foreground hover:text-accent-foreground duration-150">
+													Products
+												</NavigationMenuTrigger>
+												<NavigationMenuContent>
+													<NavigationMenuLink href={DOCS_URL} target="_blank">
+														Docs
+													</NavigationMenuLink>
+													<NavigationMenuLink asChild>
+														<Link to="/models">Models</Link>
+													</NavigationMenuLink>
+													<NavigationMenuLink asChild>
+														<Link to="/playground">Playground</Link>
+													</NavigationMenuLink>
+												</NavigationMenuContent>
+											</NavigationMenuItem>
+										</NavigationMenuList>
+									</NavigationMenu>
+								</li>
 							</ul>
 						</div>
 

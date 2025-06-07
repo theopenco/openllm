@@ -1767,6 +1767,294 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	"/chats": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description List of user's chats */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							chats: {
+								id: string;
+								title: string;
+								model: string;
+								/** @enum {string} */
+								status: "active" | "archived" | "deleted";
+								/** Format: date-time */
+								createdAt: string;
+								/** Format: date-time */
+								updatedAt: string;
+								messageCount: number;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						title: string;
+						model: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Chat created successfully */
+				201: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							chat: {
+								id: string;
+								title: string;
+								model: string;
+								/** @enum {string} */
+								status: "active" | "archived" | "deleted";
+								/** Format: date-time */
+								createdAt: string;
+								/** Format: date-time */
+								updatedAt: string;
+								messageCount: number;
+							};
+						};
+					};
+				};
+				/** @description Chat limit reached or validation error */
+				400: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/chats/{id}": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Chat with messages */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							chat: {
+								id: string;
+								title: string;
+								model: string;
+								/** @enum {string} */
+								status: "active" | "archived" | "deleted";
+								/** Format: date-time */
+								createdAt: string;
+								/** Format: date-time */
+								updatedAt: string;
+								messageCount: number;
+							};
+							messages: {
+								id: string;
+								/** @enum {string} */
+								role: "user" | "assistant" | "system";
+								content: string;
+								sequence: number;
+								/** Format: date-time */
+								createdAt: string;
+							}[];
+						};
+					};
+				};
+				/** @description Chat not found */
+				404: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Chat deleted successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: string;
+						};
+					};
+				};
+			};
+		};
+		options?: never;
+		head?: never;
+		patch: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						title?: string;
+						/** @enum {string} */
+						status?: "active" | "archived";
+					};
+				};
+			};
+			responses: {
+				/** @description Chat updated successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							chat: {
+								id: string;
+								title: string;
+								model: string;
+								/** @enum {string} */
+								status: "active" | "archived" | "deleted";
+								/** Format: date-time */
+								createdAt: string;
+								/** Format: date-time */
+								updatedAt: string;
+								messageCount: number;
+							};
+						};
+					};
+				};
+			};
+		};
+		trace?: never;
+	};
+	"/chats/{id}/messages": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						/** @enum {string} */
+						role: "user" | "assistant" | "system";
+						content: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Message added successfully */
+				201: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							message: {
+								id: string;
+								/** @enum {string} */
+								role: "user" | "assistant" | "system";
+								content: string;
+								sequence: number;
+								/** Format: date-time */
+								createdAt: string;
+							};
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	"/subscriptions/create-pro-subscription": {
 		parameters: {
 			query?: never;
