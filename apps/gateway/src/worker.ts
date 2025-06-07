@@ -1,14 +1,4 @@
-import {
-	db,
-	log,
-	organization,
-	paymentMethod,
-	eq,
-	sql,
-	and,
-	lt,
-	tables,
-} from "@openllm/db";
+import { db, log, organization, eq, sql, and, lt, tables } from "@openllm/db";
 
 import { getProject, getOrganization } from "./lib/cache";
 import { consumeFromQueue, LOG_QUEUE } from "./lib/redis";
@@ -50,29 +40,69 @@ async function processAutoTopUp(): Promise<void> {
 	}
 
 	try {
-		const orgsNeedingTopUp = await db
-			.select()
-			.from(organization)
-			.where(
-				and(
-					eq(organization.autoTopUpEnabled, true),
-					sql`CAST(${organization.credits} AS DECIMAL) < CAST(${organization.autoTopUpThreshold} AS DECIMAL)`,
-				),
-			);
+		const orgsNeedingTopUp = await db.query.organization.findMany({
+			where: {
+				autoTopUpEnabled: {
+					eq: true,
+				},
+			},
+		});
 
-		for (const org of orgsNeedingTopUp) {
+		// Filter organizations that need top-up based on credits vs threshold
+		const filteredOrgs = orgsNeedingTopUp.filter((org) => {
+			const credits = Number(org.credits || 0);
+			const threshold = Number(org.autoTopUpThreshold || 10);
+			return credits < threshold;
+		});
+
+		for (const org of filteredOrgs) {
 			try {
-				const defaultPaymentMethod = await db
-					.select()
-					.from(paymentMethod)
-					.where(
-						and(
-							eq(paymentMethod.organizationId, org.id),
-							eq(paymentMethod.isDefault, true),
-						),
-					)
-					.limit(1)
-					.then((rows) => rows[0]);
+				// Check if there's a recent pending or failed auto top-up transaction
+				const recentTransaction = await db.query.transaction.findFirst({
+					where: {
+						organizationId: {
+							eq: org.id,
+						},
+						type: {
+							eq: "credit_topup",
+						},
+					},
+					orderBy: {
+						createdAt: "desc",
+					},
+				});
+
+				// Additional check for time constraint (within 1 hour) and status
+				if (recentTransaction) {
+					const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+					if (recentTransaction.createdAt > oneHourAgo) {
+						// Recent transaction within 1 hour, check its status
+						if (recentTransaction.status === "pending") {
+							console.log(
+								`Skipping auto top-up for organization ${org.id}: pending transaction exists`,
+							);
+							continue;
+						}
+
+						if (recentTransaction.status === "failed") {
+							console.log(
+								`Skipping auto top-up for organization ${org.id}: most recent transaction failed`,
+							);
+							continue;
+						}
+					}
+				}
+
+				const defaultPaymentMethod = await db.query.paymentMethod.findFirst({
+					where: {
+						organizationId: {
+							eq: org.id,
+						},
+						isDefault: {
+							eq: true,
+						},
+					},
+				});
 
 				if (!defaultPaymentMethod) {
 					console.log(
@@ -96,30 +126,86 @@ async function processAutoTopUp(): Promise<void> {
 				const totalAmount =
 					topUpAmount + stripeFee + internationalFee + planFee;
 
-				const paymentIntent = await stripe.paymentIntents.create({
-					amount: Math.round(totalAmount * 100),
-					currency: "usd",
-					description: `Auto top-up for ${topUpAmount} USD (including fees)`,
-					payment_method: defaultPaymentMethod.stripePaymentMethodId,
-					customer: org.stripeCustomerId!,
-					confirm: true,
-					off_session: true,
-					metadata: {
+				// Insert pending transaction before creating payment intent
+				const pendingTransaction = await db
+					.insert(tables.transaction)
+					.values({
 						organizationId: org.id,
-						autoTopUp: "true",
-						baseAmount: topUpAmount.toString(),
-						totalFees: (stripeFee + internationalFee + planFee).toString(),
-					},
-				});
+						type: "credit_topup",
+						amount: topUpAmount.toString(),
+						currency: "USD",
+						status: "pending",
+						description: `Auto top-up for ${topUpAmount} USD (including fees)`,
+					})
+					.returning()
+					.then((rows) => rows[0]);
 
-				if (paymentIntent.status === "succeeded") {
-					console.log(
-						`Auto top-up successful for organization ${org.id}: $${topUpAmount}`,
-					);
-				} else {
+				console.log(
+					`Created pending transaction ${pendingTransaction.id} for organization ${org.id}`,
+				);
+
+				try {
+					const paymentIntent = await stripe.paymentIntents.create({
+						amount: Math.round(totalAmount * 100),
+						currency: "usd",
+						description: `Auto top-up for ${topUpAmount} USD (including fees)`,
+						payment_method: defaultPaymentMethod.stripePaymentMethodId,
+						customer: org.stripeCustomerId!,
+						confirm: true,
+						off_session: true,
+						metadata: {
+							organizationId: org.id,
+							autoTopUp: "true",
+							transactionId: pendingTransaction.id,
+							baseAmount: topUpAmount.toString(),
+							totalFees: (stripeFee + internationalFee + planFee).toString(),
+						},
+					});
+
+					// Update transaction with Stripe payment intent ID
+					await db
+						.update(tables.transaction)
+						.set({
+							stripePaymentIntentId: paymentIntent.id,
+							description: `Auto top-up for ${topUpAmount} USD (including fees)`,
+						})
+						.where(eq(tables.transaction.id, pendingTransaction.id));
+
+					if (paymentIntent.status === "succeeded") {
+						console.log(
+							`Auto top-up payment intent succeeded immediately for organization ${org.id}: $${topUpAmount}`,
+						);
+						// Note: The webhook will handle updating the transaction status and adding credits
+					} else if (paymentIntent.status === "requires_action") {
+						console.log(
+							`Auto top-up requires action for organization ${org.id}: ${paymentIntent.status}`,
+						);
+					} else {
+						console.error(
+							`Auto top-up payment intent failed for organization ${org.id}: ${paymentIntent.status}`,
+						);
+						// Mark transaction as failed
+						await db
+							.update(tables.transaction)
+							.set({
+								status: "failed",
+								description: `Auto top-up failed: ${paymentIntent.status}`,
+							})
+							.where(eq(tables.transaction.id, pendingTransaction.id));
+					}
+				} catch (stripeError) {
 					console.error(
-						`Auto top-up failed for organization ${org.id}: ${paymentIntent.status}`,
+						`Stripe error for organization ${org.id}:`,
+						stripeError,
 					);
+					// Mark transaction as failed
+					await db
+						.update(tables.transaction)
+						.set({
+							status: "failed",
+							description: `Auto top-up failed: ${stripeError instanceof Error ? stripeError.message : "Unknown error"}`,
+						})
+						.where(eq(tables.transaction.id, pendingTransaction.id));
 				}
 			} catch (error) {
 				console.error(

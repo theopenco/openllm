@@ -122,6 +122,36 @@ export const organization = pgTable("organization", {
 	}).default("active"),
 });
 
+export const transaction = pgTable("transaction", {
+	id: text().primaryKey().notNull().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+	organizationId: text()
+		.notNull()
+		.references(() => organization.id, { onDelete: "cascade" }),
+	type: text({
+		enum: [
+			"subscription_start",
+			"subscription_cancel",
+			"subscription_end",
+			"credit_topup",
+		],
+	}).notNull(),
+	amount: decimal().notNull(),
+	currency: text().notNull().default("USD"),
+	status: text({
+		enum: ["pending", "completed", "failed"],
+	})
+		.notNull()
+		.default("completed"),
+	stripePaymentIntentId: text(),
+	stripeInvoiceId: text(),
+	description: text(),
+});
+
 export const userOrganization = pgTable("user_organization", {
 	id: text().primaryKey().notNull().$defaultFn(shortid),
 	createdAt: timestamp().notNull().defaultNow(),

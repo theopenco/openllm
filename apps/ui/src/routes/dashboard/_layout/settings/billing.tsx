@@ -1,9 +1,10 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { AutoTopUpSettings } from "@/components/billing/auto-topup-settings";
 import { PlanManagement } from "@/components/billing/plan-management";
 import { PaymentMethodsManagement } from "@/components/credits/payment-methods-management";
 import { SettingsLoading } from "@/components/settings/settings-loading";
+import { Button } from "@/lib/components/button";
 import {
 	Card,
 	CardContent,
@@ -37,6 +38,29 @@ function RouteComponent() {
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<PaymentMethodsManagement />
+						</CardContent>
+					</Card>
+					<Card>
+						<CardHeader>
+							<CardTitle>Invoices</CardTitle>
+							<CardDescription>
+								View your payment history and download invoices
+							</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<div className="flex flex-col space-y-4">
+								<div className="flex items-center justify-between">
+									<div>
+										<h3 className="text-lg font-medium">Invoices</h3>
+										<p className="text-sm text-muted-foreground">
+											View your billing history and download invoices
+										</p>
+									</div>
+									<Button asChild>
+										<Link to="/dashboard/settings/invoices">View Invoices</Link>
+									</Button>
+								</div>
+							</div>
 						</CardContent>
 					</Card>
 				</div>

@@ -47,6 +47,25 @@ const updateOrganizationSchema = z.object({
 	autoTopUpAmount: z.number().min(10).optional(),
 });
 
+const transactionSchema = z.object({
+	id: z.string(),
+	createdAt: z.date(),
+	updatedAt: z.date(),
+	organizationId: z.string(),
+	type: z.enum([
+		"subscription_start",
+		"subscription_cancel",
+		"subscription_end",
+		"credit_topup",
+	]),
+	amount: z.string(),
+	currency: z.string(),
+	status: z.enum(["pending", "completed", "failed"]),
+	stripePaymentIntentId: z.string().nullable(),
+	stripeInvoiceId: z.string().nullable(),
+	description: z.string().nullable(),
+});
+
 const getOrganizations = createRoute({
 	method: "get",
 	path: "/",
@@ -412,6 +431,71 @@ organization.openapi(deleteOrganization, async (c) => {
 
 	return c.json({
 		message: "Organization deleted successfully",
+	});
+});
+
+const getTransactions = createRoute({
+	method: "get",
+	path: "/{id}/transactions",
+	request: {
+		params: z.object({
+			id: z.string(),
+		}),
+	},
+	responses: {
+		200: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						transactions: z.array(transactionSchema).openapi({}),
+					}),
+				},
+			},
+			description: "List of transactions for the specified organization",
+		},
+	},
+});
+
+organization.openapi(getTransactions, async (c) => {
+	const user = c.get("user");
+	if (!user) {
+		throw new HTTPException(401, {
+			message: "Unauthorized",
+		});
+	}
+
+	const { id } = c.req.param();
+
+	const userOrganization = await db.query.userOrganization.findFirst({
+		where: {
+			userId: {
+				eq: user.id,
+			},
+			organizationId: {
+				eq: id,
+			},
+		},
+	});
+
+	if (!userOrganization) {
+		throw new HTTPException(403, {
+			message: "You do not have access to this organization",
+		});
+	}
+
+	const transactions = await db.query.transaction.findMany({
+		where: {
+			organizationId: {
+				eq: id,
+			},
+		},
+		orderBy: {
+			createdAt: "desc",
+		},
+	});
+
+	return c.json({
+		transactions,
 	});
 });
 
