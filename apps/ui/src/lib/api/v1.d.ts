@@ -1163,6 +1163,9 @@ export interface paths {
 								retentionLevel: "retain" | "none";
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
+								autoTopUpEnabled: boolean;
+								autoTopUpThreshold: string | null;
+								autoTopUpAmount: string | null;
 							}[];
 						};
 					};
@@ -1205,6 +1208,9 @@ export interface paths {
 								retentionLevel: "retain" | "none";
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
+								autoTopUpEnabled: boolean;
+								autoTopUpThreshold: string | null;
+								autoTopUpAmount: string | null;
 							};
 						};
 					};
@@ -1341,6 +1347,9 @@ export interface paths {
 						name?: string;
 						/** @enum {string} */
 						retentionLevel?: "retain" | "none";
+						autoTopUpEnabled?: boolean;
+						autoTopUpThreshold?: number;
+						autoTopUpAmount?: number;
 					};
 				};
 			};
@@ -1366,6 +1375,9 @@ export interface paths {
 								retentionLevel: "retain" | "none";
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
+								autoTopUpEnabled: boolean;
+								autoTopUpThreshold: string | null;
+								autoTopUpAmount: string | null;
 							};
 						};
 					};

@@ -9,6 +9,9 @@ export interface Organization {
 	retentionLevel: "retain" | "none";
 	createdAt: string;
 	updatedAt: string;
+	autoTopUpEnabled?: boolean;
+	autoTopUpThreshold?: string | null;
+	autoTopUpAmount?: string | null;
 }
 
 export interface OrganizationsResponse {

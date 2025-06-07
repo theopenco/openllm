@@ -18,6 +18,9 @@ const organizationSchema = z.object({
 	planExpiresAt: z.date().nullable(),
 	retentionLevel: z.enum(["retain", "none"]),
 	status: z.enum(["active", "inactive", "deleted"]).nullable(),
+	autoTopUpEnabled: z.boolean(),
+	autoTopUpThreshold: z.string().nullable(),
+	autoTopUpAmount: z.string().nullable(),
 });
 
 const projectSchema = z.object({
@@ -39,6 +42,9 @@ const createOrganizationSchema = z.object({
 const updateOrganizationSchema = z.object({
 	name: z.string().min(1).max(255).optional(),
 	retentionLevel: z.enum(["retain", "none"]).optional(),
+	autoTopUpEnabled: z.boolean().optional(),
+	autoTopUpThreshold: z.number().min(5).optional(),
+	autoTopUpAmount: z.number().min(10).optional(),
 });
 
 const getOrganizations = createRoute({
@@ -262,7 +268,13 @@ organization.openapi(updateOrganization, async (c) => {
 	}
 
 	const { id } = c.req.param();
-	const { name, retentionLevel } = await c.req.json();
+	const {
+		name,
+		retentionLevel,
+		autoTopUpEnabled,
+		autoTopUpThreshold,
+		autoTopUpAmount,
+	} = await c.req.json();
 
 	const userOrganization = await db.query.userOrganization.findFirst({
 		where: {
@@ -293,6 +305,15 @@ organization.openapi(updateOrganization, async (c) => {
 	}
 	if (retentionLevel !== undefined) {
 		updateData.retentionLevel = retentionLevel;
+	}
+	if (autoTopUpEnabled !== undefined) {
+		updateData.autoTopUpEnabled = autoTopUpEnabled;
+	}
+	if (autoTopUpThreshold !== undefined) {
+		updateData.autoTopUpThreshold = autoTopUpThreshold.toString();
+	}
+	if (autoTopUpAmount !== undefined) {
+		updateData.autoTopUpAmount = autoTopUpAmount.toString();
 	}
 
 	const [updatedOrganization] = await db
