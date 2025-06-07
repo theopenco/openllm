@@ -172,6 +172,7 @@ export async function processLogQueue(): Promise<void> {
 
 export async function startWorker() {
 	console.log("Starting log queue worker...");
+	const count = process.env.NODE_ENV === "production" ? 120 : 5;
 	let autoTopUpCounter = 0;
 
 	while (true) {
@@ -179,7 +180,7 @@ export async function startWorker() {
 			await processLogQueue();
 
 			autoTopUpCounter++;
-			if (autoTopUpCounter >= 60) {
+			if (autoTopUpCounter >= count) {
 				await processAutoTopUp();
 				autoTopUpCounter = 0;
 			}
