@@ -412,7 +412,7 @@ chat.openapi(completions, async (c) => {
 	} = c.req.valid("json");
 
 	// filter out empty messages
-	const messages = messagesInput.filter((m: any) => m.content.trim());
+	const messages = messagesInput.filter((m) => m.content.trim());
 
 	// Extract or generate request ID
 	const requestId = c.req.header("x-request-id") || shortid(40);
