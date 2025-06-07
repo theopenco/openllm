@@ -19,15 +19,14 @@ export interface OrganizationsResponse {
 }
 
 export function useDefaultOrganization() {
-	const { data, isLoading, error } = $api.useQuery("get", "/orgs");
+	const { data, error } = $api.useSuspenseQuery("get", "/orgs");
 
 	if (!data?.organizations || data.organizations.length === 0) {
 		return {
 			data: null,
-			isLoading,
 			error: error || new Error("No organizations found"),
 		};
 	}
 
-	return { data: data.organizations[0], isLoading, error };
+	return { data: data.organizations[0], error };
 }
