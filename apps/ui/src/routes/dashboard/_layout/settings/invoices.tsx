@@ -12,25 +12,6 @@ import {
 } from "@/lib/components/card";
 import { $api } from "@/lib/fetch-client";
 
-interface Transaction {
-	id: string;
-	createdAt: string;
-	updatedAt: string;
-	organizationId: string;
-	type:
-		| "credit_topup"
-		| "subscription_start"
-		| "subscription_cancel"
-		| "subscription_end";
-	amount: string | null;
-	creditAmount: string | null;
-	currency: string;
-	status: "pending" | "completed" | "failed";
-	stripePaymentIntentId: string | null;
-	stripeInvoiceId: string | null;
-	description: string | null;
-}
-
 export const Route = createFileRoute("/dashboard/_layout/settings/invoices")({
 	component: InvoicesPage,
 	pendingComponent: SettingsLoading,
@@ -90,7 +71,7 @@ function InvoicesPage() {
 									</tr>
 								</thead>
 								<tbody>
-									{data.transactions.map((transaction: Transaction) => (
+									{data.transactions.map((transaction) => (
 										<tr key={transaction.id} className="border-b">
 											<td className="p-4 align-middle">
 												{format(
