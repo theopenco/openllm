@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -12,31 +13,38 @@ import {
 import { Checkbox } from "@/lib/components/checkbox";
 import { Input } from "@/lib/components/input";
 import { Label } from "@/lib/components/label";
-import { toast } from "@/lib/components/use-toast";
+import { useToast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 function AutoTopUpSettings() {
+	const { toast } = useToast();
 	const queryClient = useQueryClient();
 
-	const _settings = null;
-	const _error = null;
-	const _paymentMethods = null;
+	const { data: organization, error } = useDefaultOrganization();
+	const { data: paymentMethods } = $api.useQuery(
+		"get",
+		"/payments/payment-methods",
+	);
 
 	const [enabled, setEnabled] = useState(false);
 	const [threshold, setThreshold] = useState(10);
 	const [amount, setAmount] = useState(10);
 
-	// useEffect(() => {
-	// 	if (settings) {
-	// 		setEnabled(settings.enabled || false);
-	// 		setThreshold(Number(settings.threshold) || 10);
-	// 		setAmount(Number(settings.amount) || 10);
-	// 	}
-	// }, [settings]);
+	useEffect(() => {
+		if (organization) {
+			setEnabled(organization.autoTopUpEnabled || false);
+			setThreshold(Number(organization.autoTopUpThreshold) || 10);
+			setAmount(Number(organization.autoTopUpAmount) || 10);
+		}
+	}, [organization]);
 
-	const updateSettings = { mutateAsync: async () => {}, isPending: false };
+	const updateOrganization = $api.useMutation("patch", "/orgs/{id}");
 
-	const hasPaymentMethods = false;
-	const hasDefaultPaymentMethod = false;
+	const hasPaymentMethods =
+		paymentMethods?.paymentMethods && paymentMethods.paymentMethods.length > 0;
+	const hasDefaultPaymentMethod = paymentMethods?.paymentMethods?.some(
+		(pm) => pm.isDefault,
+	);
 
 	const handleSave = async () => {
 		if (enabled && !hasDefaultPaymentMethod) {
@@ -49,11 +57,29 @@ function AutoTopUpSettings() {
 			return;
 		}
 
+		if (!organization) {
+			toast({
+				title: "Error",
+				description: "Organization not found.",
+				variant: "destructive",
+			});
+			return;
+		}
+
 		try {
-			await updateSettings.mutateAsync();
+			await updateOrganization.mutateAsync({
+				params: {
+					path: { id: organization.id },
+				},
+				body: {
+					autoTopUpEnabled: enabled,
+					autoTopUpThreshold: threshold,
+					autoTopUpAmount: amount,
+				},
+			});
 
 			await queryClient.invalidateQueries({
-				queryKey: ["get", "/payments/auto-topup-settings"],
+				queryKey: $api.queryOptions("get", "/orgs").queryKey,
 			});
 
 			toast({
@@ -69,7 +95,7 @@ function AutoTopUpSettings() {
 		}
 	};
 
-	if (_error) {
+	if (error) {
 		return (
 			<Card>
 				<CardHeader>
@@ -157,9 +183,11 @@ function AutoTopUpSettings() {
 				<div className="flex justify-end">
 					<Button
 						onClick={handleSave}
-						disabled={updateSettings.isPending || threshold < 5 || amount < 10}
+						disabled={
+							updateOrganization.isPending || threshold < 5 || amount < 10
+						}
 					>
-						{updateSettings.isPending ? "Saving..." : "Save Settings"}
+						{updateOrganization.isPending ? "Saving..." : "Save Settings"}
 					</Button>
 				</div>
 			</CardContent>
