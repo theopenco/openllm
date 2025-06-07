@@ -52,8 +52,11 @@ chat.post("/completion", async (c) => {
 
 		if (!response.ok) {
 			const errorText = await response.text();
-			console.error("Gateway error:", errorText);
-			return c.json({ error: "Failed to get chat completion" }, 500);
+			console.warn("Gateway error:", errorText);
+			return c.json(
+				{ error: `Failed to get chat completion: ${errorText}` },
+				500,
+			);
 		}
 
 		if (stream) {
