@@ -16,11 +16,12 @@ import {
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useState } from "react";
 
-import { TopUpCreditsButton } from "../credits/top-up-credits-dialog";
 import { ModeToggle } from "@/components/mode-toggle";
+import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { useUser } from "@/hooks/useUser";
 import { signOut } from "@/lib/auth-client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/lib/components/avatar";
+import { Button } from "@/lib/components/button";
 import {
 	Sidebar,
 	SidebarContent,
@@ -45,6 +46,7 @@ export function DashboardSidebar() {
 	const { location } = useRouterState();
 	const { toggleSidebar } = useSidebar();
 	const { user } = useUser();
+	const { data: organization } = useDefaultOrganization();
 	const navigate = useNavigate();
 	const posthog = usePostHog();
 	const isActive = (path: string) => {
@@ -227,7 +229,7 @@ export function DashboardSidebar() {
 			</SidebarContent>
 
 			<SidebarFooter className="border-t">
-				{showCreditCTA && (
+				{showCreditCTA && organization && organization.plan !== "pro" && (
 					<div className="flex relative flex-col items-start space-y-4 rounded-lg bg-primary/5 p-4 dark:bg-primary/10">
 						<button
 							aria-label="Dismiss"
@@ -237,13 +239,15 @@ export function DashboardSidebar() {
 							<X className="h-3 w-3" />
 						</button>
 						<div>
-							<p className="text-sm font-medium">Low on credits?</p>
+							<p className="text-sm font-medium">Upgrade to Pro</p>
 							<p className="text-xs text-muted-foreground">
-								Top up in seconds with Stripe
+								0% fees on all API calls & more
 							</p>
 						</div>
 
-						<TopUpCreditsButton />
+						<Button asChild>
+							<Link to="/dashboard/settings/billing">Upgrade</Link>
+						</Button>
 					</div>
 				)}
 
