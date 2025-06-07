@@ -68,6 +68,7 @@ export function PricingPlans() {
 		}
 
 		setLoading("pro");
+
 		try {
 			const response = await fetch(
 				"/api/subscriptions/create-pro-subscription",
@@ -86,14 +87,12 @@ export function PricingPlans() {
 				await response.json();
 
 			if (clientSecret) {
-				// Payment requires confirmation - handle this case
 				toast({
 					title: "Payment confirmation required",
 					description:
 						"Please confirm your payment to complete the subscription.",
 				});
 			} else {
-				// Payment succeeded immediately
 				toast({
 					title: "Subscription created successfully!",
 					description: "Welcome to Pro! Your subscription is now active.",
@@ -188,22 +187,21 @@ export function PricingPlans() {
 	};
 
 	const handlePlanSelection = (planName: string) => {
-		if (planName === "Self-Host") {
-			window.open("https://docs.llmgateway.io", "_blank");
-			return;
+		switch (planName) {
+			case "Self-Host":
+				navigate({ href: "https://docs.llmgateway.io", reloadDocument: true });
+				return;
+			case "Enterprise":
+				navigate({
+					href: "mailto:contact@llmgateway.io",
+					reloadDocument: true,
+				});
+				return;
+			case "Pro":
+				handleCreateProSubscription();
+				return;
 		}
 
-		if (planName === "Enterprise") {
-			window.location.href = "mailto:contact@llmgateway.io";
-			return;
-		}
-
-		if (planName === "Pro") {
-			handleCreateProSubscription();
-			return;
-		}
-
-		// Free plan
 		if (!user) {
 			navigate({ to: "/signup" });
 		} else {
@@ -303,7 +301,7 @@ export function PricingPlans() {
 						Pricing
 					</Badge>
 					<h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">
-						Simple, Transparent Pricing
+						Start for free, Scale with no fees
 					</h2>
 					<p className="text-xl text-muted-foreground max-w-3xl mx-auto">
 						Choose the plan that works best for your needs, with no hidden fees

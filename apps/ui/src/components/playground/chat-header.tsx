@@ -38,9 +38,6 @@ export function ChatHeader({
 				</Button>
 			</div>
 			<div className="flex items-center gap-4 ml-auto">
-				<Link to="/playground">
-					<h1 className="text-xl font-semibold">Playground</h1>
-				</Link>
 				<Link to="/dashboard">
 					<span className="text-nowrap">Go to Dashboard</span>
 				</Link>

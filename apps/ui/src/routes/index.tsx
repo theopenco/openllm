@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { CodeExample } from "@/components/landing/code-example";
-import { Comparison } from "@/components/landing/comparison";
 import CallToAction from "@/components/landing/cta";
 import { Faq } from "@/components/landing/faq";
 import Features from "@/components/landing/features";
@@ -22,7 +21,6 @@ function Home() {
 				<Features />
 				<Graph />
 				<CodeExample />
-				<Comparison />
 				<PricingPlans />
 				<Faq />
 				<CallToAction />

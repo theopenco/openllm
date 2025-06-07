@@ -48,6 +48,7 @@ interface ChatSidebarProps {
 	onChatSelect?: (chatId: string) => void;
 	onNewChat?: () => void;
 	userApiKey: string | null;
+	clearMessages: () => void;
 }
 
 export function ChatSidebar({
@@ -55,6 +56,7 @@ export function ChatSidebar({
 	onChatSelect,
 	onNewChat,
 	userApiKey,
+	clearMessages,
 }: ChatSidebarProps) {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
@@ -111,6 +113,7 @@ export function ChatSidebar({
 
 		deleteChat.mutate(chatId);
 		if (currentChatId === chatId) {
+			clearMessages();
 			onChatSelect?.("");
 		}
 	};

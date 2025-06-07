@@ -17,7 +17,7 @@ import { DOCS_URL } from "@/lib/env";
 import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
 
-const menuItems = [{ name: "Docs", href: DOCS_URL, external: true }];
+const menuItems = [{ name: "Pricing", href: "/#pricing", external: false }];
 
 export const Navbar = () => {
 	const [menuState, setMenuState] = useState(false);
@@ -108,9 +108,6 @@ export const Navbar = () => {
 													<NavigationMenuLink asChild>
 														<Link to="/playground">Playground</Link>
 													</NavigationMenuLink>
-													{/* <NavigationMenuLink asChild>
-														<Link to="/pricing">Pricing</Link>
-													</NavigationMenuLink> */}
 												</NavigationMenuContent>
 											</NavigationMenuItem>
 										</NavigationMenuList>

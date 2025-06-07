@@ -119,7 +119,7 @@ export function ChatUi({
 				description: "Message copied to clipboard",
 			});
 			setTimeout(() => setCopiedMessageId(null), 2000);
-		} catch (_error) {
+		} catch {
 			toast({
 				description: "Failed to copy message",
 				variant: "destructive",

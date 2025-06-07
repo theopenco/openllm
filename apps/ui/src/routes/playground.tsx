@@ -260,6 +260,7 @@ function RouteComponent() {
 	const clearMessages = () => {
 		setMessages([]);
 		setError(null);
+		setCurrentChatId(null);
 	};
 
 	const handleNewChat = async () => {
@@ -284,6 +285,7 @@ function RouteComponent() {
 					onChatSelect={handleChatSelect}
 					currentChatId={currentChatId ?? undefined}
 					userApiKey={userApiKey}
+					clearMessages={clearMessages}
 				/>
 				<main className="flex flex-1 flex-col">
 					<ChatHeader

@@ -1,221 +1,297 @@
-import { Check, X, Star } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Check, X } from "lucide-react";
 
 import { Badge } from "@/lib/components/badge";
 import { Button } from "@/lib/components/button";
 
-const features = [
+const comparisonData = [
 	{
-		category: "Core Features",
-		items: [
+		category: "Pricing & Fees",
+		features: [
 			{
-				feature: "Unified API Interface",
-				llmgateway: true,
-				openrouter: true,
-				description: "Single API to access multiple LLM providers",
+				title: "Free tier",
+				description: "Get started without upfront costs",
+				llmgateway: "5% fee on credits",
+				openrouter: "10% fee on credits",
 			},
 			{
-				feature: "Real‑time Analytics Dashboard",
-				llmgateway: true,
+				title: "Pro plan pricing",
+				description: "Monthly subscription cost",
+				llmgateway: "$50/month",
+				openrouter: "No subscription",
+			},
+			{
+				title: "Zero gateway fees",
+				description: "No additional fees when using your own API keys",
+				llmgateway: "Pro plan",
 				openrouter: false,
-				description: "Comprehensive usage metrics and cost tracking",
 			},
 			{
-				feature: "Provider Management",
-				llmgateway: true,
-				openrouter: true,
-				description: "Manage multiple LLM provider credentials",
-			},
-			{
-				feature: "Request Routing",
-				llmgateway: true,
-				openrouter: true,
-				description: "Intelligent routing across providers",
+				title: "Self-hosting option",
+				description: "MIT-licensed, deploy on your infrastructure for free",
+				llmgateway: "Free forever",
+				openrouter: false,
 			},
 		],
 	},
 	{
-		category: "Pricing & Billing",
-		items: [
+		category: "Models & Providers",
+		features: [
 			{
-				feature: "Free Plan (credits, 5 % fee)",
-				llmgateway: true,
-				openrouter: true,
-				description:
-					"Use credits to access any model — 5 % platform fee on LLM Gateway, no gateway fee on OpenRouter credits",
+				title: "Supported providers",
+				description: "Major LLM providers available",
+				llmgateway: "OpenAI, Anthropic, Google, Mistral, Groq+",
+				openrouter: "50+ providers",
 			},
 			{
-				feature: "Pro Plan $50/mo (BYOK + credits)",
-				llmgateway: true,
-				openrouter: false,
-				description:
-					"Unlimited usage with your own API keys or credits — zero additional fees",
+				title: "Total models",
+				description: "Number of models you can access",
+				llmgateway: "100+ models",
+				openrouter: "300+ models",
 			},
 			{
-				feature: "No BYOK Gateway Fee (Pro)",
-				llmgateway: true,
-				openrouter: false,
-				description:
-					"LLM Gateway Pro processes BYOK traffic at raw provider cost; OpenRouter adds 5 % surcharge",
+				title: "New model releases",
+				description: "How quickly new models are added",
+				llmgateway: "Within 48 hours",
+				openrouter: "Varies",
 			},
 			{
-				feature: "Self‑host Option (MIT, free)",
-				llmgateway: true,
-				openrouter: false,
-				description: "Deploy the gateway in your own VPC at zero cost",
-			},
-			{
-				feature: "Credit‑based System",
-				llmgateway: true,
-				openrouter: true,
-				description: "Pre‑purchase credits for API usage when preferred",
-			},
-		],
-	},
-	{
-		category: "Developer Experience",
-		items: [
-			{
-				feature: "API Key Management",
-				llmgateway: true,
-				openrouter: true,
-				description: "Secure API key generation and management",
-			},
-			{
-				feature: "Usage Analytics",
-				llmgateway: true,
-				openrouter: true,
-				description: "Track API usage and performance metrics",
-			},
-			{
-				feature: "Model Performance Insights",
-				llmgateway: true,
-				openrouter: true,
-				description: "Compare model performance and costs",
-			},
-			{
-				feature: "Custom Provider Integration",
-				llmgateway: true,
-				openrouter: false,
+				title: "Custom provider integration",
 				description: "Add your own LLM providers",
+				llmgateway: true,
+				openrouter: false,
 			},
 		],
 	},
 	{
-		category: "Scale & Reliability",
-		items: [
+		category: "Analytics & Monitoring",
+		features: [
 			{
-				feature: "High Availability (99.9 % SLA)",
+				title: "Real-time cost analytics",
+				description: "Detailed cost tracking for every request",
 				llmgateway: true,
-				openrouter: true,
-				description: "Service‑level uptime commitment",
+				openrouter: "Basic",
 			},
 			{
-				feature: "Load Balancing",
+				title: "Latency analytics",
+				description: "Real-time performance monitoring",
 				llmgateway: true,
-				openrouter: true,
-				description: "Distribute requests across providers",
+				openrouter: "Basic",
 			},
 			{
-				feature: "Failover Support",
+				title: "Request-level insights",
+				description: "Granular analytics for each API call",
+				llmgateway: true,
+				openrouter: false,
+			},
+			{
+				title: "Usage dashboard",
+				description: "Comprehensive usage metrics",
 				llmgateway: true,
 				openrouter: true,
+			},
+		],
+	},
+	{
+		category: "Reliability & Support",
+		features: [
+			{
+				title: "Uptime SLA",
+				description: "Guaranteed uptime for managed instances",
+				llmgateway: "99.9%",
+				openrouter: "No SLA",
+			},
+			{
+				title: "Failover support",
 				description: "Automatic failover to backup providers",
-			},
-			{
-				feature: "Rate Limiting",
 				llmgateway: true,
 				openrouter: true,
-				description: "Control API usage and costs",
+			},
+			{
+				title: "Load balancing",
+				description: "Distribute requests across providers",
+				llmgateway: true,
+				openrouter: true,
+			},
+			{
+				title: "Priority support",
+				description: "Dedicated support for paid plans",
+				llmgateway: "Pro+",
+				openrouter: false,
+			},
+		],
+	},
+	{
+		category: "Enterprise Features",
+		features: [
+			{
+				title: "Dedicated infrastructure",
+				description: "Isolated compute resources",
+				llmgateway: "Enterprise",
+				openrouter: false,
+			},
+			{
+				title: "Custom SLAs",
+				description: "Tailored service level agreements",
+				llmgateway: "Enterprise",
+				openrouter: false,
+			},
+			{
+				title: "Volume discounts",
+				description: "Pricing discounts for high usage",
+				llmgateway: "Enterprise",
+				openrouter: "Available",
+			},
+			{
+				title: "On-premise deployment",
+				description: "Full control over your data and infrastructure",
+				llmgateway: "MIT license",
+				openrouter: false,
 			},
 		],
 	},
 ];
 
 export function Comparison() {
+	const renderFeatureValue = (value: any) => {
+		if (typeof value === "boolean") {
+			return value ? (
+				<Check className="h-5 w-5 text-green-600 dark:text-green-400" />
+			) : (
+				<X className="h-5 w-5 text-red-600 dark:text-red-400" />
+			);
+		}
+		return <span className="text-sm font-medium text-foreground">{value}</span>;
+	};
+
 	return (
-		<section className="w-full py-12 md:py-24 lg:py-32 bg-gradient-to-b from-background to-muted/20">
-			<div className="container mx-auto px-4 md:px-6">
+		<section className="w-full py-12 md:py-24 lg:py-32 bg-background">
+			<div className="container px-4 md:px-6 max-w-5xl mx-auto">
 				<div className="text-center mb-12">
 					<Badge variant="outline" className="mb-4">
-						Feature Comparison
+						Compare platforms
 					</Badge>
-					<h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4">
-						LLM Gateway vs OpenRouter
+					<h2 className="text-3xl font-bold tracking-tight mb-2 text-foreground">
+						Find the perfect fit
 					</h2>
-					<p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-						Compare the features and capabilities of both platforms to make the
-						right choice for your LLM needs
+					<p className="text-muted-foreground">
+						Compare LLM Gateway and OpenRouter features side by side
 					</p>
 				</div>
 
-				{/* Feature Comparison Table */}
-				<div className="overflow-x-auto">
-					<div className="min-w-full">
-						{features.map((category, categoryIndex) => (
-							<div key={categoryIndex} className="mb-8">
-								<h3 className="text-xl font-semibold mb-4 text-center">
-									{category.category}
+				<div className="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
+					<div className="grid grid-cols-3 gap-4 p-6 bg-muted/50 border-b border-border">
+						<div />
+						<div className="text-center">
+							<div className="border-2 border-primary rounded-lg p-4 bg-background shadow-sm">
+								<h3 className="font-bold text-lg mb-1 text-foreground">
+									LLM Gateway
 								</h3>
-								<div className="bg-card rounded-lg border overflow-hidden">
-									<div className="grid grid-cols-4 gap-4 p-4 bg-muted/50 font-medium">
-										<div>Feature</div>
-										<div className="text-center">LLM Gateway</div>
-										<div className="text-center">OpenRouter</div>
-										<div>Description</div>
-									</div>
-									{category.items.map((item, itemIndex) => (
-										<div
-											key={itemIndex}
-											className="grid grid-cols-4 gap-4 p-4 border-t items-center"
-										>
-											<div className="font-medium">{item.feature}</div>
-											<div className="text-center">
-												{item.llmgateway ? (
-													<Check className="h-5 w-5 text-green-500 mx-auto" />
-												) : (
-													<X className="h-5 w-5 text-red-500 mx-auto" />
-												)}
-											</div>
-											<div className="text-center">
-												{item.openrouter ? (
-													<Check className="h-5 w-5 text-green-500 mx-auto" />
-												) : (
-													<X className="h-5 w-5 text-red-500 mx-auto" />
-												)}
-											</div>
-											<div className="text-sm text-muted-foreground">
-												{item.description}
-											</div>
-										</div>
-									))}
-								</div>
+								<p className="text-sm text-muted-foreground mb-2">
+									ENTERPRISE-FOCUSED
+								</p>
+								<p className="text-2xl font-bold text-primary">From $0</p>
+								<p className="text-xs text-muted-foreground mt-1">
+									Self-host free forever
+								</p>
 							</div>
-						))}
+						</div>
+						<div className="text-center">
+							<div className="border border-border rounded-lg p-4 bg-background">
+								<h3 className="font-bold text-lg mb-1 text-foreground">
+									OpenRouter
+								</h3>
+								<p className="text-sm text-muted-foreground mb-2">
+									SCALE-FOCUSED
+								</p>
+								<p className="text-2xl font-bold text-foreground">From $0</p>
+								<p className="text-xs text-muted-foreground mt-1">
+									Credit-based pricing
+								</p>
+							</div>
+						</div>
+					</div>
+
+					{comparisonData.map((category, categoryIndex) => (
+						<div key={categoryIndex}>
+							{categoryIndex > 0 && (
+								<div className="border-t-2 border-border/50" />
+							)}
+
+							{category.features.map((feature, featureIndex) => (
+								<div
+									key={featureIndex}
+									className="grid grid-cols-3 gap-4 p-6 border-b border-border/50 hover:bg-muted/30 transition-colors"
+								>
+									<div>
+										<h4 className="font-semibold text-foreground mb-1">
+											{feature.title}
+										</h4>
+										<p className="text-sm text-muted-foreground">
+											{feature.description}
+										</p>
+									</div>
+									<div className="flex justify-center items-center">
+										{renderFeatureValue(feature.llmgateway)}
+									</div>
+									<div className="flex justify-center items-center">
+										{renderFeatureValue(feature.openrouter)}
+									</div>
+								</div>
+							))}
+						</div>
+					))}
+				</div>
+
+				<div className="mt-8 bg-primary/5 dark:bg-primary/10 rounded-lg p-6 border border-primary/20">
+					<h3 className="font-bold text-lg mb-3 text-primary">
+						Why choose LLM Gateway?
+					</h3>
+					<div className="grid md:grid-cols-2 gap-4 text-sm">
+						<div className="flex items-start gap-2">
+							<Check className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+							<span className="text-foreground">
+								<strong>Zero gateway fees</strong> on Pro plan with your own API
+								keys
+							</span>
+						</div>
+						<div className="flex items-start gap-2">
+							<Check className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+							<span className="text-foreground">
+								<strong>Real-time analytics</strong> for cost & latency
+								optimization
+							</span>
+						</div>
+						<div className="flex items-start gap-2">
+							<Check className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+							<span className="text-foreground">
+								<strong>MIT-licensed self-hosting</strong> for complete control
+							</span>
+						</div>
+						<div className="flex items-start gap-2">
+							<Check className="h-4 w-4 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+							<span className="text-foreground">
+								<strong>99.9% uptime SLA</strong> with enterprise support
+							</span>
+						</div>
 					</div>
 				</div>
 
-				{/* Call to Action */}
-				<div className="text-center mt-12">
-					<div className="bg-card rounded-lg border p-8 max-w-2xl mx-auto">
-						<Star className="h-8 w-8 text-yellow-500 mx-auto mb-4" />
-						<h3 className="text-2xl font-bold mb-4">Ready to get started?</h3>
-						<p className="text-muted-foreground mb-6">
-							Upgrade to <strong>Pro</strong> for $50/month and pay{" "}
-							<em>zero</em> gateway fees, or self‑host for free forever.
-						</p>
-						<div className="flex flex-col sm:flex-row gap-4 justify-center">
-							<Button
-								size="lg"
-								className="bg-primary hover:bg-primary/90"
-								asChild
-							>
-								<a href="/#pricing">Go Pro – $50/mo</a>
-							</Button>
-							<Button size="lg" variant="outline" asChild>
-								<a href="/#pricing">See All Plans</a>
-							</Button>
-						</div>
+				<div className="text-center mt-8">
+					<div className="flex flex-col sm:flex-row gap-4 justify-center">
+						<Button size="lg" className="bg-primary hover:bg-primary/90">
+							<Link to="/signup">Start Free with LLM Gateway</Link>
+						</Button>
+						<Button size="lg" variant="outline">
+							<Link to="/" hash="#pricing">
+								View Pricing Details
+							</Link>
+						</Button>
 					</div>
+					<p className="text-sm text-muted-foreground mt-3">
+						No credit card required • Self-host option available • Enterprise
+						support included
+					</p>
 				</div>
 			</div>
 		</section>

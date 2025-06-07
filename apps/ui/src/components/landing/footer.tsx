@@ -20,7 +20,7 @@ export default function Footer() {
 						</p>
 					</div>
 
-					<div className="grid grid-cols-2 md:grid-cols-3 gap-8 text-zinc-700 dark:text-zinc-400">
+					<div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-zinc-700 dark:text-zinc-400">
 						<div>
 							<h3 className="text-sm font-semibold mb-3 text-zinc-900 dark:text-white">
 								Product
@@ -40,6 +40,14 @@ export default function Footer() {
 										className="text-sm hover:text-black dark:hover:text-white"
 									>
 										Models
+									</Link>
+								</li>
+								<li>
+									<Link
+										to="/playground"
+										className="text-sm hover:text-black dark:hover:text-white"
+									>
+										Playground
 									</Link>
 								</li>
 							</ul>
@@ -67,6 +75,21 @@ export default function Footer() {
 									>
 										GitHub
 									</a>
+								</li>
+							</ul>
+						</div>
+						<div>
+							<h3 className="text-sm font-semibold mb-3 text-zinc-900 dark:text-white">
+								Compare
+							</h3>
+							<ul className="space-y-2">
+								<li>
+									<Link
+										to="/compare/open-router"
+										className="text-sm hover:text-black dark:hover:text-white"
+									>
+										OpenRouter
+									</Link>
 								</li>
 							</ul>
 						</div>
