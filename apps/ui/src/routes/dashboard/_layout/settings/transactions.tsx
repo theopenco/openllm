@@ -12,13 +12,15 @@ import {
 } from "@/lib/components/card";
 import { $api } from "@/lib/fetch-client";
 
-export const Route = createFileRoute("/dashboard/_layout/settings/invoices")({
-	component: InvoicesPage,
+export const Route = createFileRoute(
+	"/dashboard/_layout/settings/transactions",
+)({
+	component: TransactionsPage,
 	pendingComponent: SettingsLoading,
-	errorComponent: () => <div>Error loading invoices</div>,
+	errorComponent: () => <div>Error loading transactions</div>,
 });
 
-function InvoicesPage() {
+function TransactionsPage() {
 	const { data: organization } = useDefaultOrganization();
 
 	const { data } = $api.useSuspenseQuery("get", "/orgs/{id}/transactions", {
@@ -35,7 +37,7 @@ function InvoicesPage() {
 		<div className="flex flex-col">
 			<div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
 				<div className="flex items-center justify-between">
-					<h2 className="text-3xl font-bold tracking-tight">Invoices</h2>
+					<h2 className="text-3xl font-bold tracking-tight">Transactions</h2>
 				</div>
 				<Card>
 					<CardHeader>

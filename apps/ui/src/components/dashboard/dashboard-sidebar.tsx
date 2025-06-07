@@ -205,8 +205,8 @@ export function DashboardSidebar() {
 												label: "Billing",
 											},
 											{
-												href: "/dashboard/settings/invoices",
-												label: "Invoices",
+												href: "/dashboard/settings/transactions",
+												label: "Transactions",
 											},
 											{
 												href: "/dashboard/settings/advanced",
