@@ -101,6 +101,9 @@ export function PricingPlans() {
 				navigate({ to: "/dashboard" });
 			}
 		} catch (error: any) {
+			if (error.message?.includes("No default payment method found")) {
+				navigate({ to: "/dashboard/settings/billing" });
+			}
 			toast({
 				title: "Subscription failed",
 				description:
