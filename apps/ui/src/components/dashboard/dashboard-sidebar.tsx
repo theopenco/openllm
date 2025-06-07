@@ -10,6 +10,8 @@ import {
 	Activity,
 	KeyRound,
 	X,
+	ChevronRight,
+	ChevronDown,
 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useState } from "react";
@@ -30,6 +32,9 @@ import {
 	SidebarHeader,
 	SidebarMenu,
 	SidebarMenuItem,
+	SidebarMenuSub,
+	SidebarMenuSubItem,
+	SidebarMenuSubButton,
 	SidebarRail,
 	useSidebar,
 } from "@/lib/components/sidebar";
@@ -44,6 +49,14 @@ export function DashboardSidebar() {
 	const { data: organization } = useDefaultOrganization();
 	const navigate = useNavigate();
 	const posthog = usePostHog();
+	const isActive = (path: string) => {
+		return location.pathname === path;
+	};
+
+	const isSettingsActive = () => {
+		return location.pathname.startsWith("/dashboard/settings");
+	};
+
 	const [showCreditCTA, setShowCreditCTA] = useState(() => {
 		if (typeof window === "undefined") {
 			return true;
@@ -51,13 +64,20 @@ export function DashboardSidebar() {
 		return localStorage.getItem("hide-credit-cta") !== "true";
 	});
 
+	const [settingsExpanded, setSettingsExpanded] = useState(() => {
+		if (typeof window === "undefined") {
+			return false;
+		}
+		return location.pathname.startsWith("/dashboard/settings");
+	});
+
 	const hideCreditCTA = () => {
 		localStorage.setItem("hide-credit-cta", "true");
 		setShowCreditCTA(false);
 	};
 
-	const isActive = (path: string) => {
-		return location.pathname === path;
+	const toggleSettingsExpanded = () => {
+		setSettingsExpanded(!settingsExpanded);
 	};
 
 	const logout = async () => {
@@ -76,7 +96,13 @@ export function DashboardSidebar() {
 		if (window.matchMedia("(max-width: 640px)").matches) {
 			toggleSidebar();
 		}
-	}, [location.pathname, toggleSidebar]);
+	}, [toggleSidebar]);
+
+	useEffect(() => {
+		if (isSettingsActive() && !settingsExpanded) {
+			setSettingsExpanded(true);
+		}
+	}, [location.pathname, isSettingsActive, settingsExpanded]);
 
 	return (
 		<Sidebar variant="floating">
@@ -125,11 +151,6 @@ export function DashboardSidebar() {
 									label: "Models",
 									icon: CreditCard,
 								},
-								{
-									href: "/dashboard/settings",
-									label: "Settings",
-									icon: Settings,
-								},
 							].map((item) => (
 								<SidebarMenuItem key={item.href}>
 									<Link
@@ -146,6 +167,62 @@ export function DashboardSidebar() {
 									</Link>
 								</SidebarMenuItem>
 							))}
+							<SidebarMenuItem>
+								<div
+									className={cn(
+										"flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors cursor-pointer",
+										isSettingsActive()
+											? "bg-primary/10 text-primary"
+											: "text-foreground/70 hover:bg-accent hover:text-accent-foreground",
+									)}
+									onClick={toggleSettingsExpanded}
+								>
+									<Settings className="h-4 w-4" />
+									<span>Settings</span>
+									{settingsExpanded ? (
+										<ChevronDown className="ml-auto h-4 w-4" />
+									) : (
+										<ChevronRight className="ml-auto h-4 w-4" />
+									)}
+								</div>
+								{settingsExpanded && (
+									<SidebarMenuSub>
+										{[
+											{
+												href: "/dashboard/settings/preferences",
+												label: "Preferences",
+											},
+											{
+												href: "/dashboard/settings/account",
+												label: "Account",
+											},
+											{
+												href: "/dashboard/settings/security",
+												label: "Security",
+											},
+											{
+												href: "/dashboard/settings/billing",
+												label: "Billing",
+											},
+											{
+												href: "/dashboard/settings/advanced",
+												label: "Advanced",
+											},
+										].map((item) => (
+											<SidebarMenuSubItem key={item.href}>
+												<SidebarMenuSubButton
+													asChild
+													isActive={isActive(item.href)}
+												>
+													<Link to={item.href}>
+														<span>{item.label}</span>
+													</Link>
+												</SidebarMenuSubButton>
+											</SidebarMenuSubItem>
+										))}
+									</SidebarMenuSub>
+								)}
+							</SidebarMenuItem>
 						</SidebarMenu>
 					</SidebarGroupContent>
 				</SidebarGroup>
