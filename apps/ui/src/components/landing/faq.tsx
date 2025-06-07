@@ -83,7 +83,8 @@ export function Faq() {
 							</AccordionPrimitive.Header>
 							<AccordionContent className="overflow-hidden transition-all data-[state=open]:animate-accordion-down data-[state=closed]:animate-accordion-up text-gray-500 dark:text-gray-400 pb-2">
 								We support a growing catalog of commercial and open‑source LLMs
-								across all major providers (OpenAI, Anthropic, Google and more). Check the{" "}
+								across all major providers (OpenAI, Anthropic, Google and more).
+								Check the{" "}
 								<a href="/models" className="underline">
 									models page
 								</a>{" "}
