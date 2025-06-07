@@ -6,7 +6,6 @@ import { stripe } from "../../api/src/routes/payments";
 
 import type { LogInsertData } from "./lib/logs";
 
-const SERVICE_FEE_MULTIPLIER = 1.05;
 const AUTO_TOPUP_LOCK_KEY = "auto_topup_check";
 const LOCK_DURATION_MINUTES = 10;
 
@@ -114,6 +113,19 @@ async function processAutoTopUp(): Promise<void> {
 
 				const topUpAmount = Number(org.autoTopUpAmount || "10");
 
+				const stripePaymentMethod = await stripe.paymentMethods.retrieve(
+					defaultPaymentMethod.stripePaymentMethodId,
+				);
+
+				const cardCountry = stripePaymentMethod.card?.country;
+
+				const stripeFee = 0.35 + topUpAmount * 0.029;
+				const internationalFee =
+					cardCountry && cardCountry !== "US" ? topUpAmount * 0.015 : 0;
+				const planFee = org.plan === "free" ? topUpAmount * 0.05 : 0;
+				const totalAmount =
+					topUpAmount + stripeFee + internationalFee + planFee;
+
 				// Insert pending transaction before creating payment intent
 				const pendingTransaction = await db
 					.insert(tables.transaction)
@@ -123,7 +135,7 @@ async function processAutoTopUp(): Promise<void> {
 						amount: topUpAmount.toString(),
 						currency: "USD",
 						status: "pending",
-						description: `Auto top-up for ${topUpAmount} USD (pending)`,
+						description: `Auto top-up for ${topUpAmount} USD (including fees)`,
 					})
 					.returning()
 					.then((rows) => rows[0]);
@@ -134,9 +146,9 @@ async function processAutoTopUp(): Promise<void> {
 
 				try {
 					const paymentIntent = await stripe.paymentIntents.create({
-						amount: topUpAmount * 100,
+						amount: Math.round(totalAmount * 100),
 						currency: "usd",
-						description: `Auto top-up for ${topUpAmount} USD`,
+						description: `Auto top-up for ${topUpAmount} USD (including fees)`,
 						payment_method: defaultPaymentMethod.stripePaymentMethodId,
 						customer: org.stripeCustomerId!,
 						confirm: true,
@@ -145,6 +157,8 @@ async function processAutoTopUp(): Promise<void> {
 							organizationId: org.id,
 							autoTopUp: "true",
 							transactionId: pendingTransaction.id,
+							baseAmount: topUpAmount.toString(),
+							totalFees: (stripeFee + internationalFee + planFee).toString(),
 						},
 					});
 
@@ -153,7 +167,7 @@ async function processAutoTopUp(): Promise<void> {
 						.update(tables.transaction)
 						.set({
 							stripePaymentIntentId: paymentIntent.id,
-							description: `Auto top-up for ${topUpAmount} USD`,
+							description: `Auto top-up for ${topUpAmount} USD (including fees)`,
 						})
 						.where(eq(tables.transaction.id, pendingTransaction.id));
 
@@ -242,11 +256,10 @@ export async function processLogQueue(): Promise<void> {
 			const project = await getProject(data.projectId);
 
 			if (project?.mode !== "api-keys") {
-				const costWithServiceFee = data.cost * SERVICE_FEE_MULTIPLIER;
 				await db
 					.update(organization)
 					.set({
-						credits: sql`${organization.credits} - ${costWithServiceFee}`,
+						credits: sql`${organization.credits} - ${data.cost}`,
 					})
 					.where(eq(organization.id, data.organizationId));
 			}

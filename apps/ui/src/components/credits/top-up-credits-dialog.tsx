@@ -7,6 +7,7 @@ import {
 import { CreditCard, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/lib/components/button";
 import { Checkbox } from "@/lib/components/checkbox";
 import {
@@ -20,7 +21,7 @@ import {
 } from "@/lib/components/dialog";
 import { Input } from "@/lib/components/input";
 import { Label } from "@/lib/components/label";
-import { toast } from "@/lib/components/use-toast";
+import { useToast } from "@/lib/components/use-toast";
 import { $api } from "@/lib/fetch-client";
 import { useStripe } from "@/lib/stripe";
 
@@ -152,6 +153,17 @@ function AmountStep({
 	onCancel: () => void;
 }) {
 	const presetAmounts = [10, 25, 50, 100];
+	const { data: organization } = useDefaultOrganization();
+	const { data: feeData } = $api.useQuery(
+		"post",
+		"/payments/calculate-fees",
+		{
+			body: { amount },
+		},
+		{
+			enabled: amount >= 5,
+		},
+	);
 
 	return (
 		<>
@@ -186,6 +198,44 @@ function AmountStep({
 						</Button>
 					))}
 				</div>
+
+				{feeData && amount >= 5 && (
+					<div className="border rounded-lg p-4 bg-muted/50">
+						<p className="font-medium mb-2">Fee Breakdown</p>
+						<div className="space-y-1 text-sm">
+							<div className="flex justify-between">
+								<span>Credits</span>
+								<span>${feeData.baseAmount.toFixed(2)}</span>
+							</div>
+							<div className="flex justify-between">
+								<span>Stripe fees ($0.35 + 2.9%)</span>
+								<span>${feeData.stripeFee.toFixed(2)}</span>
+							</div>
+							{feeData.internationalFee > 0 && (
+								<div className="flex justify-between">
+									<span>International card fee (1.5%)</span>
+									<span>${feeData.internationalFee.toFixed(2)}</span>
+								</div>
+							)}
+							{feeData.planFee > 0 && (
+								<div className="flex justify-between">
+									<span>Service fee (5% - Free plan)</span>
+									<span>${feeData.planFee.toFixed(2)}</span>
+								</div>
+							)}
+							{organization?.plan === "pro" && (
+								<div className="flex justify-between text-green-600">
+									<span>Service fee (Pro plan)</span>
+									<span>$0.00</span>
+								</div>
+							)}
+							<div className="border-t pt-1 flex justify-between font-medium">
+								<span>Total</span>
+								<span>${feeData.totalAmount.toFixed(2)}</span>
+							</div>
+						</div>
+					</div>
+				)}
 			</div>
 			<DialogFooter>
 				<Button type="button" variant="outline" onClick={onCancel}>
@@ -216,6 +266,7 @@ function PaymentStep({
 }) {
 	const stripe = useStripeElements();
 	const elements = useElements();
+	const { toast } = useToast();
 	const { mutateAsync: topUpMutation } = $api.useMutation(
 		"post",
 		"/payments/create-payment-intent",
@@ -351,7 +402,7 @@ function PaymentStep({
 						Cancel
 					</Button>
 					<Button type="submit" disabled={!stripe || loading}>
-						{loading ? "Processing..." : `Pay $${amount}`}
+						{loading ? "Processing..." : `Continue`}
 					</Button>
 				</DialogFooter>
 			</form>
@@ -482,10 +533,16 @@ function ConfirmPaymentStep({
 	loading: boolean;
 	setLoading: (loading: boolean) => void;
 }) {
+	const { toast } = useToast();
+	const { data: organization } = useDefaultOrganization();
 	const { mutateAsync: topUpMutation } = $api.useMutation(
 		"post",
 		"/payments/top-up-with-saved-method",
 	);
+
+	const { data: feeData } = $api.useQuery("post", "/payments/calculate-fees", {
+		body: { amount, paymentMethodId },
+	});
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -511,15 +568,48 @@ function ConfirmPaymentStep({
 			<DialogHeader>
 				<DialogTitle>Confirm Payment</DialogTitle>
 				<DialogDescription>
-					Confirm your payment of ${amount} to add credits.
+					Review your payment details before confirming.
 				</DialogDescription>
 			</DialogHeader>
 			<form onSubmit={handleSubmit} className="space-y-4 py-4">
 				<div className="border rounded-lg p-4">
-					<p className="font-medium">Payment Summary</p>
-					<p className="text-sm text-muted-foreground mt-2">
-						Amount: ${amount}
-					</p>
+					<p className="font-medium mb-3">Payment Summary</p>
+					{feeData ? (
+						<div className="space-y-2 text-sm">
+							<div className="flex justify-between">
+								<span>Credits</span>
+								<span>${feeData.baseAmount.toFixed(2)}</span>
+							</div>
+							<div className="flex justify-between">
+								<span>Stripe fees ($0.35 + 2.9%)</span>
+								<span>${feeData.stripeFee.toFixed(2)}</span>
+							</div>
+							{feeData.internationalFee > 0 && (
+								<div className="flex justify-between">
+									<span>International card fee (1.5%)</span>
+									<span>${feeData.internationalFee.toFixed(2)}</span>
+								</div>
+							)}
+							{feeData.planFee > 0 && (
+								<div className="flex justify-between">
+									<span>Service fee (5% - Free plan)</span>
+									<span>${feeData.planFee.toFixed(2)}</span>
+								</div>
+							)}
+							{organization?.plan === "pro" && feeData.planFee === 0 && (
+								<div className="flex justify-between text-green-600">
+									<span>Service fee (Pro plan)</span>
+									<span>$0.00</span>
+								</div>
+							)}
+							<div className="border-t pt-2 flex justify-between font-medium">
+								<span>Total</span>
+								<span>${feeData.totalAmount.toFixed(2)}</span>
+							</div>
+						</div>
+					) : (
+						<p className="text-sm text-muted-foreground">Amount: ${amount}</p>
+					)}
 				</div>
 				<DialogFooter className="flex space-x-2 justify-end">
 					<Button
@@ -539,7 +629,9 @@ function ConfirmPaymentStep({
 						Cancel
 					</Button>
 					<Button type="submit" disabled={loading}>
-						{loading ? "Processing..." : `Pay $${amount}`}
+						{loading
+							? "Processing..."
+							: `Pay ${feeData ? `$${feeData.totalAmount.toFixed(2)}` : `$${amount}`}`}
 					</Button>
 				</DialogFooter>
 			</form>

@@ -4,6 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import Stripe from "stripe";
 import { z } from "zod";
 
+import { calculateFees } from "../lib/fee-calculator";
 import { ensureStripeCustomer } from "../stripe";
 
 import type { ServerTypes } from "../vars";
@@ -76,13 +77,20 @@ payments.openapi(createPaymentIntent, async (c) => {
 	try {
 		const stripeCustomerId = await ensureStripeCustomer(organizationId);
 
+		const feeBreakdown = calculateFees({
+			amount,
+			organizationPlan: userOrganization.organization.plan,
+		});
+
 		const paymentIntent = await stripe.paymentIntents.create({
-			amount: amount * 100, // Convert to cents
+			amount: Math.round(feeBreakdown.totalAmount * 100),
 			currency: "usd",
-			description: `Credit purchase for ${amount} USD`,
+			description: `Credit purchase for ${amount} USD (including fees)`,
 			customer: stripeCustomerId,
 			metadata: {
 				organizationId,
+				baseAmount: amount.toString(),
+				totalFees: feeBreakdown.totalFees.toString(),
 			},
 		});
 
@@ -507,16 +515,30 @@ payments.openapi(topUpWithSavedMethod, async (c) => {
 			});
 		}
 
+		const stripePaymentMethod = await stripe.paymentMethods.retrieve(
+			paymentMethod.stripePaymentMethodId,
+		);
+
+		const cardCountry = stripePaymentMethod.card?.country || undefined;
+
+		const feeBreakdown = calculateFees({
+			amount,
+			organizationPlan: userOrganization.organization.plan,
+			cardCountry,
+		});
+
 		const paymentIntent = await stripe.paymentIntents.create({
-			amount: amount * 100, // Convert to cents
+			amount: Math.round(feeBreakdown.totalAmount * 100),
 			currency: "usd",
-			description: `Credit purchase for ${amount} USD`,
+			description: `Credit purchase for ${amount} USD (including fees)`,
 			payment_method: paymentMethod.stripePaymentMethodId,
 			customer: stripeCustomerId,
 			confirm: true,
 			off_session: true,
 			metadata: {
 				organizationId: userOrganization.organization.id,
+				baseAmount: amount.toString(),
+				totalFees: feeBreakdown.totalFees.toString(),
 			},
 		});
 
@@ -534,4 +556,92 @@ payments.openapi(topUpWithSavedMethod, async (c) => {
 			message: "Failed to process payment",
 		});
 	}
+});
+const calculateFeesRoute = createRoute({
+	method: "post",
+	path: "/calculate-fees",
+	request: {
+		body: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						amount: z.number().int().min(5),
+						paymentMethodId: z.string().optional(),
+					}),
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						baseAmount: z.number(),
+						stripeFee: z.number(),
+						internationalFee: z.number(),
+						planFee: z.number(),
+						totalFees: z.number(),
+						totalAmount: z.number(),
+					}),
+				},
+			},
+			description: "Fee calculation completed successfully",
+		},
+	},
+});
+
+payments.openapi(calculateFeesRoute, async (c) => {
+	const user = c.get("user");
+
+	if (!user) {
+		throw new HTTPException(401, {
+			message: "Unauthorized",
+		});
+	}
+
+	const { amount, paymentMethodId } = c.req.valid("json");
+
+	const userOrganization = await db.query.userOrganization.findFirst({
+		where: {
+			userId: user.id,
+		},
+		with: {
+			organization: true,
+		},
+	});
+
+	if (!userOrganization || !userOrganization.organization) {
+		throw new HTTPException(404, {
+			message: "Organization not found",
+		});
+	}
+
+	let cardCountry: string | undefined;
+
+	if (paymentMethodId) {
+		const paymentMethod = await db.query.paymentMethod.findFirst({
+			where: {
+				id: paymentMethodId,
+				organizationId: userOrganization.organization.id,
+			},
+		});
+
+		if (paymentMethod) {
+			try {
+				const stripePaymentMethod = await stripe.paymentMethods.retrieve(
+					paymentMethod.stripePaymentMethodId,
+				);
+				cardCountry = stripePaymentMethod.card?.country || undefined;
+			} catch {}
+		}
+	}
+
+	const feeBreakdown = calculateFees({
+		amount,
+		organizationPlan: userOrganization.organization.plan,
+		cardCountry,
+	});
+
+	return c.json(feeBreakdown);
 });
