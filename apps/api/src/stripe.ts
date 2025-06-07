@@ -229,9 +229,10 @@ async function handlePaymentIntentSucceeded(
 	const totalAmountInDollars = amount / 100;
 
 	// Get the credit amount (base amount without fees) from metadata
-	const creditAmount = paymentIntent.metadata?.baseAmount
-		? parseFloat(paymentIntent.metadata.baseAmount)
-		: totalAmountInDollars; // Fallback for legacy transactions
+	const creditAmount = parseFloat(paymentIntent.metadata.baseAmount);
+	if (!creditAmount) {
+		throw new Error("Credit amount not found in payment intent metadata");
+	}
 
 	// Update organization credits with credit amount only (fees are not added as credits)
 	await db
@@ -251,7 +252,7 @@ async function handlePaymentIntentSucceeded(
 				status: "completed",
 				description: "Auto top-up completed via Stripe webhook",
 				creditAmount: creditAmount.toString(),
-				totalAmount: totalAmountInDollars.toString(),
+				amount: totalAmountInDollars.toString(),
 			})
 			.where(eq(tables.transaction.id, transactionId))
 			.returning()
@@ -269,9 +270,8 @@ async function handlePaymentIntentSucceeded(
 			await db.insert(tables.transaction).values({
 				organizationId,
 				type: "credit_topup",
-				amount: totalAmountInDollars.toString(), // Legacy field
 				creditAmount: creditAmount.toString(),
-				totalAmount: totalAmountInDollars.toString(),
+				amount: totalAmountInDollars.toString(),
 				currency: paymentIntent.currency.toUpperCase(),
 				status: "completed",
 				stripePaymentIntentId: paymentIntent.id,
@@ -283,9 +283,8 @@ async function handlePaymentIntentSucceeded(
 		await db.insert(tables.transaction).values({
 			organizationId,
 			type: "credit_topup",
-			amount: totalAmountInDollars.toString(), // Legacy field
 			creditAmount: creditAmount.toString(),
-			totalAmount: totalAmountInDollars.toString(),
+			amount: totalAmountInDollars.toString(),
 			currency: paymentIntent.currency.toUpperCase(),
 			status: "completed",
 			stripePaymentIntentId: paymentIntent.id,
@@ -573,7 +572,6 @@ async function handleSubscriptionUpdated(
 		await db.insert(tables.transaction).values({
 			organizationId,
 			type: "subscription_cancel",
-			amount: "0",
 			currency: "USD",
 			status: "completed",
 			stripeInvoiceId: subscription.latest_invoice as string,
@@ -640,7 +638,6 @@ async function handleSubscriptionDeleted(
 	await db.insert(tables.transaction).values({
 		organizationId,
 		type: "subscription_end",
-		amount: "0",
 		currency: "USD",
 		status: "completed",
 		stripeInvoiceId: subscription.latest_invoice as string,

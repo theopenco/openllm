@@ -133,9 +133,8 @@ async function processAutoTopUp(): Promise<void> {
 					.values({
 						organizationId: org.id,
 						type: "credit_topup",
-						amount: feeBreakdown.totalAmount.toString(), // Legacy field
 						creditAmount: feeBreakdown.baseAmount.toString(),
-						totalAmount: feeBreakdown.totalAmount.toString(),
+						amount: feeBreakdown.totalAmount.toString(),
 						currency: "USD",
 						status: "pending",
 						description: `Auto top-up for ${topUpAmount} USD (total: ${feeBreakdown.totalAmount} including fees)`,

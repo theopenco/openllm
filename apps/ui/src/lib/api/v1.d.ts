@@ -1444,7 +1444,8 @@ export interface paths {
 									| "subscription_cancel"
 									| "subscription_end"
 									| "credit_topup";
-								amount: string;
+								amount: string | null;
+								creditAmount: string | null;
 								currency: string;
 								/** @enum {string} */
 								status: "pending" | "completed" | "failed";

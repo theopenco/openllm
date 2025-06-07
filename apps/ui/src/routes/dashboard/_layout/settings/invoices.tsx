@@ -23,6 +23,8 @@ interface Transaction {
 		| "subscription_cancel"
 		| "subscription_end";
 	amount: string;
+	creditAmount: string | null;
+	totalAmount: string | null;
 	currency: string;
 	status: "pending" | "completed" | "failed";
 	stripePaymentIntentId: string | null;
@@ -75,7 +77,10 @@ function InvoicesPage() {
 											Type
 										</th>
 										<th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-											Amount
+											Credits
+										</th>
+										<th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+											Total Paid
 										</th>
 										<th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
 											Status
@@ -104,7 +109,10 @@ function InvoicesPage() {
 													"Subscription Ended"}
 											</td>
 											<td className="p-4 align-middle">
-												{transaction.amount} {transaction.currency}
+												{transaction.creditAmount || "—"}
+											</td>
+											<td className="p-4 align-middle">
+												{transaction.amount || "—"}
 											</td>
 											<td className="p-4 align-middle">
 												<span
@@ -127,7 +135,7 @@ function InvoicesPage() {
 									{data.transactions.length === 0 && (
 										<tr>
 											<td
-												colSpan={5}
+												colSpan={6}
 												className="p-4 text-center text-muted-foreground"
 											>
 												No transactions found
