@@ -1660,6 +1660,55 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	"/payments/calculate-fees": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						amount: number;
+						paymentMethodId?: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Fee calculation completed successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							baseAmount: number;
+							stripeFee: number;
+							internationalFee: number;
+							planFee: number;
+							totalFees: number;
+							totalAmount: number;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	"/subscriptions/create-pro-subscription": {
 		parameters: {
 			query?: never;
