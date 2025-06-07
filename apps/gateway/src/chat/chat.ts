@@ -1000,8 +1000,8 @@ chat.openapi(completions, async (c) => {
 			}
 
 			if (!res.ok) {
-				console.error("error", url, res.status, res.statusText);
 				const errorResponseText = await res.text();
+				console.error("error", url, res.status, errorResponseText);
 
 				await stream.writeSSE({
 					event: "error",
@@ -1449,10 +1449,10 @@ chat.openapi(completions, async (c) => {
 	}
 
 	if (res && !res.ok) {
-		console.error("error", url, res.status, res.statusText);
-
 		// Get the error response text
 		const errorResponseText = await res.text();
+
+		console.error("error", url, res.status, errorResponseText);
 
 		// Log the error in the database
 		const baseLogEntry = createLogEntry(
