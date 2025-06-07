@@ -1,6 +1,6 @@
 {
-  "id": "78b1c496-6d62-4ee7-a670-61334a497db5",
-  "prevId": "df2381f4-c37d-4bc8-8837-89d149973fb2",
+  "id": "c2123222-995c-44a9-8a56-e4d24d485925",
+  "prevId": "4075ddb7-c356-4489-bde0-4ce193a32945",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -263,6 +263,53 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.lock": {
+      "name": "lock",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "key": {
+          "name": "key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "lock_key_unique": {
+          "name": "lock_key_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "key"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.log": {
       "name": "log",
       "schema": "",
@@ -387,7 +434,7 @@
           "name": "messages",
           "type": "json",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "temperature": {
           "name": "temperature",
@@ -482,15 +529,13 @@
           "name": "mode",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'api-keys'"
+          "notNull": true
         },
         "used_mode": {
           "name": "used_mode",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'api-keys'"
+          "notNull": true
         }
       },
       "indexes": {},
@@ -648,12 +693,66 @@
           "primaryKey": false,
           "notNull": false
         },
+        "stripe_subscription_id": {
+          "name": "stripe_subscription_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "credits": {
           "name": "credits",
           "type": "numeric",
           "primaryKey": false,
           "notNull": true,
           "default": "'0'"
+        },
+        "auto_top_up_enabled": {
+          "name": "auto_top_up_enabled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "auto_top_up_threshold": {
+          "name": "auto_top_up_threshold",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'10'"
+        },
+        "auto_top_up_amount": {
+          "name": "auto_top_up_amount",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'10'"
+        },
+        "plan": {
+          "name": "plan",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'free'"
+        },
+        "plan_expires_at": {
+          "name": "plan_expires_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "subscription_cancelled": {
+          "name": "subscription_cancelled",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "retention_level": {
+          "name": "retention_level",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'retain'"
         },
         "status": {
           "name": "status",
@@ -666,7 +765,22 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
+      "uniqueConstraints": {
+        "organization_stripeCustomerId_unique": {
+          "name": "organization_stripeCustomerId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "stripe_customer_id"
+          ]
+        },
+        "organization_stripeSubscriptionId_unique": {
+          "name": "organization_stripeSubscriptionId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "stripe_subscription_id"
+          ]
+        }
+      },
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
@@ -964,7 +1078,7 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "'api-keys'"
+          "default": "'credits'"
         },
         "status": {
           "name": "status",
@@ -1156,6 +1270,103 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.transaction": {
+      "name": "transaction",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "organization_id": {
+          "name": "organization_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "currency": {
+          "name": "currency",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'USD'"
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'completed'"
+        },
+        "stripe_payment_intent_id": {
+          "name": "stripe_payment_intent_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "stripe_invoice_id": {
+          "name": "stripe_invoice_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "transaction_organization_id_organization_id_fk": {
+          "name": "transaction_organization_id_organization_id_fk",
+          "tableFrom": "transaction",
+          "tableTo": "organization",
+          "columnsFrom": [
+            "organization_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
