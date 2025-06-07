@@ -72,7 +72,7 @@ export function LogCard({ log }: { log: Log }) {
 						<p
 							className={`font-medium ${isExpanded ? "line-clamp-2" : "line-clamp-1"}`}
 						>
-							{log.content || <i className="italic">empty response</i>}
+							{log.content || <i className="italic">–</i>}
 						</p>
 						<Badge
 							variant={log.hasError ? "destructive" : "default"}
@@ -234,7 +234,6 @@ export function LogCard({ log }: { log: Log }) {
 								<div className="font-mono text-xs">{log.apiKeyId}</div>
 								<div className="text-muted-foreground">Mode</div>
 								<div>{log.mode || "api-keys"}</div>
-								<div>api-keys</div>
 								<div className="text-muted-foreground">Used Mode</div>
 								<div>{log.mode || "api-keys"}</div>
 							</div>
@@ -324,7 +323,7 @@ export function LogCard({ log }: { log: Log }) {
 						<h4 className="text-sm font-medium">Message Context</h4>
 						<div className="rounded-md border p-3">
 							<pre className="max-h-60 text-xs overflow-auto">
-								{JSON.stringify(log.messages, null, 2)}
+								{log.messages ? JSON.stringify(log.messages, null, 2) : "–"}
 							</pre>
 						</div>
 					</div>
@@ -332,7 +331,7 @@ export function LogCard({ log }: { log: Log }) {
 						<h4 className="text-sm font-medium">Response</h4>
 						<div className="rounded-md border p-3">
 							<pre className="max-h-60 text-xs text-wrap overflow-auto">
-								{log.content}
+								{log.content || "–"}
 							</pre>
 						</div>
 					</div>

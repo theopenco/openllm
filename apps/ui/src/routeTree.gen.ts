@@ -28,6 +28,13 @@ import { Route as DashboardLayoutProviderKeysImport } from './routes/dashboard/_
 import { Route as DashboardLayoutModelsImport } from './routes/dashboard/_layout/models'
 import { Route as DashboardLayoutApiKeysImport } from './routes/dashboard/_layout/api-keys'
 import { Route as DashboardLayoutActivityImport } from './routes/dashboard/_layout/activity'
+import { Route as DashboardLayoutSettingsIndexImport } from './routes/dashboard/_layout/settings/index'
+import { Route as DashboardLayoutSettingsSecurityImport } from './routes/dashboard/_layout/settings/security'
+import { Route as DashboardLayoutSettingsPreferencesImport } from './routes/dashboard/_layout/settings/preferences'
+import { Route as DashboardLayoutSettingsInvoicesImport } from './routes/dashboard/_layout/settings/invoices'
+import { Route as DashboardLayoutSettingsBillingImport } from './routes/dashboard/_layout/settings/billing'
+import { Route as DashboardLayoutSettingsAdvancedImport } from './routes/dashboard/_layout/settings/advanced'
+import { Route as DashboardLayoutSettingsAccountImport } from './routes/dashboard/_layout/settings/account'
 
 // Create Virtual Routes
 
@@ -130,6 +137,55 @@ const DashboardLayoutActivityRoute = DashboardLayoutActivityImport.update({
   path: '/activity',
   getParentRoute: () => DashboardLayoutRoute,
 } as any)
+
+const DashboardLayoutSettingsIndexRoute =
+  DashboardLayoutSettingsIndexImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => DashboardLayoutSettingsRoute,
+  } as any)
+
+const DashboardLayoutSettingsSecurityRoute =
+  DashboardLayoutSettingsSecurityImport.update({
+    id: '/security',
+    path: '/security',
+    getParentRoute: () => DashboardLayoutSettingsRoute,
+  } as any)
+
+const DashboardLayoutSettingsPreferencesRoute =
+  DashboardLayoutSettingsPreferencesImport.update({
+    id: '/preferences',
+    path: '/preferences',
+    getParentRoute: () => DashboardLayoutSettingsRoute,
+  } as any)
+
+const DashboardLayoutSettingsInvoicesRoute =
+  DashboardLayoutSettingsInvoicesImport.update({
+    id: '/invoices',
+    path: '/invoices',
+    getParentRoute: () => DashboardLayoutSettingsRoute,
+  } as any)
+
+const DashboardLayoutSettingsBillingRoute =
+  DashboardLayoutSettingsBillingImport.update({
+    id: '/billing',
+    path: '/billing',
+    getParentRoute: () => DashboardLayoutSettingsRoute,
+  } as any)
+
+const DashboardLayoutSettingsAdvancedRoute =
+  DashboardLayoutSettingsAdvancedImport.update({
+    id: '/advanced',
+    path: '/advanced',
+    getParentRoute: () => DashboardLayoutSettingsRoute,
+  } as any)
+
+const DashboardLayoutSettingsAccountRoute =
+  DashboardLayoutSettingsAccountImport.update({
+    id: '/account',
+    path: '/account',
+    getParentRoute: () => DashboardLayoutSettingsRoute,
+  } as any)
 
 // Populate the FileRoutesByPath interface
 
@@ -247,17 +303,93 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLayoutIndexImport
       parentRoute: typeof DashboardLayoutImport
     }
+    '/dashboard/_layout/settings/account': {
+      id: '/dashboard/_layout/settings/account'
+      path: '/account'
+      fullPath: '/dashboard/settings/account'
+      preLoaderRoute: typeof DashboardLayoutSettingsAccountImport
+      parentRoute: typeof DashboardLayoutSettingsImport
+    }
+    '/dashboard/_layout/settings/advanced': {
+      id: '/dashboard/_layout/settings/advanced'
+      path: '/advanced'
+      fullPath: '/dashboard/settings/advanced'
+      preLoaderRoute: typeof DashboardLayoutSettingsAdvancedImport
+      parentRoute: typeof DashboardLayoutSettingsImport
+    }
+    '/dashboard/_layout/settings/billing': {
+      id: '/dashboard/_layout/settings/billing'
+      path: '/billing'
+      fullPath: '/dashboard/settings/billing'
+      preLoaderRoute: typeof DashboardLayoutSettingsBillingImport
+      parentRoute: typeof DashboardLayoutSettingsImport
+    }
+    '/dashboard/_layout/settings/invoices': {
+      id: '/dashboard/_layout/settings/invoices'
+      path: '/invoices'
+      fullPath: '/dashboard/settings/invoices'
+      preLoaderRoute: typeof DashboardLayoutSettingsInvoicesImport
+      parentRoute: typeof DashboardLayoutSettingsImport
+    }
+    '/dashboard/_layout/settings/preferences': {
+      id: '/dashboard/_layout/settings/preferences'
+      path: '/preferences'
+      fullPath: '/dashboard/settings/preferences'
+      preLoaderRoute: typeof DashboardLayoutSettingsPreferencesImport
+      parentRoute: typeof DashboardLayoutSettingsImport
+    }
+    '/dashboard/_layout/settings/security': {
+      id: '/dashboard/_layout/settings/security'
+      path: '/security'
+      fullPath: '/dashboard/settings/security'
+      preLoaderRoute: typeof DashboardLayoutSettingsSecurityImport
+      parentRoute: typeof DashboardLayoutSettingsImport
+    }
+    '/dashboard/_layout/settings/': {
+      id: '/dashboard/_layout/settings/'
+      path: '/'
+      fullPath: '/dashboard/settings/'
+      preLoaderRoute: typeof DashboardLayoutSettingsIndexImport
+      parentRoute: typeof DashboardLayoutSettingsImport
+    }
   }
 }
 
 // Create and export the route tree
+
+interface DashboardLayoutSettingsRouteChildren {
+  DashboardLayoutSettingsAccountRoute: typeof DashboardLayoutSettingsAccountRoute
+  DashboardLayoutSettingsAdvancedRoute: typeof DashboardLayoutSettingsAdvancedRoute
+  DashboardLayoutSettingsBillingRoute: typeof DashboardLayoutSettingsBillingRoute
+  DashboardLayoutSettingsInvoicesRoute: typeof DashboardLayoutSettingsInvoicesRoute
+  DashboardLayoutSettingsPreferencesRoute: typeof DashboardLayoutSettingsPreferencesRoute
+  DashboardLayoutSettingsSecurityRoute: typeof DashboardLayoutSettingsSecurityRoute
+  DashboardLayoutSettingsIndexRoute: typeof DashboardLayoutSettingsIndexRoute
+}
+
+const DashboardLayoutSettingsRouteChildren: DashboardLayoutSettingsRouteChildren =
+  {
+    DashboardLayoutSettingsAccountRoute: DashboardLayoutSettingsAccountRoute,
+    DashboardLayoutSettingsAdvancedRoute: DashboardLayoutSettingsAdvancedRoute,
+    DashboardLayoutSettingsBillingRoute: DashboardLayoutSettingsBillingRoute,
+    DashboardLayoutSettingsInvoicesRoute: DashboardLayoutSettingsInvoicesRoute,
+    DashboardLayoutSettingsPreferencesRoute:
+      DashboardLayoutSettingsPreferencesRoute,
+    DashboardLayoutSettingsSecurityRoute: DashboardLayoutSettingsSecurityRoute,
+    DashboardLayoutSettingsIndexRoute: DashboardLayoutSettingsIndexRoute,
+  }
+
+const DashboardLayoutSettingsRouteWithChildren =
+  DashboardLayoutSettingsRoute._addFileChildren(
+    DashboardLayoutSettingsRouteChildren,
+  )
 
 interface DashboardLayoutRouteChildren {
   DashboardLayoutActivityRoute: typeof DashboardLayoutActivityRoute
   DashboardLayoutApiKeysRoute: typeof DashboardLayoutApiKeysRoute
   DashboardLayoutModelsRoute: typeof DashboardLayoutModelsRoute
   DashboardLayoutProviderKeysRoute: typeof DashboardLayoutProviderKeysRoute
-  DashboardLayoutSettingsRoute: typeof DashboardLayoutSettingsRoute
+  DashboardLayoutSettingsRoute: typeof DashboardLayoutSettingsRouteWithChildren
   DashboardLayoutUsageRoute: typeof DashboardLayoutUsageRoute
   DashboardLayoutIndexRoute: typeof DashboardLayoutIndexRoute
 }
@@ -267,7 +399,7 @@ const DashboardLayoutRouteChildren: DashboardLayoutRouteChildren = {
   DashboardLayoutApiKeysRoute: DashboardLayoutApiKeysRoute,
   DashboardLayoutModelsRoute: DashboardLayoutModelsRoute,
   DashboardLayoutProviderKeysRoute: DashboardLayoutProviderKeysRoute,
-  DashboardLayoutSettingsRoute: DashboardLayoutSettingsRoute,
+  DashboardLayoutSettingsRoute: DashboardLayoutSettingsRouteWithChildren,
   DashboardLayoutUsageRoute: DashboardLayoutUsageRoute,
   DashboardLayoutIndexRoute: DashboardLayoutIndexRoute,
 }
@@ -301,9 +433,16 @@ export interface FileRoutesByFullPath {
   '/dashboard/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/models': typeof DashboardLayoutModelsRoute
   '/dashboard/provider-keys': typeof DashboardLayoutProviderKeysRoute
-  '/dashboard/settings': typeof DashboardLayoutSettingsRoute
+  '/dashboard/settings': typeof DashboardLayoutSettingsRouteWithChildren
   '/dashboard/usage': typeof DashboardLayoutUsageRoute
   '/dashboard/': typeof DashboardLayoutIndexRoute
+  '/dashboard/settings/account': typeof DashboardLayoutSettingsAccountRoute
+  '/dashboard/settings/advanced': typeof DashboardLayoutSettingsAdvancedRoute
+  '/dashboard/settings/billing': typeof DashboardLayoutSettingsBillingRoute
+  '/dashboard/settings/invoices': typeof DashboardLayoutSettingsInvoicesRoute
+  '/dashboard/settings/preferences': typeof DashboardLayoutSettingsPreferencesRoute
+  '/dashboard/settings/security': typeof DashboardLayoutSettingsSecurityRoute
+  '/dashboard/settings/': typeof DashboardLayoutSettingsIndexRoute
 }
 
 export interface FileRoutesByTo {
@@ -319,8 +458,14 @@ export interface FileRoutesByTo {
   '/dashboard/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/models': typeof DashboardLayoutModelsRoute
   '/dashboard/provider-keys': typeof DashboardLayoutProviderKeysRoute
-  '/dashboard/settings': typeof DashboardLayoutSettingsRoute
   '/dashboard/usage': typeof DashboardLayoutUsageRoute
+  '/dashboard/settings/account': typeof DashboardLayoutSettingsAccountRoute
+  '/dashboard/settings/advanced': typeof DashboardLayoutSettingsAdvancedRoute
+  '/dashboard/settings/billing': typeof DashboardLayoutSettingsBillingRoute
+  '/dashboard/settings/invoices': typeof DashboardLayoutSettingsInvoicesRoute
+  '/dashboard/settings/preferences': typeof DashboardLayoutSettingsPreferencesRoute
+  '/dashboard/settings/security': typeof DashboardLayoutSettingsSecurityRoute
+  '/dashboard/settings': typeof DashboardLayoutSettingsIndexRoute
 }
 
 export interface FileRoutesById {
@@ -338,9 +483,16 @@ export interface FileRoutesById {
   '/dashboard/_layout/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/_layout/models': typeof DashboardLayoutModelsRoute
   '/dashboard/_layout/provider-keys': typeof DashboardLayoutProviderKeysRoute
-  '/dashboard/_layout/settings': typeof DashboardLayoutSettingsRoute
+  '/dashboard/_layout/settings': typeof DashboardLayoutSettingsRouteWithChildren
   '/dashboard/_layout/usage': typeof DashboardLayoutUsageRoute
   '/dashboard/_layout/': typeof DashboardLayoutIndexRoute
+  '/dashboard/_layout/settings/account': typeof DashboardLayoutSettingsAccountRoute
+  '/dashboard/_layout/settings/advanced': typeof DashboardLayoutSettingsAdvancedRoute
+  '/dashboard/_layout/settings/billing': typeof DashboardLayoutSettingsBillingRoute
+  '/dashboard/_layout/settings/invoices': typeof DashboardLayoutSettingsInvoicesRoute
+  '/dashboard/_layout/settings/preferences': typeof DashboardLayoutSettingsPreferencesRoute
+  '/dashboard/_layout/settings/security': typeof DashboardLayoutSettingsSecurityRoute
+  '/dashboard/_layout/settings/': typeof DashboardLayoutSettingsIndexRoute
 }
 
 export interface FileRouteTypes {
@@ -361,6 +513,13 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/dashboard/usage'
     | '/dashboard/'
+    | '/dashboard/settings/account'
+    | '/dashboard/settings/advanced'
+    | '/dashboard/settings/billing'
+    | '/dashboard/settings/invoices'
+    | '/dashboard/settings/preferences'
+    | '/dashboard/settings/security'
+    | '/dashboard/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -375,8 +534,14 @@ export interface FileRouteTypes {
     | '/dashboard/api-keys'
     | '/dashboard/models'
     | '/dashboard/provider-keys'
-    | '/dashboard/settings'
     | '/dashboard/usage'
+    | '/dashboard/settings/account'
+    | '/dashboard/settings/advanced'
+    | '/dashboard/settings/billing'
+    | '/dashboard/settings/invoices'
+    | '/dashboard/settings/preferences'
+    | '/dashboard/settings/security'
+    | '/dashboard/settings'
   id:
     | '__root__'
     | '/'
@@ -395,6 +560,13 @@ export interface FileRouteTypes {
     | '/dashboard/_layout/settings'
     | '/dashboard/_layout/usage'
     | '/dashboard/_layout/'
+    | '/dashboard/_layout/settings/account'
+    | '/dashboard/_layout/settings/advanced'
+    | '/dashboard/_layout/settings/billing'
+    | '/dashboard/_layout/settings/invoices'
+    | '/dashboard/_layout/settings/preferences'
+    | '/dashboard/_layout/settings/security'
+    | '/dashboard/_layout/settings/'
   fileRoutesById: FileRoutesById
 }
 
@@ -498,7 +670,16 @@ export const routeTree = rootRoute
     },
     "/dashboard/_layout/settings": {
       "filePath": "dashboard/_layout/settings.tsx",
-      "parent": "/dashboard/_layout"
+      "parent": "/dashboard/_layout",
+      "children": [
+        "/dashboard/_layout/settings/account",
+        "/dashboard/_layout/settings/advanced",
+        "/dashboard/_layout/settings/billing",
+        "/dashboard/_layout/settings/invoices",
+        "/dashboard/_layout/settings/preferences",
+        "/dashboard/_layout/settings/security",
+        "/dashboard/_layout/settings/"
+      ]
     },
     "/dashboard/_layout/usage": {
       "filePath": "dashboard/_layout/usage.tsx",
@@ -507,6 +688,34 @@ export const routeTree = rootRoute
     "/dashboard/_layout/": {
       "filePath": "dashboard/_layout/index.tsx",
       "parent": "/dashboard/_layout"
+    },
+    "/dashboard/_layout/settings/account": {
+      "filePath": "dashboard/_layout/settings/account.tsx",
+      "parent": "/dashboard/_layout/settings"
+    },
+    "/dashboard/_layout/settings/advanced": {
+      "filePath": "dashboard/_layout/settings/advanced.tsx",
+      "parent": "/dashboard/_layout/settings"
+    },
+    "/dashboard/_layout/settings/billing": {
+      "filePath": "dashboard/_layout/settings/billing.tsx",
+      "parent": "/dashboard/_layout/settings"
+    },
+    "/dashboard/_layout/settings/invoices": {
+      "filePath": "dashboard/_layout/settings/invoices.tsx",
+      "parent": "/dashboard/_layout/settings"
+    },
+    "/dashboard/_layout/settings/preferences": {
+      "filePath": "dashboard/_layout/settings/preferences.tsx",
+      "parent": "/dashboard/_layout/settings"
+    },
+    "/dashboard/_layout/settings/security": {
+      "filePath": "dashboard/_layout/settings/security.tsx",
+      "parent": "/dashboard/_layout/settings"
+    },
+    "/dashboard/_layout/settings/": {
+      "filePath": "dashboard/_layout/settings/index.tsx",
+      "parent": "/dashboard/_layout/settings"
     }
   }
 }

@@ -102,6 +102,9 @@ export const organization = pgTable("organization", {
 	stripeCustomerId: text().unique(),
 	stripeSubscriptionId: text().unique(),
 	credits: decimal().notNull().default("0"),
+	autoTopUpEnabled: boolean().notNull().default(false),
+	autoTopUpThreshold: decimal().default("10"),
+	autoTopUpAmount: decimal().default("10"),
 	plan: text({
 		enum: ["free", "pro"],
 	})
@@ -109,9 +112,44 @@ export const organization = pgTable("organization", {
 		.default("free"),
 	planExpiresAt: timestamp(),
 	subscriptionCancelled: boolean().notNull().default(false),
+	retentionLevel: text({
+		enum: ["retain", "none"],
+	})
+		.notNull()
+		.default("retain"),
 	status: text({
 		enum: ["active", "inactive", "deleted"],
 	}).default("active"),
+});
+
+export const transaction = pgTable("transaction", {
+	id: text().primaryKey().notNull().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+	organizationId: text()
+		.notNull()
+		.references(() => organization.id, { onDelete: "cascade" }),
+	type: text({
+		enum: [
+			"subscription_start",
+			"subscription_cancel",
+			"subscription_end",
+			"credit_topup",
+		],
+	}).notNull(),
+	amount: decimal().notNull(),
+	currency: text().notNull().default("USD"),
+	status: text({
+		enum: ["pending", "completed", "failed"],
+	})
+		.notNull()
+		.default("completed"),
+	stripePaymentIntentId: text(),
+	stripeInvoiceId: text(),
+	description: text(),
 });
 
 export const userOrganization = pgTable("user_organization", {
@@ -220,7 +258,7 @@ export const log = pgTable("log", {
 	promptTokens: decimal(),
 	completionTokens: decimal(),
 	totalTokens: decimal(),
-	messages: json().notNull(),
+	messages: json(),
 	temperature: real(),
 	maxTokens: integer(),
 	topP: real(),
@@ -289,6 +327,16 @@ export const organizationAction = pgTable("organization_action", {
 	}).notNull(),
 	amount: decimal().notNull(),
 	description: text(),
+});
+
+export const lock = pgTable("lock", {
+	id: text().primaryKey().$defaultFn(shortid),
+	createdAt: timestamp().notNull().defaultNow(),
+	updatedAt: timestamp()
+		.notNull()
+		.defaultNow()
+		.$onUpdate(() => new Date()),
+	key: text().notNull().unique(),
 });
 
 export const chat = pgTable("chat", {

@@ -1159,8 +1159,13 @@ export interface paths {
 								/** @enum {string} */
 								plan: "free" | "pro";
 								planExpiresAt: string | null;
+								/** @enum {string} */
+								retentionLevel: "retain" | "none";
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
+								autoTopUpEnabled: boolean;
+								autoTopUpThreshold: string | null;
+								autoTopUpAmount: string | null;
 							}[];
 						};
 					};
@@ -1199,8 +1204,13 @@ export interface paths {
 								/** @enum {string} */
 								plan: "free" | "pro";
 								planExpiresAt: string | null;
+								/** @enum {string} */
+								retentionLevel: "retain" | "none";
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
+								autoTopUpEnabled: boolean;
+								autoTopUpThreshold: string | null;
+								autoTopUpAmount: string | null;
 							};
 						};
 					};
@@ -1335,6 +1345,11 @@ export interface paths {
 				content: {
 					"application/json": {
 						name?: string;
+						/** @enum {string} */
+						retentionLevel?: "retain" | "none";
+						autoTopUpEnabled?: boolean;
+						autoTopUpThreshold?: number;
+						autoTopUpAmount?: number;
 					};
 				};
 			};
@@ -1356,8 +1371,13 @@ export interface paths {
 								/** @enum {string} */
 								plan: "free" | "pro";
 								planExpiresAt: string | null;
+								/** @enum {string} */
+								retentionLevel: "retain" | "none";
 								/** @enum {string|null} */
 								status: "active" | "inactive" | "deleted" | null;
+								autoTopUpEnabled: boolean;
+								autoTopUpThreshold: string | null;
+								autoTopUpAmount: string | null;
 							};
 						};
 					};
@@ -1386,6 +1406,63 @@ export interface paths {
 				};
 			};
 		};
+		trace?: never;
+	};
+	"/orgs/{id}/transactions": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path: {
+					id: string;
+				};
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description List of transactions for the specified organization */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							transactions: {
+								id: string;
+								createdAt: string;
+								updatedAt: string;
+								organizationId: string;
+								/** @enum {string} */
+								type:
+									| "subscription_start"
+									| "subscription_cancel"
+									| "subscription_end"
+									| "credit_topup";
+								amount: string;
+								currency: string;
+								/** @enum {string} */
+								status: "pending" | "completed" | "failed";
+								stripePaymentIntentId: string | null;
+								stripeInvoiceId: string | null;
+								description: string | null;
+							}[];
+						};
+					};
+				};
+			};
+		};
+		put?: never;
+		post?: never;
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
 		trace?: never;
 	};
 	"/payments/create-payment-intent": {

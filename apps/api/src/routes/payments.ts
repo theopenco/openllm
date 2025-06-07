@@ -89,8 +89,7 @@ payments.openapi(createPaymentIntent, async (c) => {
 		return c.json({
 			clientSecret: paymentIntent.client_secret || "",
 		});
-	} catch (error) {
-		console.error("Stripe error:", error);
+	} catch (_error) {
 		throw new HTTPException(500, {
 			message: "Failed to create payment intent",
 		});
@@ -152,8 +151,7 @@ payments.openapi(createSetupIntent, async (c) => {
 		return c.json({
 			clientSecret: setupIntent.client_secret || "",
 		});
-	} catch (error) {
-		console.error("Stripe error:", error);
+	} catch (_error) {
 		throw new HTTPException(500, {
 			message: "Failed to create setup intent",
 		});
@@ -248,8 +246,7 @@ payments.openapi(getPaymentMethods, async (c) => {
 		return c.json({
 			paymentMethods: enhancedPaymentMethods,
 		});
-	} catch (error) {
-		console.error("Error fetching payment methods:", error);
+	} catch (_error) {
 		throw new HTTPException(500, {
 			message: "Failed to fetch payment methods",
 		});
@@ -343,8 +340,7 @@ payments.openapi(setDefaultPaymentMethod, async (c) => {
 		return c.json({
 			success: true,
 		});
-	} catch (error) {
-		console.error("Error setting default payment method:", error);
+	} catch (_error) {
 		throw new HTTPException(500, {
 			message: "Failed to set default payment method",
 		});
@@ -424,8 +420,7 @@ payments.openapi(deletePaymentMethod, async (c) => {
 		return c.json({
 			success: true,
 		});
-	} catch (error) {
-		console.error("Error deleting payment method:", error);
+	} catch (_error) {
 		throw new HTTPException(500, {
 			message: "Failed to delete payment method",
 		});
@@ -534,8 +529,7 @@ payments.openapi(topUpWithSavedMethod, async (c) => {
 		return c.json({
 			success: true,
 		});
-	} catch (error) {
-		console.error("Stripe error:", error);
+	} catch (_error) {
 		throw new HTTPException(500, {
 			message: "Failed to process payment",
 		});

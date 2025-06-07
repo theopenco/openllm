@@ -16,7 +16,11 @@ const organizationSchema = z.object({
 	credits: z.string(),
 	plan: z.enum(["free", "pro"]),
 	planExpiresAt: z.date().nullable(),
+	retentionLevel: z.enum(["retain", "none"]),
 	status: z.enum(["active", "inactive", "deleted"]).nullable(),
+	autoTopUpEnabled: z.boolean(),
+	autoTopUpThreshold: z.string().nullable(),
+	autoTopUpAmount: z.string().nullable(),
 });
 
 const projectSchema = z.object({
@@ -37,6 +41,29 @@ const createOrganizationSchema = z.object({
 
 const updateOrganizationSchema = z.object({
 	name: z.string().min(1).max(255).optional(),
+	retentionLevel: z.enum(["retain", "none"]).optional(),
+	autoTopUpEnabled: z.boolean().optional(),
+	autoTopUpThreshold: z.number().min(5).optional(),
+	autoTopUpAmount: z.number().min(10).optional(),
+});
+
+const transactionSchema = z.object({
+	id: z.string(),
+	createdAt: z.date(),
+	updatedAt: z.date(),
+	organizationId: z.string(),
+	type: z.enum([
+		"subscription_start",
+		"subscription_cancel",
+		"subscription_end",
+		"credit_topup",
+	]),
+	amount: z.string(),
+	currency: z.string(),
+	status: z.enum(["pending", "completed", "failed"]),
+	stripePaymentIntentId: z.string().nullable(),
+	stripeInvoiceId: z.string().nullable(),
+	description: z.string().nullable(),
 });
 
 const getOrganizations = createRoute({
@@ -260,7 +287,13 @@ organization.openapi(updateOrganization, async (c) => {
 	}
 
 	const { id } = c.req.param();
-	const { name } = await c.req.json();
+	const {
+		name,
+		retentionLevel,
+		autoTopUpEnabled,
+		autoTopUpThreshold,
+		autoTopUpAmount,
+	} = await c.req.json();
 
 	const userOrganization = await db.query.userOrganization.findFirst({
 		where: {
@@ -288,6 +321,18 @@ organization.openapi(updateOrganization, async (c) => {
 	const updateData: any = {};
 	if (name !== undefined) {
 		updateData.name = name;
+	}
+	if (retentionLevel !== undefined) {
+		updateData.retentionLevel = retentionLevel;
+	}
+	if (autoTopUpEnabled !== undefined) {
+		updateData.autoTopUpEnabled = autoTopUpEnabled;
+	}
+	if (autoTopUpThreshold !== undefined) {
+		updateData.autoTopUpThreshold = autoTopUpThreshold.toString();
+	}
+	if (autoTopUpAmount !== undefined) {
+		updateData.autoTopUpAmount = autoTopUpAmount.toString();
 	}
 
 	const [updatedOrganization] = await db
@@ -386,6 +431,71 @@ organization.openapi(deleteOrganization, async (c) => {
 
 	return c.json({
 		message: "Organization deleted successfully",
+	});
+});
+
+const getTransactions = createRoute({
+	method: "get",
+	path: "/{id}/transactions",
+	request: {
+		params: z.object({
+			id: z.string(),
+		}),
+	},
+	responses: {
+		200: {
+			content: {
+				"application/json": {
+					schema: z.object({
+						transactions: z.array(transactionSchema).openapi({}),
+					}),
+				},
+			},
+			description: "List of transactions for the specified organization",
+		},
+	},
+});
+
+organization.openapi(getTransactions, async (c) => {
+	const user = c.get("user");
+	if (!user) {
+		throw new HTTPException(401, {
+			message: "Unauthorized",
+		});
+	}
+
+	const { id } = c.req.param();
+
+	const userOrganization = await db.query.userOrganization.findFirst({
+		where: {
+			userId: {
+				eq: user.id,
+			},
+			organizationId: {
+				eq: id,
+			},
+		},
+	});
+
+	if (!userOrganization) {
+		throw new HTTPException(403, {
+			message: "You do not have access to this organization",
+		});
+	}
+
+	const transactions = await db.query.transaction.findMany({
+		where: {
+			organizationId: {
+				eq: id,
+			},
+		},
+		orderBy: {
+			createdAt: "desc",
+		},
+	});
+
+	return c.json({
+		transactions,
 	});
 });
 

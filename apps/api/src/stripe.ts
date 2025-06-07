@@ -181,6 +181,7 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 				await handlePaymentIntentSucceeded(event);
 				break;
 			case "payment_intent.payment_failed":
+				await handlePaymentIntentFailed(event);
 				break;
 			case "setup_intent.succeeded":
 				await handleSetupIntentSucceeded(event);
@@ -235,13 +236,51 @@ async function handlePaymentIntentSucceeded(
 		})
 		.where(eq(tables.organization.id, organizationId));
 
-	// Insert entry into organization_action table
-	await db.insert(tables.organizationAction).values({
-		organizationId,
-		type: "credit",
-		amount: amountInDollars.toString(),
-		description: "Payment received via Stripe",
-	});
+	// Check if this is an auto top-up with an existing pending transaction
+	const transactionId = metadata?.transactionId;
+	if (transactionId) {
+		// Update existing pending transaction
+		const updatedTransaction = await db
+			.update(tables.transaction)
+			.set({
+				status: "completed",
+				description: "Auto top-up completed via Stripe webhook",
+			})
+			.where(eq(tables.transaction.id, transactionId))
+			.returning()
+			.then((rows) => rows[0]);
+
+		if (updatedTransaction) {
+			console.log(
+				`Updated pending transaction ${transactionId} to completed for organization ${organizationId}`,
+			);
+		} else {
+			console.warn(
+				`Could not find pending transaction ${transactionId} for organization ${organizationId}`,
+			);
+			// Fallback: create new transaction record
+			await db.insert(tables.transaction).values({
+				organizationId,
+				type: "credit_topup",
+				amount: amountInDollars.toString(),
+				currency: paymentIntent.currency.toUpperCase(),
+				status: "completed",
+				stripePaymentIntentId: paymentIntent.id,
+				description: "Credit top-up via Stripe (fallback)",
+			});
+		}
+	} else {
+		// Create new transaction record (for manual top-ups or old auto top-ups)
+		await db.insert(tables.transaction).values({
+			organizationId,
+			type: "credit_topup",
+			amount: amountInDollars.toString(),
+			currency: paymentIntent.currency.toUpperCase(),
+			status: "completed",
+			stripePaymentIntentId: paymentIntent.id,
+			description: "Credit top-up via Stripe",
+		});
+	}
 
 	posthog.groupIdentify({
 		groupType: "organization",
@@ -265,6 +304,53 @@ async function handlePaymentIntentSucceeded(
 
 	console.log(
 		`Added ${amountInDollars} credits to organization ${organizationId}`,
+	);
+}
+
+async function handlePaymentIntentFailed(
+	event: Stripe.PaymentIntentPaymentFailedEvent,
+) {
+	const paymentIntent = event.data.object;
+	const { metadata } = paymentIntent;
+
+	const result = await resolveOrganizationFromStripeEvent({
+		metadata,
+	});
+
+	if (!result) {
+		console.error("Could not resolve organization from failed payment intent");
+		return;
+	}
+
+	const { organizationId } = result;
+
+	// Check if this is an auto top-up with an existing pending transaction
+	const transactionId = metadata?.transactionId;
+	if (transactionId) {
+		// Update existing pending transaction to failed
+		const updatedTransaction = await db
+			.update(tables.transaction)
+			.set({
+				status: "failed",
+				description: `Auto top-up failed via Stripe webhook: ${paymentIntent.last_payment_error?.message || "Unknown error"}`,
+			})
+			.where(eq(tables.transaction.id, transactionId))
+			.returning()
+			.then((rows) => rows[0]);
+
+		if (updatedTransaction) {
+			console.log(
+				`Updated pending transaction ${transactionId} to failed for organization ${organizationId}`,
+			);
+		} else {
+			console.warn(
+				`Could not find pending transaction ${transactionId} for organization ${organizationId}`,
+			);
+		}
+	}
+
+	console.log(
+		`Payment intent failed for organization ${organizationId}: ${paymentIntent.last_payment_error?.message || "Unknown error"}`,
 	);
 }
 
@@ -368,6 +454,18 @@ async function handleInvoicePaymentSucceeded(
 		`Found organization: ${organization.name} (${organization.id}), current plan: ${organization.plan}`,
 	);
 
+	// Create transaction record for subscription start
+	await db.insert(tables.transaction).values({
+		organizationId,
+		type: "subscription_start",
+		amount: (invoice.amount_paid / 100).toString(),
+		currency: invoice.currency.toUpperCase(),
+		status: "completed",
+		stripePaymentIntentId: (invoice as any).payment_intent,
+		stripeInvoiceId: invoice.id,
+		description: "Pro subscription started",
+	});
+
 	// Update organization to pro plan and mark subscription as not cancelled
 	try {
 		const result = await db
@@ -458,6 +556,19 @@ async function handleSubscriptionUpdated(
 	const isSubscriptionActive = subscription.status === "active";
 	const wasSubscriptionCancelled = organization.subscriptionCancelled;
 
+	// Create transaction record for subscription cancellation if it was cancelled
+	if (!isSubscriptionActive && !wasSubscriptionCancelled) {
+		await db.insert(tables.transaction).values({
+			organizationId,
+			type: "subscription_cancel",
+			amount: "0",
+			currency: "USD",
+			status: "completed",
+			stripeInvoiceId: subscription.latest_invoice as string,
+			description: "Pro subscription cancelled",
+		});
+	}
+
 	await db
 		.update(tables.organization)
 		.set({
@@ -512,6 +623,17 @@ async function handleSubscriptionDeleted(
 	}
 
 	const { organizationId } = result;
+
+	// Create transaction record for subscription end
+	await db.insert(tables.transaction).values({
+		organizationId,
+		type: "subscription_end",
+		amount: "0",
+		currency: "USD",
+		status: "completed",
+		stripeInvoiceId: subscription.latest_invoice as string,
+		description: "Pro subscription ended",
+	});
 
 	// Downgrade organization to free plan and mark subscription as cancelled
 	await db

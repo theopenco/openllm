@@ -6,8 +6,12 @@ export interface Organization {
 	credits: number;
 	plan: "free" | "pro";
 	planExpiresAt: string | null;
+	retentionLevel: "retain" | "none";
 	createdAt: string;
 	updatedAt: string;
+	autoTopUpEnabled?: boolean;
+	autoTopUpThreshold?: string | null;
+	autoTopUpAmount?: string | null;
 }
 
 export interface OrganizationsResponse {
@@ -15,15 +19,14 @@ export interface OrganizationsResponse {
 }
 
 export function useDefaultOrganization() {
-	const { data, isLoading, error } = $api.useQuery("get", "/orgs");
+	const { data, error } = $api.useSuspenseQuery("get", "/orgs");
 
 	if (!data?.organizations || data.organizations.length === 0) {
 		return {
 			data: null,
-			isLoading,
 			error: error || new Error("No organizations found"),
 		};
 	}
 
-	return { data: data.organizations[0], isLoading, error };
+	return { data: data.organizations[0], error };
 }
