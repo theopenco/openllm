@@ -11,17 +11,17 @@ const comparisonData = [
 			{
 				title: "Free tier",
 				description: "Get started without upfront costs",
-				llmgateway: "5% fee on credits",
-				openrouter: "10% fee on credits",
+				llmgateway: "5% credit fee, 0% API key fee",
+				openrouter: "5% fee when using credits or API keys",
 			},
 			{
 				title: "Pro plan pricing",
 				description: "Monthly subscription cost",
 				llmgateway: "$50/month",
-				openrouter: "No subscription",
+				openrouter: "No subscription, fixed fees",
 			},
 			{
-				title: "Zero gateway fees",
+				title: "Zero usage fees",
 				description: "No additional fees when using your own API keys",
 				llmgateway: "Pro plan",
 				openrouter: false,
@@ -40,8 +40,8 @@ const comparisonData = [
 			{
 				title: "Supported providers",
 				description: "Major LLM providers available",
-				llmgateway: "OpenAI, Anthropic, Google, Mistral, Groq+",
-				openrouter: "50+ providers",
+				llmgateway: "Most common plus AWS Bedrock",
+				openrouter: "Most common",
 			},
 			{
 				title: "Total models",
@@ -188,7 +188,7 @@ export function Comparison() {
 									LLM Gateway
 								</h3>
 								<p className="text-sm text-muted-foreground mb-2">
-									ENTERPRISE-FOCUSED
+									OPEN & LOWER FEES
 								</p>
 								<p className="text-2xl font-bold text-primary">From $0</p>
 								<p className="text-xs text-muted-foreground mt-1">
@@ -202,7 +202,7 @@ export function Comparison() {
 									OpenRouter
 								</h3>
 								<p className="text-sm text-muted-foreground mb-2">
-									SCALE-FOCUSED
+									CLOSED & 5% fee
 								</p>
 								<p className="text-2xl font-bold text-foreground">From $0</p>
 								<p className="text-xs text-muted-foreground mt-1">
