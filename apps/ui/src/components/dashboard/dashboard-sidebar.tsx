@@ -2,7 +2,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
 	BarChart3,
-	CreditCard,
 	Key,
 	LayoutDashboard,
 	LogOutIcon,
@@ -12,6 +11,8 @@ import {
 	X,
 	ChevronRight,
 	ChevronDown,
+	BotMessageSquare,
+	BrainCircuit,
 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useEffect, useState } from "react";
@@ -149,7 +150,12 @@ export function DashboardSidebar() {
 								{
 									href: "/dashboard/models",
 									label: "Models",
-									icon: CreditCard,
+									icon: BrainCircuit,
+								},
+								{
+									href: "/playground",
+									label: "Playground",
+									icon: BotMessageSquare,
 								},
 							].map((item) => (
 								<SidebarMenuItem key={item.href}>
