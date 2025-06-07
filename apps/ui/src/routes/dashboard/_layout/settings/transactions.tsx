@@ -12,31 +12,15 @@ import {
 } from "@/lib/components/card";
 import { $api } from "@/lib/fetch-client";
 
-interface Transaction {
-	id: string;
-	createdAt: string;
-	updatedAt: string;
-	organizationId: string;
-	type:
-		| "credit_topup"
-		| "subscription_start"
-		| "subscription_cancel"
-		| "subscription_end";
-	amount: string;
-	currency: string;
-	status: "pending" | "completed" | "failed";
-	stripePaymentIntentId: string | null;
-	stripeInvoiceId: string | null;
-	description: string | null;
-}
-
-export const Route = createFileRoute("/dashboard/_layout/settings/invoices")({
-	component: InvoicesPage,
+export const Route = createFileRoute(
+	"/dashboard/_layout/settings/transactions",
+)({
+	component: TransactionsPage,
 	pendingComponent: SettingsLoading,
-	errorComponent: () => <div>Error loading invoices</div>,
+	errorComponent: () => <div>Error loading transactions</div>,
 });
 
-function InvoicesPage() {
+function TransactionsPage() {
 	const { data: organization } = useDefaultOrganization();
 
 	const { data } = $api.useSuspenseQuery("get", "/orgs/{id}/transactions", {
@@ -53,7 +37,7 @@ function InvoicesPage() {
 		<div className="flex flex-col">
 			<div className="flex-1 space-y-4 p-4 pt-6 md:p-8">
 				<div className="flex items-center justify-between">
-					<h2 className="text-3xl font-bold tracking-tight">Invoices</h2>
+					<h2 className="text-3xl font-bold tracking-tight">Transactions</h2>
 				</div>
 				<Card>
 					<CardHeader>
@@ -75,7 +59,10 @@ function InvoicesPage() {
 											Type
 										</th>
 										<th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-											Amount
+											Credits
+										</th>
+										<th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+											Total Paid
 										</th>
 										<th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
 											Status
@@ -86,7 +73,7 @@ function InvoicesPage() {
 									</tr>
 								</thead>
 								<tbody>
-									{data.transactions.map((transaction: Transaction) => (
+									{data.transactions.map((transaction) => (
 										<tr key={transaction.id} className="border-b">
 											<td className="p-4 align-middle">
 												{format(
@@ -104,7 +91,10 @@ function InvoicesPage() {
 													"Subscription Ended"}
 											</td>
 											<td className="p-4 align-middle">
-												{transaction.amount} {transaction.currency}
+												{transaction.creditAmount || "—"}
+											</td>
+											<td className="p-4 align-middle">
+												{transaction.amount || "—"}
 											</td>
 											<td className="p-4 align-middle">
 												<span
@@ -127,7 +117,7 @@ function InvoicesPage() {
 									{data.transactions.length === 0 && (
 										<tr>
 											<td
-												colSpan={5}
+												colSpan={6}
 												className="p-4 text-center text-muted-foreground"
 											>
 												No transactions found

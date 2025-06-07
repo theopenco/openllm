@@ -42,7 +42,7 @@ function RouteComponent() {
 					</Card>
 					<Card>
 						<CardHeader>
-							<CardTitle>Invoices</CardTitle>
+							<CardTitle>Transactions</CardTitle>
 							<CardDescription>
 								View your payment history and download invoices
 							</CardDescription>
@@ -51,13 +51,16 @@ function RouteComponent() {
 							<div className="flex flex-col space-y-4">
 								<div className="flex items-center justify-between">
 									<div>
-										<h3 className="text-lg font-medium">Invoices</h3>
+										<h3 className="text-lg font-medium">Transactions</h3>
 										<p className="text-sm text-muted-foreground">
 											View your billing history and download invoices
 										</p>
+										3
 									</div>
 									<Button asChild>
-										<Link to="/dashboard/settings/invoices">View Invoices</Link>
+										<Link to="/dashboard/settings/transactions">
+											Transaction History
+										</Link>
 									</Button>
 								</div>
 							</div>

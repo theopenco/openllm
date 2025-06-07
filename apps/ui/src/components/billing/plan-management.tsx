@@ -261,12 +261,19 @@ function UpgradeDialog({ onSuccess }: { onSuccess: () => void }) {
 
 			// If no client secret, payment succeeded immediately
 			if (!clientSecret) {
+				// wait for webhook
+				await new Promise((resolve) => {
+					setTimeout(resolve, 3000);
+				});
+
 				await queryClient.invalidateQueries({
 					queryKey: $api.queryOptions("get", "/subscriptions/status").queryKey,
 				});
+
 				toast({
 					title: "Upgrade Successful",
-					description: "Welcome to Pro! You may need to refresh the page.",
+					description:
+						"Welcome to Pro! You may need to wait for a minute and/or refresh the page.",
 				});
 				onSuccess();
 				return;
@@ -292,7 +299,8 @@ function UpgradeDialog({ onSuccess }: { onSuccess: () => void }) {
 				});
 				toast({
 					title: "Upgrade Successful",
-					description: "Welcome to Pro! You may need to refresh the page.",
+					description:
+						"Welcome to Pro! You may need to wait for a minute and/or refresh the page.",
 				});
 				onSuccess();
 			} else if (status === "requires_action") {

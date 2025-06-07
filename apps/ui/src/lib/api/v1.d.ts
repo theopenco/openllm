@@ -1444,7 +1444,8 @@ export interface paths {
 									| "subscription_cancel"
 									| "subscription_end"
 									| "credit_topup";
-								amount: string;
+								amount: string | null;
+								creditAmount: string | null;
 								currency: string;
 								/** @enum {string} */
 								status: "pending" | "completed" | "failed";
@@ -1706,6 +1707,55 @@ export interface paths {
 					content: {
 						"application/json": {
 							success: boolean;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
+	"/payments/calculate-fees": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						amount: number;
+						paymentMethodId?: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Fee calculation completed successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							baseAmount: number;
+							stripeFee: number;
+							internationalFee: number;
+							planFee: number;
+							totalFees: number;
+							totalAmount: number;
 						};
 					};
 				};

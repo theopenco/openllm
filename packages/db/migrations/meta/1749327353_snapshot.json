@@ -1,6 +1,6 @@
 {
-  "id": "c2123222-995c-44a9-8a56-e4d24d485925",
-  "prevId": "4075ddb7-c356-4489-bde0-4ce193a32945",
+  "id": "9790dbfa-28cc-441e-8669-f8942bb33ae3",
+  "prevId": "312d363a-6c29-43f7-bf4a-aa15803a526b",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1314,7 +1314,13 @@
           "name": "amount",
           "type": "numeric",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "credit_amount": {
+          "name": "credit_amount",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
         },
         "currency": {
           "name": "currency",
