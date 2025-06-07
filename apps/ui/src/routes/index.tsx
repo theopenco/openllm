@@ -7,6 +7,7 @@ import Features from "@/components/landing/features";
 import Footer from "@/components/landing/footer";
 import { Graph } from "@/components/landing/graph";
 import { Hero } from "@/components/landing/hero";
+import { PricingPlans } from "@/components/landing/pricing-plans";
 
 export const Route = createFileRoute("/")({
 	component: Home,
@@ -20,6 +21,7 @@ function Home() {
 				<Features />
 				<Graph />
 				<CodeExample />
+				<PricingPlans />
 				<Faq />
 				<CallToAction />
 			</main>
