@@ -235,12 +235,15 @@ async function handlePaymentIntentSucceeded(
 		})
 		.where(eq(tables.organization.id, organizationId));
 
-	// Insert entry into organization_action table
-	await db.insert(tables.organizationAction).values({
+	// Create transaction record
+	await db.insert(tables.transaction).values({
 		organizationId,
-		type: "credit",
+		type: "credit_topup",
 		amount: amountInDollars.toString(),
-		description: "Payment received via Stripe",
+		currency: paymentIntent.currency.toUpperCase(),
+		status: "completed",
+		stripePaymentIntentId: paymentIntent.id,
+		description: "Credit top-up via Stripe",
 	});
 
 	posthog.groupIdentify({
@@ -368,6 +371,18 @@ async function handleInvoicePaymentSucceeded(
 		`Found organization: ${organization.name} (${organization.id}), current plan: ${organization.plan}`,
 	);
 
+	// Create transaction record for subscription start
+	await db.insert(tables.transaction).values({
+		organizationId,
+		type: "subscription_start",
+		amount: (invoice.amount_paid / 100).toString(),
+		currency: invoice.currency.toUpperCase(),
+		status: "completed",
+		stripePaymentIntentId: (invoice as any).payment_intent,
+		stripeInvoiceId: invoice.id,
+		description: "Pro subscription started",
+	});
+
 	// Update organization to pro plan and mark subscription as not cancelled
 	try {
 		const result = await db
@@ -458,6 +473,19 @@ async function handleSubscriptionUpdated(
 	const isSubscriptionActive = subscription.status === "active";
 	const wasSubscriptionCancelled = organization.subscriptionCancelled;
 
+	// Create transaction record for subscription cancellation if it was cancelled
+	if (!isSubscriptionActive && !wasSubscriptionCancelled) {
+		await db.insert(tables.transaction).values({
+			organizationId,
+			type: "subscription_cancel",
+			amount: "0",
+			currency: "USD",
+			status: "completed",
+			stripeInvoiceId: subscription.latest_invoice as string,
+			description: "Pro subscription cancelled",
+		});
+	}
+
 	await db
 		.update(tables.organization)
 		.set({
@@ -512,6 +540,17 @@ async function handleSubscriptionDeleted(
 	}
 
 	const { organizationId } = result;
+
+	// Create transaction record for subscription end
+	await db.insert(tables.transaction).values({
+		organizationId,
+		type: "subscription_end",
+		amount: "0",
+		currency: "USD",
+		status: "completed",
+		stripeInvoiceId: subscription.latest_invoice as string,
+		description: "Pro subscription ended",
+	});
 
 	// Downgrade organization to free plan and mark subscription as cancelled
 	await db
