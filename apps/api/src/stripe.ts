@@ -493,15 +493,8 @@ async function handleInvoicePaymentSucceeded(
 			result.length,
 		);
 
-		// Verify the update
-		const updatedOrganization = await db.query.organization.findFirst({
-			where: {
-				id: organizationId,
-			},
-		});
-
 		console.log(
-			`Verification - organization plan is now: ${updatedOrganization?.plan}`,
+			`Verification - organization plan is now: ${result && result[0]?.plan}`,
 		);
 
 		// Track subscription creation in PostHog
@@ -540,10 +533,11 @@ async function handleSubscriptionUpdated(
 	const subscription = event.data.object;
 	const { customer, metadata } = subscription;
 
-	const current_period_end =
+	const currentPeriodEnd =
 		subscription.items.data.length > 0
 			? subscription.items.data[0].current_period_end
 			: undefined;
+	const cancelAtPeriodEnd = subscription.cancel_at_period_end;
 
 	const result = await resolveOrganizationFromStripeEvent({
 		metadata: metadata as { organizationId?: string } | undefined,
@@ -559,12 +553,12 @@ async function handleSubscriptionUpdated(
 	const { organizationId, organization } = result;
 
 	// Update plan expiration date
-	const planExpiresAt = current_period_end
-		? new Date(current_period_end * 1000)
+	const planExpiresAt = currentPeriodEnd
+		? new Date(currentPeriodEnd * 1000)
 		: undefined;
 
 	// Check if subscription is active and organization was previously cancelled
-	const isSubscriptionActive = !planExpiresAt;
+	const isSubscriptionActive = !cancelAtPeriodEnd;
 	const wasSubscriptionCancelled = organization.subscriptionCancelled;
 
 	// Create transaction record for subscription cancellation if it was cancelled
@@ -651,7 +645,7 @@ async function handleSubscriptionDeleted(
 			plan: "free",
 			stripeSubscriptionId: null,
 			planExpiresAt: null,
-			subscriptionCancelled: true,
+			subscriptionCancelled: false,
 		})
 		.where(eq(tables.organization.id, organizationId));
 
