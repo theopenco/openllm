@@ -192,13 +192,10 @@ subscriptions.openapi(cancelProSubscription, async (c) => {
 			cancel_at_period_end: true,
 		});
 
-		// Update organization to mark subscription as cancelled
-		await db
-			.update(tables.organization)
-			.set({
-				subscriptionCancelled: true,
-			})
-			.where(eq(tables.organization.id, organization.id));
+		// let the webhook handler the rest to unify the logic
+		await new Promise((resolve) => {
+			setTimeout(resolve, 5000);
+		});
 
 		return c.json({
 			success: true,
@@ -278,13 +275,10 @@ subscriptions.openapi(resumeProSubscription, async (c) => {
 			cancel_at_period_end: false,
 		});
 
-		// Update organization to mark subscription as not cancelled
-		await db
-			.update(tables.organization)
-			.set({
-				subscriptionCancelled: false,
-			})
-			.where(eq(tables.organization.id, organization.id));
+		// let the webhook handler the rest to unify the logic
+		await new Promise((resolve) => {
+			setTimeout(resolve, 5000);
+		});
 
 		return c.json({
 			success: true,
