@@ -1330,6 +1330,62 @@ chat.openapi(completions, async (c) => {
 					for (const line of lines) {
 						if (line.startsWith("data: ")) {
 							if (line === "data: [DONE]") {
+								// Calculate final usage if we don't have complete data
+								let finalPromptTokens = promptTokens;
+								let finalCompletionTokens = completionTokens;
+								let finalTotalTokens = totalTokens;
+
+								// Estimate missing tokens if needed
+								if (finalPromptTokens === null) {
+									finalPromptTokens = Math.round(
+										messages.reduce(
+											(acc, m) => acc + (m.content?.length || 0),
+											0,
+										) / 4,
+									);
+								}
+
+								if (finalCompletionTokens === null) {
+									finalCompletionTokens = Math.round(fullContent.length / 4);
+								}
+
+								if (finalTotalTokens === null) {
+									finalTotalTokens =
+										(finalPromptTokens || 0) + (finalCompletionTokens || 0);
+								}
+
+								// Send final usage chunk before [DONE] if we have any usage data
+								if (
+									finalPromptTokens !== null ||
+									finalCompletionTokens !== null ||
+									finalTotalTokens !== null
+								) {
+									const finalUsageChunk = {
+										id: `chatcmpl-${Date.now()}`,
+										object: "chat.completion.chunk",
+										created: Math.floor(Date.now() / 1000),
+										model: usedModel,
+										choices: [
+											{
+												index: 0,
+												delta: {},
+												finish_reason: null,
+											},
+										],
+										usage: {
+											prompt_tokens: finalPromptTokens || 0,
+											completion_tokens: finalCompletionTokens || 0,
+											total_tokens: finalTotalTokens || 0,
+										},
+									};
+
+									await stream.writeSSE({
+										event: "chunk",
+										data: JSON.stringify(finalUsageChunk),
+										id: String(eventId++),
+									});
+								}
+
 								await stream.writeSSE({
 									event: "done",
 									data: "[DONE]",
@@ -1345,6 +1401,29 @@ chat.openapi(completions, async (c) => {
 										usedModel,
 										data,
 									);
+
+									// For Anthropic, if we have partial usage data, complete it
+									if (usedProvider === "anthropic" && transformedData.usage) {
+										const usage = transformedData.usage;
+										if (
+											usage.output_tokens !== undefined &&
+											usage.prompt_tokens === undefined
+										) {
+											// Estimate prompt tokens if not provided
+											const estimatedPromptTokens = Math.round(
+												messages.reduce(
+													(acc, m) => acc + (m.content?.length || 0),
+													0,
+												) / 4,
+											);
+											transformedData.usage = {
+												prompt_tokens: estimatedPromptTokens,
+												completion_tokens: usage.output_tokens,
+												total_tokens:
+													estimatedPromptTokens + usage.output_tokens,
+											};
+										}
+									}
 
 									await stream.writeSSE({
 										event: "chunk",
@@ -1496,14 +1575,13 @@ chat.openapi(completions, async (c) => {
 				// Log the streaming request
 				const duration = Date.now() - startTime;
 
-				// Calculate estimated tokens for Anthropic if not provided
+				// Calculate estimated tokens if not provided
 				let calculatedPromptTokens = promptTokens;
 				let calculatedCompletionTokens = completionTokens;
+				let calculatedTotalTokens = totalTokens;
 
-				if (
-					usedProvider === "anthropic" &&
-					(!promptTokens || !completionTokens)
-				) {
+				// Estimate tokens for providers that don't provide them during streaming
+				if (!promptTokens || !completionTokens) {
 					if (!promptTokens) {
 						calculatedPromptTokens =
 							messages.reduce((acc, m) => acc + (m.content?.length || 0), 0) /
@@ -1512,6 +1590,54 @@ chat.openapi(completions, async (c) => {
 
 					if (!completionTokens) {
 						calculatedCompletionTokens = fullContent.length / 4;
+					}
+
+					calculatedTotalTokens =
+						(calculatedPromptTokens || 0) + (calculatedCompletionTokens || 0);
+				}
+
+				// Send final usage chunk if we haven't sent one yet and we have calculated usage
+				if (
+					promptTokens === null &&
+					completionTokens === null &&
+					totalTokens === null &&
+					(calculatedPromptTokens !== null ||
+						calculatedCompletionTokens !== null)
+				) {
+					try {
+						const finalUsageChunk = {
+							id: `chatcmpl-${Date.now()}`,
+							object: "chat.completion.chunk",
+							created: Math.floor(Date.now() / 1000),
+							model: usedModel,
+							choices: [
+								{
+									index: 0,
+									delta: {},
+									finish_reason: null,
+								},
+							],
+							usage: {
+								prompt_tokens: Math.round(calculatedPromptTokens || 0),
+								completion_tokens: Math.round(calculatedCompletionTokens || 0),
+								total_tokens: Math.round(calculatedTotalTokens || 0),
+							},
+						};
+
+						await stream.writeSSE({
+							event: "chunk",
+							data: JSON.stringify(finalUsageChunk),
+							id: String(eventId++),
+						});
+
+						// Send final [DONE] if we haven't already
+						await stream.writeSSE({
+							event: "done",
+							data: "[DONE]",
+							id: String(eventId++),
+						});
+					} catch (error) {
+						console.error("Error sending final usage chunk:", error);
 					}
 				}
 
@@ -1549,9 +1675,9 @@ chat.openapi(completions, async (c) => {
 					responseSize: fullContent.length,
 					content: fullContent,
 					finishReason: finishReason,
-					promptTokens: promptTokens,
-					completionTokens: completionTokens,
-					totalTokens: totalTokens,
+					promptTokens: calculatedPromptTokens,
+					completionTokens: calculatedCompletionTokens,
+					totalTokens: calculatedTotalTokens,
 					hasError: false,
 					errorDetails: null,
 					streamed: true,

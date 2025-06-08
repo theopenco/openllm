@@ -251,6 +251,29 @@ describe("e2e tests with real provider keys", () => {
 				expect(typeof chunk.choices[0].delta.content).toBe("string");
 			}
 
+			// Verify that usage object is returned in streaming mode
+			const usageChunks = streamResult.chunks.filter(
+				(chunk) =>
+					chunk.usage &&
+					(chunk.usage.prompt_tokens !== null ||
+						chunk.usage.completion_tokens !== null ||
+						chunk.usage.total_tokens !== null),
+			);
+			expect(usageChunks.length).toBeGreaterThan(0);
+
+			// Verify the usage chunk has proper format
+			const usageChunk = usageChunks[usageChunks.length - 1]; // Get the last usage chunk
+			expect(usageChunk).toHaveProperty("usage");
+			expect(usageChunk.usage).toHaveProperty("prompt_tokens");
+			expect(usageChunk.usage).toHaveProperty("completion_tokens");
+			expect(usageChunk.usage).toHaveProperty("total_tokens");
+			expect(typeof usageChunk.usage.prompt_tokens).toBe("number");
+			expect(typeof usageChunk.usage.completion_tokens).toBe("number");
+			expect(typeof usageChunk.usage.total_tokens).toBe("number");
+			expect(usageChunk.usage.prompt_tokens).toBeGreaterThan(0);
+			expect(usageChunk.usage.completion_tokens).toBeGreaterThan(0);
+			expect(usageChunk.usage.total_tokens).toBeGreaterThan(0);
+
 			const log = await validateLogs();
 			expect(log.streamed).toBe(true);
 
@@ -568,6 +591,7 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	hasValidSSE: boolean;
 	hasOpenAIFormat: boolean;
 	chunks: any[];
+	hasUsage: boolean;
 }> {
 	if (!stream) {
 		return {
@@ -576,6 +600,7 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 			hasValidSSE: false,
 			hasOpenAIFormat: false,
 			chunks: [],
+			hasUsage: false,
 		};
 	}
 
@@ -585,6 +610,7 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	let hasValidSSE = false;
 	let hasContent = false;
 	let hasOpenAIFormat = true; // Assume true until proven otherwise
+	let hasUsage = false;
 	const chunks: any[] = [];
 
 	try {
@@ -627,6 +653,16 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 						) {
 							hasContent = true;
 						}
+
+						// Check for usage information
+						if (
+							data.usage &&
+							(data.usage.prompt_tokens !== null ||
+								data.usage.completion_tokens !== null ||
+								data.usage.total_tokens !== null)
+						) {
+							hasUsage = true;
+						}
 					} catch (_e) {}
 				}
 			}
@@ -642,5 +678,6 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 		hasValidSSE,
 		hasOpenAIFormat,
 		chunks,
+		hasUsage,
 	};
 }
