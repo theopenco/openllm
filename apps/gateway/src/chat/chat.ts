@@ -319,6 +319,201 @@ function transformToOpenAIFormat(
 	return transformedResponse;
 }
 
+/**
+ * Transforms streaming chunk to OpenAI format for non-OpenAI providers
+ */
+function transformStreamingChunkToOpenAIFormat(
+	usedProvider: Provider,
+	usedModel: string,
+	data: any,
+): any {
+	let transformedData = data;
+
+	switch (usedProvider) {
+		case "anthropic": {
+			// Handle different types of Anthropic streaming events
+			if (data.type === "content_block_delta" && data.delta?.text) {
+				transformedData = {
+					id: data.id || `chatcmpl-${Date.now()}`,
+					object: "chat.completion.chunk",
+					created: data.created || Math.floor(Date.now() / 1000),
+					model: data.model || usedModel,
+					choices: [
+						{
+							index: 0,
+							delta: {
+								content: data.delta.text,
+							},
+							finish_reason: null,
+						},
+					],
+					usage: data.usage || null,
+				};
+			} else if (data.type === "message_delta" && data.delta?.stop_reason) {
+				const stopReason = data.delta.stop_reason;
+				transformedData = {
+					id: data.id || `chatcmpl-${Date.now()}`,
+					object: "chat.completion.chunk",
+					created: data.created || Math.floor(Date.now() / 1000),
+					model: data.model || usedModel,
+					choices: [
+						{
+							index: 0,
+							delta: {},
+							finish_reason:
+								stopReason === "end_turn"
+									? "stop"
+									: stopReason?.toLowerCase() || "stop",
+						},
+					],
+					usage: data.usage || null,
+				};
+			} else if (data.type === "message_stop" || data.stop_reason) {
+				const stopReason = data.stop_reason || "end_turn";
+				transformedData = {
+					id: data.id || `chatcmpl-${Date.now()}`,
+					object: "chat.completion.chunk",
+					created: data.created || Math.floor(Date.now() / 1000),
+					model: data.model || usedModel,
+					choices: [
+						{
+							index: 0,
+							delta: {},
+							finish_reason:
+								stopReason === "end_turn"
+									? "stop"
+									: stopReason?.toLowerCase() || "stop",
+						},
+					],
+					usage: data.usage || null,
+				};
+			} else if (data.delta?.text) {
+				// Fallback for older format
+				transformedData = {
+					id: data.id || `chatcmpl-${Date.now()}`,
+					object: "chat.completion.chunk",
+					created: data.created || Math.floor(Date.now() / 1000),
+					model: data.model || usedModel,
+					choices: [
+						{
+							index: 0,
+							delta: {
+								content: data.delta.text,
+							},
+							finish_reason: null,
+						},
+					],
+					usage: data.usage || null,
+				};
+			} else {
+				// For other Anthropic events (like message_start, content_block_start, etc.)
+				// Transform them to OpenAI format but without content
+				transformedData = {
+					id: data.id || `chatcmpl-${Date.now()}`,
+					object: "chat.completion.chunk",
+					created: data.created || Math.floor(Date.now() / 1000),
+					model: data.model || usedModel,
+					choices: [
+						{
+							index: 0,
+							delta: {},
+							finish_reason: null,
+						},
+					],
+					usage: data.usage || null,
+				};
+			}
+			break;
+		}
+		case "google-vertex":
+		case "google-ai-studio": {
+			if (data.candidates?.[0]?.content?.parts?.[0]?.text) {
+				transformedData = {
+					id: `chatcmpl-${Date.now()}`,
+					object: "chat.completion.chunk",
+					created: Math.floor(Date.now() / 1000),
+					model: usedModel,
+					choices: [
+						{
+							index: 0,
+							delta: {
+								content: data.candidates[0].content.parts[0].text,
+							},
+							finish_reason: null,
+						},
+					],
+					usage: null,
+				};
+			} else if (data.candidates?.[0]?.finishReason) {
+				const finishReason = data.candidates[0].finishReason;
+				transformedData = {
+					id: `chatcmpl-${Date.now()}`,
+					object: "chat.completion.chunk",
+					created: Math.floor(Date.now() / 1000),
+					model: usedModel,
+					choices: [
+						{
+							index: 0,
+							delta: {},
+							finish_reason:
+								finishReason === "STOP"
+									? "stop"
+									: finishReason?.toLowerCase() || "stop",
+						},
+					],
+					usage: null,
+				};
+			}
+			break;
+		}
+		case "inference.net":
+		case "kluster.ai":
+		case "together.ai": {
+			// These providers might not have proper OpenAI format, ensure they do
+			if (!data.id || !data.object) {
+				transformedData = {
+					id: data.id || `chatcmpl-${Date.now()}`,
+					object: "chat.completion.chunk",
+					created: data.created || Math.floor(Date.now() / 1000),
+					model: data.model || usedModel,
+					choices: data.choices || [
+						{
+							index: 0,
+							delta: data.delta || { content: data.content || "" },
+							finish_reason: data.finish_reason || null,
+						},
+					],
+					usage: data.usage || null,
+				};
+			}
+			break;
+		}
+		// OpenAI and other providers that already use OpenAI format
+		default: {
+			// Ensure the response has the required OpenAI format fields
+			if (!data.id || !data.object) {
+				transformedData = {
+					id: data.id || `chatcmpl-${Date.now()}`,
+					object: "chat.completion.chunk",
+					created: data.created || Math.floor(Date.now() / 1000),
+					model: data.model || usedModel,
+					choices: data.choices || [
+						{
+							index: 0,
+							delta: data.delta || { content: data.content || "" },
+							finish_reason: data.finish_reason || null,
+						},
+					],
+					usage: data.usage || null,
+				};
+			}
+			break;
+		}
+	}
+
+	return transformedData;
+}
+
 export const chat = new OpenAPIHono<ServerTypes>();
 
 const completions = createRoute({
@@ -1120,49 +1315,12 @@ chat.openapi(completions, async (c) => {
 								try {
 									const data = JSON.parse(line.substring(6));
 
-									// Forward the data as a proper SSE event
-									// Transform Anthropic streaming responses to OpenAI format
-									let transformedData = data;
-									if (usedProvider === "anthropic") {
-										if (data.delta?.text) {
-											transformedData = {
-												id: data.id || `chatcmpl-${Date.now()}`,
-												object: "chat.completion.chunk",
-												created: data.created || Math.floor(Date.now() / 1000),
-												model: data.model || usedModel,
-												choices: [
-													{
-														index: 0,
-														delta: {
-															content: data.delta.text,
-														},
-														finish_reason: null,
-													},
-												],
-												usage: data.usage || null,
-											};
-										} else if (data.stop_reason || data.delta?.stop_reason) {
-											const stopReason =
-												data.stop_reason || data.delta?.stop_reason;
-											transformedData = {
-												id: data.id || `chatcmpl-${Date.now()}`,
-												object: "chat.completion.chunk",
-												created: data.created || Math.floor(Date.now() / 1000),
-												model: data.model || usedModel,
-												choices: [
-													{
-														index: 0,
-														delta: {},
-														finish_reason:
-															stopReason === "end_turn"
-																? "stop"
-																: stopReason?.toLowerCase() || "stop",
-													},
-												],
-												usage: data.usage || null,
-											};
-										}
-									}
+									// Transform streaming responses to OpenAI format for all providers
+									const transformedData = transformStreamingChunkToOpenAIFormat(
+										usedProvider,
+										usedModel,
+										data,
+									);
 
 									await stream.writeSSE({
 										event: "chunk",
@@ -1173,15 +1331,31 @@ chat.openapi(completions, async (c) => {
 									// Extract content for logging based on provider
 									switch (usedProvider) {
 										case "anthropic":
-											if (data.delta?.text) {
+											// Handle different Anthropic event types
+											if (
+												data.type === "content_block_delta" &&
+												data.delta?.text
+											) {
+												fullContent += data.delta.text;
+											} else if (data.delta?.text) {
+												// Fallback for older format
 												fullContent += data.delta.text;
 											}
-											if (data.stop_reason) {
-												finishReason = data.stop_reason;
-											}
-											if (data.delta?.stop_reason) {
+
+											if (
+												data.type === "message_delta" &&
+												data.delta?.stop_reason
+											) {
+												finishReason = data.delta.stop_reason;
+											} else if (
+												data.type === "message_stop" ||
+												data.stop_reason
+											) {
+												finishReason = data.stop_reason || "end_turn";
+											} else if (data.delta?.stop_reason) {
 												finishReason = data.delta.stop_reason;
 											}
+
 											if (data.usage) {
 												// For streaming, Anthropic might only provide output_tokens
 												if (data.usage.input_tokens !== undefined) {
