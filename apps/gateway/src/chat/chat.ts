@@ -665,7 +665,10 @@ chat.openapi(completions, async (c) => {
 				},
 			});
 
-			const availableProviders = providerKeys.map((key) => key.provider);
+			const availableProviders =
+				project.mode === "api-keys"
+					? providerKeys.map((key) => key.provider)
+					: providers.filter((p) => p.id !== "llmgateway").map((p) => p.id);
 
 			// Filter model providers to only those available
 			const availableModelProviders = modelInfo.providers.filter((provider) =>
@@ -674,7 +677,10 @@ chat.openapi(completions, async (c) => {
 
 			if (availableModelProviders.length === 0) {
 				throw new HTTPException(400, {
-					message: `No API key set for provider: ${modelInfo.providers[0].providerId}. Please add a provider key in your settings or add credits and switch to credits or hybrid mode.`,
+					message:
+						project.mode === "api-keys"
+							? `No provider key set for any of the providers that support model ${usedModel}. Please add the provider key in the settings or switch the project mode to credits or hybrid.`
+							: `No available provider could be found for model ${usedModel}`,
 				});
 			}
 
