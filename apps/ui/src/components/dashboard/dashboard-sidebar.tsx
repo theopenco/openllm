@@ -96,12 +96,6 @@ export function DashboardSidebar() {
 	};
 
 	useEffect(() => {
-		if (window.matchMedia("(max-width: 640px)").matches) {
-			toggleSidebar();
-		}
-	}, [toggleSidebar]);
-
-	useEffect(() => {
 		if (isSettingsActive() && !settingsExpanded) {
 			setSettingsExpanded(true);
 		}

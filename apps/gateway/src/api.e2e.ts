@@ -225,8 +225,31 @@ describe("e2e tests with real provider keys", () => {
 
 			expect(streamResult.hasValidSSE).toBe(true);
 			expect(streamResult.eventCount).toBeGreaterThan(0);
-
 			expect(streamResult.hasContent).toBe(true);
+
+			// Verify that all streaming responses are transformed to OpenAI format
+			expect(streamResult.hasOpenAIFormat).toBe(true);
+
+			// Verify that chunks have the correct OpenAI streaming format
+			const contentChunks = streamResult.chunks.filter(
+				(chunk) => chunk.choices?.[0]?.delta?.content,
+			);
+			expect(contentChunks.length).toBeGreaterThan(0);
+
+			// Verify each content chunk has proper OpenAI format
+			for (const chunk of contentChunks) {
+				expect(chunk).toHaveProperty("id");
+				expect(chunk).toHaveProperty("object", "chat.completion.chunk");
+				expect(chunk).toHaveProperty("created");
+				expect(chunk).toHaveProperty("model");
+				expect(chunk).toHaveProperty("choices");
+				expect(chunk.choices).toHaveLength(1);
+				expect(chunk.choices[0]).toHaveProperty("index", 0);
+				expect(chunk.choices[0]).toHaveProperty("delta");
+				expect(chunk.choices[0]).toHaveProperty("delta.role", "assistant");
+				expect(chunk.choices[0].delta).toHaveProperty("content");
+				expect(typeof chunk.choices[0].delta.content).toBe("string");
+			}
 
 			const log = await validateLogs();
 			expect(log.streamed).toBe(true);
@@ -543,9 +566,17 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	hasContent: boolean;
 	eventCount: number;
 	hasValidSSE: boolean;
+	hasOpenAIFormat: boolean;
+	chunks: any[];
 }> {
 	if (!stream) {
-		return { hasContent: false, eventCount: 0, hasValidSSE: false };
+		return {
+			hasContent: false,
+			eventCount: 0,
+			hasValidSSE: false,
+			hasOpenAIFormat: false,
+			chunks: [],
+		};
 	}
 
 	const reader = stream.getReader();
@@ -553,6 +584,8 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	let eventCount = 0;
 	let hasValidSSE = false;
 	let hasContent = false;
+	let hasOpenAIFormat = true; // Assume true until proven otherwise
+	const chunks: any[] = [];
 
 	try {
 		while (true) {
@@ -576,14 +609,21 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 
 					try {
 						const data = JSON.parse(line.substring(6));
+						chunks.push(data);
+
+						// Check if this chunk has OpenAI format
+						if (
+							!data.id ||
+							!data.object ||
+							data.object !== "chat.completion.chunk"
+						) {
+							hasOpenAIFormat = false;
+						}
+
+						// Check for content in OpenAI format (should be the primary format after transformation)
 						if (
 							data.choices?.[0]?.delta?.content ||
-							data.delta?.text ||
-							data.candidates?.[0]?.content?.parts?.[0]?.text ||
-							data.choices?.[0]?.finish_reason ||
-							data.stop_reason ||
-							data.delta?.stop_reason ||
-							data.candidates?.[0]?.finishReason
+							data.choices?.[0]?.finish_reason
 						) {
 							hasContent = true;
 						}
@@ -595,5 +635,12 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 		reader.releaseLock();
 	}
 
-	return { fullContent, hasContent, eventCount, hasValidSSE };
+	return {
+		fullContent,
+		hasContent,
+		eventCount,
+		hasValidSSE,
+		hasOpenAIFormat,
+		chunks,
+	};
 }
