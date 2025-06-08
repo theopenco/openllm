@@ -234,7 +234,7 @@ export function PricingPlans() {
 			disabled: false,
 		},
 		{
-			name: "Free",
+			name: "Cloud Free",
 			description: "Perfect for trying out the platform",
 			price: {
 				monthly: "$0",
@@ -252,7 +252,7 @@ export function PricingPlans() {
 			disabled: subscriptionStatus?.plan === "free",
 		},
 		{
-			name: "Pro",
+			name: "Cloud Pro",
 			description: "For professionals and growing teams",
 			price: {
 				monthly: "$50",
