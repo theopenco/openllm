@@ -157,16 +157,17 @@ function RouteComponent() {
 				);
 				return;
 			}
-		} else {
+		} else if (subscriptionStatus) {          // only evaluate when the call succeeded
 			const org = orgsData?.organizations?.[0];
-			if (!org || parseFloat(org.credits) <= 0) {
-				setError(
-					"You don't have enough credits. Please purchase credits or upgrade to Pro plan.",
-				);
+			const credits = parseFloat(org?.credits ?? "0");
+			if (!org || Number.isNaN(credits) || credits <= 0) {
+				setError("You don't have enough credits …");
 				return;
 			}
+		} else {
+			setError("Unable to verify subscription status. Please retry.");
+			return;
 		}
-
 		setIsLoading(true);
 		addLocalMessage({ role: "user", content });
 
