@@ -186,6 +186,9 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 			case "setup_intent.succeeded":
 				await handleSetupIntentSucceeded(event);
 				break;
+			case "checkout.session.completed":
+				await handleCheckoutSessionCompleted(event);
+				break;
 			case "invoice.payment_succeeded":
 				await handleInvoicePaymentSucceeded(event);
 				break;
@@ -207,6 +210,102 @@ stripeRoutes.openapi(webhookHandler, async (c) => {
 		});
 	}
 });
+
+async function handleCheckoutSessionCompleted(
+	event: Stripe.CheckoutSessionCompletedEvent,
+) {
+	const session = event.data.object;
+	const { customer, metadata, subscription } = session;
+
+	console.log(
+		`Processing checkout session completed for customer: ${customer}, subscription: ${subscription}`,
+	);
+
+	if (!subscription) {
+		console.log("Not a subscription checkout session, skipping");
+		return;
+	}
+
+	const result = await resolveOrganizationFromStripeEvent({
+		metadata: metadata as { organizationId?: string } | undefined,
+		customer: typeof customer === "string" ? customer : customer?.id,
+		subscription:
+			typeof subscription === "string" ? subscription : subscription?.id,
+	});
+
+	if (!result) {
+		console.error(
+			`Organization not found for customer: ${customer}, subscription: ${subscription}`,
+		);
+		return;
+	}
+
+	const { organizationId, organization } = result;
+
+	console.log(
+		`Found organization: ${organization.name} (${organization.id}), current plan: ${organization.plan}`,
+	);
+
+	// Update organization with subscription ID and upgrade to pro plan
+	try {
+		const subscriptionId =
+			typeof subscription === "string" ? subscription : subscription?.id;
+
+		const result = await db
+			.update(tables.organization)
+			.set({
+				plan: "pro",
+				stripeSubscriptionId: subscriptionId,
+				subscriptionCancelled: false,
+			})
+			.where(eq(tables.organization.id, organizationId))
+			.returning();
+
+		console.log(
+			`Successfully upgraded organization ${organizationId} to pro plan via checkout. Updated rows:`,
+			result.length,
+		);
+
+		// Create transaction record for subscription start
+		await db.insert(tables.transaction).values({
+			organizationId,
+			type: "subscription_start",
+			amount: ((session.amount_total || 0) / 100).toString(),
+			currency: (session.currency || "USD").toUpperCase(),
+			status: "completed",
+			stripeInvoiceId: session.invoice as string,
+			description: "Pro subscription started via Stripe Checkout",
+		});
+
+		// Track subscription creation in PostHog
+		posthog.groupIdentify({
+			groupType: "organization",
+			groupKey: organizationId,
+			properties: {
+				name: organization.name,
+			},
+		});
+		posthog.capture({
+			distinctId: "organization",
+			event: "subscription_created",
+			groups: {
+				organization: organizationId,
+			},
+			properties: {
+				plan: "pro",
+				organization: organizationId,
+				subscriptionId: subscriptionId,
+				source: "stripe_checkout",
+			},
+		});
+	} catch (error) {
+		console.error(
+			`Error updating organization ${organizationId} to pro plan via checkout:`,
+			error,
+		);
+		throw error;
+	}
+}
 
 async function handlePaymentIntentSucceeded(
 	event: Stripe.PaymentIntentSucceededEvent,
