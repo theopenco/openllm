@@ -21,6 +21,7 @@ import { Button } from "@/lib/components/button";
 import { ScrollArea } from "@/lib/components/scroll-area";
 import { Textarea } from "@/lib/components/textarea";
 import { toast } from "@/lib/components/use-toast";
+import { cn } from "@/lib/utils";
 
 import type { Message } from "@/routes/playground";
 
@@ -30,6 +31,7 @@ interface ChatUiProps {
 	error: string | null;
 	onSendMessage: (content: string) => Promise<void>;
 	onClearMessages: () => void;
+	className?: string;
 }
 
 const STARTER_PROMPTS = [
@@ -65,6 +67,7 @@ export function ChatUi({
 	error,
 	onSendMessage,
 	onClearMessages,
+	className,
 }: ChatUiProps) {
 	const [input, setInput] = useState("");
 	const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
@@ -132,7 +135,7 @@ export function ChatUi({
 	};
 
 	return (
-		<div className="flex flex-col h-full bg-muted/30">
+		<div className={cn("flex flex-col h-full bg-muted/30", className)}>
 			{/* Error Alert */}
 			{error && (
 				<div className="p-4 border-b">
@@ -194,6 +197,7 @@ export function ChatUi({
 											<Button
 												key={index}
 												variant="outline"
+												type="button"
 												className="h-auto p-4 text-left justify-start hover:bg-muted/50 transition-colors border-muted-foreground/20"
 												onClick={() => handleStarterPrompt(prompt.prompt)}
 											>

@@ -4,24 +4,32 @@ import { Key } from "lucide-react";
 import { ModelSelector } from "./model-selector";
 import { Button } from "@/lib/components/button";
 import { SidebarTrigger } from "@/lib/components/sidebar";
+import { cn } from "@/lib/utils";
 
 interface ChatHeaderProps {
 	selectedModel: string;
 	onModelSelect: (model: string) => void;
 	onManageApiKey: () => void;
+	className?: string;
 }
 
 export function ChatHeader({
 	selectedModel,
 	onModelSelect,
 	onManageApiKey,
+	className,
 }: ChatHeaderProps) {
 	const handleModelSelect = (model: string) => {
 		onModelSelect(model);
 	};
 
 	return (
-		<header className="flex items-center p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+		<header
+			className={cn(
+				"flex items-center p-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60",
+				className,
+			)}
+		>
 			<div className="flex items-center gap-4">
 				<SidebarTrigger />
 				<ModelSelector

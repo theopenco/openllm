@@ -49,6 +49,7 @@ interface ChatSidebarProps {
 	onNewChat?: () => void;
 	userApiKey: string | null;
 	clearMessages: () => void;
+	className?: string;
 }
 
 export function ChatSidebar({
@@ -57,6 +58,7 @@ export function ChatSidebar({
 	onNewChat,
 	userApiKey,
 	clearMessages,
+	className,
 }: ChatSidebarProps) {
 	const queryClient = useQueryClient();
 	const navigate = useNavigate();
@@ -183,11 +185,12 @@ export function ChatSidebar({
 				</div>
 				<div className="space-y-1">
 					{chats.map((chat) => (
-						<SidebarMenuItem key={chat.id}>
+						<SidebarMenuItem key={chat.id} className="relative">
 							<SidebarMenuButton
 								isActive={currentChatId === chat.id}
 								onClick={() => onChatSelect?.(chat.id)}
 								className="w-full justify-start gap-3 group relative pr-10 py-6"
+								type="button"
 							>
 								<MessageSquare className="h-4 w-4 shrink-0 text-muted-foreground" />
 								{editingId === chat.id ? (
@@ -218,47 +221,47 @@ export function ChatSidebar({
 										</div>
 									</div>
 								)}
-
-								{/* Action buttons */}
-								{currentChatId === chat.id && editingId !== chat.id && (
-									<div className="absolute right-0 top-2 bottom-0">
-										<DropdownMenu>
-											<DropdownMenuTrigger asChild>
-												<SidebarMenuAction
-													onClick={(e) => {
-														e.stopPropagation();
-													}}
-													className="h-7 w-7 cursor-pointer"
-												>
-													<MoreVerticalIcon className="h-3.5 w-3.5" />
-												</SidebarMenuAction>
-											</DropdownMenuTrigger>
-											<DropdownMenuContent align="end" className="w-48">
-												<DropdownMenuItem
-													onClick={(e) => {
-														e.stopPropagation();
-														handleEditTitle(chat);
-													}}
-													className="flex items-center gap-2"
-												>
-													<Edit2 className="h-4 w-4" />
-													Rename
-												</DropdownMenuItem>
-												<DropdownMenuItem
-													onClick={(e) => {
-														e.stopPropagation();
-														handleDeleteChat(chat.id);
-													}}
-													className="flex items-center gap-2 text-destructive focus:text-destructive"
-												>
-													<Trash2 className="h-4 w-4" />
-													Delete
-												</DropdownMenuItem>
-											</DropdownMenuContent>
-										</DropdownMenu>
-									</div>
-								)}
 							</SidebarMenuButton>
+							{/* Action buttons */}
+							{currentChatId === chat.id && editingId !== chat.id && (
+								<div className="absolute right-0 top-2 bottom-0">
+									<DropdownMenu>
+										<DropdownMenuTrigger asChild>
+											<SidebarMenuAction
+												type="button"
+												onClick={(e) => {
+													e.stopPropagation();
+												}}
+												className="h-7 w-7 cursor-pointer"
+											>
+												<MoreVerticalIcon className="h-3.5 w-3.5" />
+											</SidebarMenuAction>
+										</DropdownMenuTrigger>
+										<DropdownMenuContent align="end" className="w-48">
+											<DropdownMenuItem
+												onClick={(e) => {
+													e.stopPropagation();
+													handleEditTitle(chat);
+												}}
+												className="flex items-center gap-2"
+											>
+												<Edit2 className="h-4 w-4" />
+												Rename
+											</DropdownMenuItem>
+											<DropdownMenuItem
+												onClick={(e) => {
+													e.stopPropagation();
+													handleDeleteChat(chat.id);
+												}}
+												className="flex items-center gap-2 text-destructive focus:text-destructive"
+											>
+												<Trash2 className="h-4 w-4" />
+												Delete
+											</DropdownMenuItem>
+										</DropdownMenuContent>
+									</DropdownMenu>
+								</div>
+							)}
 						</SidebarMenuItem>
 					))}
 				</div>
@@ -290,7 +293,7 @@ export function ChatSidebar({
 	}
 
 	return (
-		<Sidebar>
+		<Sidebar className={className}>
 			<SidebarHeader>
 				<div className="flex flex-col items-center gap-4 mb-4">
 					<Link to="/" className="flex self-start items-center gap-2 my-2">
