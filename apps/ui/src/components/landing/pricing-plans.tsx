@@ -215,6 +215,25 @@ export function PricingPlans() {
 
 	const plans = [
 		{
+			name: "Self-Host",
+			description: "Host on your own infrastructure",
+			price: {
+				monthly: "Free",
+				annual: "Free",
+			},
+			features: [
+				"100% free forever",
+				"Full control over your data",
+				"Host on your infrastructure",
+				"No usage limits",
+				"Community support",
+				"Regular updates",
+			],
+			cta: "View Documentation",
+			popular: false,
+			disabled: false,
+		},
+		{
 			name: "Free",
 			description: "Perfect for trying out the platform",
 			price: {
@@ -271,25 +290,6 @@ export function PricingPlans() {
 				"24/7 premium support",
 			],
 			cta: "Contact Sales",
-			popular: false,
-			disabled: false,
-		},
-		{
-			name: "Self-Host",
-			description: "Host on your own infrastructure",
-			price: {
-				monthly: "Free",
-				annual: "Free",
-			},
-			features: [
-				"100% free forever",
-				"Full control over your data",
-				"Host on your infrastructure",
-				"No usage limits",
-				"Community support",
-				"Regular updates",
-			],
-			cta: "View Documentation",
 			popular: false,
 			disabled: false,
 		},
