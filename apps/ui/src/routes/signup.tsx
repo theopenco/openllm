@@ -1,6 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Loader2 } from "lucide-react";
 import { usePostHog } from "posthog-js/react";
 import { useState, useEffect } from "react";
@@ -36,6 +36,7 @@ export const Route = createFileRoute("/signup")({
 function RouteComponent() {
 	const QueryClient = useQueryClient();
 	const posthog = usePostHog();
+	const navigate = useNavigate();
 	const [isLoading, setIsLoading] = useState(false);
 	useUser({ redirectTo: "/dashboard", redirectWhen: "authenticated" });
 
@@ -60,7 +61,6 @@ function RouteComponent() {
 				name: values.name,
 				email: values.email,
 				password: values.password,
-				callbackURL: "/onboarding",
 			},
 			{
 				onSuccess: (ctx) => {
@@ -74,7 +74,7 @@ function RouteComponent() {
 						name: values.name,
 					});
 					toast({ title: "Account created", description: "Welcome!" });
-					window.location.href = "/onboarding";
+					navigate({ to: "/onboarding" });
 				},
 				onError: (ctx) => {
 					toast({
