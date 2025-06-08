@@ -246,6 +246,7 @@ describe("e2e tests with real provider keys", () => {
 				expect(chunk.choices).toHaveLength(1);
 				expect(chunk.choices[0]).toHaveProperty("index", 0);
 				expect(chunk.choices[0]).toHaveProperty("delta");
+				expect(chunk.choices[0]).toHaveProperty("delta.role", "assistant");
 				expect(chunk.choices[0].delta).toHaveProperty("content");
 				expect(typeof chunk.choices[0].delta.content).toBe("string");
 			}
