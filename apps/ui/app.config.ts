@@ -14,7 +14,7 @@ export default defineConfig({
 		},
 		prerender: {
 			// render /dashboard as an app entrypoint, crawl will discover the rest
-			routes: ["/", "/dashboard"],
+			routes: ["/", "/dashboard", "/onboarding"],
 			crawlLinks: true,
 		},
 		preset: process.env.SERVER_PRESET || "static",
