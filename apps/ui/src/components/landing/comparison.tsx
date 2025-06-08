@@ -180,10 +180,10 @@ export function Comparison() {
 				</div>
 
 				<div className="bg-card rounded-lg border border-border overflow-hidden shadow-sm">
-					<div className="grid grid-cols-3 gap-4 p-6 bg-muted/50 border-b border-border">
-						<div />
+					<div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 sm:p-6 bg-muted/50 border-b border-border">
+						<div className="hidden md:block" />
 						<div className="text-center">
-							<div className="border-2 border-primary rounded-lg p-4 bg-background shadow-sm">
+							<div className="border-2 border-primary rounded-lg p-4 bg-background shadow-sm h-full">
 								<h3 className="font-bold text-lg mb-1 text-foreground">
 									LLM Gateway
 								</h3>
@@ -197,7 +197,7 @@ export function Comparison() {
 							</div>
 						</div>
 						<div className="text-center">
-							<div className="border border-border rounded-lg p-4 bg-background">
+							<div className="border border-border rounded-lg p-4 bg-background h-full">
 								<h3 className="font-bold text-lg mb-1 text-foreground">
 									OpenRouter
 								</h3>

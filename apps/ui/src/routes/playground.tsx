@@ -16,6 +16,7 @@ import {
 } from "@/hooks/useChats";
 import { useUser } from "@/hooks/useUser";
 import { SidebarProvider } from "@/lib/components/sidebar";
+import { $api } from "@/lib/fetch-client";
 
 export interface Message {
 	id: string;
@@ -45,6 +46,12 @@ function RouteComponent() {
 		currentChatId || "",
 	);
 	const { data: _chatsData } = useChats();
+	const { data: subscriptionStatus, isLoading: isSubscriptionLoading } =
+		$api.useQuery("get", "/subscriptions/status", {});
+	const { data: orgsData, isLoading: isOrgsLoading } = $api.useQuery(
+		"get",
+		"/orgs",
+	);
 
 	const [showApiKeyManager, setShowApiKeyManager] = useState(false);
 
@@ -128,7 +135,7 @@ function RouteComponent() {
 			return;
 		}
 
-		if (!isApiKeyLoaded) {
+		if (!isApiKeyLoaded || isSubscriptionLoading || isOrgsLoading) {
 			return;
 		}
 
@@ -137,6 +144,31 @@ function RouteComponent() {
 			return;
 		}
 
+		// Check if user has pro plan or enough credits
+		if (subscriptionStatus?.plan === "pro") {
+			// For pro users, check if subscription is expired or cancelled
+			if (
+				subscriptionStatus.subscriptionCancelled ||
+				(subscriptionStatus.planExpiresAt &&
+					new Date(subscriptionStatus.planExpiresAt) < new Date())
+			) {
+				setError(
+					"Your pro subscription has expired or been cancelled. Please renew your subscription or purchase credits.",
+				);
+				return;
+			}
+		} else if (subscriptionStatus) {
+			// only evaluate when the call succeeded
+			const org = orgsData?.organizations?.[0];
+			const credits = parseFloat(org?.credits ?? "0");
+			if (!org || Number.isNaN(credits) || credits <= 0) {
+				setError("You don't have enough credits …");
+				return;
+			}
+		} else {
+			setError("Unable to verify subscription status. Please retry.");
+			return;
+		}
 		setIsLoading(true);
 		addLocalMessage({ role: "user", content });
 
@@ -165,7 +197,17 @@ function RouteComponent() {
 
 			if (!response.ok) {
 				const errorText = await response.text();
-				setError(`API Error: ${errorText}`);
+				try {
+					const errorJson = JSON.parse(errorText);
+					if (errorJson.error) {
+						setError(errorJson.error);
+						throw new Error(errorJson.error);
+					}
+				} catch {
+					// If we can't parse the error as JSON, use the raw error text
+					setError(`API Error: ${errorText}`);
+					throw new Error(`API Error: ${errorText}`);
+				}
 				throw new Error(`API Error: ${response.status} ${response.statusText}`);
 			}
 
@@ -251,7 +293,14 @@ function RouteComponent() {
 				}
 			}
 		} catch (err) {
-			setError((err as Error).message);
+			const errorMessage =
+				err instanceof Error ? err.message : "An unexpected error occurred";
+			setError(errorMessage);
+			// Add a system message to indicate the error in the chat
+			addLocalMessage({
+				role: "system",
+				content: `Error: ${errorMessage}`,
+			});
 		} finally {
 			setIsLoading(false);
 		}
@@ -279,19 +328,21 @@ function RouteComponent() {
 
 	return (
 		<SidebarProvider>
-			<div className="relative flex h-screen w-full">
+			<div className="relative flex h-screen w-full flex-col md:flex-row">
 				<ChatSidebar
 					onNewChat={handleNewChat}
 					onChatSelect={handleChatSelect}
 					currentChatId={currentChatId ?? undefined}
 					userApiKey={userApiKey}
 					clearMessages={clearMessages}
+					className="w-full md:w-80 lg:w-96 border-r border-border"
 				/>
-				<main className="flex flex-1 flex-col">
+				<main className="flex flex-1 flex-col min-h-0">
 					<ChatHeader
 						selectedModel={selectedModel}
 						onModelSelect={handleModelSelect}
 						onManageApiKey={() => setShowApiKeyManager(true)}
+						className="border-b border-border"
 					/>
 					<ChatUi
 						messages={messages}
@@ -299,6 +350,7 @@ function RouteComponent() {
 						onSendMessage={handleSendMessage}
 						onClearMessages={clearMessages}
 						error={error}
+						className="flex-1 overflow-y-auto"
 					/>
 				</main>
 			</div>
