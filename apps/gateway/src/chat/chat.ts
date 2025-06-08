@@ -82,6 +82,26 @@ function createLogEntry(
 }
 
 /**
+ * Check if a provider has an environment token available
+ * @param provider The provider to check
+ * @returns True if the provider has a valid environment token, false otherwise
+ */
+function hasProviderEnvironmentToken(provider: Provider): boolean {
+	const envVarMap = {
+		openai: "OPENAI_API_KEY",
+		anthropic: "ANTHROPIC_API_KEY",
+		"google-vertex": "VERTEX_API_KEY",
+		"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
+		"inference.net": "INFERENCE_NET_API_KEY",
+		"kluster.ai": "KLUSTER_AI_API_KEY",
+		"together.ai": "TOGETHER_AI_API_KEY",
+	} as const;
+
+	const envVar = envVarMap[provider as keyof typeof envVarMap];
+	return envVar ? Boolean(process.env[envVar]) : false;
+}
+
+/**
  * Get provider token from environment variables
  * @param usedProvider The provider to get the token for
  * @returns The token for the provider or undefined if not found
@@ -788,20 +808,9 @@ chat.openapi(completions, async (c) => {
 				.filter((p) => p.id !== "llmgateway")
 				.map((p) => p.id);
 			for (const provider of supportedProviders) {
-				try {
-					const envVarMap = {
-						openai: "OPENAI_API_KEY",
-						anthropic: "ANTHROPIC_API_KEY",
-						"google-vertex": "VERTEX_API_KEY",
-						"google-ai-studio": "GOOGLE_AI_STUDIO_API_KEY",
-						"inference.net": "INFERENCE_NET_API_KEY",
-						"kluster.ai": "KLUSTER_AI_API_KEY",
-						"together.ai": "TOGETHER_AI_API_KEY",
-					};
-					if (process.env[envVarMap[provider as keyof typeof envVarMap]]) {
-						envProviders.push(provider);
-					}
-				} catch {}
+				if (hasProviderEnvironmentToken(provider as Provider)) {
+					envProviders.push(provider);
+				}
 			}
 
 			if (project.mode === "credits") {
@@ -863,7 +872,10 @@ chat.openapi(completions, async (c) => {
 			const availableProviders =
 				project.mode === "api-keys"
 					? providerKeys.map((key) => key.provider)
-					: providers.filter((p) => p.id !== "llmgateway").map((p) => p.id);
+					: providers
+							.filter((p) => p.id !== "llmgateway")
+							.filter((p) => hasProviderEnvironmentToken(p.id as Provider))
+							.map((p) => p.id);
 
 			// Filter model providers to only those available
 			const availableModelProviders = modelInfo.providers.filter((provider) =>
