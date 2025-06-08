@@ -52,11 +52,25 @@ chat.post("/completion", async (c) => {
 
 		if (!response.ok) {
 			const errorText = await response.text();
-			console.warn("Gateway error:", errorText);
-			return c.json(
-				{ error: `Failed to get chat completion: ${errorText}` },
-				500,
-			);
+			console.log("playground chat gateway error:", errorText);
+			try {
+				const errorJson = JSON.parse(errorText);
+				if (errorJson.error?.message) {
+					return c.json(
+						{ error: errorJson.error.message },
+						response.status as any,
+					);
+				}
+				return c.json(
+					{ error: `Failed to get chat completion: ${errorText}` },
+					response.status as any,
+				);
+			} catch (err) {
+				return c.json(
+					{ error: `Failed to get chat completion: ${err}` },
+					response.status as any,
+				);
+			}
 		}
 
 		if (stream) {
