@@ -343,6 +343,7 @@ function transformStreamingChunkToOpenAIFormat(
 							index: 0,
 							delta: {
 								content: data.delta.text,
+								role: "assistant",
 							},
 							finish_reason: null,
 						},
@@ -359,7 +360,9 @@ function transformStreamingChunkToOpenAIFormat(
 					choices: [
 						{
 							index: 0,
-							delta: {},
+							delta: {
+								role: "assistant",
+							},
 							finish_reason:
 								stopReason === "end_turn"
 									? "stop"
@@ -378,7 +381,9 @@ function transformStreamingChunkToOpenAIFormat(
 					choices: [
 						{
 							index: 0,
-							delta: {},
+							delta: {
+								role: "assistant",
+							},
 							finish_reason:
 								stopReason === "end_turn"
 									? "stop"
@@ -399,6 +404,7 @@ function transformStreamingChunkToOpenAIFormat(
 							index: 0,
 							delta: {
 								content: data.delta.text,
+								role: "assistant",
 							},
 							finish_reason: null,
 						},
@@ -416,7 +422,9 @@ function transformStreamingChunkToOpenAIFormat(
 					choices: [
 						{
 							index: 0,
-							delta: {},
+							delta: {
+								role: "assistant",
+							},
 							finish_reason: null,
 						},
 					],
@@ -438,6 +446,7 @@ function transformStreamingChunkToOpenAIFormat(
 							index: 0,
 							delta: {
 								content: data.candidates[0].content.parts[0].text,
+								role: "assistant",
 							},
 							finish_reason: null,
 						},
@@ -454,7 +463,9 @@ function transformStreamingChunkToOpenAIFormat(
 					choices: [
 						{
 							index: 0,
-							delta: {},
+							delta: {
+								role: "assistant",
+							},
 							finish_reason:
 								finishReason === "STOP"
 									? "stop"
@@ -462,28 +473,6 @@ function transformStreamingChunkToOpenAIFormat(
 						},
 					],
 					usage: null,
-				};
-			}
-			break;
-		}
-		case "inference.net":
-		case "kluster.ai":
-		case "together.ai": {
-			// These providers might not have proper OpenAI format, ensure they do
-			if (!data.id || !data.object) {
-				transformedData = {
-					id: data.id || `chatcmpl-${Date.now()}`,
-					object: "chat.completion.chunk",
-					created: data.created || Math.floor(Date.now() / 1000),
-					model: data.model || usedModel,
-					choices: data.choices || [
-						{
-							index: 0,
-							delta: data.delta || { content: data.content || "" },
-							finish_reason: data.finish_reason || null,
-						},
-					],
-					usage: data.usage || null,
 				};
 			}
 			break;
@@ -500,11 +489,34 @@ function transformStreamingChunkToOpenAIFormat(
 					choices: data.choices || [
 						{
 							index: 0,
-							delta: data.delta || { content: data.content || "" },
+							delta: data.delta
+								? {
+										...data.delta,
+										role: "assistant",
+									}
+								: {
+										content: data.content || "",
+										role: "assistant",
+									},
 							finish_reason: data.finish_reason || null,
 						},
 					],
 					usage: data.usage || null,
+				};
+			} else {
+				// Even if the response has the correct format, ensure role is set in delta
+				transformedData = {
+					...data,
+					choices:
+						data.choices?.map((choice: any) => ({
+							...choice,
+							delta: choice.delta
+								? {
+										...choice.delta,
+										role: choice.delta.role || "assistant",
+									}
+								: choice.delta,
+						})) || data.choices,
 				};
 			}
 			break;
@@ -625,7 +637,7 @@ chat.openapi(completions, async (c) => {
 		// Check if the provider exists
 		if (!providers.find((p) => p.id === providerCandidate)) {
 			throw new HTTPException(400, {
-				message: `Requested provider ${providerCandidate} not supported`,
+				message: `Requested provider ${providerCandidate} not supported. If you requested a model on a specific provider, make sure to prefix the model name with the provider name. e.g. inference.net/llama-3.3-70b-instruct`,
 			});
 		}
 
