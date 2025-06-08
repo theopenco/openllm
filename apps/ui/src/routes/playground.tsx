@@ -157,7 +157,8 @@ function RouteComponent() {
 				);
 				return;
 			}
-		} else if (subscriptionStatus) {          // only evaluate when the call succeeded
+		} else if (subscriptionStatus) {
+			// only evaluate when the call succeeded
 			const org = orgsData?.organizations?.[0];
 			const credits = parseFloat(org?.credits ?? "0");
 			if (!org || Number.isNaN(credits) || credits <= 0) {
