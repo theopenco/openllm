@@ -84,18 +84,34 @@ export function PricingPlans() {
 				throw new Error(error);
 			}
 
-			const { checkoutUrl } = await response.json();
+			const { clientSecret, subscriptionId: _subscriptionId } =
+				await response.json();
 
-			// Redirect to Stripe Checkout
-			window.location.href = checkoutUrl;
+			if (clientSecret) {
+				toast({
+					title: "Payment confirmation required",
+					description:
+						"Please confirm your payment to complete the subscription.",
+				});
+			} else {
+				toast({
+					title: "Subscription created successfully!",
+					description: "Welcome to Pro! Your subscription is now active.",
+				});
+				await fetchSubscriptionStatus();
+				navigate({ to: "/dashboard" });
+			}
 		} catch (error: any) {
+			if (error.message?.includes("No default payment method found")) {
+				navigate({ to: "/dashboard/settings/billing" });
+			}
 			toast({
 				title: "Subscription failed",
 				description:
-					error.message ||
-					"Failed to create checkout session. Please try again.",
+					error.message || "Failed to create subscription. Please try again.",
 				variant: "destructive",
 			});
+		} finally {
 			setLoading(null);
 		}
 	};
