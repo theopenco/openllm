@@ -2073,15 +2073,14 @@ export interface paths {
 			};
 			requestBody?: never;
 			responses: {
-				/** @description Pro subscription created successfully */
+				/** @description Stripe Checkout session created successfully */
 				200: {
 					headers: {
 						[name: string]: unknown;
 					};
 					content: {
 						"application/json": {
-							clientSecret: string | null;
-							subscriptionId: string;
+							checkoutUrl: string;
 						};
 					};
 				};
