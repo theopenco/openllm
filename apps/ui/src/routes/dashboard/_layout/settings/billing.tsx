@@ -1,10 +1,4 @@
-import {
-	createFileRoute,
-	Link,
-	useNavigate,
-	useSearch,
-} from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 import { AutoTopUpSettings } from "@/components/billing/auto-topup-settings";
 import { PlanManagement } from "@/components/billing/plan-management";
@@ -18,50 +12,14 @@ import {
 	CardHeader,
 	CardTitle,
 } from "@/lib/components/card";
-import { useToast } from "@/lib/components/use-toast";
 
 export const Route = createFileRoute("/dashboard/_layout/settings/billing")({
 	component: RouteComponent,
 	pendingComponent: () => <SettingsLoading />,
 	errorComponent: ({ error }) => <div>{error.message}</div>,
-	validateSearch: (search: Record<string, unknown>) => ({
-		success: search.success === "true" || search.success === true || undefined,
-		canceled:
-			search.canceled === "true" || search.canceled === true || undefined,
-	}),
 });
 
 function RouteComponent() {
-	const search = useSearch({ from: "/dashboard/_layout/settings/billing" });
-	const { toast } = useToast();
-	const navigate = useNavigate();
-
-	useEffect(() => {
-		if (search.success) {
-			toast({
-				title: "Subscription successful!",
-				description: "Welcome to Pro! Your subscription is now active.",
-			});
-			navigate({
-				to: "/dashboard/settings/billing",
-				search: { success: undefined, canceled: undefined },
-				replace: true,
-			});
-		} else if (search.canceled) {
-			toast({
-				title: "Subscription canceled",
-				description: "You can try again anytime.",
-				variant: "destructive",
-			});
-			// Clear the URL parameters
-			navigate({
-				to: "/dashboard/settings/billing",
-				search: { success: undefined, canceled: undefined },
-				replace: true,
-			});
-		}
-	}, [search.success, search.canceled, toast]);
-
 	return (
 		<div className="flex flex-col">
 			<div className="flex-1 space-y-4 p-4 pt-6 md:p-8">

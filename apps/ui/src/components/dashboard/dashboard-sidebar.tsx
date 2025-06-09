@@ -297,12 +297,7 @@ export function DashboardSidebar() {
 						</div>
 
 						<Button asChild>
-							<Link
-								to="/dashboard/settings/billing"
-								search={{ success: undefined, canceled: undefined }}
-							>
-								Upgrade
-							</Link>
+							<Link to="/dashboard/settings/billing">Upgrade</Link>
 						</Button>
 					</div>
 				)}

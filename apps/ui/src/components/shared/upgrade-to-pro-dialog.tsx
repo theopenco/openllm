@@ -1,3 +1,5 @@
+import { Elements } from "@stripe/react-stripe-js";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { Button } from "@/lib/components/button";
@@ -12,6 +14,7 @@ import {
 } from "@/lib/components/dialog";
 import { useToast } from "@/lib/components/use-toast";
 import { $api } from "@/lib/fetch-client";
+import { useStripe } from "@/lib/stripe";
 
 interface UpgradeToProDialogProps {
 	children: React.ReactNode;
@@ -40,6 +43,8 @@ export function UpgradeToProDialog({
 }
 
 function UpgradeDialogContent({ onSuccess }: { onSuccess: () => void }) {
+	const queryClient = useQueryClient();
+	const { stripe, isLoading: stripeLoading } = useStripe();
 	const { toast } = useToast();
 	const [loading, setLoading] = useState(false);
 
@@ -49,25 +54,108 @@ function UpgradeDialogContent({ onSuccess }: { onSuccess: () => void }) {
 	);
 
 	const handleUpgrade = async () => {
+		if (!stripe) {
+			return;
+		}
+
 		setLoading(true);
 
 		try {
-			const { checkoutUrl } = await createSubscriptionMutation.mutateAsync({});
+			const { clientSecret } = await createSubscriptionMutation.mutateAsync({});
 
-			// Redirect to Stripe Checkout
-			window.location.href = checkoutUrl;
-		} catch (error) {
+			// If no client secret, payment succeeded immediately
+			if (!clientSecret) {
+				// wait for webhook
+				await new Promise((resolve) => {
+					setTimeout(resolve, 3000);
+				});
+
+				await queryClient.invalidateQueries({
+					queryKey: $api.queryOptions("get", "/subscriptions/status").queryKey,
+				});
+
+				toast({
+					title: "Upgrade Successful",
+					description:
+						"Welcome to Pro! You may need to wait for a minute and/or refresh the page.",
+				});
+				onSuccess();
+				return;
+			}
+
+			// Otherwise, confirm the payment
+			const result = await stripe.confirmCardPayment(clientSecret);
+
+			if (result.error) {
+				toast({
+					title: "Payment Failed",
+					description: result.error.message,
+					variant: "destructive",
+					className: "text-white",
+				});
+				return;
+			}
+			const status = result.paymentIntent?.status;
+
+			if (status === "succeeded") {
+				await queryClient.invalidateQueries({
+					queryKey: $api.queryOptions("get", "/subscriptions/status").queryKey,
+				});
+				toast({
+					title: "Upgrade Successful",
+					description:
+						"Welcome to Pro! You may need to wait for a minute and/or refresh the page.",
+				});
+				onSuccess();
+			} else if (status === "requires_action") {
+				toast({
+					title: "Additional Authentication Required",
+					description: "Please complete the additional authentication steps.",
+				});
+			} else if (status === "processing") {
+				toast({
+					title: "Payment Processing",
+					description:
+						"Your payment is being processed. Please check later for completion.",
+				});
+			} else if (status === "requires_capture") {
+				toast({
+					title: "Payment Authorized",
+					description:
+						"Your payment has been authorized and will be captured soon.",
+				});
+			} else {
+				toast({
+					title: `Payment Status: ${status}`,
+					description:
+						"Unable to determine payment status. Please contact support.",
+					variant: "destructive",
+					className: "text-white",
+				});
+			}
+		} catch (error: any) {
 			toast({
-				title: "Upgrade Failed",
-				description: `Failed to create checkout session. Please try again. Error: ${error}`,
+				title: "Error",
+				description:
+					error?.message || "Failed to process upgrade. Please try again.",
 				variant: "destructive",
+				className: "text-white",
 			});
+		} finally {
 			setLoading(false);
 		}
 	};
 
+	if (stripeLoading) {
+		return (
+			<div className="p-6 text-center">
+				<p>Loading payment form...</p>
+			</div>
+		);
+	}
+
 	return (
-		<>
+		<Elements stripe={stripe}>
 			<DialogHeader>
 				<DialogTitle>Upgrade to Pro</DialogTitle>
 				<DialogDescription>
@@ -105,14 +193,14 @@ function UpgradeDialogContent({ onSuccess }: { onSuccess: () => void }) {
 						disabled={loading || createSubscriptionMutation.isPending}
 					>
 						{loading || createSubscriptionMutation.isPending
-							? "Redirecting to checkout..."
+							? "Processing..."
 							: "Upgrade for $50/month now"}
 					</Button>
 					<div className="text-sm text-muted-foreground">
-						<p>You'll be redirected to Stripe Checkout to complete payment.</p>
+						<p>We will charge your card now.</p>
 					</div>
 				</div>
 			</DialogFooter>
-		</>
+		</Elements>
 	);
 }

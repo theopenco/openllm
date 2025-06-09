@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db } from "@llmgateway/db";
+import { db, eq, tables } from "@llmgateway/db";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -19,11 +19,12 @@ const createProSubscription = createRoute({
 			content: {
 				"application/json": {
 					schema: z.object({
-						checkoutUrl: z.string(),
+						clientSecret: z.string().nullable(),
+						subscriptionId: z.string(),
 					}),
 				},
 			},
-			description: "Stripe Checkout session created successfully",
+			description: "Pro subscription created successfully",
 		},
 	},
 });
@@ -48,7 +49,7 @@ subscriptions.openapi(createProSubscription, async (c) => {
 
 	if (!userOrganization || !userOrganization.organization) {
 		throw new HTTPException(404, {
-			message: "Organization or user not found",
+			message: "Organization not found",
 		});
 	}
 
@@ -58,6 +59,21 @@ subscriptions.openapi(createProSubscription, async (c) => {
 	if (organization.plan === "pro" && organization.stripeSubscriptionId) {
 		throw new HTTPException(400, {
 			message: "Organization already has an active pro subscription",
+		});
+	}
+
+	// Get the default payment method for this organization
+	const defaultPaymentMethod = await db.query.paymentMethod.findFirst({
+		where: {
+			organizationId: organization.id,
+			isDefault: true,
+		},
+	});
+
+	if (!defaultPaymentMethod) {
+		throw new HTTPException(400, {
+			message:
+				"No default payment method found. Please add a payment method first.",
 		});
 	}
 
@@ -71,43 +87,59 @@ subscriptions.openapi(createProSubscription, async (c) => {
 			});
 		}
 
-		// Create Stripe Checkout session
-		const session = await stripe.checkout.sessions.create({
+		// Create a subscription using the default payment method
+		const subscription = await stripe.subscriptions.create({
 			customer: stripeCustomerId,
-			mode: "subscription",
-			line_items: [
+			items: [
 				{
 					price: process.env.STRIPE_PRO_PRICE_ID,
-					quantity: 1,
 				},
 			],
-			success_url: `${process.env.UI_URL || "http://localhost:3002"}/dashboard/settings/billing?success=true`,
-			cancel_url: `${process.env.UI_URL || "http://localhost:3002"}/dashboard/settings/billing?canceled=true`,
+			default_payment_method: defaultPaymentMethod.stripePaymentMethodId,
+			expand: ["latest_invoice.payment_intent"],
 			metadata: {
 				organizationId: organization.id,
 				plan: "pro",
 			},
-			subscription_data: {
-				metadata: {
-					organizationId: organization.id,
-					plan: "pro",
-				},
-			},
 		});
 
-		if (!session.url) {
-			throw new HTTPException(500, {
-				message: "Failed to generate checkout URL",
-			});
+		console.log("subscription", subscription);
+
+		// Update organization with subscription ID and mark as not cancelled
+		await db
+			.update(tables.organization)
+			.set({
+				stripeSubscriptionId: subscription.id,
+				subscriptionCancelled: false,
+			})
+			.where(eq(tables.organization.id, organization.id));
+
+		const invoice = subscription.latest_invoice as any;
+		const paymentIntent = invoice?.payment_intent;
+
+		// If payment requires confirmation, return client secret
+		if (paymentIntent) {
+			if (paymentIntent.status === "requires_action") {
+				return c.json({
+					clientSecret: paymentIntent.client_secret || "",
+					subscriptionId: subscription.id,
+				});
+			} else {
+				console.error(
+					`Unexpected payment intent status: ${paymentIntent.status}`,
+				);
+			}
 		}
 
+		// If payment succeeded immediately, return success
 		return c.json({
-			checkoutUrl: session.url,
+			clientSecret: null,
+			subscriptionId: subscription.id,
 		});
 	} catch (error) {
-		console.error("Stripe checkout session error:", error);
+		console.error("Stripe subscription error:", error);
 		throw new HTTPException(500, {
-			message: `Failed to create checkout session: ${error}`,
+			message: `Failed to create subscription: ${error}`,
 		});
 	}
 });
