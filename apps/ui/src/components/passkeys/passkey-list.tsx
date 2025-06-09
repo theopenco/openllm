@@ -41,7 +41,6 @@ export function PasskeyList() {
 			toast({
 				title: "Error deleting passkey",
 				variant: "destructive",
-				className: "text-white",
 			});
 		},
 	});
