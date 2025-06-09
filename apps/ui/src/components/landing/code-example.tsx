@@ -96,46 +96,15 @@ export default ChatComponent;`,
 	nextjs: {
 		label: "Next.js",
 		language: "typescript",
-		code: `// app/api/chat/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+		code: `import { createLLMGateway } from "@llmgateway/ai-sdk-provider";
+import { generateText } from 'ai';
 
-export async function POST(request: NextRequest) {
-  const { message } = await request.json();
-  
-  const response = await fetch('https://api.llmgateway.io/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': \`Bearer \${process.env.LLM_GATEWAY_API_KEY}\`
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o',
-      messages: [
-        { role: 'user', content: message }
-      ]
-    })
-  });
-  
-  if (!response.ok) {
-    return NextResponse.json(
-      { error: 'Failed to get response' }, 
-      { status: response.status }
-    );
-  }
-  
-  const data = await response.json();
-  
-  return NextResponse.json({
-    message: data.choices[0].message.content
-  });
-}
+const llmgateway = createLLMGateway({ apiKey });
 
-// Usage in component:
-// const response = await fetch('/api/chat', {
-//   method: 'POST',
-//   headers: { 'Content-Type': 'application/json' },
-//   body: JSON.stringify({ message: 'Hello, how are you?' })
-// });`,
+const { text } = await generateText({
+  model: llmgateway('openai/gpt-4o'),
+  prompt: 'Write a vegetarian lasagna recipe for 4 people.',
+});`,
 	},
 	python: {
 		label: "Python",
