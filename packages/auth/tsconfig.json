@@ -2,7 +2,7 @@
 	"extends": "../../tsconfig.json",
 	"compilerOptions": {
 		"paths": {
-			"@openllm/*": ["../../packages/*/src"]
+			"@llmgateway/*": ["../../packages/*/src"]
 		}
 	},
 	"include": ["./src/**/*.ts"]

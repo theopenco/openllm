@@ -96,12 +96,6 @@ export function DashboardSidebar() {
 	};
 
 	useEffect(() => {
-		if (window.matchMedia("(max-width: 640px)").matches) {
-			toggleSidebar();
-		}
-	}, [toggleSidebar]);
-
-	useEffect(() => {
 		if (isSettingsActive() && !settingsExpanded) {
 			setSettingsExpanded(true);
 		}
@@ -303,7 +297,12 @@ export function DashboardSidebar() {
 						</div>
 
 						<Button asChild>
-							<Link to="/dashboard/settings/billing">Upgrade</Link>
+							<Link
+								to="/dashboard/settings/billing"
+								search={{ success: undefined, canceled: undefined }}
+							>
+								Upgrade
+							</Link>
 						</Button>
 					</div>
 				)}

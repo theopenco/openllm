@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Check, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
+import { UpgradeToProDialog } from "@/components/shared/upgrade-to-pro-dialog";
 import { useUser } from "@/hooks/useUser";
 import { Badge } from "@/lib/components/badge";
 import { Button } from "@/lib/components/button";
@@ -75,6 +76,12 @@ export function PricingPlans() {
 				{
 					method: "POST",
 					credentials: "include",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						billingCycle: billingCycle === "annual" ? "yearly" : "monthly",
+					}),
 				},
 			);
 
@@ -83,34 +90,18 @@ export function PricingPlans() {
 				throw new Error(error);
 			}
 
-			const { clientSecret, subscriptionId: _subscriptionId } =
-				await response.json();
+			const { checkoutUrl } = await response.json();
 
-			if (clientSecret) {
-				toast({
-					title: "Payment confirmation required",
-					description:
-						"Please confirm your payment to complete the subscription.",
-				});
-			} else {
-				toast({
-					title: "Subscription created successfully!",
-					description: "Welcome to Pro! Your subscription is now active.",
-				});
-				await fetchSubscriptionStatus();
-				navigate({ to: "/dashboard" });
-			}
+			// Redirect to Stripe Checkout
+			window.location.href = checkoutUrl;
 		} catch (error: any) {
-			if (error.message?.includes("No default payment method found")) {
-				navigate({ to: "/dashboard/settings/billing" });
-			}
 			toast({
 				title: "Subscription failed",
 				description:
-					error.message || "Failed to create subscription. Please try again.",
+					error.message ||
+					"Failed to create checkout session. Please try again.",
 				variant: "destructive",
 			});
-		} finally {
 			setLoading(null);
 		}
 	};
@@ -215,6 +206,25 @@ export function PricingPlans() {
 
 	const plans = [
 		{
+			name: "Self-Host",
+			description: "Host on your own infrastructure",
+			price: {
+				monthly: "Free",
+				annual: "Free",
+			},
+			features: [
+				"100% free forever",
+				"Full control over your data",
+				"Host on your infrastructure",
+				"No usage limits",
+				"Community support",
+				"Regular updates",
+			],
+			cta: "View Documentation",
+			popular: false,
+			disabled: false,
+		},
+		{
 			name: "Free",
 			description: "Perfect for trying out the platform",
 			price: {
@@ -271,25 +281,6 @@ export function PricingPlans() {
 				"24/7 premium support",
 			],
 			cta: "Contact Sales",
-			popular: false,
-			disabled: false,
-		},
-		{
-			name: "Self-Host",
-			description: "Host on your own infrastructure",
-			price: {
-				monthly: "Free",
-				annual: "Free",
-			},
-			features: [
-				"100% free forever",
-				"Full control over your data",
-				"Host on your infrastructure",
-				"No usage limits",
-				"Community support",
-				"Regular updates",
-			],
-			cta: "View Documentation",
 			popular: false,
 			disabled: false,
 		},
@@ -414,30 +405,52 @@ export function PricingPlans() {
 									</ul>
 								</CardContent>
 								<CardFooter>
-									<Button
-										className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
-										variant={plan.popular ? "default" : "outline"}
-										disabled={plan.disabled || isLoading}
-										onClick={() => {
-											if (
-												plan.name === "Pro" &&
-												subscriptionStatus?.plan === "pro"
-											) {
-												if (subscriptionStatus.subscriptionCancelled) {
-													handleResumeSubscription();
-												} else {
-													handleCancelSubscription();
-												}
-											} else {
-												handlePlanSelection(plan.name);
+									{plan.name === "Pro" &&
+									subscriptionStatus?.plan !== "pro" &&
+									user ? (
+										<UpgradeToProDialog
+											onSuccess={() => fetchSubscriptionStatus()}
+											initialBillingCycle={
+												billingCycle === "annual" ? "yearly" : "monthly"
 											}
-										}}
-									>
-										{isLoading && (
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-										)}
-										{plan.cta}
-									</Button>
+										>
+											<Button
+												className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
+												variant={plan.popular ? "default" : "outline"}
+												disabled={plan.disabled || isLoading}
+											>
+												{isLoading && (
+													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												)}
+												{plan.cta}
+											</Button>
+										</UpgradeToProDialog>
+									) : (
+										<Button
+											className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
+											variant={plan.popular ? "default" : "outline"}
+											disabled={plan.disabled || isLoading}
+											onClick={() => {
+												if (
+													plan.name === "Pro" &&
+													subscriptionStatus?.plan === "pro"
+												) {
+													if (subscriptionStatus.subscriptionCancelled) {
+														handleResumeSubscription();
+													} else {
+														handleCancelSubscription();
+													}
+												} else {
+													handlePlanSelection(plan.name);
+												}
+											}}
+										>
+											{isLoading && (
+												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											)}
+											{plan.cta}
+										</Button>
+									)}
 								</CardFooter>
 							</Card>
 						);

@@ -1,4 +1,4 @@
-import { db } from "@openllm/db";
+import { db } from "@llmgateway/db";
 
 import redisClient from "../lib/redis";
 import { processLogQueue } from "../worker";

@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { models as modelsList } from "@openllm/models";
+import { models as modelsList } from "@llmgateway/models";
 import { HTTPException } from "hono/http-exception";
 
 import type { ServerTypes } from "../vars";

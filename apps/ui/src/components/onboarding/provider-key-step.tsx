@@ -94,7 +94,6 @@ export function ProviderKeyStep() {
 				description:
 					error?.message || "Failed to add provider key. Please try again.",
 				variant: "destructive",
-				className: "text-white",
 			});
 		} finally {
 			setIsLoading(false);

@@ -17,13 +17,13 @@ echo "PostgreSQL is up - executing command"
 
 # Run the database push command
 echo "Running database push..."
-cd /workspaces/openllm
+cd /workspaces/llmgateway
 pnpm push-dev
 
 echo "Database setup complete!"
 
 # Make sure we're in the right directory
-cd /workspaces/openllm
+cd /workspaces/llmgateway
 echo "Current directory: $(pwd)"
 ls -la
 

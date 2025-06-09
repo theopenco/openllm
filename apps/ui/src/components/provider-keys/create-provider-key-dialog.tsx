@@ -1,4 +1,4 @@
-import { providers, type ProviderId } from "@openllm/models";
+import { providers, type ProviderId } from "@llmgateway/models";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePostHog } from "posthog-js/react";
 import React, { useState } from "react";
@@ -8,8 +8,8 @@ import GoogleStudioAiLogo from "@/assets/models/google-studio-ai.svg?react";
 import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
 import InferenceLogo from "@/assets/models/inference-net.svg?react";
 import KlusterLogo from "@/assets/models/kluster-ai.svg?react";
+import LLMGatewayLogo from "@/assets/models/llmgateway.svg?react";
 import OpenAiLogo from "@/assets/models/openai.svg?react";
-import OpenLLMLogo from "@/assets/models/openllm.svg?react";
 import TogetherAiLogo from "@/assets/models/together-ai.svg?react";
 import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Alert, AlertDescription } from "@/lib/components/alert";
@@ -39,7 +39,7 @@ import { $api } from "@/lib/fetch-client";
 const providerLogoComponents: Partial<
 	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>> | null>
 > = {
-	llmgateway: OpenLLMLogo,
+	llmgateway: LLMGatewayLogo,
 	openai: OpenAiLogo,
 	anthropic: anthropicLogo,
 	"google-vertex": GoogleVertexLogo,
@@ -97,7 +97,6 @@ export function CreateProviderKeyDialog({
 				description:
 					"Provider keys are only available on the Pro plan. Please upgrade to use your own API keys.",
 				variant: "destructive",
-				className: "text-white",
 			});
 			return;
 		}
@@ -109,7 +108,6 @@ export function CreateProviderKeyDialog({
 					? "Please select a provider"
 					: "Please enter the provider API key",
 				variant: "destructive",
-				className: "text-white",
 			});
 			return;
 		}
@@ -119,7 +117,6 @@ export function CreateProviderKeyDialog({
 				title: "Error",
 				description: "Base URL is required for LLM Gateway provider",
 				variant: "destructive",
-				className: "text-white",
 			});
 			return;
 		}
@@ -143,7 +140,6 @@ export function CreateProviderKeyDialog({
 				title: "Error",
 				description: "No organization found. Please try refreshing the page.",
 				variant: "destructive",
-				className: "text-white",
 			});
 			return;
 		}
@@ -173,7 +169,6 @@ export function CreateProviderKeyDialog({
 						title: "Error",
 						description: error?.message ?? "Failed to create key",
 						variant: "destructive",
-						className: "text-white",
 					});
 				},
 			},

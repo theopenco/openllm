@@ -19,7 +19,7 @@ import {
 	SelectValue,
 } from "@/lib/components/select";
 
-import type { providers } from "@openllm/models";
+import type { providers } from "@llmgateway/models";
 import type React from "react";
 
 interface Provider {

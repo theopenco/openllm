@@ -1,5 +1,5 @@
-import { db, tables, eq } from "@openllm/db";
-import { models, providers } from "@openllm/models";
+import { db, tables, eq } from "@llmgateway/db";
+import { models, providers } from "@llmgateway/models";
 import "dotenv/config";
 import { beforeEach, describe, expect, test } from "vitest";
 
@@ -225,8 +225,54 @@ describe("e2e tests with real provider keys", () => {
 
 			expect(streamResult.hasValidSSE).toBe(true);
 			expect(streamResult.eventCount).toBeGreaterThan(0);
-
 			expect(streamResult.hasContent).toBe(true);
+
+			// Verify that all streaming responses are transformed to OpenAI format
+			expect(streamResult.hasOpenAIFormat).toBe(true);
+
+			// Verify that chunks have the correct OpenAI streaming format
+			const contentChunks = streamResult.chunks.filter(
+				(chunk) => chunk.choices?.[0]?.delta?.content,
+			);
+			expect(contentChunks.length).toBeGreaterThan(0);
+
+			// Verify each content chunk has proper OpenAI format
+			for (const chunk of contentChunks) {
+				expect(chunk).toHaveProperty("id");
+				expect(chunk).toHaveProperty("object", "chat.completion.chunk");
+				expect(chunk).toHaveProperty("created");
+				expect(chunk).toHaveProperty("model");
+				expect(chunk).toHaveProperty("choices");
+				expect(chunk.choices).toHaveLength(1);
+				expect(chunk.choices[0]).toHaveProperty("index", 0);
+				expect(chunk.choices[0]).toHaveProperty("delta");
+				expect(chunk.choices[0]).toHaveProperty("delta.role", "assistant");
+				expect(chunk.choices[0].delta).toHaveProperty("content");
+				expect(typeof chunk.choices[0].delta.content).toBe("string");
+			}
+
+			// Verify that usage object is returned in streaming mode
+			const usageChunks = streamResult.chunks.filter(
+				(chunk) =>
+					chunk.usage &&
+					(chunk.usage.prompt_tokens !== null ||
+						chunk.usage.completion_tokens !== null ||
+						chunk.usage.total_tokens !== null),
+			);
+			expect(usageChunks.length).toBeGreaterThan(0);
+
+			// Verify the usage chunk has proper format
+			const usageChunk = usageChunks[usageChunks.length - 1]; // Get the last usage chunk
+			expect(usageChunk).toHaveProperty("usage");
+			expect(usageChunk.usage).toHaveProperty("prompt_tokens");
+			expect(usageChunk.usage).toHaveProperty("completion_tokens");
+			expect(usageChunk.usage).toHaveProperty("total_tokens");
+			expect(typeof usageChunk.usage.prompt_tokens).toBe("number");
+			expect(typeof usageChunk.usage.completion_tokens).toBe("number");
+			expect(typeof usageChunk.usage.total_tokens).toBe("number");
+			expect(usageChunk.usage.prompt_tokens).toBeGreaterThan(0);
+			expect(usageChunk.usage.completion_tokens).toBeGreaterThan(0);
+			expect(usageChunk.usage.total_tokens).toBeGreaterThan(0);
 
 			const log = await validateLogs();
 			expect(log.streamed).toBe(true);
@@ -543,9 +589,19 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	hasContent: boolean;
 	eventCount: number;
 	hasValidSSE: boolean;
+	hasOpenAIFormat: boolean;
+	chunks: any[];
+	hasUsage: boolean;
 }> {
 	if (!stream) {
-		return { hasContent: false, eventCount: 0, hasValidSSE: false };
+		return {
+			hasContent: false,
+			eventCount: 0,
+			hasValidSSE: false,
+			hasOpenAIFormat: false,
+			chunks: [],
+			hasUsage: false,
+		};
 	}
 
 	const reader = stream.getReader();
@@ -553,6 +609,9 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 	let eventCount = 0;
 	let hasValidSSE = false;
 	let hasContent = false;
+	let hasOpenAIFormat = true; // Assume true until proven otherwise
+	let hasUsage = false;
+	const chunks: any[] = [];
 
 	try {
 		while (true) {
@@ -576,16 +635,33 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 
 					try {
 						const data = JSON.parse(line.substring(6));
+						chunks.push(data);
+
+						// Check if this chunk has OpenAI format
+						if (
+							!data.id ||
+							!data.object ||
+							data.object !== "chat.completion.chunk"
+						) {
+							hasOpenAIFormat = false;
+						}
+
+						// Check for content in OpenAI format (should be the primary format after transformation)
 						if (
 							data.choices?.[0]?.delta?.content ||
-							data.delta?.text ||
-							data.candidates?.[0]?.content?.parts?.[0]?.text ||
-							data.choices?.[0]?.finish_reason ||
-							data.stop_reason ||
-							data.delta?.stop_reason ||
-							data.candidates?.[0]?.finishReason
+							data.choices?.[0]?.finish_reason
 						) {
 							hasContent = true;
+						}
+
+						// Check for usage information
+						if (
+							data.usage &&
+							(data.usage.prompt_tokens !== null ||
+								data.usage.completion_tokens !== null ||
+								data.usage.total_tokens !== null)
+						) {
+							hasUsage = true;
 						}
 					} catch (_e) {}
 				}
@@ -595,5 +671,13 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 		reader.releaseLock();
 	}
 
-	return { fullContent, hasContent, eventCount, hasValidSSE };
+	return {
+		fullContent,
+		hasContent,
+		eventCount,
+		hasValidSSE,
+		hasOpenAIFormat,
+		chunks,
+		hasUsage,
+	};
 }

@@ -1,4 +1,4 @@
-import { providers, type ProviderId } from "@openllm/models";
+import { providers, type ProviderId } from "@llmgateway/models";
 import { useQueryClient } from "@tanstack/react-query";
 import { KeyIcon, MoreHorizontal, PlusIcon } from "lucide-react";
 
@@ -7,8 +7,8 @@ import AnthropicLogo from "@/assets/models/anthropic.svg?react";
 import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
 import InferenceLogo from "@/assets/models/inference-net.svg?react";
 import KlusterLogo from "@/assets/models/kluster-ai.svg?react";
+import LLMGatewayLogo from "@/assets/models/llmgateway.svg?react";
 import OpenAILogo from "@/assets/models/openai.svg?react";
-import OpenLLMLogo from "@/assets/models/openllm.svg?react";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -44,7 +44,7 @@ import { $api } from "@/lib/fetch-client";
 export const providerLogoComponents: Partial<
 	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>>>
 > = {
-	llmgateway: OpenLLMLogo,
+	llmgateway: LLMGatewayLogo,
 	openai: OpenAILogo,
 	anthropic: AnthropicLogo,
 	"google-vertex": GoogleVertexLogo,

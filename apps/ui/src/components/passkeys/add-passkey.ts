@@ -11,8 +11,6 @@ export async function addPasskey() {
 			toast({
 				title: "Error adding passkey",
 				description: result.error.message || "Please try again",
-				variant: "destructive",
-				className: "text-white",
 			});
 			return;
 		}
@@ -26,7 +24,6 @@ export async function addPasskey() {
 			title: "Error adding passkey",
 			description: "An unexpected error occurred",
 			variant: "destructive",
-			className: "text-white",
 		});
 	}
 }

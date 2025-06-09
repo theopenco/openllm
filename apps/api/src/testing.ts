@@ -1,4 +1,4 @@
-import { db, tables } from "@openllm/db";
+import { db, tables } from "@llmgateway/db";
 
 import { app } from ".";
 import { clearCache } from "../../gateway/src/test-utils/test-helpers";

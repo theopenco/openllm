@@ -1,4 +1,4 @@
-import { models, providers, type ModelDefinition } from "@openllm/models";
+import { models, providers, type ModelDefinition } from "@llmgateway/models";
 import { Check, ChevronDown } from "lucide-react";
 
 import { Badge } from "@/lib/components/badge";

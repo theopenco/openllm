@@ -1,4 +1,4 @@
-import { models, providers } from "@openllm/models";
+import { models, providers } from "@llmgateway/models";
 import { useState } from "react";
 
 import { LogCard } from "../dashboard/log-card";

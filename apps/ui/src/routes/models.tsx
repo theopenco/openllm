@@ -2,7 +2,7 @@ import {
 	models as modelDefinitions,
 	providers as providerDefinitions,
 	type ProviderId,
-} from "@openllm/models";
+} from "@llmgateway/models";
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink, Mic } from "lucide-react";
 
@@ -187,7 +187,7 @@ function ProvidersPage() {
 							target="_blank"
 							className="inline-flex items-center gap-2 text-sm text-muted-foreground"
 						>
-							<span>Data sourced from @openllm/models</span>
+							<span>Data sourced from @llmgateway/models</span>
 							<ExternalLink className="w-4 h-4" />
 						</a>
 					</footer>

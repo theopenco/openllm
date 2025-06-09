@@ -52,12 +52,11 @@ chat.post("/completion", async (c) => {
 
 		if (!response.ok) {
 			const errorText = await response.text();
-			console.log("playground chat gateway error:", errorText);
 			try {
 				const errorJson = JSON.parse(errorText);
-				if (errorJson.error?.message) {
+				if (errorJson.message) {
 					return c.json(
-						{ error: errorJson.error.message },
+						{ error: "gateway returned: " + errorJson.message },
 						response.status as any,
 					);
 				}

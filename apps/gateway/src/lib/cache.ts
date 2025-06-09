@@ -1,9 +1,9 @@
-import { db, type InferSelectModel } from "@openllm/db";
+import { db, type InferSelectModel } from "@llmgateway/db";
 import crypto from "crypto";
 
 import redisClient from "./redis";
 
-import type { tables } from "@openllm/db";
+import type { tables } from "@llmgateway/db";
 
 export function generateCacheKey(payload: Record<string, any>): string {
 	return crypto

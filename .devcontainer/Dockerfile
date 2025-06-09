@@ -9,7 +9,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get -y install --no-install-recommends postgresql-client
 
 # Set the working directory
-WORKDIR /workspaces/openllm
+WORKDIR /workspaces/llmgateway
 
 # Create directory structure for package.json files
 RUN mkdir -p apps/api apps/gateway apps/ui packages/auth packages/db packages/models

@@ -9,7 +9,7 @@
 		"jsx": "preserve",
 		"paths": {
 			"@/*": ["./*"],
-			"@openllm/*": ["../../packages/*/src"]
+			"@llmgateway/*": ["../../packages/*/src"]
 		},
 		"plugins": [
 			{
