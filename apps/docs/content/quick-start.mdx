@@ -366,6 +366,16 @@ puts result['choices'][0]['message']['content']`} />
 
 ## 3 · SDK integrations
 
+```ts title="ai-sdk.ts"
+import { llmgateway } from "@llmgateway/ai-sdk-provider";
+import { generateText } from "ai";
+
+const { text } = await generateText({
+	model: llmgateway("openai/gpt-4o"),
+	prompt: "Write a vegetarian lasagna recipe for 4 people.",
+});
+```
+
 ```ts title="vercel-ai-sdk.ts"
 import { createOpenAI } from "@ai-sdk/openai";
 
