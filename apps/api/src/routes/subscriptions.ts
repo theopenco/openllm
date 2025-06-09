@@ -118,11 +118,17 @@ subscriptions.openapi(createProSubscription, async (c) => {
 		const paymentIntent = invoice?.payment_intent;
 
 		// If payment requires confirmation, return client secret
-		if (paymentIntent && paymentIntent.status === "requires_confirmation") {
-			return c.json({
-				clientSecret: paymentIntent.client_secret || "",
-				subscriptionId: subscription.id,
-			});
+		if (paymentIntent) {
+			if (paymentIntent.status === "requires_action") {
+				return c.json({
+					clientSecret: paymentIntent.client_secret || "",
+					subscriptionId: subscription.id,
+				});
+			} else {
+				console.error(
+					`Unexpected payment intent status: ${paymentIntent.status}`,
+				);
+			}
 		}
 
 		// If payment succeeded immediately, return success
