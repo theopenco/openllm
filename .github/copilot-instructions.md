@@ -19,3 +19,9 @@
 - for read queries, always use `db().query.<table>.findMany()` or `db().query.<table>.findFirst()`
 - do not apply any migrations, just use `pnpm push`
 - if any tables or columns do not exist, run `pnpm push` to sync the schema to the database
+
+## Packages
+
+### apps/ui
+
+This is a tanstack router project. Always use navigate() for navigation.
