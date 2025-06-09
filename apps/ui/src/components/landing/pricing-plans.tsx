@@ -2,6 +2,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Check, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 
+import { UpgradeToProDialog } from "@/components/shared/upgrade-to-pro-dialog";
 import { useUser } from "@/hooks/useUser";
 import { Badge } from "@/lib/components/badge";
 import { Button } from "@/lib/components/button";
@@ -398,30 +399,49 @@ export function PricingPlans() {
 									</ul>
 								</CardContent>
 								<CardFooter>
-									<Button
-										className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
-										variant={plan.popular ? "default" : "outline"}
-										disabled={plan.disabled || isLoading}
-										onClick={() => {
-											if (
-												plan.name === "Pro" &&
-												subscriptionStatus?.plan === "pro"
-											) {
-												if (subscriptionStatus.subscriptionCancelled) {
-													handleResumeSubscription();
+									{plan.name === "Pro" &&
+									subscriptionStatus?.plan !== "pro" &&
+									user ? (
+										<UpgradeToProDialog
+											onSuccess={() => fetchSubscriptionStatus()}
+										>
+											<Button
+												className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
+												variant={plan.popular ? "default" : "outline"}
+												disabled={plan.disabled || isLoading}
+											>
+												{isLoading && (
+													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+												)}
+												{plan.cta}
+											</Button>
+										</UpgradeToProDialog>
+									) : (
+										<Button
+											className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
+											variant={plan.popular ? "default" : "outline"}
+											disabled={plan.disabled || isLoading}
+											onClick={() => {
+												if (
+													plan.name === "Pro" &&
+													subscriptionStatus?.plan === "pro"
+												) {
+													if (subscriptionStatus.subscriptionCancelled) {
+														handleResumeSubscription();
+													} else {
+														handleCancelSubscription();
+													}
 												} else {
-													handleCancelSubscription();
+													handlePlanSelection(plan.name);
 												}
-											} else {
-												handlePlanSelection(plan.name);
-											}
-										}}
-									>
-										{isLoading && (
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-										)}
-										{plan.cta}
-									</Button>
+											}}
+										>
+											{isLoading && (
+												<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											)}
+											{plan.cta}
+										</Button>
+									)}
 								</CardFooter>
 							</Card>
 						);
