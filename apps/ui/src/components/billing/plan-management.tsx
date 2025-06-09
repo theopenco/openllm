@@ -35,6 +35,11 @@ export function PlanManagement() {
 		"/subscriptions/resume-pro-subscription",
 	);
 
+	const upgradeToYearlyMutation = $api.useMutation(
+		"post",
+		"/subscriptions/upgrade-to-yearly",
+	);
+
 	const handleCancelSubscription = async () => {
 		const confirmed = window.confirm(
 			"Are you sure you want to cancel your Pro subscription? You'll lose access to provider keys at the end of your billing period.",
@@ -91,6 +96,34 @@ export function PlanManagement() {
 		}
 	};
 
+	const handleUpgradeToYearly = async () => {
+		const confirmed = window.confirm(
+			"Are you sure you want to upgrade to the yearly plan? You'll be charged a prorated amount for the remaining time and save money on future billing cycles.",
+		);
+
+		if (!confirmed) {
+			return;
+		}
+
+		try {
+			await upgradeToYearlyMutation.mutateAsync({});
+			await queryClient.invalidateQueries({
+				queryKey: $api.queryOptions("get", "/subscriptions/status").queryKey,
+			});
+			toast({
+				title: "Upgraded to Yearly",
+				description:
+					"Your subscription has been upgraded to yearly billing. You'll save money on future billing cycles!",
+			});
+		} catch (error) {
+			toast({
+				title: "Error",
+				description: `Failed to upgrade to yearly plan. Please try again. Error: ${error}`,
+				variant: "destructive",
+			});
+		}
+	};
+
 	if (!organization) {
 		return (
 			<Card>
@@ -123,6 +156,13 @@ export function PlanManagement() {
 							<Badge variant={isProPlan ? "default" : "secondary"}>
 								{isProPlan ? "Pro" : "Free"}
 							</Badge>
+							{isProPlan && subscriptionStatus?.billingCycle && (
+								<Badge variant="outline">
+									{subscriptionStatus.billingCycle === "yearly"
+										? "Yearly"
+										: "Monthly"}
+								</Badge>
+							)}
 						</div>
 						<p className="text-sm text-muted-foreground mt-1">
 							{isProPlan
@@ -139,11 +179,24 @@ export function PlanManagement() {
 					</div>
 					<div className="text-right">
 						<p className="text-2xl font-bold">
-							{isProPlan ? "$50" : "$0"}
+							{isProPlan
+								? subscriptionStatus?.billingCycle === "yearly"
+									? "$500"
+									: "$50"
+								: "$0"}
 							<span className="text-sm font-normal text-muted-foreground">
-								/month
+								{isProPlan
+									? subscriptionStatus?.billingCycle === "yearly"
+										? "/year"
+										: "/month"
+									: "/month"}
 							</span>
 						</p>
+						{isProPlan && subscriptionStatus?.billingCycle === "yearly" && (
+							<p className="text-sm text-green-600 font-medium">
+								Save 20% vs monthly
+							</p>
+						)}
 					</div>
 				</div>
 
@@ -189,6 +242,19 @@ export function PlanManagement() {
 					</UpgradeToProDialog>
 				) : (
 					<div className="flex gap-2">
+						{/* Show upgrade to yearly button for monthly subscribers */}
+						{!subscriptionStatus?.subscriptionCancelled &&
+							subscriptionStatus?.billingCycle === "monthly" && (
+								<Button
+									variant="default"
+									onClick={handleUpgradeToYearly}
+									disabled={upgradeToYearlyMutation.isPending}
+								>
+									{upgradeToYearlyMutation.isPending
+										? "Upgrading..."
+										: "Upgrade to Yearly (Save 20%)"}
+								</Button>
+							)}
 						{!subscriptionStatus?.subscriptionCancelled && (
 							<Button
 								variant="outline"

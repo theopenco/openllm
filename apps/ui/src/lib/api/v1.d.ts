@@ -2071,7 +2071,17 @@ export interface paths {
 				path?: never;
 				cookie?: never;
 			};
-			requestBody?: never;
+			requestBody?: {
+				content: {
+					"application/json": {
+						/**
+						 * @default monthly
+						 * @enum {string}
+						 */
+						billingCycle?: "monthly" | "yearly";
+					};
+				};
+			};
 			responses: {
 				/** @description Stripe Checkout session created successfully */
 				200: {
@@ -2166,6 +2176,43 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	"/subscriptions/upgrade-to-yearly": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: never;
+			responses: {
+				/** @description Subscription upgraded to yearly successfully */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content: {
+						"application/json": {
+							success: boolean;
+						};
+					};
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	"/subscriptions/status": {
 		parameters: {
 			query?: never;
@@ -2194,6 +2241,8 @@ export interface paths {
 							subscriptionId: string | null;
 							planExpiresAt: string | null;
 							subscriptionCancelled: boolean;
+							/** @enum {string|null} */
+							billingCycle: "monthly" | "yearly" | null;
 						};
 					};
 				};
