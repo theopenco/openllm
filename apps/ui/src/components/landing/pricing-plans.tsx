@@ -76,6 +76,12 @@ export function PricingPlans() {
 				{
 					method: "POST",
 					credentials: "include",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						billingCycle: billingCycle === "annual" ? "yearly" : "monthly",
+					}),
 				},
 			);
 
@@ -404,6 +410,9 @@ export function PricingPlans() {
 									user ? (
 										<UpgradeToProDialog
 											onSuccess={() => fetchSubscriptionStatus()}
+											initialBillingCycle={
+												billingCycle === "annual" ? "yearly" : "monthly"
+											}
 										>
 											<Button
 												className={`w-full ${plan.popular ? "bg-primary hover:bg-primary/90" : ""}`}
