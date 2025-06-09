@@ -271,7 +271,7 @@ export function ChatSidebar({
 
 	if (isLoading) {
 		return (
-			<Sidebar className="border-r w-80">
+			<Sidebar className="border-r md:w-[200px] lg:w-[260px]">
 				<SidebarHeader className="p-4 border-b">
 					<Button
 						onClick={onNewChat}
