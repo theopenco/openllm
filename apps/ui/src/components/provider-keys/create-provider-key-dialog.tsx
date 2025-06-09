@@ -97,7 +97,6 @@ export function CreateProviderKeyDialog({
 				description:
 					"Provider keys are only available on the Pro plan. Please upgrade to use your own API keys.",
 				variant: "destructive",
-				className: "text-white",
 			});
 			return;
 		}
@@ -109,7 +108,6 @@ export function CreateProviderKeyDialog({
 					? "Please select a provider"
 					: "Please enter the provider API key",
 				variant: "destructive",
-				className: "text-white",
 			});
 			return;
 		}
@@ -119,7 +117,6 @@ export function CreateProviderKeyDialog({
 				title: "Error",
 				description: "Base URL is required for LLM Gateway provider",
 				variant: "destructive",
-				className: "text-white",
 			});
 			return;
 		}
@@ -143,7 +140,6 @@ export function CreateProviderKeyDialog({
 				title: "Error",
 				description: "No organization found. Please try refreshing the page.",
 				variant: "destructive",
-				className: "text-white",
 			});
 			return;
 		}
@@ -173,7 +169,6 @@ export function CreateProviderKeyDialog({
 						title: "Error",
 						description: error?.message ?? "Failed to create key",
 						variant: "destructive",
-						className: "text-white",
 					});
 				},
 			},

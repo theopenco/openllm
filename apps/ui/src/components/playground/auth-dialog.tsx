@@ -95,7 +95,6 @@ export function AuthDialog({ open }: AuthDialogProps) {
 					toast({
 						title: ctx.error.message || "An unknown error occurred",
 						variant: "destructive",
-						className: "text-white",
 					});
 				},
 			},
@@ -105,7 +104,6 @@ export function AuthDialog({ open }: AuthDialogProps) {
 			toast({
 				title: error.message || "An unknown error occurred",
 				variant: "destructive",
-				className: "text-white",
 			});
 		}
 
@@ -140,7 +138,6 @@ export function AuthDialog({ open }: AuthDialogProps) {
 					toast({
 						title: ctx.error.message || "Failed to sign up",
 						variant: "destructive",
-						className: "text-white",
 					});
 				},
 			},
@@ -150,7 +147,6 @@ export function AuthDialog({ open }: AuthDialogProps) {
 			toast({
 				title: error.message || "Failed to sign up",
 				variant: "destructive",
-				className: "text-white",
 			});
 		}
 
@@ -165,7 +161,6 @@ export function AuthDialog({ open }: AuthDialogProps) {
 				toast({
 					title: res.error.message || "Failed to sign in with passkey",
 					variant: "destructive",
-					className: "text-white",
 				});
 				return;
 			}
@@ -177,7 +172,6 @@ export function AuthDialog({ open }: AuthDialogProps) {
 			toast({
 				title: error?.message || "Failed to sign in with passkey",
 				variant: "destructive",
-				className: "text-white",
 			});
 		} finally {
 			setIsLoading(false);
