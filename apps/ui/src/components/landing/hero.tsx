@@ -95,7 +95,7 @@ export function Hero({ navbarOnly }: { navbarOnly?: boolean }) {
 								<div className="text-center sm:mx-auto lg:mr-auto lg:mt-0">
 									<AnimatedGroup variants={transitionVariants}>
 										<a
-											href={DOCS_URL}
+											href="https://github.com/theopenco/llmgateway"
 											target="_blank"
 											className="hover:bg-background dark:hover:border-t-border bg-muted group mx-auto flex w-fit items-center gap-4 rounded-full border p-1 pl-4 shadow-md shadow-black/5 transition-all duration-300 dark:border-t-white/5 dark:shadow-zinc-950"
 										>
