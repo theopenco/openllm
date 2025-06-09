@@ -1,6 +1,6 @@
 import { swaggerUI } from "@hono/swagger-ui";
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db } from "@openllm/db";
+import { db } from "@llmgateway/db";
 import "dotenv/config";
 import { cors } from "hono/cors";
 import { HTTPException } from "hono/http-exception";

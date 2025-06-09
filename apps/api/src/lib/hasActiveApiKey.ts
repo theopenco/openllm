@@ -1,4 +1,4 @@
-import { db, tables, eq, and } from "@openllm/db";
+import { db, tables, eq, and } from "@llmgateway/db";
 
 /**
  * Check if a user has at least one active (non-revoked) API key

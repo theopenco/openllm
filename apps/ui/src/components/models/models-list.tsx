@@ -1,12 +1,12 @@
 "use client";
 
-import { models } from "@openllm/models";
+import { models } from "@llmgateway/models";
 
 import { Badge } from "@/lib/components/badge";
 import { Card } from "@/lib/components/card";
 import { formatContextSize } from "@/lib/utils";
 
-import type { ModelDefinition } from "@openllm/models";
+import type { ModelDefinition } from "@llmgateway/models";
 
 export function ModelsList() {
 	return (

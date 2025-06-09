@@ -1,4 +1,4 @@
-import { UnifiedFinishReason } from "@openllm/db";
+import { UnifiedFinishReason } from "@llmgateway/db";
 import { describe, expect, it } from "vitest";
 
 import { getUnifiedFinishReason } from "./logs";

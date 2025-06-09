@@ -1,4 +1,4 @@
-import { models, providers } from "@openllm/models";
+import { models, providers } from "@llmgateway/models";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 

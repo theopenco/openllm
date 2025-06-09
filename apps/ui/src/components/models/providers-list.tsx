@@ -1,6 +1,6 @@
 "use client";
 
-import { providers as defaultProviders } from "@openllm/models";
+import { providers as defaultProviders } from "@llmgateway/models";
 // import { Edit, MoreHorizontal, Trash } from "lucide-react";
 import { useState } from "react";
 // import { toast } from "sonner";

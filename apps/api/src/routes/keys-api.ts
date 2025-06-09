@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { eq, db, shortid, tables } from "@openllm/db";
+import { eq, db, shortid, tables } from "@llmgateway/db";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 

@@ -1,5 +1,5 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { auth } from "@openllm/auth";
+import { auth } from "@llmgateway/auth";
 
 import type { ServerTypes } from "../vars";
 

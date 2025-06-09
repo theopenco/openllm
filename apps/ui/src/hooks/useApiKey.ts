@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 
-const API_KEY_STORAGE_KEY = "openllm_user_api_key";
-const API_KEY_CHANGED_EVENT = "llm_api_key_changed";
+const API_KEY_STORAGE_KEY = "llmgateway_user_api_key";
+const API_KEY_CHANGED_EVENT = "llmgateway_api_key_changed";
 
 export function useApiKey() {
 	const [apiKey, setApiKey] = useState<string | null>(null);

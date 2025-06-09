@@ -93,10 +93,10 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.5.0
         version: 0.5.0(hono@4.7.11)(zod@3.24.3)
-      '@openllm/auth':
+      '@llmgateway/auth':
         specifier: workspace:*
         version: link:../../packages/auth
-      '@openllm/db':
+      '@llmgateway/db':
         specifier: workspace:*
         version: file:packages/db(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)
       bcrypt-ts:
@@ -227,10 +227,10 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.5.0
         version: 0.5.0(hono@4.7.11)(zod@3.24.3)
-      '@openllm/db':
+      '@llmgateway/db':
         specifier: workspace:*
         version: file:packages/db(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)
-      '@openllm/models':
+      '@llmgateway/models':
         specifier: workspace:*
         version: link:../../packages/models
       gpt-tokenizer:
@@ -270,7 +270,7 @@ importers:
       '@hookform/resolvers':
         specifier: 5.0.1
         version: 5.0.1(react-hook-form@7.56.1(react@19.1.0))
-      '@openllm/models':
+      '@llmgateway/models':
         specifier: workspace:*
         version: link:../../packages/models
       '@radix-ui/react-accordion':
@@ -2169,10 +2169,10 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@openllm/db@file:packages/db':
+  '@llmgateway/db@file:packages/db':
     resolution: {directory: packages/db, type: directory}
 
-  '@openllm/models@file:packages/models':
+  '@llmgateway/models@file:packages/models':
     resolution: {directory: packages/models, type: directory}
 
   '@orama/orama@3.1.6':
@@ -11043,7 +11043,7 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@openllm/db@file:packages/db':
+  '@llmgateway/db@file:packages/db':
     dependencies:
       drizzle-orm: 1.0.0-beta.1-7946562(pg@8.14.1)
       nanoid: 5.1.5
@@ -11079,7 +11079,7 @@ snapshots:
       - sql.js
       - sqlite3
 
-  '@openllm/db@file:packages/db(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)':
+  '@llmgateway/db@file:packages/db(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)':
     dependencies:
       drizzle-orm: 1.0.0-beta.1-7946562(@types/pg@8.15.2)(gel@2.1.0)(kysely@0.27.6)(pg@8.14.1)
       nanoid: 5.1.5
@@ -11115,7 +11115,7 @@ snapshots:
       - sql.js
       - sqlite3
 
-  '@openllm/models@file:packages/models': {}
+  '@llmgateway/models@file:packages/models': {}
 
   '@orama/orama@3.1.6': {}
 
@@ -15851,8 +15851,8 @@ snapshots:
       '@hono/swagger-ui': 0.5.1(hono@4.7.11)
       '@hono/zod-openapi': 0.19.8(hono@4.7.11)(zod@3.24.3)
       '@hono/zod-validator': 0.5.0(hono@4.7.11)(zod@3.24.3)
-      '@openllm/db': file:packages/db
-      '@openllm/models': file:packages/models
+      '@llmgateway/db': file:packages/db
+      '@llmgateway/models': file:packages/models
       gpt-tokenizer: 2.9.0
       hono: 4.7.11
       hono-openapi: 0.4.8(@hono/zod-validator@0.5.0(hono@4.7.11)(zod@3.24.3))(hono@4.7.11)(openapi-types@12.1.3)(zod-openapi@4.2.4(zod@3.24.3))(zod@3.24.3)

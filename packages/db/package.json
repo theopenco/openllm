@@ -1,5 +1,5 @@
 {
-	"name": "@openllm/db",
+	"name": "@llmgateway/db",
 	"version": "1.0.0",
 	"private": true,
 	"type": "module",

@@ -1,4 +1,4 @@
-import { db, tables } from "@openllm/db";
+import { db, tables } from "@llmgateway/db";
 import { expect, test, beforeEach, describe, afterEach } from "vitest";
 
 import { app } from "..";

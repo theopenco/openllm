@@ -81,7 +81,7 @@ wait_for_port() {
 # Results tracking
 declare -A RESULTS
 
-echo "=== OpenLLM Apps Smoke Test ==="
+echo "=== LLMGateway Apps Smoke Test ==="
 echo "This script will test if all apps can be built, deployed, and started."
 
 # Step 1: Build all apps (optional, as it's already done in the GitHub workflow)

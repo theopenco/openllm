@@ -16,7 +16,7 @@
 		"types": ["vinxi/types/client", "vinxi/types/server"],
 		"paths": {
 			"@/*": ["./src/*"],
-			"@openllm/*": ["../../packages/*/src"]
+			"@llmgateway/*": ["../../packages/*/src"]
 		}
 	},
 	"include": ["./src/**/*.ts", "./src/**/*.tsx"]

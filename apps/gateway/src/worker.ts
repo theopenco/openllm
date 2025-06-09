@@ -1,4 +1,13 @@
-import { db, log, organization, eq, sql, and, lt, tables } from "@openllm/db";
+import {
+	db,
+	log,
+	organization,
+	eq,
+	sql,
+	and,
+	lt,
+	tables,
+} from "@llmgateway/db";
 
 import { getProject, getOrganization } from "./lib/cache";
 import { consumeFromQueue, LOG_QUEUE } from "./lib/redis";

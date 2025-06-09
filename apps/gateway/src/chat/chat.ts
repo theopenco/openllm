@@ -6,7 +6,7 @@ import {
 	type Project,
 	type tables,
 	type ApiKey,
-} from "@openllm/db";
+} from "@llmgateway/db";
 import {
 	getProviderEndpoint,
 	getProviderHeaders,
@@ -15,7 +15,7 @@ import {
 	prepareRequestBody,
 	type Provider,
 	providers,
-} from "@openllm/models";
+} from "@llmgateway/models";
 import { HTTPException } from "hono/http-exception";
 import { streamSSE } from "hono/streaming";
 

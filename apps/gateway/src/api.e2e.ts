@@ -1,5 +1,5 @@
-import { db, tables, eq } from "@openllm/db";
-import { models, providers } from "@openllm/models";
+import { db, tables, eq } from "@llmgateway/db";
+import { models, providers } from "@llmgateway/models";
 import "dotenv/config";
 import { beforeEach, describe, expect, test } from "vitest";
 

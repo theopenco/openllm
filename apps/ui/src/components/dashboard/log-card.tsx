@@ -23,7 +23,7 @@ import {
 	TooltipTrigger,
 } from "@/lib/components/tooltip";
 
-import type { Log } from "@openllm/db";
+import type { Log } from "@llmgateway/db";
 
 export function LogCard({ log }: { log: Log }) {
 	const [isExpanded, setIsExpanded] = useState(false);

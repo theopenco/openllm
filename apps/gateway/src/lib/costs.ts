@@ -1,4 +1,4 @@
-import { type Model, type ModelDefinition, models } from "@openllm/models";
+import { type Model, type ModelDefinition, models } from "@llmgateway/models";
 import { encode, encodeChat } from "gpt-tokenizer";
 
 // Define ChatMessage type to match what gpt-tokenizer expects

@@ -1,8 +1,8 @@
 {
-	"name": "OpenLLM Development",
+	"name": "LLMGateway Development",
 	"dockerComposeFile": "docker-compose.yml",
 	"service": "app",
-	"workspaceFolder": "/workspaces/openllm",
+	"workspaceFolder": "/workspaces/llmgateway",
 	"forwardPorts": [3002, 4001, 4002, 5388],
 	"portsAttributes": {
 		"3002": {

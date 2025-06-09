@@ -1,4 +1,4 @@
-import { providers } from "@openllm/models";
+import { providers } from "@llmgateway/models";
 import { useState } from "react";
 import {
 	Cell,

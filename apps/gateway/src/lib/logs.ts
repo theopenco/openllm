@@ -1,9 +1,9 @@
-import { UnifiedFinishReason } from "@openllm/db";
+import { UnifiedFinishReason } from "@llmgateway/db";
 
 import { publishToQueue, LOG_QUEUE } from "./redis";
 
-import type { InferInsertModel } from "@openllm/db";
-import type { log } from "@openllm/db";
+import type { InferInsertModel } from "@llmgateway/db";
+import type { log } from "@llmgateway/db";
 
 /**
  * Maps provider-specific finish reasons to unified finish reasons

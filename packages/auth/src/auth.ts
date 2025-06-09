@@ -1,4 +1,4 @@
-import { db, tables } from "@openllm/db";
+import { db, tables } from "@llmgateway/db";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
