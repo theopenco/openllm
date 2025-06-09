@@ -183,7 +183,7 @@ function ProvidersPage() {
 
 					<footer className="mt-16 text-center">
 						<a
-							href={`${DOCS_URL}/v1/models`}
+							href={`${DOCS_URL}v1/models`}
 							target="_blank"
 							className="inline-flex items-center gap-2 text-sm text-muted-foreground"
 						>
