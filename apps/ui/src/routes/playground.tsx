@@ -335,7 +335,7 @@ function RouteComponent() {
 					currentChatId={currentChatId ?? undefined}
 					userApiKey={userApiKey}
 					clearMessages={clearMessages}
-					className="w-full md:w-80 lg:w-96 border-r border-border"
+					className="w-full md:w-[200px] lg:w-[260px] border-r border-border"
 				/>
 				<main className="flex flex-1 flex-col min-h-0">
 					<ChatHeader
