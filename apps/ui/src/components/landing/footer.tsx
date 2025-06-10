@@ -76,6 +76,15 @@ export default function Footer() {
 										GitHub
 									</a>
 								</li>
+								<li>
+									<a
+										href="mailto:contact@llmgateway.io"
+										target="_blank"
+										className="text-sm hover:text-black dark:hover:text-white"
+									>
+										Contact Us
+									</a>
+								</li>
 							</ul>
 						</div>
 						<div>
