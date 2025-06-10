@@ -65,7 +65,7 @@ export const Navbar = () => {
 							</button>
 						</div>
 
-						<div className="absolute inset-0 m-auto hidden size-fit lg:block">
+						<div className="m-auto hidden size-fit lg:block">
 							<ul className="flex gap-8 text-sm">
 								{menuItems.map((item, index) => (
 									<li key={index}>
