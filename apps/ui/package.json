@@ -78,10 +78,10 @@
 	},
 	"devDependencies": {
 		"@tailwindcss/vite": "^4.1.4",
-		"@tanstack/react-query-devtools": "^5.74.7",
+		"@tanstack/react-query-devtools": "^5.80.6",
 		"@tanstack/react-router-devtools": "^1.120.3",
-		"@types/react": "^19.1.4",
-		"@types/react-dom": "^19.1.5",
+		"@types/react": "^19.1.7",
+		"@types/react-dom": "^19.1.6",
 		"@vitejs/plugin-react": "^4.4.1",
 		"autoprefixer": "10.4.15",
 		"openapi-typescript": "7.8.0",
