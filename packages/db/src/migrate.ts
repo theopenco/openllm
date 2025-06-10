@@ -14,12 +14,18 @@ export async function runMigrations(): Promise<void> {
 	console.log("🔄 Starting database migrations...");
 
 	// Create a drizzle instance for migrations
-	const migrationDb = drizzle({ connection: databaseUrl });
+	const migrationDb = drizzle({
+		connection: databaseUrl,
+	});
 
 	// Get the directory of this file and resolve the migrations folder
 	const __filename = fileURLToPath(import.meta.url);
 	const __dirname = path.dirname(__filename);
 	const migrationsFolder = path.resolve(__dirname, "../migrations");
+
+	console.log("__filename", __filename);
+	console.log("__dirname", __dirname);
+	console.log("migrationsFolder", migrationsFolder);
 
 	try {
 		// Run migrations from the migrations folder
@@ -28,8 +34,5 @@ export async function runMigrations(): Promise<void> {
 	} catch (error) {
 		console.error("❌ Database migration failed:", error);
 		throw error;
-	} finally {
-		// Close the connection pool
-		await pool.end();
 	}
 }

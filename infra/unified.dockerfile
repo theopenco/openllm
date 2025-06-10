@@ -110,6 +110,8 @@ ENV DATABASE_URL=postgres://postgres:llmgateway@localhost:5432/llmgateway
 ENV REDIS_HOST=localhost
 ENV REDIS_PORT=6379
 
+ENV RUN_MIGRATIONS=true
+
 # Use tini as init system
 ENTRYPOINT ["/sbin/tini", "--"]
 
