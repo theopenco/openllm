@@ -1,7 +1,5 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
-import path from "path";
-import { fileURLToPath } from "url";
 
 /**
  * Run database migrations using drizzle-orm
@@ -18,18 +16,11 @@ export async function runMigrations(): Promise<void> {
 		connection: databaseUrl,
 	});
 
-	// Get the directory of this file and resolve the migrations folder
-	const __filename = fileURLToPath(import.meta.url);
-	const __dirname = path.dirname(__filename);
-	const migrationsFolder = path.resolve(__dirname, "../migrations");
-
-	console.log("__filename", __filename);
-	console.log("__dirname", __dirname);
-	console.log("migrationsFolder", migrationsFolder);
-
 	try {
 		// Run migrations from the migrations folder
-		await migrate(migrationDb, { migrationsFolder });
+		await migrate(migrationDb, {
+			migrationsFolder: "./migrations", // we copy this in the dockerfile
+		});
 		console.log("✅ Database migrations completed successfully");
 	} catch (error) {
 		console.error("❌ Database migration failed:", error);

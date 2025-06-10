@@ -66,6 +66,9 @@ COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-
 # Deploy API service
 RUN pnpm --filter=api --prod deploy /app/services/api
 
+# copy migrations files to API service
+COPY --from=builder /app/packages/db/migrations /app/services/api/migrations
+
 # Deploy Gateway service
 RUN pnpm --filter=gateway --prod deploy /app/services/gateway
 

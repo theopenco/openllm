@@ -8,10 +8,16 @@ if ! id "node" &>/dev/null; then
     adduser -D -s /bin/sh node
 fi
 
+# Create log directories and files with proper permissions
+mkdir -p /var/log/supervisor /var/log/nginx /var/log/postgresql
+touch /var/log/nginx/access.log /var/log/nginx/error.log /var/log/postgresql.log
+chown postgres:postgres /var/log/postgresql.log
+chmod 644 /var/log/postgresql.log
+
 # Initialize PostgreSQL if data directory is empty
 if [ ! -s "/var/lib/postgresql/data/PG_VERSION" ]; then
     echo "Initializing PostgreSQL database..."
-    
+
     # Initialize database
     su postgres -c "initdb -D /var/lib/postgresql/data"
 
@@ -24,7 +30,7 @@ if [ ! -s "/var/lib/postgresql/data/PG_VERSION" ]; then
     # Create database and user
     su postgres -c "createdb $POSTGRES_DB" || true
     su postgres -c "psql -c \"ALTER USER postgres PASSWORD '$POSTGRES_PASSWORD';\"" || true
-    
+
     # Run initialization scripts if they exist
     if [ -d "/docker-entrypoint-initdb.d" ]; then
         for f in /docker-entrypoint-initdb.d/*; do
