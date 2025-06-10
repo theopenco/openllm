@@ -1,7 +1,6 @@
 import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import path from "path";
-import { Pool } from "pg";
 import { fileURLToPath } from "url";
 
 /**
@@ -14,13 +13,8 @@ export async function runMigrations(): Promise<void> {
 
 	console.log("🔄 Starting database migrations...");
 
-	// Create a new connection pool for migrations
-	const pool = new Pool({
-		connectionString: databaseUrl,
-	});
-
 	// Create a drizzle instance for migrations
-	const migrationDb = drizzle({ client: pool });
+	const migrationDb = drizzle({ connection: databaseUrl });
 
 	// Get the directory of this file and resolve the migrations folder
 	const __filename = fileURLToPath(import.meta.url);
