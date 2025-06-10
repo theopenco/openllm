@@ -195,7 +195,7 @@ export function CreateProviderKeyDialog({
 						Create a new provider key to connect to an LLM provider.
 					</DialogDescription>
 				</DialogHeader>
-				{organization?.paidModeEnabled && !isProPlan && (
+				{!isProPlan && (
 					<Alert>
 						<AlertDescription className="flex items-center justify-between">
 							<span>Provider keys are only available on the Pro plan.</span>
@@ -273,7 +273,7 @@ export function CreateProviderKeyDialog({
 						<Button
 							type="submit"
 							disabled={
-								!isProPlan ||
+								(!isProPlan && organization?.paidModeEnabled) ||
 								availableProviders.length === 0 ||
 								isLoading ||
 								isValidating
