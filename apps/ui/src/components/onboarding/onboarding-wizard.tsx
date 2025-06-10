@@ -8,11 +8,12 @@ import { ApiKeyStep } from "./api-key-step";
 import { CreditsStep } from "./credits-step";
 import { ProviderKeyStep } from "./provider-key-step";
 import { WelcomeStep } from "./welcome-step";
+import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Card, CardContent } from "@/lib/components/card";
 import { Stepper } from "@/lib/components/stepper";
 import { useStripe } from "@/lib/stripe";
 
-const STEPS = [
+const getSteps = (isProPlan: boolean) => [
 	{
 		id: "welcome",
 		title: "Welcome",
@@ -29,12 +30,16 @@ const STEPS = [
 		component: ProviderKeyStep,
 		optional: true,
 	},
-	{
-		id: "credits",
-		title: "Credits",
-		component: CreditsStep,
-		optional: true,
-	},
+	...(isProPlan
+		? []
+		: [
+				{
+					id: "credits",
+					title: "Credits",
+					component: CreditsStep,
+					optional: true,
+				},
+			]),
 ];
 
 export function OnboardingWizard() {
@@ -42,6 +47,10 @@ export function OnboardingWizard() {
 	const navigate = useNavigate();
 	const posthog = usePostHog();
 	const { stripe, isLoading: stripeLoading } = useStripe();
+	const { data: organization } = useDefaultOrganization();
+
+	const isProPlan = organization?.plan === "pro";
+	const STEPS = getSteps(isProPlan);
 
 	const handleStepChange = (step: number) => {
 		if (step >= STEPS.length) {
@@ -70,7 +79,7 @@ export function OnboardingWizard() {
 						onStepChange={handleStepChange}
 						className="mb-6"
 					>
-						{activeStep === 3 ? (
+						{activeStep === 3 && !isProPlan ? (
 							stripeLoading ? (
 								<div className="p-6 text-center">Loading payment form...</div>
 							) : (

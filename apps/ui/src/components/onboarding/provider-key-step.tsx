@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { KeyRound } from "lucide-react";
+import { providers } from "@llmgateway/models";
+import { KeyRound, Lock } from "lucide-react";
 import { useState } from "react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
@@ -13,6 +14,9 @@ import {
 	CardHeader,
 	CardTitle,
 } from "../../lib/components/card";
+import { Step } from "../../lib/components/stepper";
+import { UpgradeToProDialog } from "@/components/shared/upgrade-to-pro-dialog";
+import { useDefaultOrganization } from "@/hooks/useOrganization";
 import {
 	Form,
 	FormControl,
@@ -20,31 +24,22 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-} from "../../lib/components/form";
-import { Input } from "../../lib/components/input";
+} from "@/lib/components/form";
+import { Input } from "@/lib/components/input";
 import {
 	Select,
 	SelectContent,
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-} from "../../lib/components/select";
-import { Step } from "../../lib/components/stepper";
-import { toast } from "../../lib/components/use-toast";
-import { $api } from "../../lib/fetch-client";
-import { useDefaultOrganization } from "@/hooks/useOrganization";
+} from "@/lib/components/select";
+import { toast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 const formSchema = z.object({
 	provider: z.string().min(1, "Provider is required"),
 	key: z.string().min(1, "API key is required"),
-	baseUrl: z.string().optional(),
 });
-
-interface Provider {
-	id: string;
-	name: string;
-	supportsBaseUrl?: boolean;
-}
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -53,20 +48,11 @@ export function ProviderKeyStep() {
 	const [isSuccess, setIsSuccess] = useState(false);
 	const { data: organization } = useDefaultOrganization();
 
-	const providers = [
-		{ id: "openai", name: "OpenAI", supportsBaseUrl: false },
-		{ id: "anthropic", name: "Anthropic", supportsBaseUrl: false },
-		{ id: "google-vertex", name: "Google Vertex AI", supportsBaseUrl: true },
-		{ id: "inference.net", name: "Inference.net", supportsBaseUrl: true },
-		{ id: "kluster.ai", name: "Kluster.ai", supportsBaseUrl: true },
-	];
-
 	const form = useForm<FormValues>({
 		resolver: zodResolver(formSchema),
 		defaultValues: {
 			provider: "",
 			key: "",
-			baseUrl: "",
 		},
 	});
 
@@ -80,7 +66,6 @@ export function ProviderKeyStep() {
 					organizationId: organization!.id,
 					provider: values.provider,
 					token: values.key,
-					baseUrl: values.baseUrl || undefined,
 				},
 			});
 			setIsSuccess(true);
@@ -100,16 +85,15 @@ export function ProviderKeyStep() {
 		}
 	}
 
-	const selectedProvider = form.watch("provider");
-	const currentProvider = providers.find(
-		(p: Provider) => p.id === selectedProvider,
-	);
+	const isProPlan = organization?.plan === "pro";
 
 	return (
 		<Step>
 			<div className="flex flex-col gap-6">
 				<div className="flex flex-col gap-2 text-center">
-					<h1 className="text-2xl font-bold">Add Provider Keys</h1>
+					<h1 className="text-2xl font-bold">
+						Add Provider Keys {!isProPlan && "(Pro Only)"}
+					</h1>
 					<p className="text-muted-foreground">
 						Connect to your preferred LLM providers by adding their API keys.
 					</p>
@@ -126,7 +110,23 @@ export function ProviderKeyStep() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{!isSuccess ? (
+						{!isProPlan ? (
+							<div className="flex flex-col items-center gap-6 py-4">
+								<div className="text-center">
+									<h3 className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
+										<Lock className="h-5 w-5" /> Upgrade to Pro
+									</h3>
+									<p className="text-muted-foreground mb-4">
+										Unlock custom provider support and more advanced features.
+									</p>
+									<UpgradeToProDialog>
+										<Button size="lg" type="button" className="mb-4">
+											Upgrade to Pro
+										</Button>
+									</UpgradeToProDialog>
+								</div>
+							</div>
+						) : !isSuccess ? (
 							<Form {...form}>
 								<form
 									onSubmit={form.handleSubmit(onSubmit)}
@@ -148,7 +148,7 @@ export function ProviderKeyStep() {
 														</SelectTrigger>
 													</FormControl>
 													<SelectContent>
-														{providers.map((provider: Provider) => (
+														{providers.map((provider) => (
 															<SelectItem key={provider.id} value={provider.id}>
 																{provider.name}
 															</SelectItem>
@@ -176,24 +176,6 @@ export function ProviderKeyStep() {
 											</FormItem>
 										)}
 									/>
-									{currentProvider?.supportsBaseUrl && (
-										<FormField
-											control={form.control}
-											name="baseUrl"
-											render={({ field }) => (
-												<FormItem>
-													<FormLabel>Base URL (Optional)</FormLabel>
-													<FormControl>
-														<Input
-															placeholder="https://api.example.com"
-															{...field}
-														/>
-													</FormControl>
-													<FormMessage />
-												</FormItem>
-											)}
-										/>
-									)}
 									<Button type="submit" className="w-full" disabled={isLoading}>
 										{isLoading ? "Adding..." : "Add Provider Key"}
 									</Button>

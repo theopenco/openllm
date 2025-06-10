@@ -5,19 +5,16 @@ import { useEffect, useState } from "react";
 import { GitHubStars } from "./github-stars";
 import { ThemeToggle } from "./theme-toggle";
 import { Button } from "@/lib/components/button";
-import {
-	NavigationMenu,
-	NavigationMenuContent,
-	NavigationMenuItem,
-	NavigationMenuLink,
-	NavigationMenuList,
-	NavigationMenuTrigger,
-} from "@/lib/components/navigation-menu";
 import { DOCS_URL } from "@/lib/env";
 import Logo from "@/lib/icons/Logo";
 import { cn } from "@/lib/utils";
 
-const menuItems = [{ name: "Pricing", href: "/#pricing", external: false }];
+const menuItems = [
+	{ name: "Pricing", href: "/#pricing", external: false },
+	{ name: "Docs", href: DOCS_URL, external: true },
+	{ name: "Models", href: "/models", external: false },
+	{ name: "Playground", href: "/playground", external: false },
+];
 
 export const Navbar = () => {
 	const [menuState, setMenuState] = useState(false);
@@ -41,7 +38,7 @@ export const Navbar = () => {
 					className={cn(
 						"mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12",
 						isScrolled &&
-							"bg-background/50 max-w-4xl rounded-2xl border backdrop-blur-lg lg:px-5",
+							"bg-background/50 max-w-6xl rounded-2xl border backdrop-blur-lg lg:px-5",
 					)}
 				>
 					<div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
@@ -68,7 +65,7 @@ export const Navbar = () => {
 							</button>
 						</div>
 
-						<div className="absolute inset-0 m-auto hidden size-fit lg:block">
+						<div className="m-auto hidden size-fit lg:block">
 							<ul className="flex gap-8 text-sm">
 								{menuItems.map((item, index) => (
 									<li key={index}>
@@ -91,28 +88,6 @@ export const Navbar = () => {
 										)}
 									</li>
 								))}
-								<li>
-									<NavigationMenu>
-										<NavigationMenuList>
-											<NavigationMenuItem>
-												<NavigationMenuTrigger className="text-muted-foreground hover:text-accent-foreground duration-150">
-													Products
-												</NavigationMenuTrigger>
-												<NavigationMenuContent>
-													<NavigationMenuLink href={DOCS_URL} target="_blank">
-														Docs
-													</NavigationMenuLink>
-													<NavigationMenuLink asChild>
-														<Link to="/models">Models</Link>
-													</NavigationMenuLink>
-													<NavigationMenuLink asChild>
-														<Link to="/playground">Playground</Link>
-													</NavigationMenuLink>
-												</NavigationMenuContent>
-											</NavigationMenuItem>
-										</NavigationMenuList>
-									</NavigationMenu>
-								</li>
 							</ul>
 						</div>
 

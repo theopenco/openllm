@@ -5,15 +5,15 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { useDefaultProject } from "../../hooks/useDefaultProject";
-import { Button } from "../../lib/components/button";
+import { useDefaultProject } from "@/hooks/useDefaultProject";
+import { Button } from "@/lib/components/button";
 import {
 	Card,
 	CardContent,
 	CardDescription,
 	CardHeader,
 	CardTitle,
-} from "../../lib/components/card";
+} from "@/lib/components/card";
 import {
 	Form,
 	FormControl,
@@ -21,11 +21,11 @@ import {
 	FormItem,
 	FormLabel,
 	FormMessage,
-} from "../../lib/components/form";
-import { Input } from "../../lib/components/input";
-import { Step } from "../../lib/components/stepper";
-import { toast } from "../../lib/components/use-toast";
-import { $api } from "../../lib/fetch-client";
+} from "@/lib/components/form";
+import { Input } from "@/lib/components/input";
+import { Step } from "@/lib/components/stepper";
+import { toast } from "@/lib/components/use-toast";
+import { $api } from "@/lib/fetch-client";
 
 const formSchema = z.object({
 	name: z.string().min(1, "Name is required"),
@@ -72,7 +72,7 @@ export function ApiKeyStep() {
 				title: "API key created",
 				description: "Your API key has been created successfully.",
 			});
-		} catch (_error) {
+		} catch {
 			toast({
 				title: "Error",
 				description: "Failed to create API key. Please try again.",
@@ -161,6 +161,7 @@ export function ApiKeyStep() {
 											variant="ghost"
 											size="sm"
 											onClick={copyToClipboard}
+											type="button"
 											className="h-8 w-8 p-0"
 										>
 											<Copy className="h-4 w-4" />

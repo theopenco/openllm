@@ -1,8 +1,13 @@
 import { Copy } from "lucide-react";
+import { useTheme } from "next-themes";
+import { Highlight, themes } from "prism-react-renderer";
 import { useState } from "react";
 
 import { Button } from "@/lib/components/button";
 import { toast } from "@/lib/components/use-toast";
+import { cn } from "@/lib/utils";
+
+import type { Language } from "prism-react-renderer";
 
 const codeExamples = {
 	curl: {
@@ -21,77 +26,21 @@ const codeExamples = {
 	typescript: {
 		label: "TypeScript",
 		language: "typescript",
-		code: `const response = await fetch('https://api.llmgateway.io/v1/chat/completions', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': \`Bearer \${process.env.LLM_GATEWAY_API_KEY}\`
-  },
-  body: JSON.stringify({
-    model: 'gpt-4o',
-    messages: [
-      { role: 'user', content: 'Hello, how are you?' }
-    ]
-  })
+		code: `import OpenAI from "openai";
+
+const client = new OpenAI({
+  apiKey: process.env.LLM_GATEWAY_API_KEY, // or your API key string
+  baseURL: "https://api.llmgateway.io/v1/"
 });
 
-if (!response.ok) {
-  throw new Error(\`HTTP error! status: \${response.status}\`);
-}
+const response = await client.chat.completions.create({
+  model: "gpt-4o",
+  messages: [
+    { role: "user", content: "Hello, how are you?" }
+  ]
+});
 
-const data = await response.json();
-console.log(data.choices[0].message.content);`,
-	},
-	react: {
-		label: "React",
-		language: "tsx",
-		code: `import { useState } from 'react';
-
-function ChatComponent() {
-  const [response, setResponse] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const sendMessage = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch('https://api.llmgateway.io/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': \`Bearer \${process.env.REACT_APP_LLM_GATEWAY_API_KEY}\`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          messages: [
-            { role: 'user', content: 'Hello, how are you?' }
-          ]
-        })
-      });
-      
-      if (!res.ok) {
-        throw new Error(\`HTTP error! status: \${res.status}\`);
-      }
-      
-      const data = await res.json();
-      setResponse(data.choices[0].message.content);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div>
-      <button onClick={sendMessage} disabled={loading}>
-        {loading ? 'Sending...' : 'Send Message'}
-      </button>
-      {response && <p>{response}</p>}
-    </div>
-  );
-}
-
-export default ChatComponent;`,
+console.log(response.choices[0].message.content);`,
 	},
 	nextjs: {
 		label: "Next.js",
@@ -109,85 +58,68 @@ const { text } = await generateText({
 	python: {
 		label: "Python",
 		language: "python",
-		code: `import requests
-import os
+		code: `import openai
 
-response = requests.post(
-    'https://api.llmgateway.io/v1/chat/completions',
-    headers={
-        'Content-Type': 'application/json',
-        'Authorization': f'Bearer {os.getenv("LLM_GATEWAY_API_KEY")}'
-    },
-    json={
-        'model': 'gpt-4o',
-        'messages': [
-            {'role': 'user', 'content': 'Hello, how are you?'}
-        ]
-    }
+client = openai.OpenAI(
+    api_key="YOUR_LLM_GATEWAY_API_KEY",
+    base_url="https://api.llmgateway.io/v1"
 )
 
-response.raise_for_status()
-print(response.json()['choices'][0]['message']['content'])`,
+response = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "Hello, how are you?"}]
+)
+print(response.choices[0].message.content)
+`,
 	},
 	java: {
 		label: "Java",
 		language: "java",
-		code: `import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.URI;
+		code: `import com.theokanning.openai.OpenAiApi;
+import com.theokanning.openai.OpenAiService;
+import com.theokanning.openai.completion.chat.*;
 
-String apiKey = System.getenv("LLM_GATEWAY_API_KEY");
-String requestBody = """
-{
-  "model": "gpt-4o",
-  "messages": [
-    {"role": "user", "content": "Hello, how are you?"}
-  ]
+import java.util.List;
+
+public class Main {
+    public static void main(String[] args) {
+        String apiKey = System.getenv("LLM_GATEWAY_API_KEY");
+        OpenAiService service = new OpenAiService(apiKey, 60);
+        service.setOpenAiApiUrl("https://api.llmgateway.io/v1/");
+
+        ChatMessage message = new ChatMessage("user", "Hello, how are you?");
+        ChatCompletionRequest request = ChatCompletionRequest.builder()
+            .model("gpt-4o")
+            .messages(List.of(message))
+            .build();
+
+        ChatCompletionResult result = service.createChatCompletion(request);
+        System.out.println(result.getChoices().get(0).getMessage().getContent());
+    }
 }
-""";
-
-HttpRequest request = HttpRequest.newBuilder()
-    .uri(URI.create("https://api.llmgateway.io/v1/chat/completions"))
-    .header("Content-Type", "application/json")
-    .header("Authorization", "Bearer " + apiKey)
-    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
-    .build();
-
-HttpResponse<String> response = HttpClient.newHttpClient()
-    .send(request, HttpResponse.BodyHandlers.ofString());
-
-System.out.println(response.body());`,
+`,
 	},
 	rust: {
 		label: "Rust",
 		language: "rust",
-		code: `use reqwest::Client;
-use serde_json::json;
+		code: `use openai_api_rs::v1::chat::{ChatCompletionMessage, ChatCompletionRequest, ChatCompletionResponse};
+use openai_api_rs::v1::OpenAI;
 use std::env;
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = Client::new();
-    let api_key = env::var("LLM_GATEWAY_API_KEY")?;
-    
-    let response = client
-        .post("https://api.llmgateway.io/v1/chat/completions")
-        .header("Content-Type", "application/json")
-        .header("Authorization", format!("Bearer {}", api_key))
-        .json(&json!({
-            "model": "gpt-4o",
-            "messages": [
-                {"role": "user", "content": "Hello, how are you?"}
-            ]
-        }))
-        .send()
-        .await?;
-    
-    let result: serde_json::Value = response.json().await?;
-    println!("{}", result["choices"][0]["message"]["content"]);
-    Ok(())
-}`,
+async fn main() {
+    let api_key = env::var("LLM_GATEWAY_API_KEY").unwrap();
+    let openai = OpenAI::new(&api_key).with_base_url("https://api.llmgateway.io/v1");
+
+    let request = ChatCompletionRequest::new(
+        "gpt-4o",
+        vec![ChatCompletionMessage::user("Hello, how are you?")]
+    );
+
+    let response: ChatCompletionResponse = openai.chat().create(request).await.unwrap();
+    println!("{}", response.choices[0].message.content);
+}
+`,
 	},
 	go: {
 		label: "Go",
@@ -195,139 +127,77 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		code: `package main
 
 import (
-    "bytes"
-    "encoding/json"
+    "context"
     "fmt"
-    "net/http"
     "os"
+
+    openai "github.com/sashabaranov/go-openai"
 )
 
-type ChatRequest struct {
-    Model    string    \`json:"model"\`
-    Messages []Message \`json:"messages"\`
-}
-
-type Message struct {
-    Role    string \`json:"role"\`
-    Content string \`json:"content"\`
-}
-
 func main() {
-    apiKey := os.Getenv("LLM_GATEWAY_API_KEY")
-    
-    requestBody := ChatRequest{
-        Model: "gpt-4o",
-        Messages: []Message{
-            {Role: "user", Content: "Hello, how are you?"},
+    client := openai.NewClientWithConfig(openai.DefaultConfig(os.Getenv("LLM_GATEWAY_API_KEY"), "https://api.llmgateway.io/v1"))
+    resp, err := client.CreateChatCompletion(
+        context.Background(),
+        openai.ChatCompletionRequest{
+            Model: "gpt-4o",
+            Messages: []openai.ChatCompletionMessage{
+                {Role: openai.ChatMessageRoleUser, Content: "Hello, how are you?"},
+            },
         },
+    )
+    if err != nil {
+        panic(err)
     }
-    
-    jsonData, _ := json.Marshal(requestBody)
-    
-    req, _ := http.NewRequest("POST", 
-        "https://api.llmgateway.io/v1/chat/completions", 
-        bytes.NewBuffer(jsonData))
-    
-    req.Header.Set("Content-Type", "application/json")
-    req.Header.Set("Authorization", "Bearer "+apiKey)
-    
-    client := &http.Client{}
-    resp, _ := client.Do(req)
-    defer resp.Body.Close()
-    
-    fmt.Println("Response received")
-}`,
+    fmt.Println(resp.Choices[0].Message.Content)
+}
+`,
 	},
-
 	php: {
 		label: "PHP",
 		language: "php",
 		code: `<?php
-$apiKey = $_ENV['LLM_GATEWAY_API_KEY'];
+require 'vendor/autoload.php';
 
-$data = [
+$client = OpenAI::client('YOUR_LLM_GATEWAY_API_KEY', [
+    'base_uri' => 'https://api.llmgateway.io/v1',
+]);
+
+$response = $client->chat()->create([
     'model' => 'gpt-4o',
     'messages' => [
         ['role' => 'user', 'content' => 'Hello, how are you?']
-    ]
-];
+    ],
+]);
 
-$options = [
-    'http' => [
-        'header' => [
-            'Content-Type: application/json',
-            'Authorization: Bearer ' . $apiKey
-        ],
-        'method' => 'POST',
-        'content' => json_encode($data)
-    ]
-];
-
-$context = stream_context_create($options);
-$response = file_get_contents(
-    'https://api.llmgateway.io/v1/chat/completions',
-    false,
-    $context
-);
-
-if ($response === FALSE) {
-    throw new Exception('Request failed');
-}
-
-$result = json_decode($response, true);
-echo $result['choices'][0]['message']['content'];
+echo $response['choices'][0]['message']['content'];
 ?>`,
 	},
 	ruby: {
 		label: "Ruby",
 		language: "ruby",
-		code: `require 'net/http'
-require 'json'
-require 'uri'
+		code: `require "openai"
 
-uri = URI('https://api.llmgateway.io/v1/chat/completions')
-http = Net::HTTP.new(uri.host, uri.port)
-http.use_ssl = true
+client = OpenAI::Client.new(
+  access_token: ENV["LLM_GATEWAY_API_KEY"],
+  uri_base: "https://api.llmgateway.io/v1"
+)
 
-request = Net::HTTP::Post.new(uri)
-request['Content-Type'] = 'application/json'
-request['Authorization'] = "Bearer #{ENV['LLM_GATEWAY_API_KEY']}"
+response = client.chat(
+  parameters: {
+    model: "gpt-4o",
+    messages: [{ role: "user", content: "Hello, how are you?" }]
+  }
+)
 
-request.body = {
-  model: 'gpt-4o',
-  messages: [
-    { role: 'user', content: 'Hello, how are you?' }
-  ]
-}.to_json
-
-response = http.request(request)
-
-if response.code != '200'
-  raise "HTTP Error: #{response.code}"
-end
-
-result = JSON.parse(response.body)
-puts result['choices'][0]['message']['content']`,
+puts response.dig("choices", 0, "message", "content")
+`,
 	},
 };
 
-const getLanguageClass = (language: string) => {
-	const languageMap: Record<string, string> = {
-		bash: "language-bash",
-		typescript: "language-typescript",
-		python: "language-python",
-		java: "language-java",
-		rust: "language-rust",
-		go: "language-go",
-		tsx: "language-tsx",
-		php: "language-php",
-		ruby: "language-ruby",
-	};
-	return languageMap[language] || "language-text";
-};
-
 export function CodeExample() {
-	const [activeTab, setActiveTab] = useState<keyof typeof codeExamples>("curl");
+	const [activeTab, setActiveTab] =
+		useState<keyof typeof codeExamples>("python");
+	const { resolvedTheme } = useTheme();
 
 	const copyToClipboard = async (text: string, language: string) => {
 		try {
@@ -403,13 +273,48 @@ export function CodeExample() {
 						</div>
 
 						<div className="relative bg-white dark:bg-zinc-950">
-							<pre className="p-6 overflow-x-auto text-sm leading-relaxed font-mono text-zinc-800 dark:text-zinc-200 max-h-96 overflow-y-auto">
-								<code
-									className={`${getLanguageClass(currentExample.language)} block whitespace-pre`}
-								>
-									{currentExample.code}
-								</code>
-							</pre>
+							<Highlight
+								code={currentExample.code}
+								language={currentExample.language as Language}
+								theme={
+									resolvedTheme === "dark" ? themes.dracula : themes.github
+								}
+							>
+								{({
+									className,
+									style,
+									tokens,
+									getLineProps,
+									getTokenProps,
+								}: {
+									className: string;
+									style: React.CSSProperties;
+									tokens: any[];
+									getLineProps: (props: any) => any;
+									getTokenProps: (props: any) => any;
+								}) => (
+									<pre
+										className={cn(
+											"p-6 overflow-x-auto text-sm leading-relaxed font-mono max-h-96 overflow-y-auto",
+											className,
+										)}
+										style={{
+											...style,
+											padding: 24,
+											borderRadius: 0,
+											overflowX: "auto",
+										}}
+									>
+										{tokens.map((line: any, i: number) => (
+											<div key={i} {...getLineProps({ line, key: i })}>
+												{line.map((token: any, key: number) => (
+													<span key={key} {...getTokenProps({ token, key })} />
+												))}
+											</div>
+										))}
+									</pre>
+								)}
+							</Highlight>
 						</div>
 					</div>
 
