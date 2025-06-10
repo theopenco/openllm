@@ -30,7 +30,7 @@ const codeExamples = {
 
 const client = new OpenAI({
   apiKey: process.env.LLM_GATEWAY_API_KEY, // or your API key string
-  baseURL: "https://api.llmgateway.io.ai/v1/"
+  baseURL: "https://api.llmgateway.io/v1/"
 });
 
 const response = await client.chat.completions.create({
