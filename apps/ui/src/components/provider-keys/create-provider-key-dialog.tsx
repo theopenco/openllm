@@ -91,7 +91,8 @@ export function CreateProviderKeyDialog({
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
 
-		if (!isProPlan) {
+		// Only enforce pro plan requirement if paid mode is enabled
+		if (organization?.paidModeEnabled && !isProPlan) {
 			toast({
 				title: "Upgrade Required",
 				description:
@@ -194,7 +195,7 @@ export function CreateProviderKeyDialog({
 						Create a new provider key to connect to an LLM provider.
 					</DialogDescription>
 				</DialogHeader>
-				{!isProPlan && (
+				{organization?.paidModeEnabled && !isProPlan && (
 					<Alert>
 						<AlertDescription className="flex items-center justify-between">
 							<span>Provider keys are only available on the Pro plan.</span>
