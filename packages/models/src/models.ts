@@ -151,19 +151,20 @@ export let models = [
 		],
 		jsonOutput: true,
 	},
-	{
-		model: "o3",
-		providers: [
-			{
-				providerId: "openai",
-				modelName: "o3",
-				inputPrice: 2 / 1e6,
-				outputPrice: 8 / 1e6,
-				contextSize: 200000,
-			},
-		],
-		jsonOutput: true,
-	},
+	// TODO configure streaming: false for this once we can configure it on a model level
+	// {
+	// 	model: "o3",
+	// 	providers: [
+	// 		{
+	// 			providerId: "openai",
+	// 			modelName: "o3",
+	// 			inputPrice: 2 / 1e6,
+	// 			outputPrice: 8 / 1e6,
+	// 			contextSize: 200000,
+	// 		},
+	// 	],
+	// 	jsonOutput: true,
+	// },
 	{
 		model: "o3-mini",
 		providers: [
