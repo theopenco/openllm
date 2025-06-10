@@ -39,7 +39,7 @@ LLMGateway is a self-hostable platform that provides a unified API gateway for m
 4. **Start the services**:
 
    ```bash
-   docker compose -f docker-compose.prod.yml up -d
+   docker compose -f infra/docker-compose.prod.yml up -d
    ```
 
 5. **Initialize the database**:
@@ -102,17 +102,17 @@ That's it! The other settings in `.env.example` have sensible defaults.
 
 ```bash
 # View logs
-docker compose -f docker-compose.prod.yml logs -f
+docker compose -f infra/docker-compose.prod.yml logs -f
 
 # Restart services
-docker compose -f docker-compose.prod.yml restart
+docker compose -f infra/docker-compose.prod.yml restart
 
 # Stop services
-docker compose -f docker-compose.prod.yml down
+docker compose -f infra/docker-compose.prod.yml down
 
 # Update to latest version
-docker compose -f docker-compose.prod.yml pull
-docker compose -f docker-compose.prod.yml up -d
+docker compose -f infra/docker-compose.prod.yml pull
+docker compose -f infra/docker-compose.prod.yml up -d
 ```
 
 ### Database Management
