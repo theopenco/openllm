@@ -7,6 +7,7 @@ import { stripe } from "./payments";
 import { ensureStripeCustomer } from "../stripe";
 
 import type { ServerTypes } from "../vars";
+import type Stripe from "stripe";
 
 export const subscriptions = new OpenAPIHono<ServerTypes>();
 
@@ -78,6 +79,14 @@ subscriptions.openapi(createProSubscription, async (c) => {
 	try {
 		const stripeCustomerId = await ensureStripeCustomer(organization.id);
 
+		// Get the organization's default payment method
+		const defaultPaymentMethod = await db.query.paymentMethod.findFirst({
+			where: {
+				organizationId: organization.id,
+				isDefault: true,
+			},
+		});
+
 		// Determine which price ID to use based on billing cycle
 		const priceId =
 			billingCycle === "yearly"
@@ -90,8 +99,8 @@ subscriptions.openapi(createProSubscription, async (c) => {
 			});
 		}
 
-		// Create Stripe Checkout session
-		const session = await stripe.checkout.sessions.create({
+		// Create Stripe Checkout session options
+		const sessionOptions: Stripe.Checkout.SessionCreateParams = {
 			customer: stripeCustomerId,
 			mode: "subscription",
 			line_items: [
@@ -114,7 +123,17 @@ subscriptions.openapi(createProSubscription, async (c) => {
 					billingCycle,
 				},
 			},
-		});
+		};
+
+		// If there's a default payment method, configure checkout to show saved payment methods
+		if (defaultPaymentMethod) {
+			sessionOptions.saved_payment_method_options = {
+				allow_redisplay_filters: ["always", "limited"],
+			};
+		}
+
+		// Create Stripe Checkout session
+		const session = await stripe.checkout.sessions.create(sessionOptions);
 
 		if (!session.url) {
 			throw new HTTPException(500, {
