@@ -445,4 +445,17 @@ export let models = [
 			},
 		],
 	},
+	{
+		model: "mistral-large-latest",
+		providers: [
+			{
+				providerId: "mistral",
+				modelName: "mistral-large-latest",
+				inputPrice: 0.000004,
+				outputPrice: 0.000012,
+				contextSize: 128000,
+			},
+		],
+		jsonOutput: false,
+	},
 ] as const satisfies ModelDefinition[];

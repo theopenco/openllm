@@ -231,6 +231,9 @@ export function getProviderEndpoint(
 			case "cloudrift":
 				url = "https://inference.cloudrift.ai";
 				break;
+			case "mistral":
+				url = "https://api.mistral.ai";
+				break;
 			default:
 				throw new Error(`Provider ${provider} requires a baseUrl`);
 		}
@@ -314,6 +317,9 @@ export async function validateProviderKey(
 				break;
 			case "cloudrift":
 				validationModel = "deepseek-ai/DeepSeek-V3";
+				break;
+			case "mistral":
+				validationModel = "mistral-large-latest";
 				break;
 			default:
 				throw new Error(`Provider ${provider} not supported for validation`);
