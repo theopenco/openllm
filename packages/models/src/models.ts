@@ -433,4 +433,16 @@ export let models = [
 			},
 		],
 	},
+	{
+		model: "deepseek-r1-0528",
+		providers: [
+			{
+				providerId: "cloudrift",
+				modelName: "deepseek-ai/DeepSeek-R1-0528",
+				inputPrice: 0.25 / 1e6,
+				outputPrice: 1 / 1e6,
+				contextSize: 32770,
+			},
+		],
+	},
 ] as const satisfies ModelDefinition[];
