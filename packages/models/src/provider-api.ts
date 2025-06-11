@@ -321,32 +321,12 @@ export async function validateProviderKey(
 		const minimalMessage = { role: "user", content: "Hello" };
 		const messages = [systemMessage, minimalMessage];
 
-		let validationModel = getCheapestModelForProvider(provider);
+		const validationModel = getCheapestModelForProvider(provider);
 
 		if (!validationModel) {
-			switch (provider) {
-				case "openai":
-					validationModel = "gpt-4o-mini";
-					break;
-				case "anthropic":
-					validationModel = "claude-3-5-sonnet-20241022";
-					break;
-				case "google-vertex":
-				case "google-ai-studio":
-					validationModel = "gemini-2.0-flash";
-					break;
-				case "inference.net":
-					validationModel = "meta-llama/llama-3.1-8b-instruct/fp-8";
-					break;
-				case "kluster.ai":
-					validationModel = "klusterai/Meta-Llama-3.1-8B-Instruct-Turbo";
-					break;
-				case "together.ai":
-					validationModel = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo";
-					break;
-				default:
-					throw new Error(`Provider ${provider} not supported for validation`);
-			}
+			throw new Error(
+				`No model with pricing information found for provider ${provider}`,
+			);
 		}
 
 		const payload = prepareRequestBody(
