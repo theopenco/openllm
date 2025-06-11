@@ -313,7 +313,7 @@ export async function validateProviderKey(
 				validationModel = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo";
 				break;
 			case "cloudrift":
-				validationModel = "deepseek/deepseek-ai/DeepSeek-V3";
+				validationModel = "deepseek-ai/DeepSeek-V3";
 				break;
 			default:
 				throw new Error(`Provider ${provider} not supported for validation`);
