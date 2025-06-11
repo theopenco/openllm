@@ -1,13 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 
-import { ModelsList } from "@/components/models/models-list";
-import {
-	Card,
-	CardContent,
-	CardDescription,
-	CardHeader,
-	CardTitle,
-} from "@/lib/components/card";
+import { ModelsSupported } from "@/components/models-supported";
 
 export const Route = createFileRoute("/dashboard/_layout/models")({
 	component: RouteComponent,
@@ -20,17 +13,7 @@ function RouteComponent() {
 				<div className="flex items-center justify-between">
 					<h2 className="text-3xl font-bold tracking-tight">Models</h2>
 				</div>
-				<Card>
-					<CardHeader>
-						<CardTitle>Available Models</CardTitle>
-						<CardDescription>
-							Models available through your connected providers
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<ModelsList />
-					</CardContent>
-				</Card>
+				<ModelsSupported isDashboard />
 			</div>
 		</div>
 	);
