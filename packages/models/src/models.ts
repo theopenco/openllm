@@ -26,7 +26,7 @@ export interface ProviderModelMapping {
 	/**
 	 * Whether this specific model supports streaming for this provider
 	 */
-	streaming?: boolean;
+	streaming: boolean;
 }
 
 export interface ModelDefinition {
@@ -36,10 +36,6 @@ export interface ModelDefinition {
 	 * Whether the model supports JSON output mode
 	 */
 	jsonOutput?: boolean;
-	/**
-	 * Whether the model supports streaming (fallback if not specified at provider level)
-	 */
-	streaming?: boolean;
 }
 
 export let models = [
@@ -456,6 +452,7 @@ export let models = [
 				inputPrice: 0.15 / 1e6,
 				outputPrice: 0.4 / 1e6,
 				contextSize: 163840,
+				streaming: true,
 			},
 		],
 	},
@@ -468,6 +465,7 @@ export let models = [
 				inputPrice: 0.15 / 1e6,
 				outputPrice: 0.4 / 1e6,
 				contextSize: 163840,
+				streaming: true,
 			},
 		],
 	},
@@ -480,6 +478,7 @@ export let models = [
 				inputPrice: 0.25 / 1e6,
 				outputPrice: 1 / 1e6,
 				contextSize: 32770,
+				streaming: true,
 			},
 		],
 	},
@@ -492,6 +491,7 @@ export let models = [
 				inputPrice: 0.000004,
 				outputPrice: 0.000012,
 				contextSize: 128000,
+				streaming: true,
 			},
 		],
 		jsonOutput: false,
