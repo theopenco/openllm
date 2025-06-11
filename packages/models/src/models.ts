@@ -409,4 +409,16 @@ export let models = [
 			},
 		],
 	},
+	{
+		model: "deepseek-v3",
+		providers: [
+			{
+				providerId: "cloudrift",
+				modelName: "deepseek-ai/DeepSeek-V3",
+				inputPrice: 2.0 / 1e6,
+				outputPrice: 8.0 / 1e6,
+				contextSize: 200000,
+			},
+		],
+	},
 ] as const satisfies ModelDefinition[];

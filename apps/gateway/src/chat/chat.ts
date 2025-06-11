@@ -95,6 +95,7 @@ function hasProviderEnvironmentToken(provider: Provider): boolean {
 		"inference.net": "INFERENCE_NET_API_KEY",
 		"kluster.ai": "KLUSTER_AI_API_KEY",
 		"together.ai": "TOGETHER_AI_API_KEY",
+		cloudrift: "CLOUD_RIFT_API_KEY",
 	} as const;
 
 	const envVar = envVarMap[provider as keyof typeof envVarMap];
@@ -130,6 +131,9 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 			break;
 		case "together.ai":
 			token = process.env.TOGETHER_AI_API_KEY;
+			break;
+		case "cloudrift":
+			token = process.env.CLOUD_RIFT_API_KEY;
 			break;
 		default:
 			throw new HTTPException(400, {
