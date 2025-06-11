@@ -367,12 +367,6 @@ function transformToOpenAIFormat(
 			}
 			break;
 		}
-		case "mistral": {
-			if (transformedResponse.choices?.[0]?.message) {
-				transformedResponse.choices[0].message.content = content;
-			}
-			break;
-		}
 	}
 
 	return transformedResponse;
