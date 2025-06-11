@@ -447,4 +447,53 @@ export let models = [
 			},
 		],
 	},
+	{
+		model: "deepseek-v3",
+		providers: [
+			{
+				providerId: "cloudrift",
+				modelName: "deepseek-ai/DeepSeek-V3",
+				inputPrice: 0.15 / 1e6,
+				outputPrice: 0.4 / 1e6,
+				contextSize: 163840,
+			},
+		],
+	},
+	{
+		model: "deepseek-r1",
+		providers: [
+			{
+				providerId: "cloudrift",
+				modelName: "deepseek-ai/DeepSeek-R1",
+				inputPrice: 0.15 / 1e6,
+				outputPrice: 0.4 / 1e6,
+				contextSize: 163840,
+			},
+		],
+	},
+	{
+		model: "deepseek-r1-0528",
+		providers: [
+			{
+				providerId: "cloudrift",
+				modelName: "deepseek-ai/DeepSeek-R1-0528",
+				inputPrice: 0.25 / 1e6,
+				outputPrice: 1 / 1e6,
+				contextSize: 32770,
+			},
+		],
+	},
+	{
+		model: "mistral-large-latest",
+		providers: [
+			{
+				providerId: "mistral",
+				modelName: "mistral-large-latest",
+				inputPrice: 0.000004,
+				outputPrice: 0.000012,
+				contextSize: 128000,
+			},
+		],
+		jsonOutput: false,
+	},
 ] as const satisfies ModelDefinition[];

@@ -22,11 +22,13 @@ const testModels = models
 	.flatMap((model) => {
 		const testCases = [];
 
-		// test all models
-		testCases.push({
-			model: model.model,
-			providers: model.providers,
-		});
+		if (process.env.FULL_MODE) {
+			// test all models
+			testCases.push({
+				model: model.model,
+				providers: model.providers,
+			});
+		}
 
 		// Create entries for provider-specific requests using provider/model format
 		for (const provider of model.providers) {

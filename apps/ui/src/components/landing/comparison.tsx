@@ -11,14 +11,16 @@ const comparisonData = [
 			{
 				title: "Free tier",
 				description: "Get started without upfront costs",
-				llmgateway: "5% credit fee, 0% API key fee",
-				openrouter: "5% fee when using credits or API keys",
+				llmgateway:
+					"5% fee + Stripe (2.9% + $0.35) on credit purchases; 0% fee with own API key (Pro only)",
+				openrouter:
+					"5% fee + $0.35 per credit purchase; 5% fee still applies with own API key",
 			},
 			{
 				title: "Pro plan pricing",
 				description: "Monthly subscription cost",
-				llmgateway: "$50/month",
-				openrouter: "No subscription, fixed fees",
+				llmgateway: "$50/month — zero gateway fee with credits or own API key",
+				openrouter: "No subscription — always pay 5% fee",
 			},
 			{
 				title: "Zero usage fees",
@@ -30,35 +32,6 @@ const comparisonData = [
 				title: "Self-hosting option",
 				description: "MIT-licensed, deploy on your infrastructure for free",
 				llmgateway: "Free forever",
-				openrouter: false,
-			},
-		],
-	},
-	{
-		category: "Models & Providers",
-		features: [
-			{
-				title: "Supported providers",
-				description: "Major LLM providers available",
-				llmgateway: "Most common plus AWS Bedrock",
-				openrouter: "Most common",
-			},
-			{
-				title: "Total models",
-				description: "Number of models you can access",
-				llmgateway: "100+ models",
-				openrouter: "300+ models",
-			},
-			{
-				title: "New model releases",
-				description: "How quickly new models are added",
-				llmgateway: "Within 48 hours",
-				openrouter: "Varies",
-			},
-			{
-				title: "Custom provider integration",
-				description: "Add your own LLM providers",
-				llmgateway: true,
 				openrouter: false,
 			},
 		],
@@ -99,7 +72,7 @@ const comparisonData = [
 				title: "Uptime SLA",
 				description: "Guaranteed uptime for managed instances",
 				llmgateway: "99.9%",
-				openrouter: "No SLA",
+				openrouter: "Enterprise only",
 			},
 			{
 				title: "Failover support",
@@ -117,35 +90,6 @@ const comparisonData = [
 				title: "Priority support",
 				description: "Dedicated support for paid plans",
 				llmgateway: "Pro+",
-				openrouter: false,
-			},
-		],
-	},
-	{
-		category: "Enterprise Features",
-		features: [
-			{
-				title: "Dedicated infrastructure",
-				description: "Isolated compute resources",
-				llmgateway: "Enterprise",
-				openrouter: false,
-			},
-			{
-				title: "Custom SLAs",
-				description: "Tailored service level agreements",
-				llmgateway: "Enterprise",
-				openrouter: false,
-			},
-			{
-				title: "Volume discounts",
-				description: "Pricing discounts for high usage",
-				llmgateway: "Enterprise",
-				openrouter: "Available",
-			},
-			{
-				title: "On-premise deployment",
-				description: "Full control over your data and infrastructure",
-				llmgateway: "MIT license",
 				openrouter: false,
 			},
 		],

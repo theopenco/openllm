@@ -86,6 +86,24 @@ export const providers = [
 		cancellation: true,
 		color: "#ff6b35",
 	},
+	{
+		id: "cloudrift",
+		name: "CloudRift",
+		description:
+			"CloudRift is a platform for running large language models in the cloud with fast inference.",
+		streaming: true,
+		cancellation: true,
+		color: "#00d4aa",
+	},
+	{
+		id: "mistral",
+		name: "Mistral AI",
+		description: "Mistral AI's large language models",
+		streaming: true,
+		cancellation: true,
+		jsonOutput: true,
+		color: "#FF7000",
+	},
 ] as const satisfies ProviderDefinition[];
 
 export type ProviderId = (typeof providers)[number]["id"];
