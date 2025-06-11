@@ -432,6 +432,6 @@ export let models = [
 				contextSize: 128000,
 			},
 		],
-		jsonOutput: true,
+		jsonOutput: false,
 	},
 ] as const satisfies ModelDefinition[];
