@@ -96,6 +96,7 @@ function hasProviderEnvironmentToken(provider: Provider): boolean {
 		"kluster.ai": "KLUSTER_AI_API_KEY",
 		"together.ai": "TOGETHER_AI_API_KEY",
 		cloudrift: "CLOUD_RIFT_API_KEY",
+		mistral: "MISTRAL_API_KEY",
 	} as const;
 
 	const envVar = envVarMap[provider as keyof typeof envVarMap];
@@ -134,6 +135,9 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 			break;
 		case "cloudrift":
 			token = process.env.CLOUD_RIFT_API_KEY;
+			break;
+		case "mistral":
+			token = process.env.MISTRAL_API_KEY;
 			break;
 		default:
 			throw new HTTPException(400, {
@@ -184,6 +188,31 @@ function parseProviderResponse(usedProvider: Provider, json: any) {
 			promptTokens = json.usage?.prompt_tokens || null;
 			completionTokens = json.usage?.completion_tokens || null;
 			totalTokens = json.usage?.total_tokens || null;
+			break;
+		case "mistral":
+			content = json.choices?.[0]?.message?.content || null;
+			finishReason = json.choices?.[0]?.finish_reason || null;
+			promptTokens = json.usage?.prompt_tokens || null;
+			completionTokens = json.usage?.completion_tokens || null;
+			totalTokens = json.usage?.total_tokens || null;
+
+			// Handle Mistral's JSON output mode which wraps JSON in markdown code blocks
+			if (
+				content &&
+				typeof content === "string" &&
+				content.includes("```json")
+			) {
+				const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+				if (jsonMatch && jsonMatch[1]) {
+					// Extract and clean the JSON content
+					content = jsonMatch[1].trim();
+					// Ensure it's valid JSON by parsing and re-stringifying to normalize formatting
+					try {
+						const parsed = JSON.parse(content);
+						content = JSON.stringify(parsed);
+					} catch (_e) {}
+				}
+			}
 			break;
 		default: // OpenAI format
 			content = json.choices?.[0]?.message?.content || null;
@@ -335,6 +364,12 @@ function transformToOpenAIFormat(
 						total_tokens: totalTokens,
 					},
 				};
+			}
+			break;
+		}
+		case "mistral": {
+			if (transformedResponse.choices?.[0]?.message) {
+				transformedResponse.choices[0].message.content = content;
 			}
 			break;
 		}
