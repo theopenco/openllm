@@ -11,14 +11,16 @@ const comparisonData = [
 			{
 				title: "Free tier",
 				description: "Get started without upfront costs",
-				llmgateway: "5% credit fee, 0% API key fee",
-				openrouter: "5% + $0.35 on credit purchase, still 5% for BYOK usage",
+				llmgateway:
+					"5% fee + Stripe (2.9% + $0.35) on credit purchases; 0% fee with own API key (Pro only)",
+				openrouter:
+					"5% fee + $0.35 per credit purchase; 5% fee still applies with own API key",
 			},
 			{
 				title: "Pro plan pricing",
 				description: "Monthly subscription cost",
-				llmgateway: "$50/month",
-				openrouter: "No subscription, fixed fees",
+				llmgateway: "$50/month — zero gateway fee with credits or own API key",
+				openrouter: "No subscription — always pay 5% fee",
 			},
 			{
 				title: "Zero usage fees",

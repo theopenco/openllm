@@ -129,19 +129,21 @@ export function Faq() {
 								<p>Our pricing is simple and transparent:</p>
 								<ul className="list-disc pl-6 mt-2 space-y-1">
 									<li>
-										<strong>Free – credits + 5&nbsp;% fee:</strong>{" "}
-										Pay‑as‑you‑go credits to use any model; a flat 5&nbsp;%
-										platform fee is applied to each request.
+										<strong>Free – credits + 5% fee + Stripe:</strong>{" "}
+										Pay‑as‑you‑go credits to use any model; a flat 5% platform
+										fee is applied to each request, plus standard Stripe
+										processing fees (2.9% + $0.35) on purchases.
 									</li>
 									<li>
 										<strong>Pro – $50/month:</strong> Bring your own LLM
 										provider keys <em>or</em> use credits with{" "}
 										<strong>zero</strong> gateway fee. Includes premium
-										analytics, higher rate limits and priority email support.
+										analytics, higher rate limits, and priority email support.
 									</li>
 									<li>
-										<strong>Enterprise:</strong> Custom SLA, dedicated shard,
-										volume discounts. Contact sales for a tailored quote.
+										<strong>Enterprise:</strong> Custom SLA, dedicated
+										infrastructure, bring-your-own cloud capacity, and volume
+										discounts. Contact sales for a tailored quote.
 									</li>
 									<li>
 										<strong>Self‑host:</strong> Deploy the MIT‑licensed gateway
