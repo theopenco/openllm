@@ -259,7 +259,9 @@ export function getProviderEndpoint(
 /**
  * Get the cheapest model for a given provider based on input + output pricing
  */
-function getCheapestModelForProvider(provider: ProviderId): string | null {
+export function getCheapestModelForProvider(
+	provider: ProviderId,
+): string | null {
 	const availableModels = models
 		.filter((model) => model.providers.some((p) => p.providerId === provider))
 		.map((model) => ({
@@ -289,6 +291,35 @@ function getCheapestModelForProvider(provider: ProviderId): string | null {
 	}
 
 	return cheapestModel;
+}
+
+/**
+ * Get the cheapest provider and model from a list of available model providers
+ */
+export function getCheapestFromAvailableProviders<
+	T extends { providerId: string; modelName: string },
+>(availableModelProviders: T[], modelWithPricing: any): T | null {
+	if (availableModelProviders.length === 0) {
+		return null;
+	}
+
+	let cheapestProvider = availableModelProviders[0];
+	let lowestPrice = Number.MAX_VALUE;
+
+	for (const provider of availableModelProviders) {
+		const providerInfo = modelWithPricing.providers.find(
+			(p: any) => p.providerId === provider.providerId,
+		);
+		const totalPrice =
+			((providerInfo?.inputPrice || 0) + (providerInfo?.outputPrice || 0)) / 2;
+
+		if (totalPrice < lowestPrice) {
+			lowestPrice = totalPrice;
+			cheapestProvider = provider;
+		}
+	}
+
+	return cheapestProvider;
 }
 
 /**
