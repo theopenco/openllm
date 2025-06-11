@@ -1,6 +1,6 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
 # Package Manager Rule
@@ -17,12 +17,6 @@ This project uses **pnpm** as the package manager. Do not use npm or yarn.
 - `pnpm run <script>` - Run package scripts
 - `pnpm dev` - Start development server
 - `pnpm build` - Build the project
-
-### Never use:
-- ❌ `npm install`
-- ❌ `npm add`
-- ❌ `yarn install`
-- ❌ `yarn add`
 
 ### Project structure:
 This is a monorepo with workspaces managed by pnpm. The [pnpm-workspace.yaml](mdc:pnpm-workspace.yaml) file defines the workspace configuration.
