@@ -415,9 +415,21 @@ export let models = [
 			{
 				providerId: "cloudrift",
 				modelName: "deepseek-ai/DeepSeek-V3",
-				inputPrice: 2.0 / 1e6,
-				outputPrice: 8.0 / 1e6,
-				contextSize: 200000,
+				inputPrice: 0.15 / 1e6,
+				outputPrice: 0.4 / 1e6,
+				contextSize: 163840,
+			},
+		],
+	},
+	{
+		model: "deepseek-r1",
+		providers: [
+			{
+				providerId: "cloudrift",
+				modelName: "deepseek-ai/DeepSeek-R1",
+				inputPrice: 0.15 / 1e6,
+				outputPrice: 0.4 / 1e6,
+				contextSize: 163840,
 			},
 		],
 	},
