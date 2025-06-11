@@ -10,6 +10,7 @@ import {
 import {
 	getProviderEndpoint,
 	getProviderHeaders,
+	getModelStreamingSupport,
 	type Model,
 	models,
 	prepareRequestBody,
@@ -974,6 +975,16 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
+	// Update baseModelName to match the final usedModel after routing
+	// Find the model definition that corresponds to the final usedModel
+	const finalModelInfo = models.find(
+		(m) =>
+			m.model === usedModel ||
+			m.providers.some((p) => p.modelName === usedModel),
+	);
+
+	const baseModelName = finalModelInfo?.model || usedModel;
+
 	let url: string | undefined;
 
 	// Get the provider key for the selected provider based on project mode
@@ -1140,12 +1151,11 @@ chat.openapi(completions, async (c) => {
 		}
 	}
 
-	// Check if streaming is requested and if the provider supports it
+	// Check if streaming is requested and if the model/provider combination supports it
 	if (stream) {
-		const providerInfo = providers.find((p) => p.id === usedProvider);
-		if (!providerInfo?.streaming) {
+		if (!getModelStreamingSupport(baseModelName, usedProvider)) {
 			throw new HTTPException(400, {
-				message: `Provider ${usedProvider} does not support streaming`,
+				message: `Model ${usedModel} with provider ${usedProvider} does not support streaming`,
 			});
 		}
 	}
