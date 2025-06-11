@@ -56,9 +56,7 @@ export function DashboardSidebar() {
 		return location.pathname === path;
 	};
 
-	const isSettingsActive = () => {
-		return location.pathname.startsWith("/dashboard/settings");
-	};
+	const isSettingsActive = location.pathname.startsWith("/dashboard/settings");
 
 	const [showCreditCTA, setShowCreditCTA] = useState(() => {
 		if (typeof window === "undefined") {
@@ -96,7 +94,7 @@ export function DashboardSidebar() {
 	};
 
 	useEffect(() => {
-		if (isSettingsActive() && !settingsExpanded) {
+		if (isSettingsActive && !settingsExpanded) {
 			setSettingsExpanded(true);
 		}
 	}, [location.pathname, isSettingsActive, settingsExpanded]);
@@ -173,7 +171,7 @@ export function DashboardSidebar() {
 								<div
 									className={cn(
 										"flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors cursor-pointer",
-										isSettingsActive()
+										isSettingsActive
 											? "bg-primary/10 text-primary"
 											: "text-foreground/70 hover:bg-accent hover:text-accent-foreground",
 									)}
@@ -311,7 +309,18 @@ export function DashboardSidebar() {
 					<div className="flex items-center gap-3">
 						<Avatar className="border-border h-9 w-9 border">
 							<AvatarImage src="/vibrant-street-market.png" alt="Avatar" />
-							<AvatarFallback>AU</AvatarFallback>
+							<AvatarFallback>
+								{user?.name
+									? user.name
+											.split(" ")
+											.slice(0, 2)
+											.map((n) => n[0])
+											.join("")
+											.toUpperCase()
+									: user?.email
+										? user.email[0].toUpperCase()
+										: ""}
+							</AvatarFallback>
 						</Avatar>
 						<div className="text-sm">
 							<div className="flex items-center gap-2 font-medium">
@@ -322,7 +331,9 @@ export function DashboardSidebar() {
 									onClick={logout}
 								/>
 							</div>
-							<div className="text-xs text-muted-foreground">{user?.email}</div>
+							<div className="text-xs text-muted-foreground truncate max-w-[120px]">
+								{user?.email}
+							</div>
 						</div>
 					</div>
 					<ModeToggle />
