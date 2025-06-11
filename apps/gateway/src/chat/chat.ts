@@ -648,11 +648,9 @@ chat.openapi(completions, async (c) => {
 	let requestedProvider: Provider | undefined;
 
 	// check if there is an exact model match
-	let baseModelName: string; // Track the base model name for streaming checks
 	if (modelInput === "auto" || modelInput === "custom") {
 		requestedProvider = "llmgateway";
 		requestedModel = modelInput as Model;
-		baseModelName = modelInput;
 	} else if (modelInput.includes("/")) {
 		const split = modelInput.split("/");
 		const providerCandidate = split[0];
@@ -692,9 +690,6 @@ chat.openapi(completions, async (c) => {
 			});
 		}
 
-		// Store the base model name for streaming checks
-		baseModelName = modelDef.model;
-
 		// Use the provider-specific model name if available
 		const providerMapping = modelDef.providers.find(
 			(p) => p.providerId === requestedProvider,
@@ -706,7 +701,6 @@ chat.openapi(completions, async (c) => {
 		}
 	} else if (models.find((m) => m.model === modelInput)) {
 		requestedModel = modelInput as Model;
-		baseModelName = modelInput;
 	} else if (
 		models.find((m) => m.providers.find((p) => p.modelName === modelInput))
 	) {
@@ -956,13 +950,7 @@ chat.openapi(completions, async (c) => {
 			m.providers.some((p) => p.modelName === usedModel),
 	);
 
-	if (finalModelInfo) {
-		baseModelName = finalModelInfo.model;
-	} else {
-		// Fallback: if we can't find the model definition, use the usedModel as baseModelName
-		// This handles cases like "gpt-4o-mini" where the model name might be the same as the base name
-		baseModelName = usedModel;
-	}
+	const baseModelName = finalModelInfo?.model || usedModel;
 
 	let url: string | undefined;
 
