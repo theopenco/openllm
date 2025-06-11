@@ -948,6 +948,22 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
+	// Update baseModelName to match the final usedModel after routing
+	// Find the model definition that corresponds to the final usedModel
+	const finalModelInfo = models.find(
+		(m) =>
+			m.model === usedModel ||
+			m.providers.some((p) => p.modelName === usedModel),
+	);
+
+	if (finalModelInfo) {
+		baseModelName = finalModelInfo.model;
+	} else {
+		// Fallback: if we can't find the model definition, use the usedModel as baseModelName
+		// This handles cases like "gpt-4o-mini" where the model name might be the same as the base name
+		baseModelName = usedModel;
+	}
+
 	let url: string | undefined;
 
 	// Get the provider key for the selected provider based on project mode
