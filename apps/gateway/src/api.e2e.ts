@@ -41,7 +41,11 @@ const testModels = models
 	});
 
 const streamingModels = testModels.filter((m) =>
-	m.providers.every((p) => {
+	m.providers.some((p: any) => {
+		// Check model-level streaming first, then fall back to provider-level
+		if (p.streaming !== undefined) {
+			return p.streaming;
+		}
 		const provider = providers.find((pr) => pr.id === p.providerId);
 		return provider?.streaming;
 	}),

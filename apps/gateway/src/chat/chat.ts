@@ -10,6 +10,7 @@ import {
 import {
 	getProviderEndpoint,
 	getProviderHeaders,
+	getModelStreamingSupport,
 	type Model,
 	models,
 	prepareRequestBody,
@@ -1107,12 +1108,11 @@ chat.openapi(completions, async (c) => {
 		}
 	}
 
-	// Check if streaming is requested and if the provider supports it
+	// Check if streaming is requested and if the model/provider combination supports it
 	if (stream) {
-		const providerInfo = providers.find((p) => p.id === usedProvider);
-		if (!providerInfo?.streaming) {
+		if (!getModelStreamingSupport(usedModel, usedProvider)) {
 			throw new HTTPException(400, {
-				message: `Provider ${usedProvider} does not support streaming`,
+				message: `Model ${usedModel} with provider ${usedProvider} does not support streaming`,
 			});
 		}
 	}

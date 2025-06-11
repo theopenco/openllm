@@ -23,6 +23,10 @@ export interface ProviderModelMapping {
 	 * Maximum context window size in tokens
 	 */
 	contextSize?: number;
+	/**
+	 * Whether this specific model supports streaming for this provider
+	 */
+	streaming?: boolean;
 }
 
 export interface ModelDefinition {
@@ -32,6 +36,10 @@ export interface ModelDefinition {
 	 * Whether the model supports JSON output mode
 	 */
 	jsonOutput?: boolean;
+	/**
+	 * Whether the model supports streaming (fallback if not specified at provider level)
+	 */
+	streaming?: boolean;
 }
 
 export let models = [
@@ -44,6 +52,7 @@ export let models = [
 				inputPrice: undefined,
 				outputPrice: undefined,
 				contextSize: undefined,
+				streaming: true,
 			},
 		],
 	},
@@ -56,6 +65,7 @@ export let models = [
 				inputPrice: undefined,
 				outputPrice: undefined,
 				contextSize: undefined,
+				streaming: true,
 			},
 		],
 	},
@@ -68,6 +78,7 @@ export let models = [
 				inputPrice: 0.15 / 1e6,
 				outputPrice: 0.6 / 1e6,
 				contextSize: 128000,
+				streaming: true,
 			},
 		],
 		jsonOutput: true,
@@ -81,6 +92,7 @@ export let models = [
 				inputPrice: 30.0 / 1e6,
 				outputPrice: 60.0 / 1e6,
 				contextSize: 128000,
+				streaming: true,
 			},
 		],
 		jsonOutput: false,
@@ -95,6 +107,7 @@ export let models = [
 				outputPrice: 10.0 / 1e6,
 				imageInputPrice: 0.00553,
 				contextSize: 128000,
+				streaming: true,
 			},
 		],
 		jsonOutput: true,
@@ -108,6 +121,7 @@ export let models = [
 				inputPrice: 0.5 / 1e6,
 				outputPrice: 1.5 / 1e6,
 				contextSize: 16385,
+				streaming: true,
 			},
 		],
 		jsonOutput: true,
@@ -121,6 +135,7 @@ export let models = [
 				inputPrice: 2.0 / 1e6,
 				outputPrice: 8.0 / 1e6,
 				contextSize: 1000000,
+				streaming: true,
 			},
 		],
 		jsonOutput: true,
@@ -134,6 +149,7 @@ export let models = [
 				inputPrice: 0.4 / 1e6,
 				outputPrice: 1.6 / 1e6,
 				contextSize: 1000000,
+				streaming: true,
 			},
 		],
 		jsonOutput: true,
@@ -147,24 +163,25 @@ export let models = [
 				inputPrice: 0.1 / 1e6,
 				outputPrice: 0.4 / 1e6,
 				contextSize: 1000000,
+				streaming: true,
 			},
 		],
 		jsonOutput: true,
 	},
-	// TODO configure streaming: false for this once we can configure it on a model level
-	// {
-	// 	model: "o3",
-	// 	providers: [
-	// 		{
-	// 			providerId: "openai",
-	// 			modelName: "o3",
-	// 			inputPrice: 2 / 1e6,
-	// 			outputPrice: 8 / 1e6,
-	// 			contextSize: 200000,
-	// 		},
-	// 	],
-	// 	jsonOutput: true,
-	// },
+	{
+		model: "o3",
+		providers: [
+			{
+				providerId: "openai",
+				modelName: "o3",
+				inputPrice: 2 / 1e6,
+				outputPrice: 8 / 1e6,
+				contextSize: 200000,
+				streaming: false,
+			},
+		],
+		jsonOutput: true,
+	},
 	{
 		model: "o3-mini",
 		providers: [
@@ -174,6 +191,7 @@ export let models = [
 				inputPrice: 1.1 / 1e6,
 				outputPrice: 4.4 / 1e6,
 				contextSize: 200000,
+				streaming: true,
 			},
 		],
 		jsonOutput: true,
@@ -187,6 +205,7 @@ export let models = [
 				inputPrice: 3.0 / 1e6,
 				outputPrice: 15.0 / 1e6,
 				contextSize: 200000,
+				streaming: true,
 			},
 		],
 	},
@@ -199,6 +218,7 @@ export let models = [
 				inputPrice: 3.0 / 1e6,
 				outputPrice: 15.0 / 1e6,
 				contextSize: 200000,
+				streaming: true,
 			},
 		],
 	},
@@ -211,6 +231,7 @@ export let models = [
 				inputPrice: 0.1 / 1e6,
 				outputPrice: 0.4 / 1e6,
 				contextSize: 1000000,
+				streaming: false,
 			},
 		],
 	},
@@ -223,6 +244,7 @@ export let models = [
 				inputPrice: 10.0 / 1e6,
 				outputPrice: 30.0 / 1e6,
 				contextSize: 128000,
+				streaming: true,
 			},
 		],
 		jsonOutput: true,
@@ -236,6 +258,7 @@ export let models = [
 				inputPrice: 8.0 / 1e6,
 				outputPrice: 24.0 / 1e6,
 				contextSize: 200000,
+				streaming: true,
 			},
 		],
 	},
@@ -248,6 +271,7 @@ export let models = [
 				inputPrice: 0.07 / 1e6,
 				outputPrice: 0.33 / 1e6,
 				contextSize: 128000,
+				streaming: true,
 			},
 			{
 				providerId: "kluster.ai",
@@ -255,6 +279,7 @@ export let models = [
 				inputPrice: 0.07 / 1e6,
 				outputPrice: 0.33 / 1e6,
 				contextSize: 128000,
+				streaming: true,
 			},
 			{
 				providerId: "together.ai",
@@ -262,6 +287,7 @@ export let models = [
 				inputPrice: 0.88 / 1e6,
 				outputPrice: 0.88 / 1e6,
 				contextSize: 128000,
+				streaming: false,
 			},
 		],
 	},
@@ -274,6 +300,7 @@ export let models = [
 				inputPrice: 0.07 / 1e6,
 				outputPrice: 0.33 / 1e6,
 				contextSize: 128000,
+				streaming: true,
 			},
 		],
 	},
@@ -286,6 +313,7 @@ export let models = [
 				inputPrice: 3.0 / 1e6,
 				outputPrice: 15.0 / 1e6,
 				contextSize: 200000,
+				streaming: true,
 			},
 		],
 	},
@@ -298,6 +326,7 @@ export let models = [
 				inputPrice: 3.0 / 1e6,
 				outputPrice: 15.0 / 1e6,
 				contextSize: 200000,
+				streaming: true,
 			},
 		],
 	},
@@ -310,6 +339,7 @@ export let models = [
 				inputPrice: 3.0 / 1e6,
 				outputPrice: 15.0 / 1e6,
 				contextSize: 200000,
+				streaming: true,
 			},
 		],
 	},
@@ -322,6 +352,7 @@ export let models = [
 				inputPrice: 3.0 / 1e6,
 				outputPrice: 15.0 / 1e6,
 				contextSize: 200000,
+				streaming: true,
 			},
 		],
 	},
@@ -334,6 +365,7 @@ export let models = [
 				inputPrice: 1.25 / 1e6,
 				outputPrice: 10.0 / 1e6,
 				contextSize: 1000000,
+				streaming: false,
 			},
 		],
 	},
@@ -346,6 +378,7 @@ export let models = [
 				inputPrice: 1.25 / 1e6,
 				outputPrice: 10.0 / 1e6,
 				contextSize: 1000000,
+				streaming: false,
 			},
 		],
 	},
@@ -358,6 +391,7 @@ export let models = [
 				inputPrice: 0.15 / 1e6,
 				outputPrice: 0.6 / 1e6,
 				contextSize: 1000000,
+				streaming: false,
 			},
 		],
 	},
@@ -370,6 +404,7 @@ export let models = [
 				inputPrice: 0.15 / 1e6,
 				outputPrice: 0.6 / 1e6,
 				contextSize: 1000000,
+				streaming: false,
 			},
 		],
 	},
@@ -382,6 +417,7 @@ export let models = [
 				inputPrice: 0.15 / 1e6,
 				outputPrice: 0.6 / 1e6,
 				contextSize: 1000000,
+				streaming: false,
 			},
 		],
 	},
@@ -394,6 +430,7 @@ export let models = [
 				inputPrice: 0.0375 / 1e6,
 				outputPrice: 0.15 / 1e6,
 				contextSize: 1000000,
+				streaming: false,
 			},
 		],
 	},
@@ -406,6 +443,7 @@ export let models = [
 				inputPrice: 0.075 / 1e6,
 				outputPrice: 0.3 / 1e6,
 				contextSize: 1000000,
+				streaming: false,
 			},
 		],
 	},

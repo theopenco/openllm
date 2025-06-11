@@ -1,4 +1,4 @@
-import { models, providers } from "@llmgateway/models";
+import { getModelStreamingSupport } from "@llmgateway/models";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 
@@ -57,20 +57,6 @@ function RouteComponent() {
 
 	const isAuthenticated = !isUserLoading && !!user;
 	const showAuthDialog = !isUserLoading && !user;
-
-	// Check if the selected model supports streaming
-	const getModelStreamingSupport = (modelName: string) => {
-		const modelInfo = models.find((m) => m.model === modelName);
-		if (!modelInfo) {
-			return false;
-		}
-
-		// Check if any provider for this model supports streaming
-		return modelInfo.providers.some((provider) => {
-			const providerInfo = providers.find((p) => p.id === provider.providerId);
-			return providerInfo?.streaming === true;
-		});
-	};
 
 	useEffect(() => {
 		if (isApiKeyLoaded && !userApiKey && !showAuthDialog) {
