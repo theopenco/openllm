@@ -222,6 +222,11 @@ describe("e2e tests with real provider keys", () => {
 				}),
 			});
 
+			if (res.status !== 200) {
+				console.log("response:", await res.text());
+				throw new Error(`Request failed with status ${res.status}`);
+			}
+
 			expect(res.status).toBe(200);
 			expect(res.headers.get("content-type")).toContain("text/event-stream");
 
