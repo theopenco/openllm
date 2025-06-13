@@ -12,6 +12,8 @@ export interface ProviderDefinition {
 	color?: string;
 	// Website URL
 	website?: string;
+	// Announcement text
+	announcement?: string | null;
 }
 
 export const providers = [
@@ -24,6 +26,7 @@ export const providers = [
 		cancellation: true,
 		color: "#6366f1",
 		website: "https://llmgateway.io",
+		announcement: null,
 	},
 	{
 		id: "openai",
@@ -35,6 +38,7 @@ export const providers = [
 		jsonOutput: true,
 		color: "#0ea5e9",
 		website: "https://openai.com",
+		announcement: null,
 	},
 	{
 		id: "anthropic",
@@ -45,6 +49,7 @@ export const providers = [
 		cancellation: true,
 		color: "#8b5cf6",
 		website: "https://anthropic.com",
+		announcement: null,
 	},
 	{
 		id: "google-vertex",
@@ -55,6 +60,7 @@ export const providers = [
 		cancellation: true,
 		color: "#d95656",
 		website: "https://cloud.google.com/vertex-ai",
+		announcement: null,
 	},
 	{
 		id: "google-ai-studio",
@@ -65,6 +71,7 @@ export const providers = [
 		cancellation: true,
 		color: "#4285f4",
 		website: "https://ai.google.com",
+		announcement: null,
 	},
 	{
 		id: "inference.net",
@@ -75,6 +82,7 @@ export const providers = [
 		cancellation: true,
 		color: "#10b981",
 		website: "https://inference.net",
+		announcement: null,
 	},
 	{
 		id: "kluster.ai",
@@ -85,6 +93,7 @@ export const providers = [
 		cancellation: true,
 		color: "#f59e0b",
 		website: "https://kluster.ai",
+		announcement: null,
 	},
 	{
 		id: "together.ai",
@@ -95,6 +104,7 @@ export const providers = [
 		cancellation: true,
 		color: "#ff6b35",
 		website: "https://together.ai",
+		announcement: null,
 	},
 	{
 		id: "cloudrift",
@@ -105,6 +115,7 @@ export const providers = [
 		cancellation: true,
 		color: "#00d4aa",
 		website: "https://cloudrift.com",
+		announcement: "DeepSeek are now 40-60% cheaper until July 15th!",
 	},
 	{
 		id: "mistral",
@@ -115,6 +126,7 @@ export const providers = [
 		jsonOutput: true,
 		color: "#FF7000",
 		website: "https://mistral.ai",
+		announcement: null,
 	},
 ] as const satisfies ProviderDefinition[];
 
