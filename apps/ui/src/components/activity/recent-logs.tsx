@@ -39,7 +39,10 @@ export function RecentLogs() {
 		params: {
 			query: {
 				orderBy: "createdAt_desc",
-				dateRange,
+				dateRangeStart: dateRange?.start
+					? dateRange.start.toISOString()
+					: undefined,
+				dateRangeEnd: dateRange?.end ? dateRange.end.toISOString() : undefined,
 				finishReason,
 				unifiedFinishReason,
 				provider,

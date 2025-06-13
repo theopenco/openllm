@@ -10,6 +10,8 @@ export interface ProviderDefinition {
 	jsonOutput?: boolean;
 	// Color used for UI representation (hex code)
 	color?: string;
+	// Website URL
+	website?: string;
 }
 
 export const providers = [
@@ -21,6 +23,7 @@ export const providers = [
 		streaming: true,
 		cancellation: true,
 		color: "#6366f1",
+		website: "https://llmgateway.io",
 	},
 	{
 		id: "openai",
@@ -31,6 +34,7 @@ export const providers = [
 		cancellation: true,
 		jsonOutput: true,
 		color: "#0ea5e9",
+		website: "https://openai.com",
 	},
 	{
 		id: "anthropic",
@@ -40,6 +44,7 @@ export const providers = [
 		streaming: true,
 		cancellation: true,
 		color: "#8b5cf6",
+		website: "https://anthropic.com",
 	},
 	{
 		id: "google-vertex",
@@ -49,6 +54,7 @@ export const providers = [
 		streaming: true,
 		cancellation: true,
 		color: "#d95656",
+		website: "https://cloud.google.com/vertex-ai",
 	},
 	{
 		id: "google-ai-studio",
@@ -58,6 +64,7 @@ export const providers = [
 		streaming: false,
 		cancellation: true,
 		color: "#4285f4",
+		website: "https://ai.google.com",
 	},
 	{
 		id: "inference.net",
@@ -67,6 +74,7 @@ export const providers = [
 		streaming: true,
 		cancellation: true,
 		color: "#10b981",
+		website: "https://inference.net",
 	},
 	{
 		id: "kluster.ai",
@@ -76,6 +84,7 @@ export const providers = [
 		streaming: true,
 		cancellation: true,
 		color: "#f59e0b",
+		website: "https://kluster.ai",
 	},
 	{
 		id: "together.ai",
@@ -85,6 +94,7 @@ export const providers = [
 		streaming: false,
 		cancellation: true,
 		color: "#ff6b35",
+		website: "https://together.ai",
 	},
 	{
 		id: "cloudrift",
@@ -94,6 +104,7 @@ export const providers = [
 		streaming: true,
 		cancellation: true,
 		color: "#00d4aa",
+		website: "https://cloudrift.com",
 	},
 	{
 		id: "mistral",
@@ -103,6 +114,7 @@ export const providers = [
 		cancellation: true,
 		jsonOutput: true,
 		color: "#FF7000",
+		website: "https://mistral.ai",
 	},
 ] as const satisfies ProviderDefinition[];
 

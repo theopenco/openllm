@@ -3,6 +3,7 @@ import {
 	providers as providerDefinitions,
 	type ProviderId,
 } from "@llmgateway/models";
+import { Link } from "@tanstack/react-router";
 import { ExternalLink, Mic } from "lucide-react";
 
 import anthropicLogo from "@/assets/models/anthropic.svg?react";
@@ -152,53 +153,59 @@ export const ModelsSupported = ({ isDashboard }: { isDashboard?: boolean }) => {
 			)}
 
 			<section className="space-y-12">
-				{sortedProviderEntries.map(([providerName, models]) => {
-					const providerId = models[0].providerId;
-					return (
-						<div key={providerName} className="space-y-6">
-							<div className="flex items-center gap-3">
-								{getProviderIcon(providerId)}
-								<h2 className="text-2xl font-semibold">{providerName}</h2>
-								<span className="text-sm text-muted-foreground">
-									{models.length} model{models.length !== 1 && "s"}
-								</span>
+				{sortedProviderEntries
+					.filter(([providerName]) => providerName !== "LLM Gateway")
+					.map(([providerName, models]) => {
+						const providerId = models[0].providerId;
+						return (
+							<div key={providerName} className="space-y-6">
+								<Link
+									to="/providers/$name"
+									params={{ name: providerName }}
+									className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+								>
+									{getProviderIcon(providerId)}
+									<h2 className="text-2xl font-semibold">{providerName}</h2>
+									<span className="text-sm text-muted-foreground">
+										{models.length} model{models.length !== 1 && "s"}
+									</span>
+								</Link>
+								<div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+									{models.map((model) => (
+										<Card
+											key={`${model.providerId}-${model.model}`}
+											className="flex flex-col h-full hover:shadow-md transition-shadow"
+										>
+											<CardHeader className="pb-2">
+												<CardTitle className="text-base leading-tight line-clamp-1">
+													{model.model}
+												</CardTitle>
+												<CardDescription className="text-xs">
+													{model.providerName}
+												</CardDescription>
+											</CardHeader>
+											<CardContent className="mt-auto space-y-2">
+												{model.contextSize && (
+													<p className="text-xs text-muted-foreground">
+														Context: {formatContextSize(model.contextSize)}
+													</p>
+												)}
+												{(model.inputPrice !== undefined ||
+													model.outputPrice !== undefined) && (
+													<p className="text-xs text-muted-foreground">
+														{model.inputPrice !== undefined &&
+															`$${(model.inputPrice * 1e6).toFixed(2)} in`}
+														{model.outputPrice !== undefined &&
+															` / $${(model.outputPrice * 1e6).toFixed(2)} out`}
+													</p>
+												)}
+											</CardContent>
+										</Card>
+									))}
+								</div>
 							</div>
-							<div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-								{models.map((model) => (
-									<Card
-										key={`${model.providerId}-${model.model}`}
-										className="flex flex-col h-full hover:shadow-md transition-shadow"
-									>
-										<CardHeader className="pb-2">
-											<CardTitle className="text-base leading-tight line-clamp-1">
-												{model.model}
-											</CardTitle>
-											<CardDescription className="text-xs">
-												{model.providerName}
-											</CardDescription>
-										</CardHeader>
-										<CardContent className="mt-auto space-y-2">
-											{model.contextSize && (
-												<p className="text-xs text-muted-foreground">
-													Context: {formatContextSize(model.contextSize)}
-												</p>
-											)}
-											{(model.inputPrice !== undefined ||
-												model.outputPrice !== undefined) && (
-												<p className="text-xs text-muted-foreground">
-													{model.inputPrice !== undefined &&
-														`$${(model.inputPrice * 1e6).toFixed(2)} in`}
-													{model.outputPrice !== undefined &&
-														` / $${(model.outputPrice * 1e6).toFixed(2)} out`}
-												</p>
-											)}
-										</CardContent>
-									</Card>
-								))}
-							</div>
-						</div>
-					);
-				})}
+						);
+					})}
 			</section>
 
 			<footer className="mt-16 text-center">
