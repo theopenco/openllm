@@ -114,7 +114,7 @@ export const providers = [
 		streaming: true,
 		cancellation: true,
 		color: "#00d4aa",
-		website: "https://cloudrift.com",
+		website: "https://www.cloudrift.ai",
 		announcement: "DeepSeek are now 40-60% cheaper until July 15th!",
 	},
 	{
