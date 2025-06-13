@@ -93,6 +93,9 @@ app.onError((error, c) => {
 });
 
 const root = createRoute({
+	summary: "Health check",
+	description: "Health check endpoint.",
+	operationId: "health",
 	method: "get",
 	path: "/",
 	request: {},
