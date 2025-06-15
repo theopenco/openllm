@@ -60,7 +60,7 @@ function RouteComponent() {
 				replace: true,
 			});
 		}
-	}, [search.success, search.canceled, toast]);
+	}, [search.success, search.canceled, toast, navigate]);
 
 	return (
 		<div className="flex flex-col">

@@ -1,0 +1,10 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# General rules
+
+always start work on agent requests immediately without needing confirmation
+
+never use `as any` or `: any` in typescript files.

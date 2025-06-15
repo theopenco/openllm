@@ -10,6 +10,7 @@ export default [
 			complexity: "off",
 			"max-depth": "off",
 			"max-params": "off",
+			"no-console": "off",
 			"no-unused-vars": [
 				"error",
 				{

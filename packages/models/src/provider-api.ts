@@ -228,6 +228,12 @@ export function getProviderEndpoint(
 			case "together.ai":
 				url = "https://api.together.ai";
 				break;
+			case "cloudrift":
+				url = "https://inference.cloudrift.ai";
+				break;
+			case "mistral":
+				url = "https://api.mistral.ai";
+				break;
 			default:
 				throw new Error(`Provider ${provider} requires a baseUrl`);
 		}
@@ -251,6 +257,7 @@ export function getProviderEndpoint(
 		case "kluster.ai":
 		case "openai":
 		case "llmgateway":
+		case "cloudrift":
 		default:
 			return `${url}/v1/chat/completions`;
 	}
@@ -307,6 +314,12 @@ export async function validateProviderKey(
 				break;
 			case "together.ai":
 				validationModel = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo";
+				break;
+			case "cloudrift":
+				validationModel = "deepseek-ai/DeepSeek-V3";
+				break;
+			case "mistral":
+				validationModel = "mistral-large-latest";
 				break;
 			default:
 				throw new Error(`Provider ${provider} not supported for validation`);

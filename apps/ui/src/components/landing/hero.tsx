@@ -1,11 +1,20 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import React from "react";
 
 import { AnimatedGroup } from "./animated-group";
 import { Navbar } from "./navbar";
-import heroImageLight from "@/assets/hero-light.png";
-import heroImageDark from "@/assets/hero.png";
+import { AuthLink } from "../shared/auth-link";
+import AnthropicLogo from "@/assets/models/anthropic.svg?react";
+import CloudriftLogo from "@/assets/models/cloudrift.svg?react";
+import GoogleVertexAILogo from "@/assets/models/google-vertex-ai.svg?react";
+import InferenceNetLogo from "@/assets/models/inference-net.svg?react";
+import KlusterAILogo from "@/assets/models/kluster-ai.svg?react";
+import MistralLogo from "@/assets/models/mistral.svg?react";
+import OpenAILogo from "@/assets/models/openai.svg?react";
+import TogetherAILogo from "@/assets/models/together-ai.svg?react";
+import heroImageLight from "@/assets/new-hero-light.png";
+import heroImageDark from "@/assets/new-hero.png";
 import { Button } from "@/lib/components/button";
 import { DOCS_URL } from "@/lib/env";
 
@@ -148,9 +157,9 @@ export function Hero({ navbarOnly }: { navbarOnly?: boolean }) {
 												size="lg"
 												className="rounded-xl px-5 text-base"
 											>
-												<Link to="/signup">
+												<AuthLink>
 													<span className="text-nowrap">Start Building</span>
-												</Link>
+												</AuthLink>
 											</Button>
 										</div>
 										<Button
@@ -206,95 +215,47 @@ export function Hero({ navbarOnly }: { navbarOnly?: boolean }) {
 							</AnimatedGroup>
 						</div>
 					</section>
-					{/* <section className="bg-background pb-16 pt-16 md:pb-32">
-                    <div className="group relative m-auto max-w-5xl px-6">
-                        <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
-                            <Link
-                                to="/"
-                                className="block text-sm duration-150 hover:opacity-75">
-                                <span> Meet Our Customers</span>
+					<section className="bg-background pb-16 pt-16 md:pb-32">
+						<div className="group relative m-auto max-w-5xl px-6">
+							<div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 duration-500 group-hover:scale-100 group-hover:opacity-100">
+								<Link
+									to="/models"
+									className="block text-sm duration-150 hover:opacity-75"
+								>
+									<span>View All Providers</span>
+									<ChevronRight className="ml-1 inline-block size-3" />
+								</Link>
+							</div>
+							<div className="group-hover:blur-xs mx-auto mt-12 grid max-w-2xl grid-cols-4 gap-x-12 gap-y-8 transition-all duration-500 group-hover:opacity-50 sm:gap-x-16 sm:gap-y-14">
+								<div className="flex">
+									<OpenAILogo className="mx-auto h-16 w-fit" />
+								</div>
 
-                                <ChevronRight className="ml-1 inline-block size-3" />
-                            </Link>
-                        </div>
-                        <div className="group-hover:blur-xs mx-auto mt-12 grid max-w-2xl grid-cols-4 gap-x-12 gap-y-8 transition-all duration-500 group-hover:opacity-50 sm:gap-x-16 sm:gap-y-14">
-                            <div className="flex">
-                                <img
-                                    className="mx-auto h-5 w-fit dark:invert"
-                                    src="https://html.tailus.io/blocks/customers/nvidia.svg"
-                                    alt="Nvidia Logo"
-                                    height="20"
-                                    width="auto"
-                                />
-                            </div>
+								<div className="flex">
+									<AnthropicLogo className="mx-auto h-16 w-fit" />
+								</div>
+								<div className="flex">
+									<GoogleVertexAILogo className="mx-auto h-16 w-fit" />
+								</div>
+								<div className="flex">
+									<MistralLogo className="mx-auto h-16 w-fit" />
+								</div>
+								<div className="flex">
+									<TogetherAILogo className="mx-auto h-16 w-fit" />
+								</div>
+								<div className="flex">
+									<CloudriftLogo className="mx-auto h-16 w-fit" />
+								</div>
+								<div className="flex">
+									<KlusterAILogo className="mx-auto h-16 w-fit" />
+								</div>
 
-                            <div className="flex">
-                                <img
-                                    className="mx-auto h-4 w-fit dark:invert"
-                                    src="https://html.tailus.io/blocks/customers/column.svg"
-                                    alt="Column Logo"
-                                    height="16"
-                                    width="auto"
-                                />
-                            </div>
-                            <div className="flex">
-                                <img
-                                    className="mx-auto h-4 w-fit dark:invert"
-                                    src="https://html.tailus.io/blocks/customers/github.svg"
-                                    alt="GitHub Logo"
-                                    height="16"
-                                    width="auto"
-                                />
-                            </div>
-                            <div className="flex">
-                                <img
-                                    className="mx-auto h-5 w-fit dark:invert"
-                                    src="https://html.tailus.io/blocks/customers/nike.svg"
-                                    alt="Nike Logo"
-                                    height="20"
-                                    width="auto"
-                                />
-                            </div>
-                            <div className="flex">
-                                <img
-                                    className="mx-auto h-5 w-fit dark:invert"
-                                    src="https://html.tailus.io/blocks/customers/lemonsqueezy.svg"
-                                    alt="Lemon Squeezy Logo"
-                                    height="20"
-                                    width="auto"
-                                />
-                            </div>
-                            <div className="flex">
-                                <img
-                                    className="mx-auto h-4 w-fit dark:invert"
-                                    src="https://html.tailus.io/blocks/customers/laravel.svg"
-                                    alt="Laravel Logo"
-                                    height="16"
-                                    width="auto"
-                                />
-                            </div>
-                            <div className="flex">
-                                <img
-                                    className="mx-auto h-7 w-fit dark:invert"
-                                    src="https://html.tailus.io/blocks/customers/lilly.svg"
-                                    alt="Lilly Logo"
-                                    height="28"
-                                    width="auto"
-                                />
-                            </div>
-
-                            <div className="flex">
-                                <img
-                                    className="mx-auto h-6 w-fit dark:invert"
-                                    src="https://html.tailus.io/blocks/customers/openai.svg"
-                                    alt="OpenAI Logo"
-                                    height="24"
-                                    width="auto"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </section> */}
+								<div className="flex">
+									<InferenceNetLogo className="mx-auto h-16 w-fit" />
+								</div>
+							</div>
+						</div>
+					</section>
 				</main>
 			)}
 		</>

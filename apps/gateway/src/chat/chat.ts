@@ -10,6 +10,7 @@ import {
 import {
 	getProviderEndpoint,
 	getProviderHeaders,
+	getModelStreamingSupport,
 	type Model,
 	models,
 	prepareRequestBody,
@@ -95,6 +96,8 @@ function hasProviderEnvironmentToken(provider: Provider): boolean {
 		"inference.net": "INFERENCE_NET_API_KEY",
 		"kluster.ai": "KLUSTER_AI_API_KEY",
 		"together.ai": "TOGETHER_AI_API_KEY",
+		cloudrift: "CLOUD_RIFT_API_KEY",
+		mistral: "MISTRAL_API_KEY",
 	} as const;
 
 	const envVar = envVarMap[provider as keyof typeof envVarMap];
@@ -130,6 +133,12 @@ function getProviderTokenFromEnv(usedProvider: Provider): string | undefined {
 			break;
 		case "together.ai":
 			token = process.env.TOGETHER_AI_API_KEY;
+			break;
+		case "cloudrift":
+			token = process.env.CLOUD_RIFT_API_KEY;
+			break;
+		case "mistral":
+			token = process.env.MISTRAL_API_KEY;
 			break;
 		default:
 			throw new HTTPException(400, {
@@ -180,6 +189,31 @@ function parseProviderResponse(usedProvider: Provider, json: any) {
 			promptTokens = json.usage?.prompt_tokens || null;
 			completionTokens = json.usage?.completion_tokens || null;
 			totalTokens = json.usage?.total_tokens || null;
+			break;
+		case "mistral":
+			content = json.choices?.[0]?.message?.content || null;
+			finishReason = json.choices?.[0]?.finish_reason || null;
+			promptTokens = json.usage?.prompt_tokens || null;
+			completionTokens = json.usage?.completion_tokens || null;
+			totalTokens = json.usage?.total_tokens || null;
+
+			// Handle Mistral's JSON output mode which wraps JSON in markdown code blocks
+			if (
+				content &&
+				typeof content === "string" &&
+				content.includes("```json")
+			) {
+				const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/);
+				if (jsonMatch && jsonMatch[1]) {
+					// Extract and clean the JSON content
+					content = jsonMatch[1].trim();
+					// Ensure it's valid JSON by parsing and re-stringifying to normalize formatting
+					try {
+						const parsed = JSON.parse(content);
+						content = JSON.stringify(parsed);
+					} catch (_e) {}
+				}
+			}
 			break;
 		default: // OpenAI format
 			content = json.choices?.[0]?.message?.content || null;
@@ -941,6 +975,16 @@ chat.openapi(completions, async (c) => {
 		});
 	}
 
+	// Update baseModelName to match the final usedModel after routing
+	// Find the model definition that corresponds to the final usedModel
+	const finalModelInfo = models.find(
+		(m) =>
+			m.model === usedModel ||
+			m.providers.some((p) => p.modelName === usedModel),
+	);
+
+	const baseModelName = finalModelInfo?.model || usedModel;
+
 	let url: string | undefined;
 
 	// Get the provider key for the selected provider based on project mode
@@ -1107,12 +1151,11 @@ chat.openapi(completions, async (c) => {
 		}
 	}
 
-	// Check if streaming is requested and if the provider supports it
+	// Check if streaming is requested and if the model/provider combination supports it
 	if (stream) {
-		const providerInfo = providers.find((p) => p.id === usedProvider);
-		if (!providerInfo?.streaming) {
+		if (!getModelStreamingSupport(baseModelName, usedProvider)) {
 			throw new HTTPException(400, {
-				message: `Provider ${usedProvider} does not support streaming`,
+				message: `Model ${usedModel} with provider ${usedProvider} does not support streaming`,
 			});
 		}
 	}

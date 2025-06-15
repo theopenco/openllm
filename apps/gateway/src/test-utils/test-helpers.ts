@@ -55,6 +55,8 @@ export function getProviderEnvVar(provider: string): string | undefined {
 		"inference.net": "INFERENCE_NET_API_KEY",
 		"kluster.ai": "KLUSTER_AI_API_KEY",
 		"together.ai": "TOGETHER_AI_API_KEY",
+		cloudrift: "CLOUD_RIFT_API_KEY",
+		mistral: "MISTRAL_API_KEY",
 	};
 	return process.env[envMap[provider]];
 }
