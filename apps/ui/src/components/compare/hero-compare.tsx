@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import React from "react";
 
+import { AuthLink } from "../shared/auth-link";
 import { AnimatedGroup } from "@/components/landing/animated-group";
 import { Navbar } from "@/components/landing/navbar";
 import { Button } from "@/lib/components/button";
@@ -149,11 +150,11 @@ export function HeroCompare({ content }: HeroCompareProps) {
 													</span>
 												</a>
 											) : (
-												<Link to={heroContent.cta.primary.href}>
+												<AuthLink>
 													<span className="text-nowrap">
 														{heroContent.cta.primary.text}
 													</span>
-												</Link>
+												</AuthLink>
 											)}
 										</Button>
 									</div>

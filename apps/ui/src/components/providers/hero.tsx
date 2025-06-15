@@ -2,9 +2,9 @@ import {
 	providers as providerDefinitions,
 	type ProviderId,
 } from "@llmgateway/models";
-import { Link } from "@tanstack/react-router";
 import { Mic } from "lucide-react";
 
+import { AuthLink } from "../shared/auth-link";
 import anthropicLogo from "@/assets/models/anthropic.svg?react";
 import CloudRiftLogo from "@/assets/models/cloudrift.svg?react";
 import GoogleStudioAiLogo from "@/assets/models/google-studio-ai.svg?react";
@@ -90,7 +90,7 @@ export function Hero({ providerId }: HeroProps) {
 					</p>
 					<div className="mt-10 flex items-center gap-x-6">
 						<Button asChild>
-							<Link to="/signup">Get started</Link>
+							<AuthLink>Get started</AuthLink>
 						</Button>
 						<Button variant="outline" asChild>
 							<a

@@ -4,6 +4,7 @@ import React from "react";
 
 import { AnimatedGroup } from "./animated-group";
 import { Navbar } from "./navbar";
+import { AuthLink } from "../shared/auth-link";
 import AnthropicLogo from "@/assets/models/anthropic.svg?react";
 import CloudriftLogo from "@/assets/models/cloudrift.svg?react";
 import GoogleVertexAILogo from "@/assets/models/google-vertex-ai.svg?react";
@@ -156,9 +157,9 @@ export function Hero({ navbarOnly }: { navbarOnly?: boolean }) {
 												size="lg"
 												className="rounded-xl px-5 text-base"
 											>
-												<Link to="/signup">
+												<AuthLink>
 													<span className="text-nowrap">Start Building</span>
-												</Link>
+												</AuthLink>
 											</Button>
 										</div>
 										<Button
