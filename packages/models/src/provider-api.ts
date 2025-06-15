@@ -228,6 +228,12 @@ export function getProviderEndpoint(
 			case "together.ai":
 				url = "https://api.together.ai";
 				break;
+			case "cloudrift":
+				url = "https://inference.cloudrift.ai";
+				break;
+			case "mistral":
+				url = "https://api.mistral.ai";
+				break;
 			default:
 				throw new Error(`Provider ${provider} requires a baseUrl`);
 		}
@@ -251,6 +257,7 @@ export function getProviderEndpoint(
 		case "kluster.ai":
 		case "openai":
 		case "llmgateway":
+		case "cloudrift":
 		default:
 			return `${url}/v1/chat/completions`;
 	}

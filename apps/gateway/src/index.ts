@@ -64,7 +64,9 @@ app.onError((error, c) => {
 		const status = error.status;
 
 		if (status >= 500) {
-			console.log("HTTPException", error);
+			console.error("500 HTTPException", error);
+		} else {
+			console.log("non-500 HTTPException", error);
 		}
 
 		return c.json(
@@ -91,6 +93,9 @@ app.onError((error, c) => {
 });
 
 const root = createRoute({
+	summary: "Health check",
+	description: "Health check endpoint.",
+	operationId: "health",
 	method: "get",
 	path: "/",
 	request: {},

@@ -22,11 +22,13 @@ const testModels = models
 	.flatMap((model) => {
 		const testCases = [];
 
-		// test all models
-		testCases.push({
-			model: model.model,
-			providers: model.providers,
-		});
+		if (process.env.FULL_MODE) {
+			// test all models
+			testCases.push({
+				model: model.model,
+				providers: model.providers,
+			});
+		}
 
 		// Create entries for provider-specific requests using provider/model format
 		for (const provider of model.providers) {
@@ -41,7 +43,11 @@ const testModels = models
 	});
 
 const streamingModels = testModels.filter((m) =>
-	m.providers.every((p) => {
+	m.providers.some((p: any) => {
+		// Check model-level streaming first, then fall back to provider-level
+		if (p.streaming !== undefined) {
+			return p.streaming;
+		}
 		const provider = providers.find((pr) => pr.id === p.providerId);
 		return provider?.streaming;
 	}),
@@ -217,6 +223,11 @@ describe("e2e tests with real provider keys", () => {
 					stream: true,
 				}),
 			});
+
+			if (res.status !== 200) {
+				console.log("response:", await res.text());
+				throw new Error(`Request failed with status ${res.status}`);
+			}
 
 			expect(res.status).toBe(200);
 			expect(res.headers.get("content-type")).toContain("text/event-stream");

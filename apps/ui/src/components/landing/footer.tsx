@@ -1,13 +1,18 @@
+import { providers as providerDefinitions } from "@llmgateway/models";
 import { Link } from "@tanstack/react-router";
 
 import { DOCS_URL, GITHUB_URL } from "@/lib/env";
 import Logo from "@/lib/icons/Logo";
 
 export default function Footer() {
+	const filteredProviders = providerDefinitions.filter(
+		(p) => p.name !== "LLM Gateway",
+	);
+
 	return (
 		<footer className="border-t border-zinc-200 dark:border-zinc-800 py-12 bg-white dark:bg-black">
 			<div className="container mx-auto px-4">
-				<div className="flex flex-col md:flex-row justify-between items-center">
+				<div className="flex flex-col md:flex-row md:justify-between md:items-start">
 					<div className="mb-6 md:mb-0">
 						<div className="flex items-center space-x-2">
 							<Logo className="h-8 w-8 rounded-full text-black dark:text-white" />
@@ -20,7 +25,7 @@ export default function Footer() {
 						</p>
 					</div>
 
-					<div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-zinc-700 dark:text-zinc-400">
+					<div className="w-full md:w-auto grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 text-zinc-700 dark:text-zinc-400">
 						<div>
 							<h3 className="text-sm font-semibold mb-3 text-zinc-900 dark:text-white">
 								Product
@@ -100,6 +105,24 @@ export default function Footer() {
 										OpenRouter
 									</Link>
 								</li>
+							</ul>
+						</div>
+						<div>
+							<h3 className="text-sm font-semibold mb-3 text-zinc-900 dark:text-white">
+								Providers
+							</h3>
+							<ul className="space-y-2">
+								{filteredProviders.map((provider) => (
+									<li key={provider.id}>
+										<Link
+											to="/providers/$name"
+											params={{ name: provider.name }}
+											className="text-sm hover:text-black dark:hover:text-white"
+										>
+											{provider.name}
+										</Link>
+									</li>
+								))}
 							</ul>
 						</div>
 					</div>

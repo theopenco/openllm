@@ -20,6 +20,7 @@ import { Route as ModelsImport } from './routes/models'
 import { Route as LoginImport } from './routes/login'
 import { Route as ChatImport } from './routes/chat'
 import { Route as IndexImport } from './routes/index'
+import { Route as ProvidersNameImport } from './routes/providers/$name'
 import { Route as DashboardLayoutImport } from './routes/dashboard/_layout'
 import { Route as CompareOpenRouterImport } from './routes/compare/open-router'
 import { Route as DashboardLayoutIndexImport } from './routes/dashboard/_layout/index'
@@ -88,6 +89,12 @@ const ChatRoute = ChatImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const ProvidersNameRoute = ProvidersNameImport.update({
+  id: '/providers/$name',
+  path: '/providers/$name',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -268,6 +275,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLayoutImport
       parentRoute: typeof DashboardRoute
     }
+    '/providers/$name': {
+      id: '/providers/$name'
+      path: '/providers/$name'
+      fullPath: '/providers/$name'
+      preLoaderRoute: typeof ProvidersNameImport
+      parentRoute: typeof rootRoute
+    }
     '/dashboard/_layout/activity': {
       id: '/dashboard/_layout/activity'
       path: '/activity'
@@ -445,6 +459,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/compare/open-router': typeof CompareOpenRouterRoute
   '/dashboard': typeof DashboardLayoutRouteWithChildren
+  '/providers/$name': typeof ProvidersNameRoute
   '/dashboard/activity': typeof DashboardLayoutActivityRoute
   '/dashboard/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/models': typeof DashboardLayoutModelsRoute
@@ -471,6 +486,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/compare/open-router': typeof CompareOpenRouterRoute
   '/dashboard': typeof DashboardLayoutIndexRoute
+  '/providers/$name': typeof ProvidersNameRoute
   '/dashboard/activity': typeof DashboardLayoutActivityRoute
   '/dashboard/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/models': typeof DashboardLayoutModelsRoute
@@ -497,6 +513,7 @@ export interface FileRoutesById {
   '/compare/open-router': typeof CompareOpenRouterRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/_layout': typeof DashboardLayoutRouteWithChildren
+  '/providers/$name': typeof ProvidersNameRoute
   '/dashboard/_layout/activity': typeof DashboardLayoutActivityRoute
   '/dashboard/_layout/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/_layout/models': typeof DashboardLayoutModelsRoute
@@ -525,6 +542,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/compare/open-router'
     | '/dashboard'
+    | '/providers/$name'
     | '/dashboard/activity'
     | '/dashboard/api-keys'
     | '/dashboard/models'
@@ -550,6 +568,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/compare/open-router'
     | '/dashboard'
+    | '/providers/$name'
     | '/dashboard/activity'
     | '/dashboard/api-keys'
     | '/dashboard/models'
@@ -574,6 +593,7 @@ export interface FileRouteTypes {
     | '/compare/open-router'
     | '/dashboard'
     | '/dashboard/_layout'
+    | '/providers/$name'
     | '/dashboard/_layout/activity'
     | '/dashboard/_layout/api-keys'
     | '/dashboard/_layout/models'
@@ -601,6 +621,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   CompareOpenRouterRoute: typeof CompareOpenRouterRoute
   DashboardRoute: typeof DashboardRouteWithChildren
+  ProvidersNameRoute: typeof ProvidersNameRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -613,6 +634,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   CompareOpenRouterRoute: CompareOpenRouterRoute,
   DashboardRoute: DashboardRouteWithChildren,
+  ProvidersNameRoute: ProvidersNameRoute,
 }
 
 export const routeTree = rootRoute
@@ -633,7 +655,8 @@ export const routeTree = rootRoute
         "/playground",
         "/signup",
         "/compare/open-router",
-        "/dashboard"
+        "/dashboard",
+        "/providers/$name"
       ]
     },
     "/": {
@@ -678,6 +701,9 @@ export const routeTree = rootRoute
         "/dashboard/_layout/usage",
         "/dashboard/_layout/"
       ]
+    },
+    "/providers/$name": {
+      "filePath": "providers/$name.tsx"
     },
     "/dashboard/_layout/activity": {
       "filePath": "dashboard/_layout/activity.tsx",
