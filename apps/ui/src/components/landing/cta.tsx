@@ -1,5 +1,4 @@
-import { Link } from "@tanstack/react-router";
-
+import { AuthLink } from "../shared/auth-link";
 import { Button } from "@/lib/components/button";
 import { GITHUB_URL } from "@/lib/env";
 
@@ -21,7 +20,7 @@ export default function CallToAction() {
 							className="bg-zinc-900 dark:bg-white text-white dark:text-black hover:bg-zinc-700 dark:hover:bg-zinc-200 px-8 py-6 text-base w-full sm:w-auto font-medium"
 							asChild
 						>
-							<Link to="/signup">Create Free Account</Link>
+							<AuthLink>Create Free Account</AuthLink>
 						</Button>
 						<Button
 							variant="outline"
