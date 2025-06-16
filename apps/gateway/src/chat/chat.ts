@@ -8,6 +8,7 @@ import {
 	type ApiKey,
 } from "@llmgateway/db";
 import {
+	getCheapestFromAvailableProviders,
 	getProviderEndpoint,
 	getProviderHeaders,
 	getModelStreamingSupport,
@@ -941,28 +942,18 @@ chat.openapi(completions, async (c) => {
 			const modelWithPricing = models.find((m) => m.model === usedModel);
 
 			if (modelWithPricing) {
-				let cheapestProvider = availableModelProviders[0].providerId;
-				let cheapestModel = availableModelProviders[0].modelName;
-				let lowestPrice = Number.MAX_VALUE;
+				const cheapestResult = getCheapestFromAvailableProviders(
+					availableModelProviders,
+					modelWithPricing,
+				);
 
-				for (const provider of availableModelProviders) {
-					const providerInfo = modelWithPricing.providers.find(
-						(p) => p.providerId === provider.providerId,
-					);
-					const totalPrice =
-						((providerInfo?.inputPrice || 0) +
-							(providerInfo?.outputPrice || 0)) /
-						2;
-
-					if (totalPrice < lowestPrice) {
-						lowestPrice = totalPrice;
-						cheapestProvider = provider.providerId;
-						cheapestModel = provider.modelName;
-					}
+				if (cheapestResult) {
+					usedProvider = cheapestResult.providerId;
+					usedModel = cheapestResult.modelName;
+				} else {
+					usedProvider = availableModelProviders[0].providerId;
+					usedModel = availableModelProviders[0].modelName;
 				}
-
-				usedProvider = cheapestProvider;
-				usedModel = cheapestModel;
 			} else {
 				usedProvider = availableModelProviders[0].providerId;
 				usedModel = availableModelProviders[0].modelName;
