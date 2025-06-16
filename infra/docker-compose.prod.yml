@@ -106,6 +106,7 @@ services:
     restart: unless-stopped
     environment:
       - NODE_ENV=production
+      - RUN_MIGRATIONS=true
       - PORT=80
       - DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-llmgateway}
       - UI_URL=${UI_URL:-http://localhost:3002}
