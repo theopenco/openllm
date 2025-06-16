@@ -49,3 +49,15 @@ jobs:
             VITE_POSTHOG_HOST=${{ secrets.POSTHOG_HOST }}
             NEXT_PUBLIC_POSTHOG_HOST=${{ secrets.POSTHOG_KEY }}
             NEXT_PUBLIC_POSTHOG_KEY=${{ secrets.POSTHOG_HOST }}
+
+      - name: Build and push unified
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/unified.dockerfile
+          push: ${{ github.ref == 'refs/heads/main' }}
+          tags: |
+            ghcr.io/${{ github.repository }}-unified:${{ steps.get_sha.outputs.short_sha }}
+            ghcr.io/${{ github.repository }}-unified:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
