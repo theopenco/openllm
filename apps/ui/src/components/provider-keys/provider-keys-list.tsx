@@ -3,12 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { KeyIcon, MoreHorizontal, PlusIcon } from "lucide-react";
 
 import { CreateProviderKeyDialog } from "./create-provider-key-dialog";
-import AnthropicLogo from "@/assets/models/anthropic.svg?react";
-import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
-import InferenceLogo from "@/assets/models/inference-net.svg?react";
-import KlusterLogo from "@/assets/models/kluster-ai.svg?react";
-import LLMGatewayLogo from "@/assets/models/llmgateway.svg?react";
-import OpenAILogo from "@/assets/models/openai.svg?react";
+import { providerLogoComponents } from "@/components/provider-keys/provider-logo";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -41,17 +36,6 @@ import {
 import { toast } from "@/lib/components/use-toast";
 import { $api } from "@/lib/fetch-client";
 
-export const providerLogoComponents: Partial<
-	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>>>
-> = {
-	llmgateway: LLMGatewayLogo,
-	openai: OpenAILogo,
-	anthropic: AnthropicLogo,
-	"google-vertex": GoogleVertexLogo,
-	"inference.net": InferenceLogo,
-	"kluster.ai": KlusterLogo,
-};
-
 export function ProviderKeysList() {
 	const queryClient = useQueryClient();
 
@@ -70,7 +54,7 @@ export function ProviderKeysList() {
 				onSuccess: () => {
 					toast({ title: "Deleted", description: "Provider key removed" });
 
-					queryClient.invalidateQueries({ queryKey });
+					void queryClient.invalidateQueries({ queryKey });
 				},
 				onError: () =>
 					toast({

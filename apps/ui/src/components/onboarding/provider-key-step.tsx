@@ -15,6 +15,7 @@ import {
 	CardTitle,
 } from "../../lib/components/card";
 import { Step } from "../../lib/components/stepper";
+import { ProviderSelect } from "../provider-keys/provider-select";
 import { UpgradeToProDialog } from "@/components/shared/upgrade-to-pro-dialog";
 import { useDefaultOrganization } from "@/hooks/useOrganization";
 import {
@@ -26,13 +27,6 @@ import {
 	FormMessage,
 } from "@/lib/components/form";
 import { Input } from "@/lib/components/input";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/lib/components/select";
 import { toast } from "@/lib/components/use-toast";
 import { HOSTED } from "@/lib/env";
 import { $api } from "@/lib/fetch-client";
@@ -139,23 +133,16 @@ export function ProviderKeyStep() {
 										render={({ field }) => (
 											<FormItem>
 												<FormLabel>Provider</FormLabel>
-												<Select
-													onValueChange={field.onChange}
-													defaultValue={field.value}
-												>
-													<FormControl>
-														<SelectTrigger>
-															<SelectValue placeholder="Select a provider" />
-														</SelectTrigger>
-													</FormControl>
-													<SelectContent>
-														{providers.map((provider) => (
-															<SelectItem key={provider.id} value={provider.id}>
-																{provider.name}
-															</SelectItem>
-														))}
-													</SelectContent>
-												</Select>
+												<FormControl>
+													<ProviderSelect
+														onValueChange={field.onChange}
+														value={field.value}
+														providers={providers.filter(
+															(p) => p.id !== "llmgateway",
+														)}
+														placeholder="Select a provider"
+													/>
+												</FormControl>
 												<FormMessage />
 											</FormItem>
 										)}
