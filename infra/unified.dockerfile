@@ -93,7 +93,8 @@ RUN mkdir -p /run/postgresql && \
 
 # Configure Redis
 RUN mkdir -p /var/lib/redis && \
-    chown redis:redis /var/lib/redis
+    chown redis:redis /var/lib/redis && \
+    chmod 755 /var/lib/redis
 
 # Configure Supervisor
 COPY --from=builder /app/infra/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
