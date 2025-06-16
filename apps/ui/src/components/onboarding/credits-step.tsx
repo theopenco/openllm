@@ -8,6 +8,7 @@ import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import * as React from "react";
 
+import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -32,6 +33,7 @@ export function CreditsStep() {
 	const [selectedAmount, setSelectedAmount] = useState("50");
 	const [isSuccess, setIsSuccess] = useState(false);
 	const posthog = usePostHog();
+	const { data: organization } = useDefaultOrganization();
 
 	const stripe = useStripeElements();
 	const elements = useElements();
@@ -115,7 +117,20 @@ export function CreditsStep() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{!isSuccess ? (
+						{organization?.paidModeEnabled ? (
+							<div className="flex flex-col gap-4 items-center text-center">
+								<div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+									<Check className="h-6 w-6 text-green-600 dark:text-green-300" />
+								</div>
+								<div>
+									<h3 className="text-xl font-bold">Only on llmateway.io</h3>
+									<p className="text-muted-foreground mt-1">
+										Credits are only available on{" "}
+										<a href="https://llmgateway.io/">llmgateway.io</a>.
+									</p>
+								</div>
+							</div>
+						) : !isSuccess ? (
 							<form onSubmit={handleSubmit} className="space-y-6">
 								<div className="space-y-4">
 									<label className="text-sm font-medium">Select Amount</label>
