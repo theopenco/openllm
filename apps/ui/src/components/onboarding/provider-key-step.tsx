@@ -136,7 +136,9 @@ export function ProviderKeyStep() {
 													<ProviderSelect
 														onValueChange={field.onChange}
 														value={field.value}
-														providers={providers}
+														providers={providers.filter(
+															(p) => p.id !== "llmgateway",
+														)}
 														placeholder="Select a provider"
 													/>
 												</FormControl>
