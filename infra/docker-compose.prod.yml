@@ -54,7 +54,7 @@ services:
   gateway:
     build:
       context: ..
-      dockerfile: split.dockerfile
+      dockerfile: infra/split.dockerfile
       target: gateway
     container_name: llmgateway-gateway
     restart: unless-stopped
@@ -100,7 +100,7 @@ services:
   api:
     build:
       context: ..
-      dockerfile: split.dockerfile
+      dockerfile: infra/split.dockerfile
       target: api
     container_name: llmgateway-api
     restart: unless-stopped
@@ -142,7 +142,7 @@ services:
   ui:
     build:
       context: ..
-      dockerfile: split.dockerfile
+      dockerfile: infra/split.dockerfile
       target: ui
       args:
         VITE_DOCS_URL: ${VITE_DOCS_URL:-http://localhost:3005}
@@ -174,7 +174,7 @@ services:
   docs:
     build:
       context: ..
-      dockerfile: split.dockerfile
+      dockerfile: infra/split.dockerfile
       target: docs
       args:
         VITE_DOCS_URL: ${VITE_DOCS_URL:-http://localhost:3005}
