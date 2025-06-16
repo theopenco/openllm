@@ -8,7 +8,6 @@ import { usePostHog } from "posthog-js/react";
 import { useState } from "react";
 import * as React from "react";
 
-import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Button } from "@/lib/components/button";
 import {
 	Card,
@@ -20,6 +19,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/lib/components/radio-group";
 import { Step } from "@/lib/components/stepper";
 import { toast } from "@/lib/components/use-toast";
+import { HOSTED } from "@/lib/env";
 import { $api } from "@/lib/fetch-client";
 
 const CREDIT_OPTIONS = [
@@ -33,7 +33,6 @@ export function CreditsStep() {
 	const [selectedAmount, setSelectedAmount] = useState("50");
 	const [isSuccess, setIsSuccess] = useState(false);
 	const posthog = usePostHog();
-	const { data: organization } = useDefaultOrganization();
 
 	const stripe = useStripeElements();
 	const elements = useElements();
@@ -117,7 +116,7 @@ export function CreditsStep() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{organization?.paidModeEnabled ? (
+						{!HOSTED ? (
 							<div className="flex flex-col gap-4 items-center text-center">
 								<div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
 									<Check className="h-6 w-6 text-green-600 dark:text-green-300" />

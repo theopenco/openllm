@@ -36,6 +36,7 @@ import {
 	SelectValue,
 } from "@/lib/components/select";
 import { toast } from "@/lib/components/use-toast";
+import { HOSTED } from "@/lib/env";
 import { $api } from "@/lib/fetch-client";
 
 const providerLogoComponents: Partial<
@@ -96,7 +97,7 @@ export function CreateProviderKeyDialog({
 		e.preventDefault();
 
 		// Only enforce pro plan requirement if paid mode is enabled
-		if (organization?.paidModeEnabled && !isProPlan) {
+		if (HOSTED && !isProPlan) {
 			toast({
 				title: "Upgrade Required",
 				description:
@@ -155,7 +156,7 @@ export function CreateProviderKeyDialog({
 		createMutation.mutate(
 			{ body: payload },
 			{
-				onSuccess: (newKey) => {
+				onSuccess: () => {
 					setIsValidating(false);
 					posthog.capture("provider_key_added", {
 						provider: selectedProvider,
@@ -165,7 +166,7 @@ export function CreateProviderKeyDialog({
 						title: "Provider Key Created",
 						description: "The provider key has been validated and saved.",
 					});
-					queryClient.invalidateQueries({ queryKey });
+					void queryClient.invalidateQueries({ queryKey });
 					setOpen(false);
 				},
 				onError: (error: any) => {
@@ -199,7 +200,7 @@ export function CreateProviderKeyDialog({
 						Create a new provider key to connect to an LLM provider.
 					</DialogDescription>
 				</DialogHeader>
-				{organization?.paidModeEnabled && !isProPlan && (
+				{HOSTED && !isProPlan && (
 					<Alert>
 						<AlertDescription className="flex items-center justify-between">
 							<span>Provider keys are only available on the Pro plan.</span>
@@ -277,7 +278,7 @@ export function CreateProviderKeyDialog({
 						<Button
 							type="submit"
 							disabled={
-								(!isProPlan && organization?.paidModeEnabled) ||
+								(!isProPlan && HOSTED) ||
 								availableProviders.length === 0 ||
 								isLoading ||
 								isValidating

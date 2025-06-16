@@ -5,3 +5,4 @@ export const DOCS_URL =
 	import.meta.env.VITE_DOCS_URL || "http://localhost:3005";
 export const POSTHOG_KEY = import.meta.env.VITE_POSTHOG_KEY;
 export const POSTHOG_HOST = import.meta.env.VITE_POSTHOG_HOST;
+export const HOSTED = import.meta.env.VITE_HOSTED === "true";

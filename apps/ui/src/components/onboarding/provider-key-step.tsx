@@ -34,6 +34,7 @@ import {
 	SelectValue,
 } from "@/lib/components/select";
 import { toast } from "@/lib/components/use-toast";
+import { HOSTED } from "@/lib/env";
 import { $api } from "@/lib/fetch-client";
 
 const formSchema = z.object({
@@ -110,7 +111,7 @@ export function ProviderKeyStep() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{!isProPlan && organization?.paidModeEnabled ? (
+						{!isProPlan && HOSTED ? (
 							<div className="flex flex-col items-center gap-6 py-4">
 								<div className="text-center">
 									<h3 className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
