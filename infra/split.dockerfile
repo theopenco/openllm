@@ -64,6 +64,8 @@ COPY --from=builder /app/.npmrc /app/package.json /app/pnpm-lock.yaml /app/pnpm-
 RUN pnpm --filter=api --prod deploy ../dist/api
 RUN rm -rf /app/temp
 WORKDIR /app/dist/api
+# copy migrations files for API service to run migrations at runtime
+COPY --from=builder /app/packages/db/migrations ./migrations
 EXPOSE 80
 ENV PORT=80
 ENV NODE_ENV=production
