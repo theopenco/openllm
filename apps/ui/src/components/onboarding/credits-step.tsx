@@ -122,7 +122,7 @@ export function CreditsStep() {
 									<Check className="h-6 w-6 text-green-600 dark:text-green-300" />
 								</div>
 								<div>
-									<h3 className="text-xl font-bold">Only on llmateway.io</h3>
+									<h3 className="text-xl font-bold">Only on llmgateway.io</h3>
 									<p className="text-muted-foreground mt-1">
 										Credits are only available on{" "}
 										<a href="https://llmgateway.io/">llmgateway.io</a>.
