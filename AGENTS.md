@@ -6,6 +6,7 @@
 
 ## General
 
+- when writing commit messages, always use the conventional commit messages format
 - do not write useless comments about implemented changes
 - never add unnecessary basic code comments
 - always use pnpm for installing or managing dependencies, and running scripts
