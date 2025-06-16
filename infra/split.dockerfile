@@ -32,6 +32,16 @@ ARG NEXT_PUBLIC_POSTHOG_HOST
 # Copy source code
 COPY .. .
 
+# Create Turbo cache directories before building (todo temp figure out a better solution)
+RUN mkdir -p /app/packages/db/.turbo \
+    /app/packages/auth/.turbo \
+    /app/packages/models/.turbo \
+    /app/apps/api/.turbo \
+    /app/apps/gateway/.turbo \
+    /app/apps/ui/.turbo \
+    /app/apps/docs/.turbo \
+    /app/.turbo
+
 # Build all apps
 RUN pnpm build
 
