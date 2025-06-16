@@ -38,6 +38,7 @@ jobs:
           context: .
           file: infra/split.dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}-${{ matrix.app }}:${{ steps.get_sha.outputs.short_sha }}
             ghcr.io/${{ github.repository }}-${{ matrix.app }}:latest
@@ -80,6 +81,7 @@ jobs:
           context: .
           file: infra/unified.dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
+          platforms: linux/amd64,linux/arm64
           tags: |
             ghcr.io/${{ github.repository }}-unified:${{ steps.get_sha.outputs.short_sha }}
             ghcr.io/${{ github.repository }}-unified:latest
