@@ -13,11 +13,11 @@ import LLMGatewayLogo from "@/assets/models/llmgateway.svg?react";
 import MistralLogo from "@/assets/models/mistral.svg?react";
 import OpenAiLogo from "@/assets/models/openai.svg?react";
 import TogetherAiLogo from "@/assets/models/together-ai.svg?react";
+import { UpgradeToProDialog } from "@/components/shared/upgrade-to-pro-dialog";
 import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Alert, AlertDescription } from "@/lib/components/alert";
 import { Badge } from "@/lib/components/badge";
 import { Button } from "@/lib/components/button";
-import { UpgradeToProDialog } from "@/components/shared/upgrade-to-pro-dialog";
 import {
 	Dialog,
 	DialogContent,
@@ -201,19 +201,21 @@ export function CreateProviderKeyDialog({
 						Create a new provider key to connect to an LLM provider.
 					</DialogDescription>
 				</DialogHeader>
-                                {HOSTED && !isProPlan && (
-                                        <Alert>
-                                                <AlertDescription className="flex items-center justify-between gap-2">
-                                                        <span>Provider keys are only available on the Pro plan.</span>
-                                                        <div className="flex items-center gap-2">
-                                                                <Badge variant="outline">Pro Only</Badge>
-                                                                <UpgradeToProDialog>
-                                                                        <Button size="sm" variant="outline">Upgrade</Button>
-                                                                </UpgradeToProDialog>
-                                                        </div>
-                                                </AlertDescription>
-                                        </Alert>
-                                )}
+				{HOSTED && !isProPlan && (
+					<Alert>
+						<AlertDescription className="flex items-center justify-between gap-2">
+							<span>Provider keys are only available on the Pro plan.</span>
+							<div className="flex items-center gap-2">
+								<Badge variant="outline">Pro Only</Badge>
+								<UpgradeToProDialog>
+									<Button size="sm" variant="outline">
+										Upgrade
+									</Button>
+								</UpgradeToProDialog>
+							</div>
+						</AlertDescription>
+					</Alert>
+				)}
 				<form onSubmit={handleSubmit} className="space-y-4 py-4">
 					<div className="space-y-2">
 						<Label htmlFor="provider">Provider</Label>
