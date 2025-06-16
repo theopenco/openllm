@@ -1,4 +1,4 @@
-export const API_URL = import.meta.env.VITE_API_URL || "/api";
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:4002";
 export const GITHUB_URL =
 	import.meta.env.GITHUB_URL || "https://github.com/theopenco/llmgateway";
 export const DOCS_URL =
