@@ -10,6 +10,7 @@ import { Label } from "@/lib/components/label";
 import { RadioGroup, RadioGroupItem } from "@/lib/components/radio-group";
 import { Separator } from "@/lib/components/separator";
 import { useToast } from "@/lib/components/use-toast";
+import { HOSTED } from "@/lib/env";
 import { $api } from "@/lib/fetch-client";
 
 export function ProjectModeSettings() {
@@ -45,8 +46,8 @@ export function ProjectModeSettings() {
 	}
 
 	const handleSave = async () => {
-		// Check if trying to set api-keys or hybrid mode without pro plan
-		if ((mode === "api-keys" || mode === "hybrid") && !isProPlan) {
+		// Check if trying to set api-keys or hybrid mode without pro plan (only if paid mode is enabled)
+		if ((mode === "api-keys" || mode === "hybrid") && HOSTED && !isProPlan) {
 			toast({
 				title: "Upgrade Required",
 				description:
@@ -118,24 +119,28 @@ export function ProjectModeSettings() {
 							<RadioGroupItem
 								value={id}
 								id={id}
-								disabled={requiresPro && !isProPlan}
+								disabled={requiresPro && HOSTED && !isProPlan}
 							/>
 							<div className="space-y-1 flex-1">
 								<div className="flex items-center gap-2">
 									<Label
 										htmlFor={id}
-										className={`font-medium ${requiresPro && !isProPlan ? "text-muted-foreground" : ""}`}
+										className={`font-medium ${requiresPro && HOSTED && !isProPlan ? "text-muted-foreground" : ""}`}
 									>
 										{label}
 									</Label>
-									{requiresPro && !isProPlan && (
+									{requiresPro && HOSTED && !isProPlan && (
 										<Badge variant="outline" className="text-xs">
 											Pro Only
 										</Badge>
 									)}
 								</div>
 								<p
-									className={`text-sm ${requiresPro && !isProPlan ? "text-muted-foreground" : "text-muted-foreground"}`}
+									className={`text-sm ${
+										requiresPro && HOSTED && !isProPlan
+											? "text-muted-foreground"
+											: "text-muted-foreground"
+									}`}
 								>
 									{desc}
 								</p>

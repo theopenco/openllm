@@ -19,6 +19,7 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/lib/components/radio-group";
 import { Step } from "@/lib/components/stepper";
 import { toast } from "@/lib/components/use-toast";
+import { HOSTED } from "@/lib/env";
 import { $api } from "@/lib/fetch-client";
 
 const CREDIT_OPTIONS = [
@@ -115,7 +116,20 @@ export function CreditsStep() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{!isSuccess ? (
+						{!HOSTED ? (
+							<div className="flex flex-col gap-4 items-center text-center">
+								<div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900">
+									<Check className="h-6 w-6 text-green-600 dark:text-green-300" />
+								</div>
+								<div>
+									<h3 className="text-xl font-bold">Only on llmgateway.io</h3>
+									<p className="text-muted-foreground mt-1">
+										Credits are only available on{" "}
+										<a href="https://llmgateway.io/">llmgateway.io</a>.
+									</p>
+								</div>
+							</div>
+						) : !isSuccess ? (
 							<form onSubmit={handleSubmit} className="space-y-6">
 								<div className="space-y-4">
 									<label className="text-sm font-medium">Select Amount</label>

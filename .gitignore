@@ -10,3 +10,4 @@ apps/**/*.js
 openapi.json
 .DS_Store
 .envrc
+llmgateway_data

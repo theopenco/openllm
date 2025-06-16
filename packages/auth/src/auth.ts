@@ -82,6 +82,7 @@ export const auth: ReturnType<typeof betterAuth> = betterAuth({
 					await db.insert(tables.project).values({
 						name: "Default Project",
 						organizationId: organization.id,
+						mode: process.env.HOSTED === "true" ? "credits" : "api-keys",
 					});
 				}
 			}

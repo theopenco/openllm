@@ -811,7 +811,8 @@ chat.openapi(completions, async (c) => {
 
 	if (!apiKey) {
 		throw new HTTPException(401, {
-			message: "Unauthorized: Invalid token",
+			message:
+				"Unauthorized: Invalid LLMGateway API token. Please make sure the token is not deleted or disabled. Go to the LLMGateway 'API Keys' page to generate a new token.",
 		});
 	}
 
