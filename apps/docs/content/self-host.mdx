@@ -1,104 +1,111 @@
 ---
 title: Self Host LLMGateway
-description: Simple guide to self-hosting LLMGateway using Docker Compose.
+description: Simple guide to self-hosting LLMGateway using Docker.
 ---
 
 # Self Host LLMGateway
 
-LLMGateway is a self-hostable platform that provides a unified API gateway for multiple LLM providers. This guide will help you get started quickly using Docker Compose.
-
-## What You'll Get
-
-- **Gateway Service**: Routes LLM API requests to different providers
-- **Web Interface**: Manage projects and API keys
-- **Database**: Stores users, projects, and request logs
-- **Redis**: Handles caching
+LLMGateway is a self-hostable platform that provides a unified API gateway for multiple LLM providers. This guide offers two simple options to get started.
 
 ## Prerequisites
 
-- Latest Docker (which will include Docker Compose)
+- Latest Docker
 - API keys for the LLM providers you want to use (OpenAI, Anthropic, etc.)
 
-## Quick Start
+## Option 1: Unified Docker Image (Simplest)
 
-1. **Clone the repository**:
+This option uses a single Docker container that includes all services (UI, API, Gateway, Database, Redis).
 
-   ```bash
-   git clone https://github.com/theopenco/llmgateway.git
-   cd llmgateway
-   ```
+```bash
+# Run the container
+docker run -d \
+  --name llmgateway \
+  --restart unless-stopped \
+  -p 3002:3002 \
+  -p 3005:3005 \
+  -p 4001:4001 \
+  -p 4002:4002 \
+  -v $(pwd)/llmgateway_data:/var/lib/postgresql/data \
+  -e POSTGRES_PASSWORD=your_secure_password \
+  -e OPENAI_API_KEY=sk-your_openai_key_here \
+  -e ANTHROPIC_API_KEY=sk-ant-your_anthropic_key_here \
+  -e AUTH_SECRET=your-secret-key-here \
+  unified
+```
 
-2. **Set up environment**:
+### Using Docker Compose (Alternative for unified image)
 
-   ```bash
-   cp .env.example .env
-   ```
+```bash
+# Download the compose file
+curl -O https://raw.githubusercontent.com/theopenco/llmgateway/main/infra/docker-compose.unified.yml
+curl -O https://raw.githubusercontent.com/theopenco/llmgateway/main/.env.example
 
-3. **Configure your API keys** (see [Configuration](#configuration) section below)
+# Configure environment
+cp .env.example .env
+# Edit .env with your configuration
 
-4. **Start the services**:
+# Start the service
+docker compose -f docker-compose.unified.yml up -d
+```
 
-   ```bash
-   docker compose -f infra/docker-compose.prod.yml up -d
-   ```
+## Option 2: Separate Services with Docker Compose
 
-5. **Initialize the database**:
+This option uses separate containers for each service, offering more flexibility.
 
-   ```bash
-   # Wait for services to start, then run:
-   export DATABASE_URL=postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-change_this_secure_password}@localhost:5432/${POSTGRES_DB:-llmgateway}
-   pnpm migrate
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/theopenco/llmgateway.git
+cd llmgateway
 
-6. **Access your LLMGateway**:
-   - Web Interface: http://localhost:3002
-   - Docs: http://localhost:3005
-   - API Endpoint: http://localhost:4002
-   - Gateway: http://localhost:4001
+# Configure environment
+cp .env.example .env
+# Edit .env with your configuration
 
-## Configuration
+# Start the services
+docker compose -f infra/docker-compose.prod.yml up -d
+```
 
-Edit the `.env` file to configure your LLMGateway instance:
+## Accessing Your LLMGateway
 
-### Required Settings
+After starting either option, you can access:
+
+- **Web Interface**: http://localhost:3002
+- **Documentation**: http://localhost:3005
+- **API Endpoint**: http://localhost:4002
+- **Gateway Endpoint**: http://localhost:4001
+
+## Required Configuration
+
+At minimum, you need to set these environment variables:
 
 ```bash
 # Database (change the password!)
 POSTGRES_PASSWORD=your_secure_password_here
-DATABASE_URL=postgres://postgres:your_secure_password_here@postgres:5432/llmgateway
 
-# Redis
-REDIS_PASSWORD=your_redis_password_here
+# Authentication
+AUTH_SECRET=your-secret-key-here
 
-# Basic URLs
-UI_URL=http://localhost:3002
-DOCS_URL=http://localhost:3005
-API_URL=http://localhost:4002
-ORIGIN_URL=http://localhost:3002
+# LLM Provider API Keys (add the ones you need)
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-### LLM Provider API Keys
+## Basic Management Commands
 
-Add API keys for the providers you want to use:
+### For Unified Docker (Option 1)
 
 ```bash
-# OpenAI
-OPENAI_API_KEY=sk-...
+# View logs
+docker logs llmgateway
 
-# Anthropic
-ANTHROPIC_API_KEY=sk-ant-...
+# Restart container
+docker restart llmgateway
 
-# Google AI Studio
-GOOGLE_AI_STUDIO_API_KEY=your_google_ai_key
-
-# Add other providers as needed
+# Stop container
+docker stop llmgateway
 ```
 
-That's it! The other settings in `.env.example` have sensible defaults.
-
-## Managing Your Instance
-
-### Basic Commands
+### For Docker Compose (Option 2)
 
 ```bash
 # View logs
@@ -109,18 +116,6 @@ docker compose -f infra/docker-compose.prod.yml restart
 
 # Stop services
 docker compose -f infra/docker-compose.prod.yml down
-
-# Update to latest version
-docker compose -f infra/docker-compose.prod.yml pull
-docker compose -f infra/docker-compose.prod.yml up -d
-```
-
-### Database Management
-
-```bash
-# Run database migrations (after updates)
-export DATABASE_URL=postgres://postgres:your_password@localhost:5432/llmgateway
-pnpm migrate
 ```
 
 ## Next Steps
@@ -131,6 +126,5 @@ Once your LLMGateway is running:
 2. **Create your first organization** and project
 3. **Generate API keys** for your applications
 4. **Test the gateway** by making API calls to http://localhost:4001
-5. **Read the docs** at http://localhost:3005
 
 For more information, see the [API Documentation](/docs/api) and [User Guide](/docs/guide).
