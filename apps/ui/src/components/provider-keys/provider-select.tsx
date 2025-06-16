@@ -1,4 +1,4 @@
-import { providerLogoComponents } from "./provider-keys-list";
+import { providerLogoComponents } from "@/components/provider-keys/provider-logo";
 import {
 	Select,
 	SelectContent,
