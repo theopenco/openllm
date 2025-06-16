@@ -36,6 +36,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: infra/split.dockerfile
           push: ${{ github.ref == 'refs/heads/main' }}
           tags: |
             ghcr.io/${{ github.repository }}-${{ matrix.app }}:${{ steps.get_sha.outputs.short_sha }}
