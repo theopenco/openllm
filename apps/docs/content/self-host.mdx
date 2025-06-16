@@ -25,7 +25,7 @@ docker run -d \
   -p 3005:3005 \
   -p 4001:4001 \
   -p 4002:4002 \
-  -v $(pwd)/llmgateway_data:/var/lib/postgresql/data \
+  -v ~/llmgateway_data:/var/lib/postgresql/data \
   -e POSTGRES_PASSWORD=your_secure_password \
   -e OPENAI_API_KEY=sk-your_openai_key_here \
   -e ANTHROPIC_API_KEY=sk-ant-your_anthropic_key_here \
