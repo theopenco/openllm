@@ -12,13 +12,11 @@ const originUrls =
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
 	advanced: {
 		crossSubDomainCookies: {
-			enabled: apiUrl.startsWith("http"),
-			domain: apiUrl.startsWith("http") ? new URL(apiUrl).hostname : undefined,
+			enabled: true,
+			domain: new URL(apiUrl).hostname,
 		},
 		defaultCookieAttributes: {
-			domain: apiUrl.startsWith("http") ? new URL(apiUrl).hostname : undefined,
-			// when we use a proxy with the API on the relative path /api, set the cookie path accordingly
-			path: apiUrl.startsWith("http") ? "/" : "/api",
+			domain: new URL(apiUrl).hostname,
 		},
 	},
 	session: {

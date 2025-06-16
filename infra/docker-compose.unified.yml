@@ -18,14 +18,6 @@ services:
       - llmgateway_postgres:/var/lib/postgresql/data
       - llmgateway_redis:/var/lib/redis
     environment:
-      # Database
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-llmgateway}
-      - DATABASE_URL=postgres://postgres:${POSTGRES_PASSWORD:-llmgateway}@localhost:5432/llmgateway
-
-      # Redis
-      - REDIS_HOST=localhost
-      - REDIS_PORT=6379
-
       # URLs (update for your domain in production)
       - UI_URL=${UI_URL:-http://localhost:3002}
       - API_URL=${API_URL:-http://localhost:4002}

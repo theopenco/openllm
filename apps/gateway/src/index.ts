@@ -15,10 +15,7 @@ import type { ServerTypes } from "./vars";
 export const config = {
 	servers: [
 		{
-			url:
-				process.env.NODE_ENV === "production"
-					? process.env.UI_URL || "https://api.llmgateway.io"
-					: "http://localhost:4001",
+			url: process.env.API_URL || "http://localhost:4001",
 		},
 	],
 	openapi: "3.0.0",

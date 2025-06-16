@@ -7,11 +7,6 @@ import tsConfigPaths from "vite-tsconfig-paths";
 // noinspection JSUnusedGlobalSymbols
 export default defineConfig({
 	server: {
-		devProxy: {
-			"/api": {
-				target: "http://localhost:4002",
-			},
-		},
 		prerender: {
 			// render /dashboard as an app entrypoint, crawl will discover the rest
 			routes: ["/", "/dashboard", "/onboarding"],

@@ -5,7 +5,7 @@ import { API_URL } from "@/lib/env";
 
 // @ts-ignore
 export const authClient = createAuthClient({
-	baseURL: API_URL.startsWith("http") ? API_URL + "/auth" : undefined,
+	baseURL: API_URL + "/auth",
 	plugins: [passkeyClient()],
 });
 

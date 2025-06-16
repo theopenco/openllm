@@ -26,9 +26,7 @@ docker run -d \
   -p 4001:4001 \
   -p 4002:4002 \
   -v ~/llmgateway_data:/var/lib/postgresql/data \
-  -e POSTGRES_PASSWORD=your_secure_password \
   -e OPENAI_API_KEY=sk-your_openai_key_here \
-  -e ANTHROPIC_API_KEY=sk-ant-your_anthropic_key_here \
   -e AUTH_SECRET=your-secret-key-here \
   ghcr.io/theopenco/llmgateway-unified:latest
 ```
@@ -116,6 +114,20 @@ docker compose -f infra/docker-compose.prod.yml restart
 
 # Stop services
 docker compose -f infra/docker-compose.prod.yml down
+```
+
+## All provider API keys
+
+You can set any of the following API keys:
+
+```text
+OPENAI_API_KEY=
+ANTHROPIC_API_KEY=
+VERTEX_API_KEY=
+GOOGLE_AI_STUDIO_API_KEY=
+INFERENCE_NET_API_KEY=
+KLUSTER_AI_API_KEY=
+TOGETHER_AI_API_KEY=
 ```
 
 ## Next Steps

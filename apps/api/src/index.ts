@@ -15,10 +15,7 @@ import type { ServerTypes } from "./vars";
 export const config = {
 	servers: [
 		{
-			url:
-				process.env.NODE_ENV === "production"
-					? process.env.UI_URL + "/api"
-					: "http://localhost:3002/api",
+			url: "http://localhost:4002",
 		},
 	],
 	openapi: "3.0.0",
@@ -33,7 +30,7 @@ export const app = new OpenAPIHono<ServerTypes>();
 app.use(
 	"*",
 	cors({
-		origin: process.env.UI_URL || "http://localhost:3002,http://localhost:4002",
+		origin: process.env.UI_URL || "http://localhost:3002",
 		allowHeaders: ["Content-Type", "Authorization", "Cache-Control"],
 		allowMethods: ["POST", "GET", "OPTIONS"],
 		exposeHeaders: ["Content-Length"],
