@@ -4,6 +4,7 @@ import { usePostHog } from "posthog-js/react";
 import React, { useState } from "react";
 
 import { ProviderSelect } from "./provider-select";
+import { UpgradeToProDialog } from "@/components/shared/upgrade-to-pro-dialog";
 import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Alert, AlertDescription } from "@/lib/components/alert";
 import { Badge } from "@/lib/components/badge";
@@ -171,9 +172,16 @@ export function CreateProviderKeyDialog({
 				</DialogHeader>
 				{HOSTED && !isProPlan && (
 					<Alert>
-						<AlertDescription className="flex items-center justify-between">
+						<AlertDescription className="flex items-center justify-between gap-2">
 							<span>Provider keys are only available on the Pro plan.</span>
-							<Badge variant="outline">Pro Only</Badge>
+							<div className="flex items-center gap-2">
+								<Badge variant="outline">Pro Only</Badge>
+								<UpgradeToProDialog>
+									<Button size="sm" variant="outline">
+										Upgrade
+									</Button>
+								</UpgradeToProDialog>
+							</div>
 						</AlertDescription>
 					</Alert>
 				)}
