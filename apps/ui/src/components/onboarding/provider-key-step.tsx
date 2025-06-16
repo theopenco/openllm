@@ -110,7 +110,19 @@ export function ProviderKeyStep() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{!isProPlan ? (
+						{organization?.paidModeEnabled === false ? (
+							<div className="flex flex-col items-center gap-6 py-4">
+								<div className="text-center">
+									<h3 className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
+										<Lock className="h-5 w-5" /> Paid Mode
+									</h3>
+									<p className="text-muted-foreground mb-4">
+										Credits are only available on{" "}
+										<a href="https://llmgateway.io/">llmgateway.io</a>.
+									</p>
+								</div>
+							</div>
+						) : !isProPlan ? (
 							<div className="flex flex-col items-center gap-6 py-4">
 								<div className="text-center">
 									<h3 className="text-lg font-semibold mb-2 flex items-center justify-center gap-2">
