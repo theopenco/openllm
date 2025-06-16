@@ -76,7 +76,7 @@ CMD ["pnpm", "start"]
 FROM nginx:alpine AS static-base
 
 # Copy Nginx configuration
-COPY nginx-static.conf /etc/nginx/nginx.conf
+COPY infra/nginx-static.conf /etc/nginx/nginx.conf
 
 # Create a simple 404 page
 RUN echo "<html><body><h1>404 - Page Not Found</h1></body></html>" > /usr/share/nginx/html/404.html
