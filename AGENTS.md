@@ -12,6 +12,7 @@
 - after adding features, make sure that the tests pass using `pnpm test`
 - after adding features, make sure that the build passes using `pnpm build`
 - after adding features or editing files, make sure to format the code and ensure no linting errors using `pnpm format`
+- after adding or adapting API routes, make sure to `pnpm generate` to re-generate the OpenAPI schemas.
 - always ensure DRY principles to reuse code as much as possible
 - Use localStorage instead of cookies for client-side data persistence.
 - For smoke testing apps, build with 'pnpm build', run 'pnpm --filter=[app] --prod deploy dist/[app]' for each package, then run start.sh to verify 'pnpm start' works.
