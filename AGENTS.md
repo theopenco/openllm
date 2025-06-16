@@ -1,9 +1,5 @@
 # Instructions
 
-## Setup
-
-- running `docker compose up -d` once if not already live to get the dependencies up
-
 ## General
 
 - when writing commit messages, always use the conventional commit messages format
