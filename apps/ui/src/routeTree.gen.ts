@@ -20,7 +20,7 @@ import { Route as ModelsImport } from './routes/models'
 import { Route as LoginImport } from './routes/login'
 import { Route as ChatImport } from './routes/chat'
 import { Route as IndexImport } from './routes/index'
-import { Route as ProvidersNameImport } from './routes/providers/$name'
+import { Route as ProvidersIdImport } from './routes/providers/$id'
 import { Route as DashboardLayoutImport } from './routes/dashboard/_layout'
 import { Route as CompareOpenRouterImport } from './routes/compare/open-router'
 import { Route as DashboardLayoutIndexImport } from './routes/dashboard/_layout/index'
@@ -92,9 +92,9 @@ const IndexRoute = IndexImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const ProvidersNameRoute = ProvidersNameImport.update({
-  id: '/providers/$name',
-  path: '/providers/$name',
+const ProvidersIdRoute = ProvidersIdImport.update({
+  id: '/providers/$id',
+  path: '/providers/$id',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -275,11 +275,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardLayoutImport
       parentRoute: typeof DashboardRoute
     }
-    '/providers/$name': {
-      id: '/providers/$name'
-      path: '/providers/$name'
-      fullPath: '/providers/$name'
-      preLoaderRoute: typeof ProvidersNameImport
+  '/providers/$id': {
+      id: '/providers/$id'
+      path: '/providers/$id'
+      fullPath: '/providers/$id'
+      preLoaderRoute: typeof ProvidersIdImport
       parentRoute: typeof rootRoute
     }
     '/dashboard/_layout/activity': {
@@ -459,7 +459,7 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/compare/open-router': typeof CompareOpenRouterRoute
   '/dashboard': typeof DashboardLayoutRouteWithChildren
-  '/providers/$name': typeof ProvidersNameRoute
+  '/providers/$id': typeof ProvidersIdRoute
   '/dashboard/activity': typeof DashboardLayoutActivityRoute
   '/dashboard/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/models': typeof DashboardLayoutModelsRoute
@@ -486,7 +486,7 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/compare/open-router': typeof CompareOpenRouterRoute
   '/dashboard': typeof DashboardLayoutIndexRoute
-  '/providers/$name': typeof ProvidersNameRoute
+  '/providers/$id': typeof ProvidersIdRoute
   '/dashboard/activity': typeof DashboardLayoutActivityRoute
   '/dashboard/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/models': typeof DashboardLayoutModelsRoute
@@ -513,7 +513,7 @@ export interface FileRoutesById {
   '/compare/open-router': typeof CompareOpenRouterRoute
   '/dashboard': typeof DashboardRouteWithChildren
   '/dashboard/_layout': typeof DashboardLayoutRouteWithChildren
-  '/providers/$name': typeof ProvidersNameRoute
+  '/providers/$id': typeof ProvidersIdRoute
   '/dashboard/_layout/activity': typeof DashboardLayoutActivityRoute
   '/dashboard/_layout/api-keys': typeof DashboardLayoutApiKeysRoute
   '/dashboard/_layout/models': typeof DashboardLayoutModelsRoute
@@ -542,7 +542,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/compare/open-router'
     | '/dashboard'
-    | '/providers/$name'
+    | '/providers/$id'
     | '/dashboard/activity'
     | '/dashboard/api-keys'
     | '/dashboard/models'
@@ -568,7 +568,7 @@ export interface FileRouteTypes {
     | '/signup'
     | '/compare/open-router'
     | '/dashboard'
-    | '/providers/$name'
+    | '/providers/$id'
     | '/dashboard/activity'
     | '/dashboard/api-keys'
     | '/dashboard/models'
@@ -593,7 +593,7 @@ export interface FileRouteTypes {
     | '/compare/open-router'
     | '/dashboard'
     | '/dashboard/_layout'
-    | '/providers/$name'
+    | '/providers/$id'
     | '/dashboard/_layout/activity'
     | '/dashboard/_layout/api-keys'
     | '/dashboard/_layout/models'
@@ -621,7 +621,7 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   CompareOpenRouterRoute: typeof CompareOpenRouterRoute
   DashboardRoute: typeof DashboardRouteWithChildren
-  ProvidersNameRoute: typeof ProvidersNameRoute
+  ProvidersIdRoute: typeof ProvidersIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -634,7 +634,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   CompareOpenRouterRoute: CompareOpenRouterRoute,
   DashboardRoute: DashboardRouteWithChildren,
-  ProvidersNameRoute: ProvidersNameRoute,
+  ProvidersIdRoute: ProvidersIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -656,7 +656,7 @@ export const routeTree = rootRoute
         "/signup",
         "/compare/open-router",
         "/dashboard",
-        "/providers/$name"
+        "/providers/$id"
       ]
     },
     "/": {
@@ -702,8 +702,8 @@ export const routeTree = rootRoute
         "/dashboard/_layout/"
       ]
     },
-    "/providers/$name": {
-      "filePath": "providers/$name.tsx"
+    "/providers/$id": {
+      "filePath": "providers/$id.tsx"
     },
     "/dashboard/_layout/activity": {
       "filePath": "dashboard/_layout/activity.tsx",

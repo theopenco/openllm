@@ -160,8 +160,8 @@ export const ModelsSupported = ({ isDashboard }: { isDashboard?: boolean }) => {
 						return (
 							<div key={providerName} className="space-y-6">
 								<Link
-									to="/providers/$name"
-									params={{ name: providerName }}
+									to="/providers/$id"
+									params={{ id: providerId }}
 									className="flex items-center gap-3 hover:opacity-80 transition-opacity"
 								>
 									{getProviderIcon(providerId)}

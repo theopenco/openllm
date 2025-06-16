@@ -17,10 +17,10 @@ import {
 } from "@/lib/components/card";
 import { formatContextSize } from "@/lib/utils";
 
-export const Route = createFileRoute("/providers/$name")({
+export const Route = createFileRoute("/providers/$id")({
 	component: ProviderPage,
-	loader: ({ params }: { params: { name: string } }) => {
-		const provider = providerDefinitions.find((p) => p.name === params.name);
+	loader: ({ params }: { params: { id: string } }) => {
+		const provider = providerDefinitions.find((p) => p.id === params.id);
 		if (!provider || provider.name === "LLM Gateway") {
 			throw new Error("Provider not found");
 		}

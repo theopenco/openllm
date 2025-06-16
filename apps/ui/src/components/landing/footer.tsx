@@ -115,8 +115,8 @@ export default function Footer() {
 								{filteredProviders.map((provider) => (
 									<li key={provider.id}>
 										<Link
-											to="/providers/$name"
-											params={{ name: provider.name }}
+											to="/providers/$id"
+											params={{ id: provider.id }}
 											className="text-sm hover:text-black dark:hover:text-white"
 										>
 											{provider.name}
