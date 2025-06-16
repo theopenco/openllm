@@ -264,6 +264,72 @@ export function getProviderEndpoint(
 }
 
 /**
+ * Get the cheapest model for a given provider based on input + output pricing
+ */
+export function getCheapestModelForProvider(
+	provider: ProviderId,
+): string | null {
+	const availableModels = models
+		.filter((model) => model.providers.some((p) => p.providerId === provider))
+		.map((model) => ({
+			model: model.model,
+			provider: model.providers.find((p) => p.providerId === provider)!,
+		}))
+		.filter(
+			({ provider: providerInfo }) =>
+				providerInfo.inputPrice !== undefined &&
+				providerInfo.outputPrice !== undefined,
+		);
+
+	if (availableModels.length === 0) {
+		return null;
+	}
+
+	let cheapestModel = availableModels[0].provider.modelName;
+	let lowestPrice = Number.MAX_VALUE;
+
+	for (const { provider: providerInfo } of availableModels) {
+		const totalPrice =
+			(providerInfo.inputPrice! + providerInfo.outputPrice!) / 2;
+		if (totalPrice < lowestPrice) {
+			lowestPrice = totalPrice;
+			cheapestModel = providerInfo.modelName;
+		}
+	}
+
+	return cheapestModel;
+}
+
+/**
+ * Get the cheapest provider and model from a list of available model providers
+ */
+export function getCheapestFromAvailableProviders<
+	T extends { providerId: string; modelName: string },
+>(availableModelProviders: T[], modelWithPricing: any): T | null {
+	if (availableModelProviders.length === 0) {
+		return null;
+	}
+
+	let cheapestProvider = availableModelProviders[0];
+	let lowestPrice = Number.MAX_VALUE;
+
+	for (const provider of availableModelProviders) {
+		const providerInfo = modelWithPricing.providers.find(
+			(p: any) => p.providerId === provider.providerId,
+		);
+		const totalPrice =
+			((providerInfo?.inputPrice || 0) + (providerInfo?.outputPrice || 0)) / 2;
+
+		if (totalPrice < lowestPrice) {
+			lowestPrice = totalPrice;
+			cheapestProvider = provider;
+		}
+	}
+
+	return cheapestProvider;
+}
+
+/**
  * Validate a provider API key by making a minimal request
  */
 export async function validateProviderKey(
@@ -293,36 +359,12 @@ export async function validateProviderKey(
 		const minimalMessage = { role: "user", content: "Hello" };
 		const messages = [systemMessage, minimalMessage];
 
-		// Determine the model to use for validation
-		let validationModel: string;
-		switch (provider) {
-			case "openai":
-				validationModel = "gpt-4o-mini";
-				break;
-			case "anthropic":
-				validationModel = "claude-3-haiku-20240307";
-				break;
-			case "google-vertex":
-			case "google-ai-studio":
-				validationModel = "gemini-2.0-flash";
-				break;
-			case "inference.net":
-				validationModel = "meta-llama/llama-3.1-8b-instruct/fp-8";
-				break;
-			case "kluster.ai":
-				validationModel = "klusterai/Meta-Llama-3.1-8B-Instruct-Turbo";
-				break;
-			case "together.ai":
-				validationModel = "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo";
-				break;
-			case "cloudrift":
-				validationModel = "deepseek-ai/DeepSeek-V3";
-				break;
-			case "mistral":
-				validationModel = "mistral-large-latest";
-				break;
-			default:
-				throw new Error(`Provider ${provider} not supported for validation`);
+		const validationModel = getCheapestModelForProvider(provider);
+
+		if (!validationModel) {
+			throw new Error(
+				`No model with pricing information found for provider ${provider}`,
+			);
 		}
 
 		const payload = prepareRequestBody(
