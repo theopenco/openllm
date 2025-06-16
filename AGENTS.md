@@ -5,8 +5,8 @@
 - when writing commit messages, always use the conventional commit messages format
 - do not write useless comments about implemented changes
 - never add unnecessary basic code comments
-- always use pnpm for installing or managing dependencies, and running scripts
-- after adding features, make sure that the tests pass using `pnpm test` and `pnpm e2e`
+- always use pnpm for installing or managing dependencies and running scripts
+- after adding features, make sure that the tests pass using `pnpm test` and `pnpm test:e2e`
 - after adding features, make sure that the build passes using `pnpm build`
 - after adding features or editing files, make sure to format the code and ensure no linting errors using `pnpm format`
 - after adding or adapting API routes, make sure to `pnpm generate` to re-generate the OpenAPI schemas.

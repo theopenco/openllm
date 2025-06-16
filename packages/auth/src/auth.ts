@@ -4,7 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createAuthMiddleware } from "better-auth/api";
 import { passkey } from "better-auth/plugins/passkey";
 
-const apiUrl = process.env.API_URL || "/api";
+const apiUrl = process.env.API_URL || "http://localhost:4002";
 const uiUrl = process.env.UI_URL || "http://localhost:3002";
 const originUrls =
 	process.env.ORIGIN_URL || "http://localhost:3002,http://localhost:4002";

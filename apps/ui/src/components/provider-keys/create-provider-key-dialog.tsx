@@ -1,18 +1,9 @@
-import { providers, type ProviderId } from "@llmgateway/models";
+import { providers } from "@llmgateway/models";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePostHog } from "posthog-js/react";
 import React, { useState } from "react";
 
-import anthropicLogo from "@/assets/models/anthropic.svg?react";
-import CloudRiftLogo from "@/assets/models/cloudrift.svg?react";
-import GoogleStudioAiLogo from "@/assets/models/google-studio-ai.svg?react";
-import GoogleVertexLogo from "@/assets/models/google-vertex-ai.svg?react";
-import InferenceLogo from "@/assets/models/inference-net.svg?react";
-import KlusterLogo from "@/assets/models/kluster-ai.svg?react";
-import LLMGatewayLogo from "@/assets/models/llmgateway.svg?react";
-import MistralLogo from "@/assets/models/mistral.svg?react";
-import OpenAiLogo from "@/assets/models/openai.svg?react";
-import TogetherAiLogo from "@/assets/models/together-ai.svg?react";
+import { ProviderSelect } from "./provider-select";
 import { UpgradeToProDialog } from "@/components/shared/upgrade-to-pro-dialog";
 import { useDefaultOrganization } from "@/hooks/useOrganization";
 import { Alert, AlertDescription } from "@/lib/components/alert";
@@ -29,31 +20,9 @@ import {
 } from "@/lib/components/dialog";
 import { Input } from "@/lib/components/input";
 import { Label } from "@/lib/components/label";
-import {
-	Select,
-	SelectContent,
-	SelectItem,
-	SelectTrigger,
-	SelectValue,
-} from "@/lib/components/select";
 import { toast } from "@/lib/components/use-toast";
 import { HOSTED } from "@/lib/env";
 import { $api } from "@/lib/fetch-client";
-
-const providerLogoComponents: Partial<
-	Record<ProviderId, React.FC<React.SVGProps<SVGSVGElement>> | null>
-> = {
-	llmgateway: LLMGatewayLogo,
-	openai: OpenAiLogo,
-	anthropic: anthropicLogo,
-	"google-vertex": GoogleVertexLogo,
-	"inference.net": InferenceLogo,
-	"kluster.ai": KlusterLogo,
-	"together.ai": TogetherAiLogo,
-	"google-ai-studio": GoogleStudioAiLogo,
-	cloudrift: CloudRiftLogo,
-	mistral: MistralLogo,
-};
 
 export function CreateProviderKeyDialog({
 	children,
@@ -219,37 +188,12 @@ export function CreateProviderKeyDialog({
 				<form onSubmit={handleSubmit} className="space-y-4 py-4">
 					<div className="space-y-2">
 						<Label htmlFor="provider">Provider</Label>
-						<Select
+						<ProviderSelect
 							onValueChange={setSelectedProvider}
 							value={selectedProvider}
-						>
-							<SelectTrigger className="w-full">
-								<SelectValue placeholder="Select provider..." />
-							</SelectTrigger>
-							<SelectContent>
-								{isLoading ? (
-									<SelectItem value="loading" disabled>
-										Loading providers...
-									</SelectItem>
-								) : availableProviders.length > 0 ? (
-									availableProviders.map((provider) => {
-										const Logo = providerLogoComponents[provider.id];
-										return (
-											<SelectItem key={provider.id} value={provider.id}>
-												<div className="flex items-center gap-2">
-													{Logo && <Logo className="h-4 w-4 text-white" />}
-													<span>{provider.name}</span>
-												</div>
-											</SelectItem>
-										);
-									})
-								) : (
-									<SelectItem value="none" disabled>
-										All providers already have keys
-									</SelectItem>
-								)}
-							</SelectContent>
-						</Select>
+							providers={availableProviders}
+							loading={isLoading}
+						/>
 					</div>
 
 					<div className="space-y-2">
