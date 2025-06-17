@@ -294,7 +294,7 @@ organization.openapi(updateOrganization, async (c) => {
 		autoTopUpEnabled,
 		autoTopUpThreshold,
 		autoTopUpAmount,
-	} = await c.req.json();
+	} = c.req.valid("json");
 
 	const userOrganization = await db.query.userOrganization.findFirst({
 		where: {

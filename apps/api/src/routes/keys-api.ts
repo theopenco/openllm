@@ -77,7 +77,7 @@ keysApi.openapi(create, async (c) => {
 		});
 	}
 
-	const { description, projectId } = await c.req.json();
+	const { description, projectId } = c.req.valid("json");
 
 	// Get the user's organizations
 	const userOrgs = await db.query.userOrganization.findMany({
@@ -396,7 +396,7 @@ keysApi.openapi(updateStatus, async (c) => {
 	}
 
 	const { id } = c.req.param();
-	const { status } = await c.req.json();
+	const { status } = c.req.valid("json");
 
 	// Get the user's projects
 	const userOrgs = await db.query.userOrganization.findMany({

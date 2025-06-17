@@ -169,7 +169,7 @@ user.openapi(updateUser, async (c) => {
 		});
 	}
 
-	const updateData = await c.req.json();
+	const updateData = c.req.valid("json");
 
 	const userRecord = await db.query.user.findFirst({
 		where: {
@@ -256,7 +256,7 @@ user.openapi(updatePassword, async (c) => {
 		});
 	}
 
-	const { currentPassword, newPassword } = await c.req.json();
+	const { currentPassword, newPassword } = c.req.valid("json");
 
 	const cookieHeader = c.req.raw.headers.get("cookie");
 	const sessionToken = cookieHeader

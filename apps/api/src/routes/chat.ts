@@ -20,7 +20,7 @@ const chatCompletionSchema = z.object({
 
 chat.post("/completion", async (c) => {
 	try {
-		const body = await c.req.json();
+		const body = c.req.valid("json");
 		const { messages, model, stream, apiKey } =
 			chatCompletionSchema.parse(body);
 

@@ -93,7 +93,7 @@ projects.openapi(updateProject, async (c) => {
 	}
 
 	const { id } = c.req.param();
-	const { cachingEnabled, cacheDurationSeconds, mode } = await c.req.json();
+	const { cachingEnabled, cacheDurationSeconds, mode } = c.req.valid("json");
 
 	const userOrgs = await db.query.userOrganization.findMany({
 		where: {
@@ -205,7 +205,7 @@ projects.openapi(createProject, async (c) => {
 		});
 	}
 
-	const body = await c.req.json();
+	const body = c.req.valid("json");
 	const {
 		name,
 		organizationId,
