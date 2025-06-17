@@ -78,7 +78,7 @@
 		"zod": "3.24.3"
 	},
 	"devDependencies": {
-		"@tailwindcss/vite": "^4.1.4",
+		"@tailwindcss/vite": "^4.1.10",
 		"@tanstack/react-query-devtools": "^5.80.6",
 		"@tanstack/react-router-devtools": "^1.120.3",
 		"@types/react": "^19.1.7",
