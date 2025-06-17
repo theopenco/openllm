@@ -5,6 +5,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
 import type { ServerTypes } from "../vars";
+import type { ProviderId } from "@llmgateway/models";
 
 export const keysProvider = new OpenAPIHono<ServerTypes>();
 
@@ -151,8 +152,12 @@ keysProvider.openapi(create, async (c) => {
 	try {
 		const isTestEnv =
 			process.env.NODE_ENV === "test" && process.env.E2E_TEST !== "true";
+		// Validate that provider is one of the allowed provider IDs
+		if (!providers.some((p) => p.id === provider) && provider !== "custom") {
+			throw new Error(`Invalid provider: ${provider}`);
+		}
 		validationResult = await validateProviderKey(
-			provider as any,
+			provider as ProviderId,
 			userToken,
 			baseUrl,
 			isTestEnv,
