@@ -210,7 +210,7 @@ organization.openapi(createOrganization, async (c) => {
 		});
 	}
 
-	const { name } = await c.req.json();
+	const { name } = c.req.valid("json");
 
 	const [newOrganization] = await db
 		.insert(tables.organization)
