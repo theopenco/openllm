@@ -152,7 +152,7 @@ keysProvider.openapi(create, async (c) => {
 		const isTestEnv =
 			process.env.NODE_ENV === "test" && process.env.E2E_TEST !== "true";
 		validationResult = await validateProviderKey(
-			provider,
+			provider as any,
 			userToken,
 			baseUrl,
 			isTestEnv,
