@@ -43,7 +43,7 @@ const createProSubscription = createRoute({
 
 subscriptions.openapi(createProSubscription, async (c) => {
 	const user = c.get("user");
-	const { billingCycle } = await c.req.json();
+	const { billingCycle } = c.req.valid("json");
 
 	if (!user) {
 		throw new HTTPException(401, {

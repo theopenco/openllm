@@ -1,4 +1,4 @@
-import { OpenAPIHono } from "@hono/zod-openapi";
+import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
 import { streamSSE } from "hono/streaming";
 import { z } from "zod";
 
@@ -18,11 +18,29 @@ const chatCompletionSchema = z.object({
 	apiKey: z.string().optional(), // Optional user API key
 });
 
-chat.post("/completion", async (c) => {
+const completionRoute = createRoute({
+	method: "post",
+	path: "/completion",
+	request: {
+		body: {
+			content: {
+				"application/json": {
+					schema: chatCompletionSchema,
+				},
+			},
+		},
+	},
+	responses: {
+		200: {
+			description: "Chat completion response",
+		},
+	},
+});
+
+chat.openapi(completionRoute, async (c) => {
 	try {
-		const body = await c.req.json();
-		const { messages, model, stream, apiKey } =
-			chatCompletionSchema.parse(body);
+		const body = c.req.valid("json");
+		const { messages, model, stream, apiKey } = body;
 
 		// Require user to provide their own API key
 		if (!apiKey) {

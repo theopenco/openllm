@@ -5,6 +5,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
 import type { ServerTypes } from "../vars";
+import type { ProviderId } from "@llmgateway/models";
 
 export const keysProvider = new OpenAPIHono<ServerTypes>();
 
@@ -84,7 +85,7 @@ keysProvider.openapi(create, async (c) => {
 		token: userToken,
 		baseUrl,
 		organizationId,
-	} = await c.req.json();
+	} = c.req.valid("json");
 
 	// Verify the user has access to this organization
 	const userOrgs = await db.query.userOrganization.findMany({
@@ -151,8 +152,12 @@ keysProvider.openapi(create, async (c) => {
 	try {
 		const isTestEnv =
 			process.env.NODE_ENV === "test" && process.env.E2E_TEST !== "true";
+		// Validate that provider is one of the allowed provider IDs
+		if (!providers.some((p) => p.id === provider) && provider !== "custom") {
+			throw new Error(`Invalid provider: ${provider}`);
+		}
 		validationResult = await validateProviderKey(
-			provider,
+			provider as ProviderId,
 			userToken,
 			baseUrl,
 			isTestEnv,
@@ -437,7 +442,7 @@ keysProvider.openapi(updateStatus, async (c) => {
 	}
 
 	const { id } = c.req.param();
-	const { status } = await c.req.json();
+	const { status } = c.req.valid("json");
 
 	// Get the user's projects
 	const userOrgs = await db.query.userOrganization.findMany({

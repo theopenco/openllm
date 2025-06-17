@@ -1767,6 +1767,53 @@ export interface paths {
 		patch?: never;
 		trace?: never;
 	};
+	"/chat/completion": {
+		parameters: {
+			query?: never;
+			header?: never;
+			path?: never;
+			cookie?: never;
+		};
+		get?: never;
+		put?: never;
+		post: {
+			parameters: {
+				query?: never;
+				header?: never;
+				path?: never;
+				cookie?: never;
+			};
+			requestBody?: {
+				content: {
+					"application/json": {
+						messages: {
+							/** @enum {string} */
+							role: "user" | "assistant" | "system";
+							content: string;
+						}[];
+						model: string;
+						/** @default false */
+						stream?: boolean;
+						apiKey?: string;
+					};
+				};
+			};
+			responses: {
+				/** @description Chat completion response */
+				200: {
+					headers: {
+						[name: string]: unknown;
+					};
+					content?: never;
+				};
+			};
+		};
+		delete?: never;
+		options?: never;
+		head?: never;
+		patch?: never;
+		trace?: never;
+	};
 	"/chats": {
 		parameters: {
 			query?: never;
