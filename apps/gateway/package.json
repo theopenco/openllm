@@ -17,7 +17,7 @@
 		"@hono/node-server": "^1.14.1",
 		"@hono/swagger-ui": "^0.5.1",
 		"@hono/zod-openapi": "^0.19.6",
-		"@hono/zod-validator": "^0.5.0",
+		"@hono/zod-validator": "^0.7.0",
 		"@llmgateway/db": "workspace:*",
 		"@llmgateway/models": "workspace:*",
 		"gpt-tokenizer": "2.9.0",
