@@ -46,8 +46,8 @@ jobs:
             ghcr.io/${{ github.repository }}-${{ matrix.app }}:${{ steps.get_sha.outputs.short_sha }}
             ghcr.io/${{ github.repository }}-${{ matrix.app }}:latest
           target: ${{ matrix.app }}
-          cache-from: type=gha,scope=split
-          cache-to: type=gha,mode=max,scope=split
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}
           build-args: |
             VITE_API_URL=${{ secrets.API_URL }}
             VITE_DOCS_URL=${{ secrets.DOCS_URL }}
