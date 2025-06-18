@@ -161,6 +161,7 @@ describe("e2e tests with real provider keys", () => {
 
 	test.each(testModels)(
 		"/v1/chat/completions with $model",
+		getTestOptions(),
 		async ({ model }) => {
 			const res = await app.request("/v1/chat/completions", {
 				method: "POST",
@@ -196,11 +197,11 @@ describe("e2e tests with real provider keys", () => {
 			// expect(log.outputCost).not.toBeNull();
 			// expect(log.cost).not.toBeNull();
 		},
-		getTestOptions(),
 	);
 
 	test.each(streamingModels)(
 		"/v1/chat/completions streaming with $model",
+		getTestOptions(),
 		async ({ model }) => {
 			const res = await app.request("/v1/chat/completions", {
 				method: "POST",
@@ -291,7 +292,6 @@ describe("e2e tests with real provider keys", () => {
 			// expect(log.cost).not.toBeNull();
 			// expect(log.cost).toBeGreaterThanOrEqual(0);
 		},
-		getTestOptions(),
 	);
 
 	test.each(
@@ -301,6 +301,7 @@ describe("e2e tests with real provider keys", () => {
 		}),
 	)(
 		"/v1/chat/completions with JSON output mode for $model",
+		getTestOptions(),
 		async ({ model }) => {
 			const res = await app.request("/v1/chat/completions", {
 				method: "POST",
@@ -336,7 +337,6 @@ describe("e2e tests with real provider keys", () => {
 			const parsedContent = JSON.parse(content);
 			expect(parsedContent).toHaveProperty("message");
 		},
-		getTestOptions(),
 	);
 
 	test("JSON output mode error for unsupported model", async () => {

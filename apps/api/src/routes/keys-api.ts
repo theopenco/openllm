@@ -115,7 +115,9 @@ keysApi.openapi(create, async (c) => {
 	}
 
 	// Generate a token with a prefix for better identification
-	const token = `llmgtwy_` + shortid(40);
+	const prefix =
+		process.env.NODE_ENV === "development" ? `llmgdev_` : "llmgtwy_";
+	const token = prefix + shortid(40);
 
 	// Create the API key
 	const [apiKey] = await db
@@ -219,7 +221,7 @@ keysApi.openapi(list, async (c) => {
 	return c.json({
 		apiKeys: apiKeys.map((key) => ({
 			...key,
-			maskedToken: `${key.token.substring(0, 10)}•••••••••••`,
+			maskedToken: `${key.token.substring(0, 12)}•••••••••••`,
 			token: undefined,
 		})),
 	});
@@ -452,7 +454,7 @@ keysApi.openapi(updateStatus, async (c) => {
 		message: `API key status updated to ${status}`,
 		apiKey: {
 			...updatedApiKey,
-			maskedToken: `${updatedApiKey.token.substring(0, 8)}•••••••••••`,
+			maskedToken: `${updatedApiKey.token.substring(0, 12)}•••••••••••`,
 			token: undefined,
 		},
 	});
