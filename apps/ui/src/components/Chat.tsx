@@ -8,6 +8,7 @@ import { Card } from "@/lib/components/card";
 import { Input } from "@/lib/components/input";
 import { ScrollArea } from "@/lib/components/scroll-area";
 import { toast } from "@/lib/components/use-toast";
+import { API_URL } from "@/lib/env";
 
 interface Message {
 	role: "user" | "assistant";
@@ -37,7 +38,8 @@ export function Chat() {
 		setIsLoading(true);
 
 		try {
-			const response = await fetch("/api/chat/completion", {
+			const response = await fetch(API_URL + "/chat/completion", {
+				credentials: "include",
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",

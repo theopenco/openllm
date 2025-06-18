@@ -16,6 +16,7 @@ import {
 } from "@/hooks/useChats";
 import { useUser } from "@/hooks/useUser";
 import { SidebarProvider } from "@/lib/components/sidebar";
+import { API_URL } from "@/lib/env";
 import { $api } from "@/lib/fetch-client";
 
 export interface Message {
@@ -167,7 +168,8 @@ function RouteComponent() {
 			});
 
 			const supportsStreaming = getModelStreamingSupport(selectedModel);
-			const response = await fetch("/api/chat/completion", {
+			const response = await fetch(API_URL + "/chat/completion", {
+				credentials: "include",
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
