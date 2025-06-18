@@ -4,6 +4,8 @@ import { providers, validateProviderKey } from "@llmgateway/models";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
+import { maskToken } from "../lib/maskToken";
+
 import type { ServerTypes } from "../vars";
 import type { ProviderId } from "@llmgateway/models";
 
@@ -267,7 +269,7 @@ keysProvider.openapi(list, async (c) => {
 	return c.json({
 		providerKeys: providerKeys.map((key) => ({
 			...key,
-			maskedToken: `${key.token.substring(0, 12)}•••••••••••`,
+			maskedToken: maskToken(key.token),
 			token: undefined,
 		})),
 	});
@@ -496,7 +498,7 @@ keysProvider.openapi(updateStatus, async (c) => {
 		message: `Provider key status updated to ${status}`,
 		providerKey: {
 			...updatedProviderKey,
-			maskedToken: `${updatedProviderKey.token.substring(0, 12)}•••••••••••`,
+			maskedToken: maskToken(updatedProviderKey.token),
 			token: undefined,
 		},
 	});
