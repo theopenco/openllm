@@ -56,6 +56,8 @@ jobs:
             - Security concerns
             - Test coverage
 
+            Only comment when something is off, wrong, or could be improved; if a given implementation is already perfect do not comment on it.
+
             Remember the following:
             1. **Start a review**: Use `mcp__github__create_pending_pull_request_review` to begin a pending review
             2. **Get diff information**: Use `mcp__github__get_pull_request_diff` to understand the code changes and line numbers
