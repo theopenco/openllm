@@ -47,9 +47,6 @@ jobs:
         with:
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_API_KEY }}
 
-          # Optional: Specify model (defaults to Claude Sonnet 4, uncomment for Claude Opus 4)
-          # model: "claude-opus-4-20250514"
-
           # Direct prompt for automated review (no @claude mention needed)
           direct_prompt: |
             Please review this pull request and provide feedback on:
@@ -59,24 +56,17 @@ jobs:
             - Security concerns
             - Test coverage
 
-            Be constructive and helpful in your feedback.
+            Remember the following:
+            1. **Start a review**: Use `mcp__github__create_pending_pull_request_review` to begin a pending review
+            2. **Get diff information**: Use `mcp__github__get_pull_request_diff` to understand the code changes and line numbers
+            3. **Add inline comments**: Use `mcp__github__add_pull_request_review_comment_to_pending_review` for each specific piece of feedback on particular lines, including code change suggestions where appropriate
+            4. **Submit the review**: Use `mcp__github__submit_pending_pull_request_review` with event type "COMMENT" (not "REQUEST_CHANGES") to publish all comments as a non-blocking review
 
-          # Optional: Customize review based on file types
-          # direct_prompt: |
-          #   Review this PR focusing on:
-          #   - For TypeScript files: Type safety and proper interface usage
-          #   - For API endpoints: Security, input validation, and error handling
-          #   - For React components: Performance, accessibility, and best practices
-          #   - For tests: Coverage, edge cases, and test quality
+            Provide specific, actionable feedback with inline comments for line-specific issues and include an overall summary when submitting the review.
 
-          # Optional: Different prompts for different authors
-          # direct_prompt: |
-          #   ${{ github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR' &&
-          #   'Welcome! Please review this PR from a first-time contributor. Be encouraging and provide detailed explanations for any suggestions.' ||
-          #   'Please provide a thorough code review focusing on our coding standards and best practices.' }}
+            **Important**: Submit as "COMMENT" type so the review doesn't block the PR.
 
-          # Optional: Add specific tools for running tests or linting
-          # allowed_tools: "Bash(npm run test),Bash(npm run lint),Bash(npm run typecheck)"
+          allowed_tools: "Bash(npm run test),Bash(npm run lint),Bash(npm run typecheck),mcp__github__create_pending_pull_request_review,mcp__github__add_pull_request_review_comment_to_pending_review,mcp__github__submit_pending_pull_request_review,mcp__github__get_pull_request_diff,Bash(bin/test),Bash(bin/go-lint),Bash(bazel test //...),Bash(bazel build //...)"
 
           # Optional: Skip review for certain conditions
           # if: |
