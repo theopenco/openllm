@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { toast } from "@/lib/components/use-toast";
+import { API_URL } from "@/lib/env";
 
 export interface Chat {
 	id: string;
@@ -20,11 +21,9 @@ export interface ChatMessage {
 	createdAt: string;
 }
 
-const API_BASE = "/api";
-
 // Helper function for authenticated fetch
 async function authFetch(url: string, options: RequestInit = {}) {
-	const response = await fetch(`${API_BASE}${url}`, {
+	const response = await fetch(`${API_URL}${url}`, {
 		...options,
 		headers: {
 			"Content-Type": "application/json",
