@@ -34,7 +34,7 @@ jobs:
         run: |
           AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae')
           AUTHOR_NAME=$(git log -1 --pretty=format:'%an')
-          if [[ "$AUTHOR_EMAIL" == *"noreply@anthropic.com"* ]] || [[ "$AUTHOR_NAME" == *"Claude"* ]]; then
+          if [[ "$AUTHOR_EMAIL" == *"claude[bot]"* ]] || [[ "$AUTHOR_NAME" == *"claude[bot]"* ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT
           else
             echo "skip=false" >> $GITHUB_OUTPUT
