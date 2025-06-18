@@ -74,7 +74,7 @@ jobs:
 
             **Important**: Submit as "COMMENT" type so the review doesn't block the PR.
 
-          allowed_tools: "Bash(npm run test),Bash(npm run lint),Bash(npm run typecheck),mcp__github__create_pending_pull_request_review,mcp__github__add_pull_request_review_comment_to_pending_review,mcp__github__submit_pending_pull_request_review,mcp__github__get_pull_request_diff,Bash(bin/test),Bash(bin/go-lint),Bash(bazel test //...),Bash(bazel build //...)"
+          allowed_tools: "Bash(npm run test),Bash(npm run lint),Bash(npm run typecheck),mcp__github__create_pending_pull_request_review,mcp__github__add_pull_request_review_comment_to_pending_review,mcp__github__submit_pending_pull_request_review,mcp__github__get_pull_request_diff"
 
           # Optional: Skip review for certain conditions
           # if: |
