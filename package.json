@@ -15,6 +15,7 @@
 		"postinstall": "husky && sync-editorconfig || true",
 		"lint": "eslint . && prettier --check .",
 		"migrate": "pnpm --filter db migrate",
+		"prepare-codex": "mv ~/.nvm ~/.nvm-bak && export PATH=\"${ASDF_DATA_DIR:-$HOME/.asdf}/shims:$PATH\" && source ~/.bashrc && sudo service postgresql start && sudo service redis-server start && sleep 20 && pnpm sync",
 		"push-dev": "pnpm --filter db push",
 		"push-test": "cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5432/test}\" pnpm --filter db push",
 		"reset": "pnpm --filter db reset",
@@ -22,7 +23,6 @@
 		"setup": "docker compose down -v && docker compose up -d && sleep 5 && pnpm push-test && pnpm push-dev && pnpm seed",
 		"sync": "pnpm push-dev; pnpm push-test",
 		"test:e2e": "cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5432/test}\" E2E_TEST=true vitest run -c vitest/vitest.e2e.config.mts --no-file-parallelism",
-		"test:prepare": "sudo service postgresql start && sudo service redis-server start && sleep 20 && pnpm sync",
 		"test:unit": "cross-env-shell \"DATABASE_URL=${DATABASE_URL:-postgres://postgres:pw@localhost:5432/test}\" vitest run --no-file-parallelism"
 	},
 	"commitlint": {
