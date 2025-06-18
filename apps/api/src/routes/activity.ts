@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { db, sql } from "@llmgateway/db";
+import { db } from "@llmgateway/db";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
@@ -45,6 +45,7 @@ const getActivity = createRoute({
 				.string()
 				.transform((val) => parseInt(val, 10))
 				.pipe(z.number().int().positive()),
+			projectId: z.string().optional(),
 		}),
 	},
 	responses: {
@@ -71,7 +72,7 @@ activity.openapi(getActivity, async (c) => {
 	}
 
 	// Get the days parameter from the query
-	const { days } = c.req.valid("query");
+	const { days, projectId } = c.req.valid("query");
 
 	// Calculate the date range
 	const endDate = new Date();
@@ -106,6 +107,7 @@ activity.openapi(getActivity, async (c) => {
 			status: {
 				ne: "deleted",
 			},
+			...(projectId ? { id: projectId } : {}),
 		},
 	});
 
@@ -117,45 +119,36 @@ activity.openapi(getActivity, async (c) => {
 
 	const projectIds = projects.map((project) => project.id);
 
-	// Query logs and group by day using raw SQL
-	const result = await db.execute(sql`
-		SELECT
-			DATE("created_at")                    as date,
-			"used_model"                          as "usedModel",
-			"used_provider"                       as "usedProvider",
-			COALESCE(SUM("prompt_tokens"), 0)     as "promptTokens",
-			COALESCE(SUM("completion_tokens"), 0) as "completionTokens",
-			COALESCE(SUM("total_tokens"), 0)      as "totalTokens",
-			COALESCE(SUM("cost"), 0)              as "cost",
-			COALESCE(SUM("input_cost"), 0)        as "inputCost",
-			COALESCE(SUM("output_cost"), 0)       as "outputCost",
-			COUNT(*)                              as "requestCount",
-			COALESCE(SUM(CASE WHEN "has_error" = true THEN 1 ELSE 0 END), 0) as "errorCount",
-			COALESCE(SUM(CASE WHEN "cached" = true THEN 1 ELSE 0 END), 0) as "cacheCount"
-		FROM "log"
-		WHERE "project_id" IN (${sql.join(projectIds)})
-			AND "created_at" >= ${startDate}
-			AND "created_at" <= ${endDate}
-		GROUP BY DATE("created_at"), "used_model", "used_provider"
-		ORDER BY DATE("created_at"), "used_model"
-	`);
+	if (projectId && !projectIds.includes(projectId)) {
+		throw new HTTPException(403, {
+			message: "You don't have access to this project",
+		});
+	}
 
-	// The result from db.execute() is an object with rows property
-	const rawLogs = result.rows;
+	// Query logs for all projects in range
+	const rawLogs = await db.query.log.findMany({
+		where: {
+			projectId: { in: projectIds },
+			createdAt: {
+				gte: startDate,
+				lte: endDate,
+			},
+		},
+	});
 
 	// Process the raw logs to create the activity response
 	const activityMap = new Map<string, typeof dailyActivitySchema._type>();
 
 	for (const log of rawLogs) {
-		const promptTokens = Number(log.promptTokens);
-		const completionTokens = Number(log.completionTokens);
-		const totalTokens = Number(log.totalTokens);
-		const requestCount = Number(log.requestCount);
-		const totalCost = Number(log.cost);
-		const inputCost = Number(log.inputCost);
-		const outputCost = Number(log.outputCost);
+		const promptTokens = Number(log.promptTokens || 0);
+		const completionTokens = Number(log.completionTokens || 0);
+		const totalTokens = Number(log.totalTokens || 0);
+		const requestCount = 1;
+		const totalCost = Number(log.cost || 0);
+		const inputCost = Number(log.inputCost || 0);
+		const outputCost = Number(log.outputCost || 0);
 
-		const dateStr = log.date as string; // (YYYY-MM-DD)
+		const dateStr = log.createdAt.toISOString().split("T")[0];
 
 		// Create or update the day entry
 		if (!activityMap.has(dateStr)) {
@@ -186,8 +179,8 @@ activity.openapi(getActivity, async (c) => {
 		dayData.cost += totalCost;
 		dayData.inputCost += inputCost;
 		dayData.outputCost += outputCost;
-		dayData.errorCount += Number(log.errorCount || 0);
-		dayData.cacheCount += Number(log.cacheCount || 0);
+		dayData.errorCount += log.hasError ? 1 : 0;
+		dayData.cacheCount += log.cached ? 1 : 0;
 		dayData.errorRate =
 			dayData.requestCount > 0
 				? (dayData.errorCount / dayData.requestCount) * 100
