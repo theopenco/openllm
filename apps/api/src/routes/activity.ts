@@ -139,7 +139,10 @@ activity.openapi(getActivity, async (c) => {
 	// Process the raw logs to create the activity response
 	const activityMap = new Map<string, typeof dailyActivitySchema._type>();
 	// Map to track model breakdown aggregation per day: dateStr -> modelKey -> aggregated data
-	const modelBreakdownMap = new Map<string, Map<string, typeof modelUsageSchema._type>>();
+	const modelBreakdownMap = new Map<
+		string,
+		Map<string, typeof modelUsageSchema._type>
+	>();
 
 	for (const log of rawLogs) {
 		const promptTokens = Number(log.promptTokens || 0);
@@ -195,8 +198,8 @@ activity.openapi(getActivity, async (c) => {
 				: 0;
 
 		// Aggregate model breakdown data
-		const model = log.usedModel || 'unknown';
-		const provider = log.usedProvider || 'unknown';
+		const model = log.usedModel || "unknown";
+		const provider = log.usedProvider || "unknown";
 		const modelKey = `${model}:${provider}`;
 
 		if (!dayModelMap.has(modelKey)) {
