@@ -26,7 +26,6 @@ Always run `pnpm format` before committing code. Run `pnpm generate` if API rout
 
 ### Testing
 
-- `pnpm test` - Run unit tests (alias for `pnpm test:unit`)
 - `pnpm test:unit` - Run unit tests (\*.spec.ts files)
 - `pnpm test:e2e` - Run end-to-end tests (\*.e2e.ts files)
 
@@ -102,7 +101,7 @@ Always run `pnpm format` before committing code. Run `pnpm generate` if API rout
 
 ### Testing and Quality Assurance
 
-- Run `pnpm test` and `pnpm test:e2e` after adding features
+- Run `pnpm test:unit` and `pnpm test:e2e` after adding features
 - Run `pnpm build` to ensure production builds work
 - Run `pnpm format` after code changes
 - Run `pnpm generate` after API route changes to update OpenAPI schemas
