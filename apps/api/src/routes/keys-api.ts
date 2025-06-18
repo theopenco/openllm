@@ -115,7 +115,9 @@ keysApi.openapi(create, async (c) => {
 	}
 
 	// Generate a token with a prefix for better identification
-	const token = `llmgtwy_` + shortid(40);
+	const prefix =
+		process.env.NODE_ENV === "development" ? `llmgdev_` : "llmgtwy_";
+	const token = prefix + shortid(40);
 
 	// Create the API key
 	const [apiKey] = await db
