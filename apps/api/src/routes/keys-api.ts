@@ -221,7 +221,7 @@ keysApi.openapi(list, async (c) => {
 	return c.json({
 		apiKeys: apiKeys.map((key) => ({
 			...key,
-			maskedToken: `${key.token.substring(0, 10)}•••••••••••`,
+			maskedToken: `${key.token.substring(0, 12)}•••••••••••`,
 			token: undefined,
 		})),
 	});
@@ -454,7 +454,7 @@ keysApi.openapi(updateStatus, async (c) => {
 		message: `API key status updated to ${status}`,
 		apiKey: {
 			...updatedApiKey,
-			maskedToken: `${updatedApiKey.token.substring(0, 8)}•••••••••••`,
+			maskedToken: `${updatedApiKey.token.substring(0, 12)}•••••••••••`,
 			token: undefined,
 		},
 	});

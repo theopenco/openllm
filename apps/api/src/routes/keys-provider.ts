@@ -267,7 +267,7 @@ keysProvider.openapi(list, async (c) => {
 	return c.json({
 		providerKeys: providerKeys.map((key) => ({
 			...key,
-			maskedToken: `${key.token.substring(0, 10)}•••••••••••`,
+			maskedToken: `${key.token.substring(0, 12)}•••••••••••`,
 			token: undefined,
 		})),
 	});
@@ -496,7 +496,7 @@ keysProvider.openapi(updateStatus, async (c) => {
 		message: `Provider key status updated to ${status}`,
 		providerKey: {
 			...updatedProviderKey,
-			maskedToken: `${updatedProviderKey.token.substring(0, 8)}•••••••••••`,
+			maskedToken: `${updatedProviderKey.token.substring(0, 12)}•••••••••••`,
 			token: undefined,
 		},
 	});
