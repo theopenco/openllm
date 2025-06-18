@@ -193,6 +193,17 @@ describe("e2e tests with real provider keys", () => {
 			const log = await validateLogs();
 			expect(log.streamed).toBe(false);
 
+			expect(json).toHaveProperty("usage");
+			expect(json.usage).toHaveProperty("prompt_tokens");
+			expect(json.usage).toHaveProperty("completion_tokens");
+			expect(json.usage).toHaveProperty("total_tokens");
+			expect(typeof json.usage.prompt_tokens).toBe("number");
+			expect(typeof json.usage.completion_tokens).toBe("number");
+			expect(typeof json.usage.total_tokens).toBe("number");
+			expect(json.usage.prompt_tokens).toBeGreaterThan(0);
+			expect(json.usage.completion_tokens).toBeGreaterThan(0);
+			expect(json.usage.total_tokens).toBeGreaterThan(0);
+
 			// expect(log.inputCost).not.toBeNull();
 			// expect(log.outputCost).not.toBeNull();
 			// expect(log.cost).not.toBeNull();
