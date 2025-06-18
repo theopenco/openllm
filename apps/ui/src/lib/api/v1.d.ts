@@ -447,6 +447,7 @@ export interface paths {
 			parameters: {
 				query: {
 					days: string;
+					projectId?: string;
 				};
 				header?: never;
 				path?: never;
