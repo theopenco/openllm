@@ -138,6 +138,8 @@ activity.openapi(getActivity, async (c) => {
 
 	// Process the raw logs to create the activity response
 	const activityMap = new Map<string, typeof dailyActivitySchema._type>();
+	// Map to track model breakdown aggregation per day: dateStr -> modelKey -> aggregated data
+	const modelBreakdownMap = new Map<string, Map<string, typeof modelUsageSchema._type>>();
 
 	for (const log of rawLogs) {
 		const promptTokens = Number(log.promptTokens || 0);
@@ -167,9 +169,11 @@ activity.openapi(getActivity, async (c) => {
 				cacheRate: 0,
 				modelBreakdown: [],
 			});
+			modelBreakdownMap.set(dateStr, new Map());
 		}
 
 		const dayData = activityMap.get(dateStr)!;
+		const dayModelMap = modelBreakdownMap.get(dateStr)!;
 
 		// Update the day totals
 		dayData.requestCount += requestCount;
@@ -190,16 +194,35 @@ activity.openapi(getActivity, async (c) => {
 				? (dayData.cacheCount / dayData.requestCount) * 100
 				: 0;
 
-		// Add the model breakdown
-		dayData.modelBreakdown.push({
-			model: log.usedModel as any,
-			provider: log.usedProvider as any,
-			requestCount: requestCount,
-			inputTokens: promptTokens,
-			outputTokens: completionTokens,
-			totalTokens: totalTokens,
-			cost: totalCost,
-		});
+		// Aggregate model breakdown data
+		const model = log.usedModel || 'unknown';
+		const provider = log.usedProvider || 'unknown';
+		const modelKey = `${model}:${provider}`;
+
+		if (!dayModelMap.has(modelKey)) {
+			dayModelMap.set(modelKey, {
+				model,
+				provider,
+				requestCount: 0,
+				inputTokens: 0,
+				outputTokens: 0,
+				totalTokens: 0,
+				cost: 0,
+			});
+		}
+
+		const modelData = dayModelMap.get(modelKey)!;
+		modelData.requestCount += requestCount;
+		modelData.inputTokens += promptTokens;
+		modelData.outputTokens += completionTokens;
+		modelData.totalTokens += totalTokens;
+		modelData.cost += totalCost;
+	}
+
+	// Convert aggregated model data to arrays
+	for (const [dateStr, dayModelMap] of modelBreakdownMap) {
+		const dayData = activityMap.get(dateStr)!;
+		dayData.modelBreakdown = Array.from(dayModelMap.values());
 	}
 
 	// Convert the map to an array and sort by date
