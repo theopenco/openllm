@@ -12,12 +12,6 @@ on:
 
 jobs:
   claude-review:
-    # Optional: Filter by PR author
-    # if: |
-    #   github.event.pull_request.user.login == 'external-contributor' ||
-    #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,8 +25,20 @@ jobs:
         with:
           fetch-depth: 1
 
+      - name: Check if commit is from Claude
+        id: check-author
+        run: |
+          AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae')
+          AUTHOR_NAME=$(git log -1 --pretty=format:'%an')
+          if [[ "$AUTHOR_EMAIL" == *"noreply@anthropic.com"* ]] || [[ "$AUTHOR_NAME" == *"Claude"* ]]; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Run Claude Code Review
         id: claude-review
+        if: steps.check-author.outputs.skip != 'true'
         uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.CLAUDE_CODE_API_KEY }}
