@@ -181,6 +181,9 @@ function parseProviderResponse(usedProvider: Provider, json: any) {
 		case "google-ai-studio":
 			content = json.candidates?.[0]?.content?.parts?.[0]?.text || null;
 			finishReason = json.candidates?.[0]?.finishReason || null;
+			promptTokens = json.usageMetadata?.promptTokenCount || null;
+			completionTokens = json.usageMetadata?.candidatesTokenCount || null;
+			totalTokens = json.usageMetadata?.totalTokenCount || null;
 			break;
 		case "inference.net":
 		case "kluster.ai":
@@ -506,7 +509,14 @@ function transformStreamingChunkToOpenAIFormat(
 							finish_reason: null,
 						},
 					],
-					usage: null,
+					usage: data.usageMetadata
+						? {
+								prompt_tokens: data.usageMetadata.promptTokenCount || null,
+								completion_tokens:
+									data.usageMetadata.candidatesTokenCount || null,
+								total_tokens: data.usageMetadata.totalTokenCount || null,
+							}
+						: null,
 				};
 			} else if (data.candidates?.[0]?.finishReason) {
 				const finishReason = data.candidates[0].finishReason;
@@ -527,7 +537,14 @@ function transformStreamingChunkToOpenAIFormat(
 									: finishReason?.toLowerCase() || "stop",
 						},
 					],
-					usage: null,
+					usage: data.usageMetadata
+						? {
+								prompt_tokens: data.usageMetadata.promptTokenCount || null,
+								completion_tokens:
+									data.usageMetadata.candidatesTokenCount || null,
+								total_tokens: data.usageMetadata.totalTokenCount || null,
+							}
+						: null,
 				};
 			}
 			break;

@@ -685,7 +685,7 @@ async function readAll(stream: ReadableStream<Uint8Array> | null): Promise<{
 						) {
 							hasUsage = true;
 						}
-					} catch (_e) {}
+					} catch {}
 				}
 			}
 		}
