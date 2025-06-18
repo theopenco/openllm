@@ -85,5 +85,5 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}-unified:${{ steps.get_sha.outputs.short_sha }}
             ghcr.io/${{ github.repository }}-unified:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=unified
+          cache-to: type=gha,mode=max,scope=unified
