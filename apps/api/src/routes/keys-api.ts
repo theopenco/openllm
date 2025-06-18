@@ -3,6 +3,8 @@ import { eq, db, shortid, tables } from "@llmgateway/db";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 
+import { maskToken } from "../lib/maskToken";
+
 import type { ServerTypes } from "../vars";
 
 export const keysApi = new OpenAPIHono<ServerTypes>();
@@ -221,7 +223,7 @@ keysApi.openapi(list, async (c) => {
 	return c.json({
 		apiKeys: apiKeys.map((key) => ({
 			...key,
-			maskedToken: `${key.token.substring(0, 12)}•••••••••••`,
+			maskedToken: maskToken(key.token),
 			token: undefined,
 		})),
 	});
@@ -454,7 +456,7 @@ keysApi.openapi(updateStatus, async (c) => {
 		message: `API key status updated to ${status}`,
 		apiKey: {
 			...updatedApiKey,
-			maskedToken: `${updatedApiKey.token.substring(0, 12)}•••••••••••`,
+			maskedToken: maskToken(updatedApiKey.token),
 			token: undefined,
 		},
 	});
