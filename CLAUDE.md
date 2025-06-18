@@ -112,7 +112,7 @@ Always run `pnpm format` before committing code. Run `pnpm generate` if API rout
 - API: http://localhost:4002
 - Gateway: http://localhost:4001
 - Docs: http://localhost:3005
-- PostgreSQL: localhost:5389
+- PostgreSQL: localhost:5432
 - Redis: localhost:6379
 
 ## Key Features

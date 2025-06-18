@@ -4,7 +4,7 @@ import { relations } from "./relations";
 
 export const db = drizzle({
 	connection:
-		process.env.DATABASE_URL || "postgres://postgres:pw@localhost:5389/db",
+		process.env.DATABASE_URL || "postgres://postgres:pw@localhost:5432/db",
 	casing: "snake_case",
 	relations,
 });
