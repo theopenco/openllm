@@ -27,17 +27,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 2
 
-      - name: Check if commit is from Claude
+      - name: Check if most recent commit is from Claude
         id: check-author
         run: |
-          AUTHOR_EMAIL=$(git log -1 --pretty=format:'%ae')
-          AUTHOR_NAME=$(git log -1 --pretty=format:'%an')
+          # Get the most recent actual commit (HEAD~1 to skip the merge commit)
+          AUTHOR_EMAIL=$(git log HEAD~1 -1 --pretty=format:'%ae')
+          AUTHOR_NAME=$(git log HEAD~1 -1 --pretty=format:'%an')
+
+          echo "Most recent commit author: $AUTHOR_NAME <$AUTHOR_EMAIL>"
+
           if [[ "$AUTHOR_EMAIL" == *"claude[bot]"* ]] || [[ "$AUTHOR_NAME" == *"claude[bot]"* ]]; then
             echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Skipping review - most recent commit is from Claude"
           else
             echo "skip=false" >> $GITHUB_OUTPUT
+            echo "Proceeding with review - most recent commit is not from Claude"
           fi
 
       - name: Run Claude Code Review
