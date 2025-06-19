@@ -15,6 +15,7 @@ const menuItems = [
 	{ name: "Docs", href: DOCS_URL, external: true },
 	{ name: "Models", href: "/models", external: false },
 	{ name: "Playground", href: "/playground", external: false },
+	{ name: "Changelog", href: "/changelog", external: false },
 ];
 
 export const Navbar = () => {

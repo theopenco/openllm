@@ -71,7 +71,7 @@ export function Hero({ providerId }: HeroProps) {
 
 	return (
 		<div className="relative isolate overflow-hidden bg-background">
-			<div className="mx-auto max-w-7xl px-6 pb-24 pt-10 sm:pb-32 lg:flex lg:px-8 lg:py-40">
+			<div className="mx-auto container px-6 pb-24 pt-10 sm:pb-32 lg:flex lg:px-0 lg:py-40">
 				<div className="mx-auto max-w-2xl flex-shrink-0 lg:mx-0 lg:max-w-xl lg:pt-8">
 					{provider.announcement !== null && (
 						<div className="mt-24 sm:mt-32 lg:mt-16">

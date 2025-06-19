@@ -55,6 +55,14 @@ export default function Footer() {
 										Playground
 									</Link>
 								</li>
+								<li>
+									<Link
+										to="/changelog"
+										className="text-sm hover:text-black dark:hover:text-white"
+									>
+										Changelog
+									</Link>
+								</li>
 							</ul>
 						</div>
 
