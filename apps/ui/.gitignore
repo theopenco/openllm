@@ -8,3 +8,4 @@ dist-ssr
 .output
 .vinxi
 app.config.timestamp_*.js
+.content-collections

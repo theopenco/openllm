@@ -16,8 +16,14 @@
 		"types": ["vinxi/types/client", "vinxi/types/server"],
 		"paths": {
 			"@/*": ["./src/*"],
-			"@llmgateway/*": ["../../packages/*/src"]
+			"@llmgateway/*": ["../../packages/*/src"],
+			"content-collections": ["./.content-collections/generated"]
 		}
 	},
-	"include": ["./src/**/*.ts", "./src/**/*.tsx"]
+	"include": [
+		"./src/**/*.ts",
+		"./src/**/*.tsx",
+		"./src/types/**/*.d.ts",
+		"./.content-collections/generated/index.d.ts"
+	]
 }
