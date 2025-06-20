@@ -11,8 +11,6 @@ image:
   height: 400
 ---
 
-# Self-Hosting Just Got Easier
-
 We’ve revamped our [**self-hosting docs**](https://docs.llmgateway.io/self-host) to make it easier than ever to run LLM Gateway on your own terms.
 
 ## 🧱 Simplified Setup
