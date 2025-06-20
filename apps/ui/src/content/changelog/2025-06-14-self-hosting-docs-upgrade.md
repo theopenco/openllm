@@ -11,20 +11,25 @@ image:
   height: 400
 ---
 
-We’ve revamped our [**self-hosting docs**](https://docs.llmgateway.io/self-host) to make it easier than ever to run LLM Gateway on your own terms.
+We've revamped our [**self-hosting docs**](https://docs.llmgateway.io/self-host) to make it easier than ever to run LLM Gateway on your own terms.
 
-## 🧱 Simplified Setup
+## 🚀 Simple Setup with Docker
 
-- **Step-by-step instructions** – From Docker to domain setup
-- **Zero-config local testing** – Try everything on your machine first
-- **Production checklist** – Cover all security and scaling essentials
+Get started in seconds with our streamlined Docker approach:
 
-## 🛠️ Enterprise Ready
+- **One-command deployment** – Single Docker image gets you running instantly
+- **Zero-config local testing** – Try everything on your machine with minimal setup
+- **Quick prototyping** – Perfect for development and small team usage
 
-Ideal for orgs with compliance or latency needs:
+## 🏗️ Production-Grade with Docker Compose
 
-- **Custom model integrations** – Add your private endpoints
-- **API key proxying** – Route and monitor team usage easily
-- **Audit logs & role controls** – Full control over access
+For teams ready to scale and organizations with enterprise needs:
 
-Whether you're scaling to thousands of requests or just want local control – LLM Gateway now makes it easier to go self-hosted.
+- **Multi-service** – Database, Redis, Gateway, API, Docs, and UI in separate containers
+- **Keys** – Centralized key management via .env var
+
+All of the docker images are public so you can fully customize the hosting to your needs.
+
+Whether you're just getting started with a single Docker command or building a production-grade deployment with Docker Compose – LLM Gateway now makes it easier to go self-hosted at any scale.
+
+Get started in less than a minute here: [**self-hosting docs**](https://docs.llmgateway.io/self-host)
