@@ -20,5 +20,10 @@
 			"content-collections": ["./.content-collections/generated"]
 		}
 	},
-	"include": ["./src/**/*.ts", "./src/**/*.tsx"]
+	"include": [
+		"./src/**/*.ts",
+		"./src/**/*.tsx",
+		"./src/types/**/*.d.ts",
+		"./.content-collections/generated/index.d.ts"
+	]
 }

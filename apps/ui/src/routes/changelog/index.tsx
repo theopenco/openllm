@@ -1,13 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { allChangelogs } from "content-collections";
+import { allChangelogs, type Changelog } from "content-collections";
 
 import { ChangelogComponent } from "@/components/changelog";
 
 export const Route = createFileRoute("/changelog/")({
 	loader: async () => {
 		const sortedEntries = allChangelogs
-			.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-			.map(({ content, ...entry }) => entry);
+			.sort(
+				(a: Changelog, b: Changelog) =>
+					new Date(b.date).getTime() - new Date(a.date).getTime(),
+			)
+			.map(({ content, ...entry }: Changelog) => entry);
 		return { entries: sortedEntries };
 	},
 	head: () => ({

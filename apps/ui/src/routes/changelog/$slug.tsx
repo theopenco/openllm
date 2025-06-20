@@ -1,6 +1,6 @@
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { Link } from "@tanstack/react-router";
-import { allChangelogs } from "content-collections";
+import { allChangelogs, type Changelog } from "content-collections";
 import { ArrowLeftIcon } from "lucide-react";
 import Markdown from "markdown-to-jsx";
 
@@ -10,7 +10,9 @@ import { getMarkdownOptions } from "@/lib/utils/markdown";
 
 export const Route = createFileRoute("/changelog/$slug")({
 	loader: async ({ params }) => {
-		const entry = allChangelogs.find((entry) => entry.slug === params.slug);
+		const entry = allChangelogs.find(
+			(entry: Changelog) => entry.slug === params.slug,
+		);
 		if (!entry) {
 			throw notFound();
 		}
