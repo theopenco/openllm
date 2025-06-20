@@ -1,9 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { use } from "react";
 
 import { AppHeader } from "./app-header";
 import Footer from "@/components/landing/footer";
-import { getChangelogList } from "@/lib/data/changelog-loader";
 
 import type { ChangelogFrontmatter } from "@/lib/utils/markdown";
 
@@ -12,7 +10,7 @@ interface ChangelogComponentProps {
 }
 
 export function ChangelogComponent({ entries }: ChangelogComponentProps = {}) {
-	const changelogEntries = entries || use(getChangelogList());
+	const changelogEntries = entries || [];
 
 	return (
 		<div className="bg-[#0B0B0B] text-gray-50 min-h-screen font-sans">
