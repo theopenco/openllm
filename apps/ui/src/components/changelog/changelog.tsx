@@ -13,11 +13,11 @@ export function ChangelogComponent({ entries }: ChangelogComponentProps = {}) {
 	const changelogEntries = entries || [];
 
 	return (
-		<div className="bg-[#0B0B0B] text-gray-50 min-h-screen font-sans">
+		<div className="bg-background text-foreground min-h-screen font-sans">
 			<AppHeader />
 			<main className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
 				<div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 md:mb-16">
-					<h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-4 md:mb-0">
+					<h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground mb-4 md:mb-0">
 						Changelog
 					</h1>
 					{/* <Button
@@ -37,7 +37,7 @@ export function ChangelogComponent({ entries }: ChangelogComponentProps = {}) {
 						>
 							<time
 								dateTime={entry.date}
-								className="text-sm text-gray-400 md:text-right pt-1"
+								className="text-sm text-muted-foreground md:text-right pt-1"
 							>
 								{new Date(entry.date).toLocaleDateString("en-US", {
 									year: "numeric",
@@ -47,23 +47,23 @@ export function ChangelogComponent({ entries }: ChangelogComponentProps = {}) {
 							</time>
 							<div className="space-y-8">
 								<div className="space-y-4">
-									<h2 className="text-2xl font-medium text-white hover:text-gray-300 transition-colors">
+									<h2 className="text-2xl font-medium text-foreground hover:text-muted-foreground transition-colors">
 										<Link to="/changelog/$slug" params={{ slug: entry.slug }}>
 											{entry.title}
 										</Link>
 									</h2>
-									<p className="text-gray-300 leading-relaxed">
+									<p className="text-muted-foreground leading-relaxed">
 										{entry.summary}
 									</p>
 									<Link
 										to="/changelog/$slug"
 										params={{ slug: entry.slug }}
-										className="text-sm text-purple-400 hover:text-purple-300"
+										className="text-sm text-primary hover:text-primary/80"
 									>
 										Read more &rarr;
 									</Link>
 								</div>
-								<div className="bg-[#141414] border border-gray-800 rounded-lg overflow-hidden">
+								<div className="bg-card border border-border rounded-lg overflow-hidden">
 									<Link to="/changelog/$slug" params={{ slug: entry.slug }}>
 										<img
 											src={entry.image.src}
