@@ -85,13 +85,13 @@ function ChangelogEntryPage() {
 	const { entry } = Route.useLoaderData();
 
 	return (
-		<div className="bg-[#0B0B0B] text-gray-50 min-h-screen font-sans">
+		<div className="bg-background text-foreground min-h-screen font-sans">
 			<AppHeader />
 			<main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
 				<div className="mb-8">
 					<Link
 						to="/changelog"
-						className="inline-flex items-center text-sm text-gray-300 hover:text-white transition-colors"
+						className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground transition-colors"
 					>
 						<ArrowLeftIcon className="h-4 w-4 mr-2" />
 						Back to Changelog
@@ -100,23 +100,26 @@ function ChangelogEntryPage() {
 
 				<article className="space-y-8">
 					<header className="space-y-2">
-						<time dateTime={entry.date} className="text-sm text-gray-400">
+						<time
+							dateTime={entry.date}
+							className="text-sm text-muted-foreground"
+						>
 							{new Date(entry.date).toLocaleDateString("en-US", {
 								year: "numeric",
 								month: "long",
 								day: "numeric",
 							})}
 						</time>
-						<h1 className="text-3xl md:text-4xl font-bold tracking-tight text-white">
+						<h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
 							{entry.title}
 						</h1>
 					</header>
 
-					<div className="prose prose-invert prose-sm sm:prose-base lg:prose-lg max-w-none text-gray-300 leading-relaxed space-y-6">
+					<div className="prose prose-neutral dark:prose-invert prose-sm sm:prose-base lg:prose-lg max-w-none text-muted-foreground leading-relaxed space-y-6">
 						<Markdown options={getMarkdownOptions()}>{entry.content}</Markdown>
 					</div>
 
-					<div className="bg-[#141414] border border-gray-800 rounded-lg overflow-hidden mt-8">
+					<div className="bg-card border border-border rounded-lg overflow-hidden mt-8">
 						<img
 							src={entry.image.src}
 							alt={entry.image.alt}
