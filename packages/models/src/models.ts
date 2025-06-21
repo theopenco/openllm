@@ -483,6 +483,19 @@ export let models = [
 		],
 	},
 	{
+		model: "llama-4-maverick-17b-128e-instruct",
+		providers: [
+			{
+				providerId: "cloudrift",
+				modelName: "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+				inputPrice: 0.1 / 1e6,
+				outputPrice: 0.35 / 1e6,
+				contextSize: 1_050_000,
+				streaming: true,
+			},
+		],
+	},
+	{
 		model: "mistral-large-latest",
 		providers: [
 			{
